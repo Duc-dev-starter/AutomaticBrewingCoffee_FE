@@ -1,6 +1,5 @@
-import AdminSearchbar from "@/components/admin-searchbar"
-import { AdminSidebar } from "@/components/chart/admin-sidebar"
-import DarkModeTheme from "@/components/dark-mode"
+import { AdminSearchbar, AdminSidebar } from "@/components/layout"
+import DarkModeTheme from "@/components/layout/dark-mode"
 import { Separator } from "@/components/ui/separator"
 import {
     SidebarInset,

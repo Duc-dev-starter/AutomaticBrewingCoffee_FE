@@ -59,12 +59,12 @@ export function NavMain({
                                             <SidebarMenuSubItem key={subItem.title}>
                                                 <SidebarMenuSubButton asChild>
                                                     <a
-                                                        className={`${path === subItem.url ? 'bg-gray-200' : ''
-                                                            } hover:bg-gray-200`}
+                                                        className={`${path === subItem.url ? '!bg-gray-200' : ''} hover:!bg-gray-200 transition-colors duration-200`}
                                                         href={subItem.url}
                                                     >
                                                         <span>{subItem.title}</span>
                                                     </a>
+
                                                 </SidebarMenuSubButton>
                                             </SidebarMenuSubItem>
                                         ))}
@@ -76,8 +76,7 @@ export function NavMain({
                         <SidebarMenuItem key={item.title}>
                             <SidebarMenuButton asChild tooltip={item.title}>
                                 <a
-                                    className={`${path === item.url ? 'bg-gray-200' : ''
-                                        } hover:bg-gray-200`}
+                                    className={`${path === item.url ? '!bg-gray-200' : ''} hover:!bg-gray-200 transition-colors duration-200`}
                                     href={item.url}
                                 >
                                     {item.icon && <item.icon />}

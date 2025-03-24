@@ -21,8 +21,8 @@ import Image from "next/image"
 import Link from "next/link"
 import Path from "@/constants/path"
 // import Images from "@/constants/image"
-import { NavMain } from "../nav-main"
-import { NavUser } from "../nav-user"
+import { NavMain } from "./nav-main"
+import { NavUser } from "./nav-user"
 
 // This is sample data.
 const data = {

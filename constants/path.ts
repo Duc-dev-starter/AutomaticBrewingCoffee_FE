@@ -1,4 +1,4 @@
-const Path = {
+const WebPath = {
     HOME: "/",
     ABOUT: "/about",
     CONTACT: "/contact",
@@ -10,10 +10,10 @@ const Path = {
     PRODUCT: "/product",
     PRODUCT_DETAIL: "/product/:slug",
     INTERNAL_SERVER_ERROR: "/internal-server-error",
-    ADMIN_DASHBOARD: "/admin/dashboard",
-    ADMIN_MANAGE_CLIENT: "/admin/manage-client",
+    DASHBOARD: "/dashboard",
+    MANAGE_CLIENT: "/manage-client",
 
     FOSTER_DASHBOARD: "/foster/dashboard",
 };
 
-export default Path;
+export default WebPath;

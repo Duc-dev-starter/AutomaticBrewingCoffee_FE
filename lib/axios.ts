@@ -1,5 +1,5 @@
 import { HttpStatus } from "@/enum/http";
-import Path from "@/constants/path";
+import WebPath from "@/constants/path";
 import axios from "axios";
 
 export const axiosInstance = axios.create({
@@ -84,7 +84,7 @@ axiosInstance.interceptors.response.use(
 
                     case HttpStatus.InternalServerError:
                         // toast.error(data.message || data.Message);
-                        window.location.href = Path.INTERNAL_SERVER_ERROR;
+                        window.location.href = WebPath.INTERNAL_SERVER_ERROR;
                         break;
 
                     default:

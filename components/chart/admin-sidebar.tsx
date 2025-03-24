@@ -50,7 +50,7 @@ const data = {
     navMain: [
         {
             title: "Dashboard",
-            url: Path.ADMIN_DASHBOARD,
+            url: Path.DASHBOARD,
             icon: LayoutDashboard,
             isActive: false,
         },
@@ -61,11 +61,11 @@ const data = {
             isActive: true,
             items: [
                 {
-                    title: "Quản lý người nhận nuôi",
+                    title: "Quản lý khách hàng",
                     url: "/admin/manage-client",
                 },
                 {
-                    title: "Quản lý trạm cứu trợ",
+                    title: "Quản lý nhân viên",
                     url: "/admin/manage-foster",
                 },
 

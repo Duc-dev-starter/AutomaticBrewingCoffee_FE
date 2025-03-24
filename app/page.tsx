@@ -6,7 +6,7 @@ export default function Home() {
 
 
   return (
-    <Link href={'/admin/dashboard'}>
+    <Link href={'/dashboard'}>
       Go to dashboard
     </Link>
 

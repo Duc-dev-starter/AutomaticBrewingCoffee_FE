@@ -1,7 +1,6 @@
 "use client"
 
 import { ChevronRight, type LucideIcon } from "lucide-react"
-
 import {
     Collapsible,
     CollapsibleContent,
@@ -59,7 +58,11 @@ export function NavMain({
                                         {item.items.map((subItem) => (
                                             <SidebarMenuSubItem key={subItem.title}>
                                                 <SidebarMenuSubButton asChild>
-                                                    <a className={`${path === subItem.url && 'bg-gray-200'}`} href={subItem.url}>
+                                                    <a
+                                                        className={`${path === subItem.url ? 'bg-gray-200' : ''
+                                                            } hover:bg-gray-200`}
+                                                        href={subItem.url}
+                                                    >
                                                         <span>{subItem.title}</span>
                                                     </a>
                                                 </SidebarMenuSubButton>
@@ -72,7 +75,11 @@ export function NavMain({
                     ) : (
                         <SidebarMenuItem key={item.title}>
                             <SidebarMenuButton asChild tooltip={item.title}>
-                                <a className={`${path === item.url && 'bg-gray-200'}`} href={item.url}>
+                                <a
+                                    className={`${path === item.url ? 'bg-gray-200' : ''
+                                        } hover:bg-gray-200`}
+                                    href={item.url}
+                                >
                                     {item.icon && <item.icon />}
                                     <span>{item.title}</span>
                                 </a>

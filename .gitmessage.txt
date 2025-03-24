@@ -1,0 +1,14 @@
+<type>(<scope>): <short summary> [Duc]
+
+# Example:
+# feat(dashboard): add necessary charts to dashboard for statistics overview [Duc]
+# 
+# Types:
+# - feat: a new feature
+# - fix: a bug fix
+# - docs: documentation only changes
+# - style: changes that do not affect meaning (white-space, formatting)
+# - refactor: code change that neither fixes a bug nor adds a feature
+# - perf: performance improvement
+# - test: adding tests
+# - chore: build process or auxiliary tool changes

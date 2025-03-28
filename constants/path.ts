@@ -12,7 +12,7 @@ const WebPath = {
     INTERNAL_SERVER_ERROR: "/internal-server-error",
     DASHBOARD: "/dashboard",
     MANAGE_CLIENT: "/manage-client",
-
+    PROFILE: "/profile",
     FOSTER_DASHBOARD: "/foster/dashboard",
 };
 

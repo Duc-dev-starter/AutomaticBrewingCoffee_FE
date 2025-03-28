@@ -1,3 +1,4 @@
 import { Ingredient } from "./ingredient";
 import { Step } from "./step";
-export type { Ingredient, Step }
+import { Reminder } from "./reminder";
+export type { Ingredient, Step, Reminder }

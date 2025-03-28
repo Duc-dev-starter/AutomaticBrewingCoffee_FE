@@ -19,9 +19,9 @@ export function LoginForm({
         <div className={cn("flex flex-col gap-6", className)} {...props}>
             <Card>
                 <CardHeader>
-                    <CardTitle className="text-2xl">Login</CardTitle>
+                    <CardTitle className="text-2xl">Đăng nhập</CardTitle>
                     <CardDescription>
-                        Enter your email below to login to your account
+                        Nhập email của bạn bên dưới để đăng nhập vào tài khoản của bạn
                     </CardDescription>
                 </CardHeader>
                 <CardContent>
@@ -37,7 +37,7 @@ export function LoginForm({
                             </div>
                             <div className="grid gap-2">
                                 <div className="flex items-center">
-                                    <Label htmlFor="password">Password</Label>
+                                    <Label htmlFor="password">Mật khẩu</Label>
                                     <a
                                         href="#"
                                         className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
@@ -48,8 +48,8 @@ export function LoginForm({
                                 <Input id="password" type="password" required />
                             </div>
                             <Link href={'/dashboard'}>
-                                <Button type="submit" className="w-full">
-                                    Login
+                                <Button effect="gooeyLeft" type="submit" className="w-full">
+                                    Đăng nhập
                                 </Button>
                             </Link>
                             <Button variant="outline" className="w-full">

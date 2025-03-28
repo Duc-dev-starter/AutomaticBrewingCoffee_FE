@@ -24,7 +24,6 @@ import {
     ChartTooltipContent,
 } from "@/components/ui/chart"
 
-// Dữ liệu khách hàng ban ngày và ban đêm theo ngày
 const chartData = [
     { time: "Hai", day: 150, night: 134 },
     { time: "Ba", day: 180, night: 104 },
@@ -34,7 +33,6 @@ const chartData = [
     { time: "Bảy", day: 220, night: 64 },
 ]
 
-// Cấu hình chart
 const chartConfig = {
     day: {
         label: "Ban ngày",
@@ -80,7 +78,12 @@ export function DayTimeChart() {
                             type="monotone"
                             stroke={chartConfig.day.color}
                             strokeWidth={2}
-                            dot={false}
+                            dot={{
+                                r: 4,
+                                strokeWidth: 2,
+                                stroke: chartConfig.day.color,
+                                fill: "white",
+                            }}
                         />
                         <Line
                             dataKey="night"
@@ -88,7 +91,12 @@ export function DayTimeChart() {
                             type="monotone"
                             stroke={chartConfig.night.color}
                             strokeWidth={2}
-                            dot={false}
+                            dot={{
+                                r: 4,
+                                strokeWidth: 2,
+                                stroke: chartConfig.night.color,
+                                fill: "white",
+                            }}
                         />
 
                         <Legend

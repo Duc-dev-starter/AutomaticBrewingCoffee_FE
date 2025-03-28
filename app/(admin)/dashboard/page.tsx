@@ -1,9 +1,10 @@
 'use client'
 import React from 'react'
 
-import { AreaChartInteractiveCustom, BarChartComponent, CustomAreaChart, DayTimeChart, PieChartComponent, SalesPeakChart } from '@/components/chart'
+import { AreaChartInteractiveCustom, DayTimeChart, PieChartComponent, SalesPeakChart } from '@/components/chart'
 import CalendarPicker from '@/components/calendar-picker'
 import { SectionCards } from '@/components/section-card'
+import RecentSalesCard from '@/components/recent-sales-card'
 
 
 
@@ -24,13 +25,12 @@ const Dashboard = () => {
                     <SectionCards />
                 </div>
                 <div className="flex flex-1 flex-col gap-10 p-4 pt-0">
-                    <AreaChartInteractiveCustom />
                     <div className="grid auto-rows-min gap-4 md:grid-cols-3">
                         <PieChartComponent />
-                        <BarChartComponent />
                         <DayTimeChart />
-
+                        <RecentSalesCard />
                     </div>
+                    <AreaChartInteractiveCustom />
                     <div>
                         <SalesPeakChart />
                     </div>

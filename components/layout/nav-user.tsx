@@ -102,9 +102,9 @@ export function NavUser({
                             </DropdownMenuItem>
                         </DropdownMenuGroup>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem>
+                        <DropdownMenuItem className="cursor-pointer">
                             <LogOut />
-                            Log out
+                            <p className="text-red-600">Đăng xuất</p>
                         </DropdownMenuItem>
                     </DropdownMenuContent>
                 </DropdownMenu>

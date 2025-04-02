@@ -16,12 +16,10 @@ import { SortableContext, arrayMove, sortableKeyboardCoordinates, verticalListSo
 
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Separator } from "@/components/ui/separator"
-import { AlertTriangle, GripVertical, Plus, Save } from "lucide-react"
+import { AlertTriangle, GripVertical, Plus, Save } from 'lucide-react'
 import type { ErrorAction, Ingredient, Machine, Step } from "@/types"
 import { DraggableErrorAction, DraggableIngredient, SortableStep } from "@/components/recipe"
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 
 const RecipeBuilder = () => {
     // Danh sách các máy/thiết bị
@@ -52,24 +50,13 @@ const RecipeBuilder = () => {
     const [steps, setSteps] = useState<Step[]>([
         {
             id: "step-1",
-            title: "Chuẩn bị nguyên liệu",
+            title: "Bước 1",
             ingredients: [],
             instructions: "Tập hợp tất cả nguyên liệu và đo lường chính xác.",
             errorActions: [],
             machine: undefined,
         },
     ])
-
-    const [newIngredient, setNewIngredient] = useState<Omit<Ingredient, "id">>({
-        name: "",
-        amount: "",
-        unit: "",
-    })
-
-    const [newErrorAction, setNewErrorAction] = useState<string>("")
-    const [newMachine, setNewMachine] = useState<Omit<Machine, "id">>({
-        name: "",
-    })
 
     const [activeId, setActiveId] = useState<string | null>(null)
     const [activeItem, setActiveItem] = useState<any>(null)
@@ -100,22 +87,37 @@ const RecipeBuilder = () => {
             const stepId = over.data.current.stepId
             const ingredient = active.data.current.ingredient
 
-            // Kiểm tra xem nguyên liệu đã có trong bước nào chưa
-            const stepWithIngredient = steps.find((step) => step.ingredients.some((ing) => ing.id === ingredient.id))
+            // Tìm nguyên liệu trong danh sách có sẵn
+            const ingredientFromList = ingredients.find(ing => ing.id === ingredient.id)
 
-            // Nếu nguyên liệu đã có trong một bước khác, xóa nó khỏi bước đó
-            if (stepWithIngredient && stepWithIngredient.id !== stepId) {
+            // Tìm nguyên liệu trong các bước
+            let ingredientFromStep: Ingredient | undefined
+            let sourceStepId: string | undefined
+
+            steps.forEach(step => {
+                const found = step.ingredients.find(ing => ing.id === ingredient.id)
+                if (found && step.id !== stepId) {
+                    ingredientFromStep = found
+                    sourceStepId = step.id
+                }
+            })
+
+            // Tạo bản sao của nguyên liệu để thêm vào bước
+            const ingredientCopy = ingredientFromList
+                ? { ...ingredientFromList }
+                : ingredientFromStep
+                    ? { ...ingredientFromStep }
+                    : { ...ingredient }
+
+            // Nếu nguyên liệu đến từ bước khác, xóa nó khỏi bước đó
+            if (sourceStepId) {
                 setSteps(
                     steps.map((step) =>
-                        step.id === stepWithIngredient.id
+                        step.id === sourceStepId
                             ? { ...step, ingredients: step.ingredients.filter((ing) => ing.id !== ingredient.id) }
-                            : step,
-                    ),
+                            : step
+                    )
                 )
-            }
-            // Nếu nguyên liệu đang ở trong danh sách nguyên liệu có sẵn, xóa nó khỏi danh sách đó
-            else if (!stepWithIngredient) {
-                setIngredients(ingredients.filter((ing) => ing.id !== ingredient.id))
             }
 
             // Thêm nguyên liệu vào bước mới
@@ -124,7 +126,7 @@ const RecipeBuilder = () => {
                     step.id === stepId
                         ? {
                             ...step,
-                            ingredients: [...step.ingredients.filter((ing) => ing.id !== ingredient.id), ingredient],
+                            ingredients: [...step.ingredients.filter((ing) => ing.id !== ingredient.id), ingredientCopy],
                         }
                         : step,
                 ),
@@ -186,8 +188,6 @@ const RecipeBuilder = () => {
     const removeStep = (id: string) => {
         const stepToRemove = steps.find((step) => step.id === id)
         if (stepToRemove) {
-            // Trả lại nguyên liệu vào danh sách có sẵn
-            setIngredients([...ingredients, ...stepToRemove.ingredients])
             // Trả lại hành động lỗi vào danh sách có sẵn
             setErrorActions([...errorActions, ...stepToRemove.errorActions])
         }
@@ -218,21 +218,11 @@ const RecipeBuilder = () => {
         }
     }
 
-    // Xóa nguyên liệu từ bước và đưa trở lại "Nguyên Liệu Có Sẵn"
+    // Xóa nguyên liệu từ bước
     const removeIngredientFromStep = (ingredientId: string) => {
-        let removedIngredient: Ingredient | undefined
-
         setSteps(
             steps.map((step) => {
-                const foundIngredient = step.ingredients.find((ing) => ing.id === ingredientId)
-                if (foundIngredient) {
-                    removedIngredient = foundIngredient
-                    // Reset amount và unit khi trả về danh sách có sẵn
-                    removedIngredient = {
-                        ...removedIngredient,
-                        amount: "",
-                        unit: "",
-                    }
+                if (step.ingredients.some((ing) => ing.id === ingredientId)) {
                     return {
                         ...step,
                         ingredients: step.ingredients.filter((ing) => ing.id !== ingredientId),
@@ -241,10 +231,6 @@ const RecipeBuilder = () => {
                 return step
             }),
         )
-
-        if (removedIngredient) {
-            setIngredients([...ingredients, removedIngredient])
-        }
     }
 
     // Cập nhật số lượng và đơn vị của nguyên liệu trong bước
@@ -260,30 +246,6 @@ const RecipeBuilder = () => {
                 return step
             }),
         )
-    }
-
-    // Thêm máy mới
-    const addNewMachine = () => {
-        if (newMachine.name.trim() === "") return
-
-        const machine: Machine = {
-            id: `machine-${machines.length + 1}-${Date.now()}`,
-            name: newMachine.name,
-        }
-        setMachines([...machines, machine])
-        setNewMachine({ name: "" })
-    }
-
-    // Thêm hành động lỗi mới vào danh sách có sẵn
-    const addNewErrorAction = () => {
-        if (newErrorAction.trim() === "") return
-
-        const errorAction: ErrorAction = {
-            id: `err-${errorActions.length + 1}-${Date.now()}`,
-            description: newErrorAction,
-        }
-        setErrorActions([...errorActions, errorAction])
-        setNewErrorAction("")
     }
 
     // Thêm hành động lỗi vào bước
@@ -322,19 +284,6 @@ const RecipeBuilder = () => {
         }
     }
 
-    const addNewIngredient = () => {
-        if (newIngredient.name.trim() === "") return
-
-        const ingredient: Ingredient = {
-            id: `ing-${ingredients.length + 1}-${Date.now()}`,
-            name: newIngredient.name,
-            amount: "",
-            unit: "",
-        }
-        setIngredients([...ingredients, ingredient])
-        setNewIngredient({ name: "", amount: "", unit: "" })
-    }
-
     // Xóa nguyên liệu từ "Nguyên Liệu Có Sẵn"
     const removeIngredient = (id: string) => {
         setIngredients(ingredients.filter((ing) => ing.id !== id))
@@ -354,26 +303,17 @@ const RecipeBuilder = () => {
     const addAllIngredientsToStep = (stepId: string) => {
         if (ingredients.length === 0) return
 
+        // Tạo bản sao của tất cả nguyên liệu
+        const ingredientCopies = ingredients.map((ing) => ({ ...ing }))
+
         setSteps(
             steps.map((step) =>
-                step.id === stepId ? { ...step, ingredients: [...step.ingredients, ...ingredients] } : step,
+                step.id === stepId ? { ...step, ingredients: [...step.ingredients, ...ingredientCopies] } : step,
             ),
         )
-        setIngredients([])
     }
 
     const removeAllIngredientsFromStep = (stepId: string) => {
-        const stepToUpdate = steps.find((step) => step.id === stepId)
-        if (!stepToUpdate || stepToUpdate.ingredients.length === 0) return
-
-        // Reset amount và unit khi trả về danh sách có sẵn
-        const resetIngredients = stepToUpdate.ingredients.map((ing) => ({
-            ...ing,
-            amount: "",
-            unit: "",
-        }))
-
-        setIngredients([...ingredients, ...resetIngredients])
         setSteps(steps.map((step) => (step.id === stepId ? { ...step, ingredients: [] } : step)))
     }
 
@@ -400,38 +340,25 @@ const RecipeBuilder = () => {
                                 <CardTitle>Nguyên Liệu</CardTitle>
                                 <CardDescription>Kéo nguyên liệu vào các bước công thức</CardDescription>
                             </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div className="space-y-2">
-                                    <Label>Thêm Nguyên Liệu Mới</Label>
-                                    <div className="grid gap-2">
-                                        <Input
-                                            placeholder="Tên nguyên liệu"
-                                            value={newIngredient.name}
-                                            onChange={(e) => setNewIngredient({ ...newIngredient, name: e.target.value })}
-                                        />
-                                        <Button onClick={addNewIngredient}>
-                                            <Plus className="mr-2 h-4 w-4" />
-                                            Thêm Nguyên Liệu
-                                        </Button>
-                                    </div>
-                                </div>
-
-                                <Separator />
-
-                                <div>
-                                    <Label className="mb-2 block">Nguyên Liệu Có Sẵn</Label>
-                                    <SortableContext items={ingredients.map((ing) => ing.id)} strategy={verticalListSortingStrategy}>
-                                        <div className="space-y-2 max-h-[300px] overflow-y-auto p-1">
-                                            {ingredients.map((ingredient) => (
-                                                <DraggableIngredient
-                                                    key={ingredient.id}
-                                                    ingredient={ingredient}
-                                                    onRemove={() => removeIngredient(ingredient.id)}
-                                                />
-                                            ))}
-                                        </div>
-                                    </SortableContext>
-                                </div>
+                            <CardContent>
+                                <Accordion type="single" collapsible className="w-full">
+                                    <AccordionItem value="ingredients" className="border-0">
+                                        <AccordionTrigger className="py-0">Danh sách nguyên liệu</AccordionTrigger>
+                                        <AccordionContent>
+                                            <SortableContext items={ingredients.map((ing) => ing.id)} strategy={verticalListSortingStrategy}>
+                                                <div className="space-y-2 max-h-[300px] overflow-y-auto p-1">
+                                                    {ingredients.map((ingredient) => (
+                                                        <DraggableIngredient
+                                                            key={ingredient.id}
+                                                            ingredient={ingredient}
+                                                            onRemove={() => removeIngredient(ingredient.id)}
+                                                        />
+                                                    ))}
+                                                </div>
+                                            </SortableContext>
+                                        </AccordionContent>
+                                    </AccordionItem>
+                                </Accordion>
                             </CardContent>
                         </Card>
 
@@ -443,75 +370,49 @@ const RecipeBuilder = () => {
                                 </CardTitle>
                                 <CardDescription>Kéo hành động xử lý lỗi vào các bước</CardDescription>
                             </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div className="space-y-2">
-                                    <Label>Thêm Hành Động Xử Lý Lỗi</Label>
-                                    <div className="grid gap-2">
-                                        <Input
-                                            placeholder="Mô tả hành động xử lý lỗi"
-                                            value={newErrorAction}
-                                            onChange={(e) => setNewErrorAction(e.target.value)}
-                                        />
-                                        <Button onClick={addNewErrorAction}>
-                                            <Plus className="mr-2 h-4 w-4" />
-                                            Thêm Hành Động
-                                        </Button>
-                                    </div>
-                                </div>
-
-                                <Separator />
-
-                                <div>
-                                    <Label className="mb-2 block">Hành Động Xử Lý Lỗi Có Sẵn</Label>
-                                    <SortableContext items={errorActions.map((err) => err.id)} strategy={verticalListSortingStrategy}>
-                                        <div className="space-y-2 max-h-[200px] overflow-y-auto p-1">
-                                            {errorActions.map((errorAction) => (
-                                                <DraggableErrorAction
-                                                    key={errorAction.id}
-                                                    errorAction={errorAction}
-                                                    onRemove={() => removeErrorAction(errorAction.id)}
-                                                />
-                                            ))}
-                                        </div>
-                                    </SortableContext>
-                                </div>
+                            <CardContent>
+                                <Accordion type="single" collapsible className="w-full">
+                                    <AccordionItem value="errorActions" className="border-0">
+                                        <AccordionTrigger className="py-0">Danh sách xử lý lỗi</AccordionTrigger>
+                                        <AccordionContent>
+                                            <SortableContext items={errorActions.map((err) => err.id)} strategy={verticalListSortingStrategy}>
+                                                <div className="space-y-2 max-h-[200px] overflow-y-auto p-1">
+                                                    {errorActions.map((errorAction) => (
+                                                        <DraggableErrorAction
+                                                            key={errorAction.id}
+                                                            errorAction={errorAction}
+                                                            onRemove={() => removeErrorAction(errorAction.id)}
+                                                        />
+                                                    ))}
+                                                </div>
+                                            </SortableContext>
+                                        </AccordionContent>
+                                    </AccordionItem>
+                                </Accordion>
                             </CardContent>
                         </Card>
 
-                        {/* Thêm card quản lý máy/thiết bị */}
+                        {/* Card quản lý máy/thiết bị */}
                         <Card>
                             <CardHeader>
                                 <CardTitle>Thiết Bị/Máy</CardTitle>
-                                <CardDescription>Quản lý các thiết bị/máy sử dụng trong công thức</CardDescription>
+                                <CardDescription>Danh sách thiết bị/máy sử dụng trong công thức</CardDescription>
                             </CardHeader>
-                            <CardContent className="space-y-4">
-                                <div className="space-y-2">
-                                    <Label>Thêm Thiết Bị/Máy Mới</Label>
-                                    <div className="grid gap-2">
-                                        <Input
-                                            placeholder="Tên thiết bị/máy"
-                                            value={newMachine.name}
-                                            onChange={(e) => setNewMachine({ ...newMachine, name: e.target.value })}
-                                        />
-                                        <Button onClick={addNewMachine}>
-                                            <Plus className="mr-2 h-4 w-4" />
-                                            Thêm Thiết Bị/Máy
-                                        </Button>
-                                    </div>
-                                </div>
-
-                                <Separator />
-
-                                <div>
-                                    <Label className="mb-2 block">Thiết Bị/Máy Có Sẵn</Label>
-                                    <div className="space-y-2 max-h-[200px] overflow-y-auto p-1">
-                                        {machines.map((machine) => (
-                                            <div key={machine.id} className="flex items-center justify-between p-2 border rounded-md">
-                                                <span>{machine.name}</span>
+                            <CardContent>
+                                <Accordion type="single" collapsible className="w-full">
+                                    <AccordionItem value="machines" className="border-0">
+                                        <AccordionTrigger className="py-0">Danh sách thiết bị</AccordionTrigger>
+                                        <AccordionContent>
+                                            <div className="space-y-2 max-h-[200px] overflow-y-auto p-1">
+                                                {machines.map((machine) => (
+                                                    <div key={machine.id} className="flex items-center justify-between p-2 border rounded-md">
+                                                        <span>{machine.name}</span>
+                                                    </div>
+                                                ))}
                                             </div>
-                                        ))}
-                                    </div>
-                                </div>
+                                        </AccordionContent>
+                                    </AccordionItem>
+                                </Accordion>
                             </CardContent>
                         </Card>
                     </div>
@@ -594,4 +495,3 @@ const RecipeBuilder = () => {
 }
 
 export default RecipeBuilder
-

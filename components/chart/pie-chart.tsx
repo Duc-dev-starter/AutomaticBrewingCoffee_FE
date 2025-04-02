@@ -105,7 +105,7 @@ export function PieChartComponent() {
                     </PieChart>
                 </ChartContainer>
             </CardContent>
-            <CardFooter className="flex items-center justify-center flex-wrap gap-10 text-sm mt-4">
+            <CardFooter className="flex items-center justify-center flex-wrap gap-7 text-sm mt-4">
                 {chartData.map(item => (
                     <div key={item.status} className="flex items-center gap-4 text-sm">
                         <span

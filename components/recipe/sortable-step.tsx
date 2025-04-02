@@ -4,15 +4,17 @@ import type { Machine, Step } from "@/types"
 import { useDroppable } from "@dnd-kit/core"
 import { useSortable } from "@dnd-kit/sortable"
 import { CSS } from "@dnd-kit/utilities"
-import { Card, CardContent, CardFooter, CardHeader } from "../ui/card"
-import { AlertTriangle, ChevronDown, ChevronUp, GripVertical, Plus, Trash2 } from 'lucide-react'
+import { Card, CardContent, CardHeader } from "../ui/card"
+import { AlertTriangle, ChevronDown, ChevronUp, GripVertical, Plus, Trash2 } from "lucide-react"
 import { Input } from "../ui/input"
 import { Button } from "../ui/button"
-import { Label } from "../ui/label"
 import DraggableIngredient from "./draggable-ingredient"
 import DraggableErrorAction from "./draggable-error-action"
 import { useState } from "react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select"
+import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../ui/accordion"
+
+// Component b  AccordionContent, AccordionItem, AccordionTrigger } from "../ui/accordion"
 
 // Component bước công thức kéo thả
 const SortableStep = ({
@@ -81,10 +83,6 @@ const SortableStep = ({
         }
     }
 
-    const handleMachineChange = (value: string) => {
-        onUpdateMachine(step.id, value)
-    }
-
     return (
         <Card ref={setNodeRef} style={style} className="mb-4">
             <CardHeader className="pb-2">
@@ -114,108 +112,124 @@ const SortableStep = ({
                 </div>
             </CardHeader>
             <CardContent className="space-y-4">
-                {/* Dropdown chọn máy */}
-                <div>
-                    <Label htmlFor={`machine-${step.id}`} className="mb-2 block">
-                        Thiết bị/Máy
-                    </Label>
-                    <Select value={step.machine} onValueChange={handleMachineChange}>
-                        <SelectTrigger id={`machine-${step.id}`} className="w-full">
-                            <SelectValue placeholder="Chọn thiết bị/máy..." />
-                        </SelectTrigger>
-                        <SelectContent>
-                            {machines.map((machine) => (
-                                <SelectItem key={machine.id} value={machine.id}>
-                                    {machine.name}
-                                </SelectItem>
-                            ))}
-                        </SelectContent>
-                    </Select>
-                </div>
+                <Accordion type="multiple" className="w-full">
+                    {/* Máy/Thiết bị */}
+                    <AccordionItem value={`machine-${step.id}`}>
+                        <AccordionTrigger>Thiết bị/Máy</AccordionTrigger>
+                        <AccordionContent>
+                            <Select value={step.machine} onValueChange={(value) => onUpdateMachine(step.id, value)}>
+                                <SelectTrigger id={`machine-${step.id}`} className="w-full">
+                                    <SelectValue placeholder="Chọn thiết bị/máy..." />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {machines.map((machine) => (
+                                        <SelectItem key={machine.id} value={machine.id}>
+                                            {machine.name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </AccordionContent>
+                    </AccordionItem>
 
-                <div>
-                    <Label className="mb-2 block">Nguyên liệu</Label>
-                    <div
-                        ref={setIngredientsDroppableNodeRef}
-                        id={`step-container-${step.id}`}
-                        className="min-h-20 rounded-md border border-dashed p-3"
-                    >
-                        {step.ingredients.length === 0 ? (
-                            <p className="text-center text-sm text-muted-foreground py-6">Kéo nguyên liệu vào đây</p>
-                        ) : (
-                            <div className="space-y-2">
-                                {step.ingredients.map((ingredient) => (
-                                    <DraggableIngredient
-                                        key={ingredient.id}
-                                        ingredient={ingredient}
-                                        onRemove={() => onRemoveIngredient(ingredient.id)}
-                                        isInStep
-                                        onUpdateAmount={(amount, unit) => onUpdateIngredient(step.id, ingredient.id, amount, unit)}
-                                    />
-                                ))}
+                    {/* Nguyên liệu */}
+                    <AccordionItem value={`ingredients-${step.id}`}>
+                        <AccordionTrigger>
+                            Nguyên liệu {step.ingredients.length > 0 && `(${step.ingredients.length})`}
+                        </AccordionTrigger>
+                        <AccordionContent>
+                            <div
+                                ref={setIngredientsDroppableNodeRef}
+                                id={`step-container-${step.id}`}
+                                className="min-h-20 rounded-md border border-dashed p-3"
+                            >
+                                {step.ingredients.length === 0 ? (
+                                    <p className="text-center text-sm text-muted-foreground py-6">Kéo nguyên liệu vào đây</p>
+                                ) : (
+                                    <div className="space-y-2">
+                                        {step.ingredients.map((ingredient) => (
+                                            <DraggableIngredient
+                                                key={ingredient.id}
+                                                ingredient={ingredient}
+                                                onRemove={() => onRemoveIngredient(ingredient.id)}
+                                                isInStep
+                                                onUpdateAmount={(amount, unit) => onUpdateIngredient(step.id, ingredient.id, amount, unit)}
+                                            />
+                                        ))}
+                                    </div>
+                                )}
                             </div>
-                        )}
-                    </div>
-                </div>
-
-                <div>
-                    <Label className="mb-2 block flex items-center">
-                        <AlertTriangle className="h-4 w-4 text-red-500 mr-1" />
-                        Xử lý lỗi
-                    </Label>
-                    <div className="flex gap-2 mb-2">
-                        <Input
-                            placeholder="Mô tả hành động xử lý lỗi..."
-                            value={newErrorAction}
-                            onChange={(e) => setNewErrorAction(e.target.value)}
-                        />
-                        <Button onClick={handleAddErrorAction} className="shrink-0">
-                            <Plus className="h-4 w-4 mr-1" />
-                            Thêm
-                        </Button>
-                    </div>
-                    <div
-                        ref={setErrorActionsDroppableNodeRef}
-                        id={`error-container-${step.id}`}
-                        className="min-h-20 rounded-md border border-dashed p-3 border-red-200"
-                    >
-                        {step.errorActions.length === 0 ? (
-                            <p className="text-center text-sm text-muted-foreground py-6">Kéo hành động xử lý lỗi vào đây</p>
-                        ) : (
-                            <div className="space-y-2">
-                                {step.errorActions.map((errorAction) => (
-                                    <DraggableErrorAction
-                                        key={errorAction.id}
-                                        errorAction={errorAction}
-                                        onRemove={() => onRemoveErrorAction(step.id, errorAction.id)}
-                                    />
-                                ))}
+                            <div className="flex justify-end gap-2 mt-2">
+                                <Button onClick={() => addAllIngredientsToStep(step.id)} size="sm">
+                                    Thêm Tất Cả
+                                </Button>
+                                <Button onClick={() => removeAllIngredientsFromStep(step.id)} variant="destructive" size="sm">
+                                    Bỏ Tất Cả
+                                </Button>
                             </div>
-                        )}
-                    </div>
-                </div>
+                        </AccordionContent>
+                    </AccordionItem>
 
-                <div>
-                    <Label htmlFor={`instructions-${step.id}`} className="mb-2 block">
-                        Hướng dẫn
-                    </Label>
-                    <textarea
-                        id={`instructions-${step.id}`}
-                        value={step.instructions}
-                        onChange={(e) => onUpdateInstructions(e.target.value)}
-                        className="min-h-[100px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
-                        placeholder="Mô tả hướng dẫn cho bước này..."
-                    />
-                </div>
+                    {/* Xử lý lỗi */}
+                    <AccordionItem value={`errors-${step.id}`}>
+                        <AccordionTrigger>
+                            <div className="flex items-center">
+                                <AlertTriangle className="h-4 w-4 text-red-500 mr-1" />
+                                Xử lý lỗi {step.errorActions.length > 0 && `(${step.errorActions.length})`}
+                            </div>
+                        </AccordionTrigger>
+                        <AccordionContent>
+                            <div className="flex gap-2 mb-2">
+                                <Input
+                                    placeholder="Mô tả hành động xử lý lỗi..."
+                                    value={newErrorAction}
+                                    onChange={(e) => setNewErrorAction(e.target.value)}
+                                />
+                                <Button onClick={handleAddErrorAction} className="shrink-0">
+                                    <Plus className="h-4 w-4 mr-1" />
+                                    Thêm
+                                </Button>
+                            </div>
+                            <div
+                                ref={setErrorActionsDroppableNodeRef}
+                                id={`error-container-${step.id}`}
+                                className="min-h-20 rounded-md border border-dashed p-3 border-red-200"
+                            >
+                                {step.errorActions.length === 0 ? (
+                                    <p className="text-center text-sm text-muted-foreground py-6">Kéo hành động xử lý lỗi vào đây</p>
+                                ) : (
+                                    <div className="space-y-2">
+                                        {step.errorActions.map((errorAction) => (
+                                            <DraggableErrorAction
+                                                key={errorAction.id}
+                                                errorAction={errorAction}
+                                                onRemove={() => onRemoveErrorAction(step.id, errorAction.id)}
+                                            />
+                                        ))}
+                                    </div>
+                                )}
+                            </div>
+                        </AccordionContent>
+                    </AccordionItem>
+
+                    {/* Hướng dẫn */}
+                    <AccordionItem value={`instructions-${step.id}`}>
+                        <AccordionTrigger>Hướng dẫn</AccordionTrigger>
+                        <AccordionContent>
+                            <textarea
+                                id={`instructions-${step.id}`}
+                                value={step.instructions}
+                                onChange={(e) => onUpdateInstructions(e.target.value)}
+                                className="min-h-[100px] w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                                placeholder="Mô tả hướng dẫn cho bước này..."
+                            />
+                        </AccordionContent>
+                    </AccordionItem>
+                </Accordion>
             </CardContent>
-            <CardFooter className="flex justify-end gap-2">
-                <Button onClick={() => addAllIngredientsToStep(step.id)}>Thêm Tất Cả Nguyên Liệu</Button>
-                <Button onClick={() => removeAllIngredientsFromStep(step.id)} variant="destructive">
-                    Bỏ Tất Cả Nguyên Liệu
-                </Button>
-            </CardFooter>
         </Card>
     )
 }
 
 export default SortableStep
+

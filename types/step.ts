@@ -1,3 +1,4 @@
+import { ErrorAction } from "./error-action"
 import { Ingredient } from "./ingredient"
 
 export type Step = {
@@ -5,5 +6,6 @@ export type Step = {
     title: string
     ingredients: Ingredient[]
     instructions: string
+    errorActions: ErrorAction[]
     machine?: string
 }

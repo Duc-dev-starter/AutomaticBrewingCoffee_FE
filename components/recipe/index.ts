@@ -1,3 +1,4 @@
 import DraggableIngredient from "./draggable-ingredient";
 import SortableStep from "./sortable-step";
-export { DraggableIngredient, SortableStep }
+import DraggableErrorAction from "./draggable-error-action";
+export { DraggableIngredient, SortableStep, DraggableErrorAction }

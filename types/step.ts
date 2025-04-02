@@ -5,4 +5,5 @@ export type Step = {
     title: string
     ingredients: Ingredient[]
     instructions: string
+    machine?: string
 }

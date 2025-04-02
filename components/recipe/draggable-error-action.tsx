@@ -6,6 +6,7 @@ import { GripVertical, Trash2 } from "lucide-react"
 import { Button } from "../ui/button"
 import { CSS } from "@dnd-kit/utilities"
 import type React from "react";
+import { TooltipContent, TooltipTrigger } from "../ui/tooltip"
 
 const DraggableErrorAction = ({
   errorAction,
@@ -51,16 +52,21 @@ const DraggableErrorAction = ({
       <div className="flex flex-1 items-center gap-2">
         <span className="font-medium text-red-700">{errorAction.description}</span>
       </div>
-      <Button
-        variant="ghost"
-        size="icon"
-        onClick={handleRemoveClick} // onClick có stopPropagation riêng
-        onPointerDown={stopPropagation} // Ngăn kéo thả khi click vào nút xóa
-        className="h-6 w-6"
-        aria-label={`Remove error action: ${errorAction.description}`}
-      >
-        <Trash2 className="h-4 w-4" />
-      </Button>
+      <TooltipTrigger asChild>
+        <Button
+          variant="ghost"
+          size="icon"
+          onClick={handleRemoveClick} // onClick có stopPropagation riêng
+          onPointerDown={stopPropagation} // Ngăn kéo thả khi click vào nút xóa
+          className="h-6 w-6"
+          aria-label={`Remove error action: ${errorAction.description}`}
+        >
+          <Trash2 className="h-4 w-4" />
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent>
+        <p>Xóa hành động này</p>
+      </TooltipContent>
     </div>
   );
 };

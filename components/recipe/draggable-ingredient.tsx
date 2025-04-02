@@ -8,6 +8,7 @@ import { CSS } from "@dnd-kit/utilities"
 import { Input } from "../ui/input"
 import { useState, useEffect } from "react" // Thêm useEffect
 import type React from "react";
+import { TooltipContent, TooltipTrigger } from "../ui/tooltip"
 
 const DraggableIngredient = ({
     ingredient,
@@ -104,16 +105,21 @@ const DraggableIngredient = ({
                     </span>
                 ) : null}
             </div>
-            <Button
-                variant="ghost"
-                size="icon"
-                onClick={handleRemoveClick} // onClick vẫn có stopPropagation riêng
-                onPointerDown={stopPropagation} // Ngăn kéo thả khi click vào nút xóa
-                className="h-6 w-6"
-                aria-label={`Remove ${ingredient.name}`}
-            >
-                <Trash2 className="h-4 w-4" />
-            </Button>
+            <TooltipTrigger asChild>
+                <Button
+                    variant="ghost"
+                    size="icon"
+                    onClick={handleRemoveClick} // onClick vẫn có stopPropagation riêng
+                    onPointerDown={stopPropagation} // Ngăn kéo thả khi click vào nút xóa
+                    className="h-6 w-6"
+                    aria-label={`Remove ${ingredient.name}`}
+                >
+                    <Trash2 className="h-4 w-4" />
+                </Button>
+            </TooltipTrigger>
+            <TooltipContent>
+                <p>Xóa nguyên liệu này</p>
+            </TooltipContent>
         </div>
     );
 };

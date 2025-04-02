@@ -13,8 +13,7 @@ import DraggableErrorAction from "./draggable-error-action"
 import { useState } from "react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../ui/select"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "../ui/accordion"
-
-// Component b  AccordionContent, AccordionItem, AccordionTrigger } from "../ui/accordion"
+import { TooltipContent, TooltipTrigger } from "../ui/tooltip"
 
 // Component bước công thức kéo thả
 const SortableStep = ({
@@ -105,9 +104,14 @@ const SortableStep = ({
                         <Button variant="ghost" size="icon" onClick={onMoveDown} disabled={!canMoveDown} className="h-8 w-8">
                             <ChevronDown className="h-4 w-4" />
                         </Button>
-                        <Button variant="ghost" size="icon" onClick={onRemove} className="h-8 w-8 text-destructive">
-                            <Trash2 className="h-4 w-4" />
-                        </Button>
+                        <TooltipTrigger asChild>
+                            <Button variant="ghost" size="icon" onClick={onRemove} className="h-8 w-8 text-destructive">
+                                <Trash2 className="h-4 w-4" />
+                            </Button>
+                        </TooltipTrigger>
+                        <TooltipContent>
+                            <p>Xóa bước này</p>
+                        </TooltipContent>
                     </div>
                 </div>
             </CardHeader>

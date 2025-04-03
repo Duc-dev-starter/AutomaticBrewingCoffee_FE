@@ -21,6 +21,7 @@ import type { ErrorAction, Ingredient, Machine, Step } from "@/types"
 import { DraggableErrorAction, DraggableIngredient, SortableStep } from "@/components/recipe"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
 
+
 const RecipeBuilder = () => {
     // Danh sách các máy/thiết bị
     const [machines, setMachines] = useState<Machine[]>([

@@ -1,12 +1,11 @@
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Calendar } from "@/components/ui/calendar"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Transaction } from "@/types"
 import { formatDate, formatTime } from "@/utils/date"
 import { translateStatus } from "@/utils/status"
 import { CaretSortIcon, DotsHorizontalIcon } from "@radix-ui/react-icons"
-import { Clock, CreditCard, RefreshCw, Trash2, DropletsIcon as WaterDropIcon } from "lucide-react"
+import { CalendarDays, Clock, CreditCard, RefreshCw, Trash2, DropletsIcon as WaterDropIcon } from "lucide-react"
 import { type ColumnDef } from '@tanstack/react-table'
 
 const columns: ColumnDef<Transaction>[] = [
@@ -29,7 +28,7 @@ const columns: ColumnDef<Transaction>[] = [
             const date = row.getValue("date") as Date
             return (
                 <div className="flex items-center gap-2">
-                    <Calendar className="h-4 w-4 text-muted-foreground" />
+                    <CalendarDays className="h-4 w-4 text-muted-foreground" />
                     <span>{formatDate(date)}</span>
                     <Clock className="ml-2 h-4 w-4 text-muted-foreground" />
                     <span>{formatTime(date)}</span>

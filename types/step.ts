@@ -1,7 +1,7 @@
 import { ErrorAction } from "./error-action"
 import { Ingredient } from "./ingredient"
 
-export type Step = {
+export interface Step {
     id: string
     title: string
     ingredients: Ingredient[]

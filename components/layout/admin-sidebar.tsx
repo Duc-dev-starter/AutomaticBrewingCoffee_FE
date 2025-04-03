@@ -62,7 +62,7 @@ const data = {
             items: [
                 {
                     title: "Quản lý khách hàng",
-                    url: "/admin/manage-client",
+                    url: "/manage-customers",
                 },
                 {
                     title: "Quản lý nhân viên",
@@ -72,14 +72,14 @@ const data = {
             ],
         },
         {
-            title: "Quản lý tin tức",
-            url: "/admin/manage-blog",
+            title: "Quản lý công thức",
+            url: "/manage-recipes",
             icon: BookOpen,
             isActive: false,
         },
         {
-            title: "Quản lý danh mục",
-            url: "/admin/manage-category",
+            title: "Quản lý nguyên liệu",
+            url: "/admin/manage-ingredients",
             icon: Map,
             isActive: false,
         },

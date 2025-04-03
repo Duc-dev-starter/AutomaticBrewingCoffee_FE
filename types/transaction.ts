@@ -1,5 +1,5 @@
 // Define the data type for our anonymous customer transactions
-export type Transaction = {
+export interface Transaction {
     id: string
     date: Date
     amount: number

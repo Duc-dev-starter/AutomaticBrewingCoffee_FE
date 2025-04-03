@@ -69,9 +69,7 @@ const generateSampleData = (count: number): Transaction[] => {
 
 
 
-
-
-export default function CustomerManagement() {
+const ManageCustomers = () => {
     const [loading, setLoading] = React.useState(true)
     const [pageSize, setPageSize] = React.useState(10)
 
@@ -87,7 +85,6 @@ export default function CustomerManagement() {
 
         return () => clearTimeout(timer)
     }, [])
-
 
 
     const [sorting, setSorting] = React.useState<SortingState>([])
@@ -127,6 +124,7 @@ export default function CustomerManagement() {
     const toggleLoading = () => {
         setLoading((prev) => !prev)
     }
+
 
     return (
         <div className="w-full">
@@ -378,4 +376,6 @@ export default function CustomerManagement() {
         </div>
     )
 }
+
+export default ManageCustomers
 

@@ -64,6 +64,7 @@
     --chart-5: 212 97% 87%;
     --success: 160 60% 45%;
     --warning: 45 100% 50%;
+    --radius: 0.5rem;
   }
 
   .dark {

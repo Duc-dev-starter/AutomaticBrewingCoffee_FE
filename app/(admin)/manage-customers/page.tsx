@@ -41,6 +41,8 @@ import { filterFns } from "@tanstack/react-table";
 import { Skeleton } from "@/components/ui/skeleton"
 import { Transaction } from "@/types"
 import columns from "@/components/manage-customer/columns"
+import RefreshButton from "@/components/common/refresh-button"
+import ExportButton from "@/components/common/export-button"
 
 
 
@@ -135,14 +137,8 @@ const ManageCustomers = () => {
                         <p className="text-muted-foreground">Quản lý và xem tất cả giao dịch mua nước từ máy thanh toán tự động.</p>
                     </div>
                     <div className="flex items-center gap-2">
-                        <Button variant="outline" className="h-9" disabled={loading}>
-                            <Download className="mr-2 h-4 w-4" />
-                            Xuất dữ liệu
-                        </Button>
-                        <Button className="h-9" onClick={toggleLoading}>
-                            <RefreshCw className={`mr-2 h-4 w-4 ${loading ? "animate-spin" : ""}`} />
-                            {loading ? "Đang tải..." : "Làm mới"}
-                        </Button>
+                        <ExportButton loading={loading} />
+                        <RefreshButton loading={loading} toggleLoading={toggleLoading} />
                     </div>
                 </div>
                 <div className="flex flex-col sm:flex-row items-center py-4 gap-4">

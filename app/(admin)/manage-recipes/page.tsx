@@ -52,64 +52,76 @@ import RefreshButton from "@/components/common/refresh-button"
 
 
 
-// Dữ liệu mẫu
 const generateSampleRecipes = (count: number): Recipe[] => {
-    const categories = ["Bánh mì", "Món nước", "Món cuốn", "Cơm", "Món tráng miệng", "Đồ uống"]
-    const difficulties: ("Dễ" | "Trung bình" | "Khó")[] = ["Dễ", "Trung bình", "Khó"]
-    const statuses: ("Đã xuất bản" | "Nháp" | "Đang xét duyệt")[] = ["Đã xuất bản", "Nháp", "Đang xét duyệt"]
-    const recipeNames = [
-        "Bánh mì Việt Nam",
-        "Phở bò",
-        "Gỏi cuốn tôm thịt",
-        "Bún chả Hà Nội",
-        "Cơm tấm sườn bì chả",
-        "Bánh xèo",
-        "Chả giò",
-        "Bún bò Huế",
-        "Cà phê trứng",
-        "Bánh cuốn",
-        "Hủ tiếu Nam Vang",
-        "Bún đậu mắm tôm",
-        "Cơm rang dưa bò",
-        "Canh chua cá lóc",
-        "Gà nướng mật ong",
-    ]
-    const descriptions = [
-        "Bánh mì giòn với nhân thịt và rau sống",
-        "Phở bò truyền thống với nước dùng đậm đà",
-        "Gỏi cuốn tươi mát với tôm, thịt và rau sống",
-        "Bún chả với thịt nướng thơm lừng",
-        "Cơm tấm với sườn nướng, bì và chả trứng",
-        "Bánh xèo giòn với nhân tôm thịt và giá đỗ",
-        "Món ăn truyền thống với hương vị đặc trưng",
-        "Món ăn đặc sản miền Trung với vị cay nồng",
-        "Thức uống đặc biệt với lớp kem trứng béo ngậy",
-        "Bánh cuốn mỏng với nhân thịt thơm ngon",
-    ]
+    // Danh mục đồ uống
+    const beverageCategories = ["Cà phê", "Trà", "Nước ép & Sinh tố", "Đồ uống khác"];
+    const difficulties: ("Dễ" | "Trung bình" | "Khó")[] = ["Dễ", "Trung bình", "Khó"]; // Độ khó vẫn có thể áp dụng (vd: pha chế phức tạp)
+    const statuses: ("Đã xuất bản" | "Nháp" | "Đang xét duyệt")[] = ["Đã xuất bản", "Nháp", "Đang xét duyệt"];
+
+    // Tên các loại đồ uống
+    const beverageNames = [
+        "Cà phê sữa đá", "Cà phê đen đá", "Bạc xỉu", "Cà phê trứng", "Espresso", "Latte", "Cappuccino",
+        "Trà đào cam sả", "Trà tắc", "Trà chanh", "Trà sen vàng", "Trà sữa trân châu", "Trà ô long",
+        "Nước cam ép", "Nước ép dứa", "Nước ép ổi", "Nước ép cà rốt", "Sinh tố bơ", "Sinh tố xoài", "Sinh tố dâu",
+        "Nước mía", "Sữa đậu nành", "Nước sấu", "Nước mơ", "Soda chanh",
+    ];
+
+    // Mô tả tương ứng
+    const beverageDescriptions = [
+        "Cà phê đậm đà kết hợp sữa đặc ngọt ngào và đá mát lạnh.",
+        "Hương vị cà phê đen nguyên chất, tỉnh táo tức thì.",
+        "Vị cà phê nhẹ nhàng, nhiều sữa, phù hợp cho người mới bắt đầu.",
+        "Đặc sản Hà Nội với lớp kem trứng béo ngậy, thơm lừng.",
+        "Cốt cà phê Ý đậm đặc, nền tảng cho nhiều loại đồ uống.",
+        "Espresso pha cùng nhiều sữa tươi nóng và lớp bọt mịn.",
+        "Sự cân bằng giữa espresso, sữa nóng và bọt sữa dày.",
+        "Trà đào thơm lừng, kết hợp vị chua thanh của cam và hương sả nồng ấm.",
+        "Trà chua ngọt vị tắc (quất), giải nhiệt hiệu quả.",
+        "Trà chanh chua ngọt, thức uống giải khát quen thuộc.",
+        "Trà sen thanh mát, hương thơm dịu nhẹ.",
+        "Trà sữa béo ngậy cùng trân châu dai dai, món tủ giới trẻ.",
+        "Trà ô long lên men nhẹ, tốt cho sức khỏe.",
+        "Nước cam tươi vắt nguyên chất, giàu vitamin C.",
+        "Nước ép dứa chua ngọt tự nhiên, giúp tiêu hóa tốt.",
+        "Nước ép ổi thơm đặc trưng, nhiều vitamin.",
+        "Nước ép cà rốt bổ dưỡng cho mắt và da.",
+        "Sinh tố bơ sánh mịn, béo ngậy, cung cấp năng lượng.",
+        "Sinh tố xoài chín ngọt ngào, hương vị nhiệt đới.",
+        "Sinh tố dâu tây chua ngọt, màu sắc hấp dẫn.",
+        "Nước mía ép tươi nguyên chất, ngọt mát tự nhiên.",
+        "Sữa đậu nành nhà làm, thơm ngon và bổ dưỡng.",
+        "Nước sấu ngâm đường, thức uống giải khát mùa hè Hà Nội.",
+        "Nước mơ ngâm chua ngọt, giải nhiệt, kích thích vị giác.",
+        "Soda mát lạnh cùng vị chua của chanh tươi.",
+    ];
 
     return Array.from({ length: count }, (_, i) => {
-        const now = new Date()
-        const randomDays = Math.floor(Math.random() * 30)
-        const date = new Date(now.getTime() - randomDays * 24 * 60 * 60 * 1000)
-        const updateDate = new Date(date.getTime() + Math.floor(Math.random() * 5) * 24 * 60 * 60 * 1000)
+        const now = new Date();
+        const randomDays = Math.floor(Math.random() * 30);
+        const date = new Date(now.getTime() - randomDays * 24 * 60 * 60 * 1000);
+        const updateDate = new Date(date.getTime() + Math.floor(Math.random() * 5) * 24 * 60 * 60 * 1000);
+
+        const randomIndex = Math.floor(Math.random() * beverageNames.length);
+        const name = beverageNames[randomIndex];
+        const description = beverageDescriptions[Math.floor(Math.random() * beverageDescriptions.length)];
 
         return {
-            id: `CT-${Math.floor(10000 + Math.random() * 90000)}`,
-            name: recipeNames[Math.floor(Math.random() * recipeNames.length)],
-            description: descriptions[Math.floor(Math.random() * descriptions.length)],
-            category: categories[Math.floor(Math.random() * categories.length)],
+            id: `DU-${Math.floor(10000 + Math.random() * 90000)}`, // Đổi tiền tố ID nếu muốn
+            name: name,
+            description: description,
+            category: beverageCategories[Math.floor(Math.random() * beverageCategories.length)], // Chọn từ danh mục đồ uống
             difficulty: difficulties[Math.floor(Math.random() * difficulties.length)],
-            prepTime: Math.floor(Math.random() * 60) + 10,
-            cookTime: Math.floor(Math.random() * 120) + 15,
-            servings: Math.floor(Math.random() * 6) + 1,
+            prepTime: Math.floor(Math.random() * 14) + 2, // Thời gian chuẩn bị đồ uống thường ngắn hơn (2-15 phút)
+            cookTime: Math.floor(Math.random() * 11),      // Thời gian nấu/pha chế (0-10 phút, vd: pha trà, cafe)
+            servings: 1, // Đồ uống thường tính theo 1 phần ăn/ly
             createdAt: date.toISOString().split("T")[0],
             updatedAt: updateDate.toISOString().split("T")[0],
-            imageUrl: `/placeholder.svg?height=100&width=200&text=${encodeURIComponent("Hình ảnh công thức")}`,
+            // Thay đổi placeholder text
+            imageUrl: `/placeholder.svg?height=100&width=200&text=${encodeURIComponent("Hình ảnh đồ uống")}`,
             status: statuses[Math.floor(Math.random() * statuses.length)],
-        }
-    })
-}
-
+        };
+    });
+};
 
 
 const ManageRecipes = () => {

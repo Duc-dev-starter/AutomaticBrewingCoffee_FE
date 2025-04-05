@@ -1,70 +1,155 @@
+"use client"
+
+import type React from "react"
+
+import { useState } from "react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
-import {
-    Card,
-    CardContent,
-    CardDescription,
-    CardHeader,
-    CardTitle,
-} from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
+import { AlertCircle, Coffee, Lock, LogIn, User } from "lucide-react"
+import { Alert, AlertDescription } from "@/components/ui/alert"
 
-export function LoginForm({
-    className,
-    ...props
-}: React.ComponentPropsWithoutRef<"div">) {
+export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRef<"div">) {
+    const router = useRouter()
+    const [username, setUsername] = useState("")
+    const [password, setPassword] = useState("")
+    const [error, setError] = useState("")
+    const [isLoading, setIsLoading] = useState(false)
+
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault()
+        setError("")
+
+        if (!username || !password) {
+            setError("Vui lòng nhập đầy đủ thông tin đăng nhập")
+            return
+        }
+
+        setIsLoading(true)
+
+        // Giả lập quá trình xác thực
+        setTimeout(() => {
+            // Đây là nơi bạn sẽ thêm logic xác thực thực tế
+            // Ví dụ: kiểm tra với API hoặc Firebase
+
+            // Giả lập đăng nhập thành công với tài khoản admin
+            if (username === "admin" && password === "admin123") {
+                router.push("/dashboard")
+            } else {
+                setError("Tên đăng nhập hoặc mật khẩu không chính xác")
+                setIsLoading(false)
+            }
+        }, 1500)
+    }
+
     return (
         <div className={cn("flex flex-col gap-6", className)} {...props}>
-            <Card>
-                <CardHeader>
-                    <CardTitle className="text-2xl">Đăng nhập</CardTitle>
-                    <CardDescription>
-                        Nhập email của bạn bên dưới để đăng nhập vào tài khoản của bạn
-                    </CardDescription>
+            <div className="flex flex-col items-center justify-center mb-2">
+                <div className="flex items-center justify-center h-16 w-16 rounded-full bg-sky-600 mb-4">
+                    <Coffee className="h-8 w-8 text-white" />
+                </div>
+                <h1 className="text-2xl font-bold text-center text-sky-900">Automatic Brewing Coffee</h1>
+                <p className="text-sky-700 text-sm">Hệ thống quản trị</p>
+            </div>
+
+            <Card className="border-0 shadow-lg">
+                <CardHeader className="space-y-1 pb-4">
+                    <CardTitle className="text-2xl text-center">Đăng nhập quản trị</CardTitle>
+                    <CardDescription className="text-center">Khu vực hạn chế - Chỉ dành cho quản trị viên</CardDescription>
                 </CardHeader>
                 <CardContent>
-                    <form>
-                        <div className="flex flex-col gap-6">
+                    {error && (
+                        <Alert variant="destructive" className="mb-4">
+                            <AlertCircle className="h-4 w-4" />
+                            <AlertDescription>{error}</AlertDescription>
+                        </Alert>
+                    )}
+                    <form onSubmit={handleSubmit}>
+                        <div className="flex flex-col gap-4">
                             <div className="grid gap-2">
-                                <Label htmlFor="email">Email</Label>
-                                <Input
-                                    id="email"
-                                    type="email"
-                                    placeholder="m@example.com"
-                                />
+                                <Label htmlFor="username">Tên đăng nhập</Label>
+                                <div className="relative">
+                                    <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                                    <Input
+                                        id="username"
+                                        className="pl-9"
+                                        placeholder="admin"
+                                        value={username}
+                                        onChange={(e) => setUsername(e.target.value)}
+                                        autoComplete="username"
+                                    />
+                                </div>
                             </div>
                             <div className="grid gap-2">
                                 <div className="flex items-center">
                                     <Label htmlFor="password">Mật khẩu</Label>
-                                    <a
-                                        href="#"
-                                        className="ml-auto inline-block text-sm underline-offset-4 hover:underline"
+                                    <Link
+                                        href="/forgot-password"
+                                        className="ml-auto inline-block text-sm text-sky-600 hover:text-sky-800"
                                     >
-                                        Forgot your password?
-                                    </a>
+                                        Quên mật khẩu?
+                                    </Link>
                                 </div>
-                                <Input id="password" type="password" required />
+                                <div className="relative">
+                                    <Lock className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                                    <Input
+                                        id="password"
+                                        type="password"
+                                        className="pl-9"
+                                        placeholder="••••••••"
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                        autoComplete="current-password"
+                                    />
+                                </div>
                             </div>
-                            <Link href={'/dashboard'}>
-                                <Button effect="gooeyLeft" type="submit" className="w-full">
-                                    Đăng nhập
-                                </Button>
-                            </Link>
-                            <Button variant="outline" className="w-full">
-                                Login with Google
+                            <Button type="submit" className="w-full bg-sky-600 hover:bg-sky-700" disabled={isLoading}>
+                                {isLoading ? (
+                                    <div className="flex items-center">
+                                        <svg
+                                            className="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                                            xmlns="http://www.w3.org/2000/svg"
+                                            fill="none"
+                                            viewBox="0 0 24 24"
+                                        >
+                                            <circle
+                                                className="opacity-25"
+                                                cx="12"
+                                                cy="12"
+                                                r="10"
+                                                stroke="currentColor"
+                                                strokeWidth="4"
+                                            ></circle>
+                                            <path
+                                                className="opacity-75"
+                                                fill="currentColor"
+                                                d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                                            ></path>
+                                        </svg>
+                                        Đang xử lý...
+                                    </div>
+                                ) : (
+                                    <div className="flex items-center">
+                                        <LogIn className="mr-2 h-4 w-4" /> Đăng nhập
+                                    </div>
+                                )}
                             </Button>
-                        </div>
-                        <div className="mt-4 text-center text-sm">
-                            Don&apos;t have an account?{" "}
-                            <a href="#" className="underline underline-offset-4">
-                                Sign up
-                            </a>
                         </div>
                     </form>
                 </CardContent>
+                <CardFooter className="flex flex-col">
+                    <div className="text-center text-sm text-muted-foreground mt-2">
+                        <div className="flex items-center justify-center">
+                            <span>Khu vực bảo mật - Chỉ dành cho nhân viên được ủy quyền</span>
+                        </div>
+                    </div>
+                </CardFooter>
             </Card>
         </div>
     )
 }
+

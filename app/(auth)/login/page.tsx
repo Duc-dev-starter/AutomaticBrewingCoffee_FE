@@ -3,8 +3,8 @@ import React from 'react'
 
 const Login = () => {
     return (
-        <div className="flex min-h-svh w-full items-center justify-center p-6 md:p-10">
-            <div className="w-full max-w-sm">
+        <div className="flex min-h-screen items-center justify-center bg-gradient-to-b from-sky-400 to-sky-200 p-4">
+            <div className="w-full max-w-md">
                 <LoginForm />
             </div>
         </div>

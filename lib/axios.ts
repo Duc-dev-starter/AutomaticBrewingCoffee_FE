@@ -3,7 +3,7 @@ import WebPath from "@/constants/path";
 import axios from "axios";
 
 export const axiosInstance = axios.create({
-    baseURL: "https://6778ddd2482f42b62e8fc781.mockapi.io/api",
+    baseURL: "https://localhost:7554/api/v1",
     headers: {
         'Content-Type': 'application/json',
     },

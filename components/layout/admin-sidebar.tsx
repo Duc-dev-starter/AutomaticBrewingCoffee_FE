@@ -55,21 +55,10 @@ const data = {
             isActive: false,
         },
         {
-            title: "Quản lý người dùng",
-            url: "#",
-            icon: User,
-            isActive: true,
-            items: [
-                {
-                    title: "Quản lý khách hàng",
-                    url: "/manage-customers",
-                },
-                {
-                    title: "Quản lý nhân viên",
-                    url: "/admin/manage-foster",
-                },
-
-            ],
+            title: "Quản lý đơn hàng",
+            url: "/manage-orders",
+            icon: Map,
+            isActive: false,
         },
         {
             title: "Quản lý công thức",
@@ -79,7 +68,19 @@ const data = {
         },
         {
             title: "Quản lý nguyên liệu",
-            url: "/admin/manage-ingredients",
+            url: "/manage-ingredients",
+            icon: Map,
+            isActive: false,
+        },
+        {
+            title: "Quản lý thiết bị",
+            url: "/manage-devices",
+            icon: Map,
+            isActive: false,
+        },
+        {
+            title: "Quản lý kiosk",
+            url: "/manage-kiosks",
             icon: Map,
             isActive: false,
         },
@@ -91,7 +92,7 @@ const data = {
         },
         {
             title: "Quản lý sản phẩm",
-            url: "/admin/manage-product",
+            url: "/manage-product",
             icon: PieChart,
             isActive: false,
         },

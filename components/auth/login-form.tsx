@@ -37,7 +37,7 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
             // Ví dụ: kiểm tra với API hoặc Firebase
 
             // Giả lập đăng nhập thành công với tài khoản admin
-            if (username === "admin" && password === "admin123") {
+            if (username === "admin" && password === "admin") {
                 router.push("/dashboard")
             } else {
                 setError("Tên đăng nhập hoặc mật khẩu không chính xác")

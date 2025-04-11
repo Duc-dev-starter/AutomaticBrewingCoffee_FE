@@ -1,16 +1,9 @@
 "use client"
 
 import * as React from "react"
-import {
-    BookOpen,
-    Computer,
-    LayoutDashboard,
-    Map,
-    PieChart,
-    Settings2,
-    User,
-} from "lucide-react"
-
+import Cookies from "js-cookie"
+import { NavMain } from "./nav-main"
+import { NavUser } from "./nav-user"
 import {
     Sidebar,
     SidebarContent,
@@ -18,125 +11,111 @@ import {
     SidebarHeader,
     SidebarRail,
 } from "@/components/ui/sidebar"
-import Image from "next/image"
 import Link from "next/link"
 import Path from "@/constants/path"
-// import Images from "@/constants/image"
-import { NavMain } from "./nav-main"
-import { NavUser } from "./nav-user"
+import {
+    BookOpen,
+    Computer,
+    LayoutDashboard,
+    Map,
+    PieChart,
+    Settings2,
+} from "lucide-react"
 
-// This is sample data.
-const data = {
-    user: {
-        name: "shadcn",
-        email: "m@example.com",
-        avatar: "/avatars/shadcn.jpg",
+// sidebar nav items
+const navMain = [
+    {
+        title: "Dashboard",
+        url: Path.DASHBOARD,
+        icon: LayoutDashboard,
     },
+    {
+        title: "Quản lý đơn hàng",
+        url: "/manage-orders",
+        icon: Map,
+    },
+    {
+        title: "Quản lý công thức",
+        url: "/manage-recipes",
+        icon: BookOpen,
+    },
+    {
+        title: "Quản lý nguyên liệu",
+        url: "/manage-ingredients",
+        icon: Map,
+    },
+    {
+        title: "Quản lý thiết bị",
+        url: "/manage-devices",
+        icon: Computer,
+    },
+    {
+        title: "Quản lý kiosk",
+        url: "/manage-kiosks",
+        icon: Map,
+    },
+    {
+        title: "Quản lý chi phí",
+        url: "#",
+        icon: PieChart,
+    },
+    {
+        title: "Quản lý sản phẩm",
+        url: "/manage-product",
+        icon: PieChart,
+    },
+    {
+        title: "Cài đặt",
+        url: "#",
+        icon: Settings2,
+        items: [
+            {
+                title: "General",
+                url: "#",
+            },
+            {
+                title: "Team",
+                url: "#",
+            },
+            {
+                title: "Billing",
+                url: "#",
+            },
+            {
+                title: "Limits",
+                url: "#",
+            },
+        ],
+    },
+]
 
-    calendars: [
-        {
-            name: "My Calendars",
-            items: ["Personal", "Work", "Family"],
-        },
-        {
-            name: "Favorites",
-            items: ["Holidays", "Birthdays"],
-        },
-        {
-            name: "Other",
-            items: ["Travel", "Reminders", "Deadlines"],
-        },
-    ],
+export function AdminSidebar() {
+    const [user, setUser] = React.useState<any>(null)
 
-    navMain: [
-        {
-            title: "Dashboard",
-            url: Path.DASHBOARD,
-            icon: LayoutDashboard,
-            isActive: false,
-        },
-        {
-            title: "Quản lý đơn hàng",
-            url: "/manage-orders",
-            icon: Map,
-            isActive: false,
-        },
-        {
-            title: "Quản lý công thức",
-            url: "/manage-recipes",
-            icon: BookOpen,
-            isActive: false,
-        },
-        {
-            title: "Quản lý nguyên liệu",
-            url: "/manage-ingredients",
-            icon: Map,
-            isActive: false,
-        },
-        {
-            title: "Quản lý thiết bị",
-            url: "/manage-devices",
-            icon: Computer,
-            isActive: false,
-        },
-        {
-            title: "Quản lý kiosk",
-            url: "/manage-kiosks",
-            icon: Map,
-            isActive: false,
-        },
-        {
-            title: "Quản lý chi phí",
-            url: "#",
-            icon: PieChart,
-            isActive: false,
-        },
-        {
-            title: "Quản lý sản phẩm",
-            url: "/manage-product",
-            icon: PieChart,
-            isActive: false,
-        },
-        {
-            title: "Cài đặt",
-            url: "#",
-            icon: Settings2,
-            items: [
-                {
-                    title: "General",
-                    url: "#",
-                },
-                {
-                    title: "Team",
-                    url: "#",
-                },
-                {
-                    title: "Billing",
-                    url: "#",
-                },
-                {
-                    title: "Limits",
-                    url: "#",
-                },
-            ],
-        },
-    ],
+    React.useEffect(() => {
+        const userStr = Cookies.get("user")
+        if (userStr) {
+            try {
+                console.log(userStr);
+                setUser(JSON.parse(userStr))
+            } catch (err) {
+                console.error("Error parsing user cookie:", err)
+            }
+        }
+    }, [])
 
-}
-
-export function AdminSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     return (
-        <Sidebar collapsible="icon" {...props}>
+        <Sidebar collapsible="icon" >
             <SidebarHeader>
                 <Link href={Path.HOME}>
-                    {/* <Image src={Images.LOGO} alt="logo" width={120} height={120} /> */}
+                    {/* Logo ở đây nếu có */}
                 </Link>
             </SidebarHeader>
             <SidebarContent>
-                <NavMain items={data.navMain} />
+                <NavMain items={navMain} />
             </SidebarContent>
             <SidebarFooter>
-                <NavUser user={data.user} />
+                {user && <NavUser user={user} />}
             </SidebarFooter>
             <SidebarRail />
         </Sidebar>

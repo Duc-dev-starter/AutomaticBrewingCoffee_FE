@@ -12,6 +12,9 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { AlertCircle, Coffee, Lock, LogIn, User } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
+import { login } from "@/services/auth"
+import { handleToken } from "@/utils/cookie"
+
 
 export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRef<"div">) {
     const router = useRouter()
@@ -30,20 +33,16 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
         }
 
         setIsLoading(true)
-
-        // Giả lập quá trình xác thực
-        setTimeout(() => {
-            // Đây là nơi bạn sẽ thêm logic xác thực thực tế
-            // Ví dụ: kiểm tra với API hoặc Firebase
-
-            // Giả lập đăng nhập thành công với tài khoản admin
-            if (username === "admin" && password === "admin") {
-                router.push("/dashboard")
-            } else {
-                setError("Tên đăng nhập hoặc mật khẩu không chính xác")
-                setIsLoading(false)
-            }
-        }, 1500)
+        const response = await login({ username, password });
+        if (response.isSuccess && response.statusCode === 200) {
+            const accessToken = response.response.accessToken;
+            const refreshToken = response.response.refreshToken;
+            handleToken(accessToken, refreshToken);
+            router.push("/dashboard")
+        } else {
+            setError("Tên đăng nhập hoặc mật khẩu không chính xác")
+            setIsLoading(false)
+        }
     }
 
     return (
@@ -65,7 +64,7 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
                     {error && (
                         <Alert variant="destructive" className="mb-4">
                             <AlertCircle className="h-4 w-4" />
-                            <AlertDescription>{error}</AlertDescription>
+                            <AlertDescription className="mt-[4px]">{error}</AlertDescription>
                         </Alert>
                     )}
                     <form onSubmit={handleSubmit}>

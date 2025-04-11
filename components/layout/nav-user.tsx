@@ -35,13 +35,29 @@ import WebPath from "@/constants/path"
 export function NavUser({
     user,
 }: {
-    user: {
-        name: string
-        email: string
-        avatar: string
-    }
+    user: { fullname: string; role: string } | null
 }) {
     const { isMobile } = useSidebar()
+    console.log(user);
+
+    if (user === null) {
+        return (
+            <SidebarMenu>
+                <SidebarMenuItem>
+                    <SidebarMenuButton size="lg" disabled>
+                        <div className="animate-pulse flex items-center gap-2 w-full">
+                            <div className="h-8 w-8 bg-gray-300 rounded-lg" />
+                            <div className="flex flex-col flex-1 space-y-1">
+                                <div className="h-3 w-3/4 bg-gray-300 rounded" />
+                                <div className="h-2 w-1/2 bg-gray-200 rounded" />
+                            </div>
+                        </div>
+                    </SidebarMenuButton>
+                </SidebarMenuItem>
+            </SidebarMenu>
+        )
+    }
+
 
     return (
         <SidebarMenu>
@@ -53,12 +69,12 @@ export function NavUser({
                             className="data-[state=open]:bg-sidebar-accent data-[state=open]:text-sidebar-accent-foreground"
                         >
                             <Avatar className="h-8 w-8 rounded-lg">
-                                <AvatarImage src={user.avatar} alt={user.name} />
+                                <AvatarImage src={"/avatars/shadcn.jpg"} alt={user.fullname} />
                                 <AvatarFallback className="rounded-lg">CN</AvatarFallback>
                             </Avatar>
                             <div className="grid flex-1 text-left text-sm leading-tight">
-                                <span className="truncate font-semibold">{user.name}</span>
-                                <span className="truncate text-xs">{user.email}</span>
+                                <span className="truncate font-semibold">{user.fullname}</span>
+                                <span className="truncate text-xs">{user.role}</span>
                             </div>
                             <ChevronsUpDown className="ml-auto size-4" />
                         </SidebarMenuButton>
@@ -73,12 +89,12 @@ export function NavUser({
                             <Link href={WebPath.PROFILE}>
                                 <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm hover:bg-gray-100">
                                     <Avatar className="h-8 w-8 rounded-lg">
-                                        <AvatarImage src={user.avatar} alt={user.name} />
+                                        <AvatarImage src={"/avatars/shadcn.jpg"} alt={user.fullname} />
                                         <AvatarFallback className="rounded-lg">CN</AvatarFallback>
                                     </Avatar>
                                     <div className="grid flex-1 text-left text-sm leading-tight">
-                                        <span className="truncate font-semibold">{user.name}</span>
-                                        <span className="truncate text-xs">{user.email}</span>
+                                        <span className="truncate font-semibold">{user.fullname}</span>
+                                        <span className="truncate text-xs">{user.role}</span>
                                     </div>
                                 </div>
                             </Link>

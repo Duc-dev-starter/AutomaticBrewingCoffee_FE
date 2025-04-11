@@ -3,6 +3,7 @@
 import * as React from "react"
 import {
     BookOpen,
+    Computer,
     LayoutDashboard,
     Map,
     PieChart,
@@ -75,7 +76,7 @@ const data = {
         {
             title: "Quản lý thiết bị",
             url: "/manage-devices",
-            icon: Map,
+            icon: Computer,
             isActive: false,
         },
         {

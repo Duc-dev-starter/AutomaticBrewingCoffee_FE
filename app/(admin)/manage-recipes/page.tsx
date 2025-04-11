@@ -38,6 +38,7 @@ import {
     Utensils,
     LayoutGrid,
     LayoutList,
+    PlusCircle,
 } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -313,7 +314,8 @@ const ManageRecipes = () => {
                             </DropdownMenuContent>
                         </DropdownMenu>
                         <Button onClick={handleAddRecipe} disabled={loading}>
-                            Thêm công thức
+                            <PlusCircle className="mr-2 h-4 w-4" />
+                            Thêm
                         </Button>
                     </div>
                 </div>

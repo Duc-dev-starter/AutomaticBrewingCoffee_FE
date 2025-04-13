@@ -52,16 +52,8 @@ import { Badge } from "@/components/ui/badge"
 import { format, parseISO } from "date-fns"
 import ExportButton from "@/components/common/export-button"
 import RefreshButton from "@/components/common/refresh-button"
+import { Device } from "@/types/device"
 
-// Định nghĩa interface Device
-interface Device {
-    deviceId: string
-    name: string
-    description: string
-    status: string
-    createdDate: string
-    updatedDate: string | null
-}
 
 // Định nghĩa interface Kiosk
 interface Kiosk {

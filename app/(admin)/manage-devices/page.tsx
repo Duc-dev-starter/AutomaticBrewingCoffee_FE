@@ -19,34 +19,26 @@ import {
     DropdownMenu,
     DropdownMenuCheckboxItem,
     DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import {
-    Filter,
-    Search,
     ChevronLeft,
     ChevronRight,
     ChevronsLeft,
     ChevronsRight,
     PlusCircle,
 } from "lucide-react"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
 import { columns } from "@/components/manage-devices/columns"
 import { Device } from "@/types/device"
 import { getDevices } from "@/services/device"
 import useDebounce from "@/hooks/use-debounce"
 import { EBaseStatusFilterDropdown } from "@/components/common/ebase-status-filter"
-import { ExportButton, RefreshButton } from "@/components/common"
+import { ExportButton, NoResultsRow, PageSizeSelector, RefreshButton, SearchInput } from "@/components/common"
 
 const ManageDevices = () => {
     const [loading, setLoading] = useState(true)
-    const [error, setError] = useState<string | null>(null)
     const [pageSize, setPageSize] = useState(10)
     const [currentPage, setCurrentPage] = useState(1)
     const [devices, setDevices] = useState<Device[]>([])
@@ -70,7 +62,6 @@ const ManageDevices = () => {
     const fetchDevices = useCallback(async () => {
         try {
             setLoading(true)
-            setError(null)
 
             const filterBy = columnFilters.length > 0 ? columnFilters[0]?.id : undefined
             const filterQuery = columnFilters.length > 0 ? columnFilters[0]?.value as string : undefined
@@ -92,7 +83,6 @@ const ManageDevices = () => {
             setTotalItems(response.total)
             setTotalPages(response.totalPages)
         } catch (err) {
-            setError("Không thể tải dữ liệu thiết bị")
             console.error(err)
         } finally {
             setLoading(false)
@@ -155,14 +145,7 @@ const ManageDevices = () => {
                 </div>
                 <div className="flex flex-col sm:flex-row items-center py-4 gap-4">
                     <div className="relative w-full sm:w-72">
-                        <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                        <Input
-                            placeholder="Tìm kiếm thiết bị..."
-                            value={searchValue}
-                            onChange={(event) => setSearchValue(event.target.value)}
-                            className="pl-8"
-                            disabled={loading}
-                        />
+                        <SearchInput loading={loading} placeHolderText="Tìm kiếm thiết bị..." searchValue={searchValue} setSearchValue={setSearchValue} />
                     </div>
                     <div className="flex items-center gap-2 ml-auto">
                         <EBaseStatusFilterDropdown loading={loading} table={table} />
@@ -206,7 +189,6 @@ const ManageDevices = () => {
                         </Button>
                     </div>
                 </div>
-                {error && <div className="text-red-500 text-center">{error}</div>}
                 <div className="rounded-md border">
                     <Table>
                         <TableHeader>
@@ -276,11 +258,7 @@ const ManageDevices = () => {
                                     </TableRow>
                                 ))
                             ) : (
-                                <TableRow>
-                                    <TableCell colSpan={columns.length} className="h-24 text-center">
-                                        Không có kết quả.
-                                    </TableCell>
-                                </TableRow>
+                                <NoResultsRow columns={columns} />
                             )}
                         </TableBody>
                     </Table>
@@ -288,25 +266,7 @@ const ManageDevices = () => {
                 <div className="flex flex-col sm:flex-row items-center justify-between space-y-3 sm:space-y-0 py-4">
                     <div className="flex items-center space-x-2">
                         <p className="text-sm font-medium">Hiển thị</p>
-                        <Select
-                            value={`${pageSize}`}
-                            onValueChange={(value) => {
-                                setPageSize(Number(value))
-                                setCurrentPage(1)
-                            }}
-                            disabled={loading}
-                        >
-                            <SelectTrigger className="h-8 w-[70px]">
-                                <SelectValue placeholder={pageSize} />
-                            </SelectTrigger>
-                            <SelectContent side="top">
-                                {[5, 10, 20, 50, 100].map((size) => (
-                                    <SelectItem key={size} value={`${size}`}>
-                                        {size}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
+                        <PageSizeSelector loading={loading} pageSize={pageSize} setCurrentPage={setCurrentPage} setPageSize={setPageSize} />
                         <p className="text-sm font-medium">mục mỗi trang</p>
                     </div>
                     {loading ? (

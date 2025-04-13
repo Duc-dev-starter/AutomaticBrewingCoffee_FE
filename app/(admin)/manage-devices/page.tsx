@@ -1,6 +1,6 @@
 "use client"
 
-import * as React from "react"
+import { useCallback, useEffect, useState } from "react"
 import { ChevronDownIcon } from "@radix-ui/react-icons"
 import {
     type ColumnFiltersState,
@@ -27,91 +27,84 @@ import {
 import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import {
-    Download,
     Filter,
-    RefreshCw,
     Search,
     ChevronLeft,
     ChevronRight,
     ChevronsLeft,
     ChevronsRight,
     PlusCircle,
-
 } from "lucide-react"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
 import { columns } from "@/components/manage-devices/columns"
 import { Device } from "@/types/device"
-import ExportButton from "@/components/common/export-button"
-import RefreshButton from "@/components/common/refresh-button"
-
-
-// Tạo dữ liệu mẫu
-const generateSampleDevices = (count: number): Device[] => {
-    const deviceNames = [
-        "Máy pha cà phê tự động A1",
-        "Máy pha cà phê tự động B2",
-        "Máy pha cà phê tự động C3",
-        "Máy pha cà phê tự động D4",
-        "Máy pha cà phê tự động E5",
-        "Máy pha cà phê tự động F6",
-    ]
-
-    const descriptions = [
-        "Máy pha cà phê tự động với bộ điều khiển nhiệt độ chính xác",
-        "Máy pha cà phê tự động với hệ thống lọc nước tích hợp",
-        "Máy pha cà phê tự động với khả năng kết nối WiFi",
-        "Máy pha cà phê tự động với màn hình cảm ứng",
-        "Máy pha cà phê tự động với hệ thống tự làm sạch",
-        "Máy pha cà phê tự động với bộ nhớ công thức",
-    ]
-
-    const statuses = ["online", "offline", "maintenance", "error"]
-
-    return Array.from({ length: count }, (_, i) => {
-        const now = new Date()
-        const randomDays = Math.floor(Math.random() * 365)
-        const randomUpdateDays = Math.floor(Math.random() * 30)
-        const createdDate = new Date(now.getTime() - randomDays * 24 * 60 * 60 * 1000)
-        const hasUpdate = Math.random() > 0.3
-        const updatedDate = hasUpdate ? new Date(now.getTime() - randomUpdateDays * 24 * 60 * 60 * 1000) : null
-
-        return {
-            deviceId: `DEV-${Math.floor(10000 + Math.random() * 90000)}`,
-            name: deviceNames[Math.floor(Math.random() * deviceNames.length)],
-            description: descriptions[Math.floor(Math.random() * descriptions.length)],
-            status: statuses[Math.floor(Math.random() * statuses.length)],
-            createdDate: createdDate.toISOString(),
-            updatedDate: updatedDate ? updatedDate.toISOString() : null,
-        }
-    })
-}
-
-
+import { getDevices } from "@/services/device"
+import useDebounce from "@/hooks/use-debounce"
+import { EBaseStatusFilterDropdown } from "@/components/common/ebase-status-filter"
+import { ExportButton, RefreshButton } from "@/components/common"
 
 const ManageDevices = () => {
-    const [loading, setLoading] = React.useState(true)
-    const [pageSize, setPageSize] = React.useState(10)
+    const [loading, setLoading] = useState(true)
+    const [error, setError] = useState<string | null>(null)
+    const [pageSize, setPageSize] = useState(10)
+    const [currentPage, setCurrentPage] = useState(1)
+    const [devices, setDevices] = useState<Device[]>([])
+    const [totalItems, setTotalItems] = useState(0)
+    const [totalPages, setTotalPages] = useState(1)
 
-    // Tạo dữ liệu mẫu
-    const data = React.useMemo(() => generateSampleDevices(50), [])
+    const [sorting, setSorting] = useState<SortingState>([])
+    const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
+    const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
+    const [rowSelection, setRowSelection] = useState({})
 
-    // Giả lập tải dữ liệu
-    React.useEffect(() => {
-        const timer = setTimeout(() => {
+    // State cho giá trị tìm kiếm
+    const [searchValue, setSearchValue] = useState("")
+    const debouncedSearchValue = useDebounce(searchValue, 300)
+
+    // Cập nhật columnFilters khi debouncedSearchValue thay đổi
+    useEffect(() => {
+        table.getColumn("name")?.setFilterValue(debouncedSearchValue)
+    }, [debouncedSearchValue])
+
+    const fetchDevices = useCallback(async () => {
+        try {
+            setLoading(true)
+            setError(null)
+
+            const filterBy = columnFilters.length > 0 ? columnFilters[0]?.id : undefined
+            const filterQuery = columnFilters.length > 0 ? columnFilters[0]?.value as string : undefined
+            const sortBy = sorting.length > 0 ? sorting[0]?.id : undefined
+            const isAsc = sorting.length > 0 ? !sorting[0]?.desc : undefined
+            const statusFilter = columnFilters.find((filter) => filter.id === "status")?.value as string | undefined
+
+            const response = await getDevices({
+                filterBy,
+                filterQuery,
+                page: currentPage,
+                size: pageSize,
+                sortBy,
+                isAsc,
+                status: statusFilter,
+            })
+
+            setDevices(response.items)
+            setTotalItems(response.total)
+            setTotalPages(response.totalPages)
+        } catch (err) {
+            setError("Không thể tải dữ liệu thiết bị")
+            console.error(err)
+        } finally {
             setLoading(false)
-        }, 1500) // Giả lập 1.5 giây tải dữ liệu
+        }
+    }, [currentPage, pageSize, columnFilters, sorting])
 
-        return () => clearTimeout(timer)
-    }, [])
-
-    const [sorting, setSorting] = React.useState<SortingState>([])
-    const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
-    const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
-    const [rowSelection, setRowSelection] = React.useState({})
+    useEffect(() => {
+        fetchDevices()
+    }, [fetchDevices])
 
     const table = useReactTable({
-        data,
+        data: devices,
         columns,
         onSortingChange: setSorting,
         onColumnFiltersChange: setColumnFilters,
@@ -119,33 +112,32 @@ const ManageDevices = () => {
         getSortedRowModel: getSortedRowModel(),
         getFilteredRowModel: getFilteredRowModel(),
         getPaginationRowModel: getPaginationRowModel(),
+        onColumnVisibilityChange: setColumnVisibility,
         state: {
             sorting,
             columnFilters,
             columnVisibility,
             rowSelection,
+            pagination: {
+                pageIndex: currentPage - 1,
+                pageSize,
+            },
         },
-        initialState: {
-            pagination: { pageSize: 10 },
-        },
+        manualPagination: true,
+        manualFiltering: true,
+        manualSorting: true,
+        pageCount: totalPages,
     })
 
-    // Cập nhật kích thước trang khi pageSize thay đổi
-    React.useEffect(() => {
+    useEffect(() => {
         table.setPageSize(pageSize)
     }, [pageSize, table])
 
-    // Tính toán thông tin phân trang
-    const totalItems = data.length
-    const filteredItems = table.getFilteredRowModel().rows.length
-    const currentPage = table.getState().pagination.pageIndex + 1
-    const totalPages = Math.ceil(filteredItems / pageSize)
     const startItem = (currentPage - 1) * pageSize + 1
-    const endItem = Math.min(currentPage * pageSize, filteredItems)
+    const endItem = Math.min(currentPage * pageSize, totalItems)
 
-    // Chuyển đổi trạng thái loading (cho mục đích demo)
     const toggleLoading = () => {
-        setLoading((prev) => !prev)
+        fetchDevices()
     }
 
     return (
@@ -166,41 +158,14 @@ const ManageDevices = () => {
                         <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
                         <Input
                             placeholder="Tìm kiếm thiết bị..."
-                            value={(table.getColumn("name")?.getFilterValue() as string) ?? ""}
-                            onChange={(event) => table.getColumn("name")?.setFilterValue(event.target.value)}
+                            value={searchValue}
+                            onChange={(event) => setSearchValue(event.target.value)}
                             className="pl-8"
                             disabled={loading}
                         />
                     </div>
                     <div className="flex items-center gap-2 ml-auto">
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button variant="outline" className="ml-auto" disabled={loading}>
-                                    <Filter className="mr-2 h-4 w-4" />
-                                    Lọc
-                                    <ChevronDownIcon className="ml-2 h-4 w-4" />
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                                <DropdownMenuLabel>Lọc theo trạng thái</DropdownMenuLabel>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem onClick={() => table.getColumn("status")?.setFilterValue("online")}>
-                                    Hoạt động
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => table.getColumn("status")?.setFilterValue("offline")}>
-                                    Không hoạt động
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => table.getColumn("status")?.setFilterValue("maintenance")}>
-                                    Bảo trì
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => table.getColumn("status")?.setFilterValue("error")}>
-                                    Lỗi
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => table.getColumn("status")?.setFilterValue("")}>
-                                    Xóa bộ lọc
-                                </DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
+                        <EBaseStatusFilterDropdown loading={loading} table={table} />
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button variant="outline" disabled={loading}>
@@ -211,30 +176,28 @@ const ManageDevices = () => {
                                 {table
                                     .getAllColumns()
                                     .filter((column) => column.getCanHide())
-                                    .map((column) => {
-                                        return (
-                                            <DropdownMenuCheckboxItem
-                                                key={column.id}
-                                                className="capitalize"
-                                                checked={column.getIsVisible()}
-                                                onCheckedChange={(value) => column.toggleVisibility(!!value)}
-                                            >
-                                                {column.id === "deviceId"
-                                                    ? "Mã thiết bị"
-                                                    : column.id === "name"
-                                                        ? "Tên thiết bị"
-                                                        : column.id === "description"
-                                                            ? "Mô tả"
-                                                            : column.id === "status"
-                                                                ? "Trạng thái"
-                                                                : column.id === "createdDate"
-                                                                    ? "Ngày tạo"
-                                                                    : column.id === "updatedDate"
-                                                                        ? "Ngày cập nhật"
-                                                                        : column.id}
-                                            </DropdownMenuCheckboxItem>
-                                        )
-                                    })}
+                                    .map((column) => (
+                                        <DropdownMenuCheckboxItem
+                                            key={column.id}
+                                            className="capitalize"
+                                            checked={column.getIsVisible()}
+                                            onCheckedChange={(value) => column.toggleVisibility(!!value)}
+                                        >
+                                            {column.id === "deviceId"
+                                                ? "Mã thiết bị"
+                                                : column.id === "name"
+                                                    ? "Tên thiết bị"
+                                                    : column.id === "description"
+                                                        ? "Mô tả"
+                                                        : column.id === "status"
+                                                            ? "Trạng thái"
+                                                            : column.id === "createdDate"
+                                                                ? "Ngày tạo"
+                                                                : column.id === "updatedDate"
+                                                                    ? "Ngày cập nhật"
+                                                                    : column.id}
+                                        </DropdownMenuCheckboxItem>
+                                    ))}
                             </DropdownMenuContent>
                         </DropdownMenu>
                         <Button disabled={loading}>
@@ -243,24 +206,36 @@ const ManageDevices = () => {
                         </Button>
                     </div>
                 </div>
+                {error && <div className="text-red-500 text-center">{error}</div>}
                 <div className="rounded-md border">
                     <Table>
                         <TableHeader>
                             {table.getHeaderGroups().map((headerGroup) => (
                                 <TableRow key={headerGroup.id}>
-                                    {headerGroup.headers.map((header) => {
-                                        return (
-                                            <TableHead key={header.id}>
-                                                {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-                                            </TableHead>
-                                        )
-                                    })}
+                                    {headerGroup.headers.map((header) => (
+                                        <TableHead key={header.id}>
+                                            {header.isPlaceholder ? null : (
+                                                header.column.getCanSort() ? (
+                                                    <Button
+                                                        variant="ghost"
+                                                        onClick={() => header.column.toggleSorting(header.column.getIsSorted() === "asc")}
+                                                    >
+                                                        {flexRender(header.column.columnDef.header, header.getContext())}
+                                                        {header.column.getIsSorted() ? (
+                                                            header.column.getIsSorted() === "asc" ? " ↑" : " ↓"
+                                                        ) : null}
+                                                    </Button>
+                                                ) : (
+                                                    flexRender(header.column.columnDef.header, header.getContext())
+                                                )
+                                            )}
+                                        </TableHead>
+                                    ))}
                                 </TableRow>
                             ))}
                         </TableHeader>
                         <TableBody>
                             {loading ? (
-                                // Skeleton loading state
                                 Array.from({ length: pageSize }).map((_, index) => (
                                     <TableRow key={`skeleton-${index}`} className="animate-pulse">
                                         {columns.map((column, cellIndex) => (
@@ -292,7 +267,7 @@ const ManageDevices = () => {
                                         ))}
                                     </TableRow>
                                 ))
-                            ) : table.getRowModel().rows?.length ? (
+                            ) : devices.length ? (
                                 table.getRowModel().rows.map((row) => (
                                     <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
                                         {row.getVisibleCells().map((cell) => (
@@ -317,6 +292,7 @@ const ManageDevices = () => {
                             value={`${pageSize}`}
                             onValueChange={(value) => {
                                 setPageSize(Number(value))
+                                setCurrentPage(1)
                             }}
                             disabled={loading}
                         >
@@ -333,22 +309,19 @@ const ManageDevices = () => {
                         </Select>
                         <p className="text-sm font-medium">mục mỗi trang</p>
                     </div>
-
                     {loading ? (
                         <Skeleton className="h-5 w-64" />
                     ) : (
                         <div className="text-sm text-muted-foreground">
-                            Đang hiển thị {filteredItems > 0 ? startItem : 0} đến {endItem} trong tổng số {filteredItems} mục
-                            {filteredItems !== totalItems && ` (đã lọc từ ${totalItems} mục)`}
+                            Đang hiển thị {totalItems > 0 ? startItem : 0} đến {endItem} trong tổng số {totalItems} mục
                         </div>
                     )}
-
                     <div className="flex items-center space-x-2">
                         <Button
                             variant="outline"
                             className="hidden h-8 w-8 p-0 lg:flex"
-                            onClick={() => table.setPageIndex(0)}
-                            disabled={!table.getCanPreviousPage() || loading}
+                            onClick={() => setCurrentPage(1)}
+                            disabled={currentPage === 1 || loading}
                         >
                             <span className="sr-only">Trang đầu</span>
                             <ChevronsLeft className="h-4 w-4" />
@@ -356,8 +329,8 @@ const ManageDevices = () => {
                         <Button
                             variant="outline"
                             className="h-8 w-8 p-0"
-                            onClick={() => table.previousPage()}
-                            disabled={!table.getCanPreviousPage() || loading}
+                            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                            disabled={currentPage === 1 || loading}
                         >
                             <span className="sr-only">Trang trước</span>
                             <ChevronLeft className="h-4 w-4" />
@@ -373,8 +346,8 @@ const ManageDevices = () => {
                         <Button
                             variant="outline"
                             className="h-8 w-8 p-0"
-                            onClick={() => table.nextPage()}
-                            disabled={!table.getCanNextPage() || loading}
+                            onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                            disabled={currentPage === totalPages || loading}
                         >
                             <span className="sr-only">Trang sau</span>
                             <ChevronRight className="h-4 w-4" />
@@ -382,8 +355,8 @@ const ManageDevices = () => {
                         <Button
                             variant="outline"
                             className="hidden h-8 w-8 p-0 lg:flex"
-                            onClick={() => table.setPageIndex(table.getPageCount() - 1)}
-                            disabled={!table.getCanNextPage() || loading}
+                            onClick={() => setCurrentPage(totalPages)}
+                            disabled={currentPage === totalPages || loading}
                         >
                             <span className="sr-only">Trang cuối</span>
                             <ChevronsRight className="h-4 w-4" />

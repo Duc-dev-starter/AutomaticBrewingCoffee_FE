@@ -1,6 +1,7 @@
 import { AxiosResponse } from "axios";
 import { cleanParams } from "@/utils";
 import { axiosInstance } from "@/lib/axios";
+import { PagingResponse } from "@/types/paging";
 
 export default interface ApiRequest {
     url: string;
@@ -26,6 +27,22 @@ export const BaseService = {
             throw error;
         }
     },
+
+    async getPaging<T = any>({ url, payload, headers }: ApiRequest): Promise<PagingResponse<T>> {
+        if (!url) throw new Error("URL is required for GET request");
+        try {
+            const params = cleanParams({ ...payload });
+            const data = await axiosInstance.get<any>(url, {
+                params,
+                headers: headers || {},
+            }) as any;
+            return data.response;
+        } catch (error) {
+            console.error("GET request failed", error);
+            throw error;
+        }
+    },
+
 
     async post<T = any>({ url, payload, headers }: ApiRequest): Promise<AxiosResponse<T>> {
         if (!url) {

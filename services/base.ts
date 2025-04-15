@@ -2,12 +2,7 @@ import { AxiosResponse } from "axios";
 import { cleanParams } from "@/utils";
 import { axiosInstance } from "@/lib/axios";
 import { PagingResponse } from "@/types/paging";
-
-export default interface ApiRequest {
-    url: string;
-    payload?: any;
-    headers?: object;
-}
+import { ApiRequest } from "@/types/api";
 
 export const BaseService = {
     async get<T = any>({ url, payload, headers }: ApiRequest): Promise<AxiosResponse<T>> {
@@ -44,20 +39,19 @@ export const BaseService = {
     },
 
 
-    async post<T = any>({ url, payload, headers }: ApiRequest): Promise<AxiosResponse<T>> {
-        if (!url) {
-            throw new Error("URL is required for POST request");
-        }
+    async post<T = any>({ url, payload, headers }: ApiRequest): Promise<T> {
+        if (!url) throw new Error("URL is required for POST request");
         try {
-            const response = await axiosInstance.post<T, AxiosResponse<T>>(url, payload, {
+            const data = await axiosInstance.post<T, T>(url, payload, {
                 headers: headers || {},
             });
-            return response;
+            return data;
         } catch (error) {
             console.error("POST request failed", error);
             throw error;
         }
     },
+
     async put<T = any>({ url, payload, headers }: ApiRequest): Promise<AxiosResponse<T>> {
         if (!url) {
             throw new Error("URL is required for PUT request");

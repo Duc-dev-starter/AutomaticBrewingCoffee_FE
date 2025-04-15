@@ -1,4 +1,12 @@
 import { FilterFn } from "@tanstack/react-table";
+
+type ToastOptions = {
+    title: string;
+    description?: string;
+    variant?: "default" | "destructive";
+};
+
+
 export const cleanParams = (params: any) => {
     for (const key in params) {
         if (params[key] === '' && params[key] !== 0) {
@@ -68,3 +76,16 @@ export const multiSelectFilter: FilterFn<unknown> = (
 export const firstLetterCapitialize = (value: string) => {
     return value.charAt(0).toUpperCase() + value.slice(1);
 }
+
+
+let showToast: ((options: ToastOptions) => void) | null = null;
+
+export const registerToast = (fn: typeof showToast) => {
+    showToast = fn;
+};
+
+export const toastService = {
+    show: (options: ToastOptions) => {
+        if (showToast) showToast(options);
+    },
+};

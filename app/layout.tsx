@@ -3,6 +3,7 @@ import React from "react";
 import { Tooltip, TooltipProvider } from "@/components/ui/tooltip";
 import { Inter } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
+import { Toaster } from "@/components/ui/toaster";
 
 
 const inter = Inter({
@@ -34,6 +35,7 @@ export default function RootLayout({
               {children}
             </Tooltip>
           </TooltipProvider>
+          <Toaster />
         </ThemeProvider>
       </body>
     </html>

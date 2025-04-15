@@ -2,7 +2,7 @@
 
 import type React from "react"
 
-import { useState } from "react"
+import { useEffect, useState } from "react"
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
@@ -24,26 +24,33 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
     const [isLoading, setIsLoading] = useState(false)
 
     const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault()
-        setError("")
+        e.preventDefault();
+        setError("");
 
         if (!username || !password) {
-            setError("Vui lòng nhập đầy đủ thông tin đăng nhập")
-            return
+            setError("Vui lòng nhập đầy đủ thông tin đăng nhập");
+            return;
         }
 
-        setIsLoading(true)
-        const response = await login({ username, password });
-        if (response.isSuccess && response.statusCode === 200) {
-            const accessToken = response.response.accessToken;
-            const refreshToken = response.response.refreshToken;
-            handleToken(accessToken, refreshToken);
-            router.push("/dashboard")
-        } else {
-            setError("Tên đăng nhập hoặc mật khẩu không chính xác")
-            setIsLoading(false)
+        setIsLoading(true);
+        try {
+            const response = await login({ username, password });
+            console.log(response);
+            if (response.isSuccess && response.statusCode === 200) {
+                const accessToken = response.response.accessToken;
+                const refreshToken = response.response.refreshToken;
+                handleToken(accessToken, refreshToken);
+                router.push("/dashboard");
+            } else {
+                setError("Tên đăng nhập hoặc mật khẩu không chính xác");
+            }
+        } catch (error) {
+            setError("Đã xảy ra lỗi khi đăng nhập. Vui lòng thử lại.");
+            console.error("Login error:", error);
+        } finally {
+            setIsLoading(false); // Always reset isLoading
         }
-    }
+    };
 
     return (
         <div className={cn("flex flex-col gap-6", className)} {...props}>

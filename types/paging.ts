@@ -8,6 +8,10 @@ export interface PagingParams {
     isAsc?: boolean;
     status?: string;
     franchiseId?: string;
+    orderType?: string;
+    paymentGateway?: string;
+    productId?: string;
+    type?: string;
 }
 
 export interface PagingResponse<T> {

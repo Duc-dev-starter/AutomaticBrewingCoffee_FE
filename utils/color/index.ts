@@ -1,4 +1,6 @@
+import { EDeviceStatus } from "@/enum/device"
 import { EOrderStatus, EPaymentGateway } from "@/enum/order"
+import { EProductSize, EProductStatus, EProductType } from "@/enum/product"
 
 // Xác định màu sắc cho trạng thái đơn hàng
 export const getOrderStatusColor = (status: string) => {
@@ -32,3 +34,59 @@ export const getPaymentColor = (method: string) => {
     }
 }
 
+// Xác định màu sắc cho trạng thái sản phẩm
+export const getProductStatusColor = (status: EProductStatus) => {
+    switch (status) {
+        case EProductStatus.Selling:
+            return "bg-green-500"
+        case EProductStatus.UnSelling:
+            return "bg-red-500"
+        default:
+            return "bg-gray-500"
+    }
+}
+
+// Xác định màu sắc cho loại sản phẩm
+export const getProductTypeColor = (type: EProductType) => {
+    switch (type) {
+        case EProductType.Single:
+            return "bg-blue-500"
+        case EProductType.Parent:
+            return "bg-purple-500"
+        case EProductType.Child:
+            return "bg-amber-500"
+        default:
+            return "bg-gray-500"
+    }
+}
+
+// Xác định màu sắc cho kích thước sản phẩm
+export const getProductSizeColor = (size: EProductSize) => {
+    switch (size) {
+        case EProductSize.S:
+            return "bg-green-500"
+        case EProductSize.M:
+            return "bg-blue-500"
+        case EProductSize.L:
+            return "bg-purple-500"
+        default:
+            return "bg-gray-500"
+    }
+}
+
+
+// Xác định màu sắc cho trạng thái thiết bị
+export const getDeviceStatusColor = (status: EDeviceStatus) => {
+    switch (status) {
+        case EDeviceStatus.Idle:
+            return "bg-green-500"
+        case EDeviceStatus.Working:
+            return "bg-blue-500"
+        case EDeviceStatus.Repair:
+            return "bg-yellow-500"
+        case EDeviceStatus.Broken:
+            return "bg-red-500"
+        default:
+            return "bg-gray-500"
+    }
+}

@@ -5,7 +5,7 @@ import { Product } from "@/types/product";
 
 export const getProducts = async (params: PagingParams = {}): Promise<PagingResponse<Product>> => {
     return BaseService.getPaging<Product>({
-        url: Api.DEVICES,
+        url: Api.PRODUCTS,
         payload: params,
     });
 };

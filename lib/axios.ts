@@ -1,5 +1,4 @@
 import { HttpStatus } from "@/enum/http";
-import WebPath from "@/constants/path";
 import axios from "axios";
 import { toastService } from "@/utils";
 
@@ -37,10 +36,15 @@ axiosInstance.interceptors.response.use(
         if (error.response) {
             const { data } = error.response;
             console.log(error.response);
-            if (data.errors && data.errors.length > 0) {
-                data.errors.forEach((error: { field: string, message: string[] }) => {
-                    const errorMessage = error.message.join(', ');
-                    //   toast.error(`${error.field}: ${errorMessage}`);
+            if (data.errors && typeof data.errors === 'object') {
+                const messages = Object.entries(data.errors)
+                    .map(([field, messages]) => `${field}: ${(messages as string[]).join(', ')}`)
+                    .join('\n');
+
+                toastService.show({
+                    variant: "destructive",
+                    title: "Hệ thống gặp trục trặc",
+                    description: messages,
                 });
             }
 

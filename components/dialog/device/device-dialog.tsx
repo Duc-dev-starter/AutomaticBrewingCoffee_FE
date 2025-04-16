@@ -1,105 +1,106 @@
-"use client"
+"use client";
 
-import type React from "react"
-import { useState, useEffect } from "react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { EDeviceStatus } from "@/enum/device"
-import { PlusCircle, Loader2, Edit } from "lucide-react"
-import { useToast } from "@/hooks/use-toast"
-import { createDevice, updateDevice } from "@/services/device"
-import { Device } from "@/types/device" // Assuming there's a Device type
+import type React from "react";
+import { useState, useEffect } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { EDeviceStatus } from "@/enum/device";
+import { PlusCircle, Loader2, Edit } from "lucide-react";
+import { useToast } from "@/hooks/use-toast";
+import { createDevice, updateDevice } from "@/services/device";
+import { Device } from "@/types/device";
 
 interface DeviceDialogProps {
-    open: boolean
-    onOpenChange: (open: boolean) => void
-    onSuccess: () => void
-    device?: Device // Optional device for update
+    open: boolean;
+    onOpenChange: (open: boolean) => void;
+    onSuccess: () => void;
+    device?: Device;
 }
 
-const DeviceDialog = ({ open, onOpenChange, onSuccess, device }: DeviceDialogProps) => {
-    const { toast } = useToast()
-    const [isSubmitting, setIsSubmitting] = useState(false)
-    const [formData, setFormData] = useState({
-        name: "",
-        description: "",
-        status: EDeviceStatus.Idle,
-    })
+const initialFormData = {
+    name: "",
+    description: "",
+    status: EDeviceStatus.Idle,
+};
 
+const DeviceDialog = ({ open, onOpenChange, onSuccess, device }: DeviceDialogProps) => {
+    const { toast } = useToast();
+    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [formData, setFormData] = useState(initialFormData);
+
+    // Populate form data when editing
     useEffect(() => {
         if (device) {
             setFormData({
                 name: device.name,
                 description: device.description,
                 status: device.status,
-            })
-        } else {
-            resetForm()
+            });
         }
-    }, [device])
+    }, [device]);
+
+    // Reset form data when dialog closes
+    useEffect(() => {
+        if (!open) {
+            setFormData(initialFormData);
+        }
+    }, [open]);
 
     const handleChange = (field: string, value: string) => {
         setFormData((prev) => ({
             ...prev,
             [field]: value,
-        }))
-    }
+        }));
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault()
+        e.preventDefault();
 
         if (!formData.name.trim()) {
             toast({
                 title: "Lỗi",
                 description: "Vui lòng nhập tên thiết bị",
                 variant: "destructive",
-            })
-            return
+            });
+            return;
         }
 
         try {
-            setIsSubmitting(true)
+            setIsSubmitting(true);
             if (device) {
-                // Update operation
-                await updateDevice(device.deviceId, formData)
+                await updateDevice(device.deviceId, formData);
                 toast({
                     title: "Thành công",
                     description: "Cập nhật thiết bị thành công",
-                })
+                });
             } else {
-                // Create operation
-                await createDevice(formData)
+                await createDevice(formData);
                 toast({
                     title: "Thành công",
                     description: "Thêm thiết bị mới thành công",
-                })
+                });
             }
-            onSuccess()
-            onOpenChange(false)
-            resetForm()
+            onSuccess();
+            onOpenChange(false);
         } catch (error) {
-            console.error("Lỗi khi xử lý thiết bị:", error)
+            console.error("Lỗi khi xử lý thiết bị:", error);
             toast({
                 title: "Lỗi",
                 description: "Có lỗi xảy ra khi xử lý thiết bị. Vui lòng thử lại sau.",
                 variant: "destructive",
-            })
+            });
         } finally {
-            setIsSubmitting(false)
+            setIsSubmitting(false);
         }
-    }
+    };
 
     const resetForm = () => {
-        setFormData({
-            name: "",
-            description: "",
-            status: EDeviceStatus.Idle,
-        })
-    }
+        setFormData(initialFormData);
+    };
 
     // Ánh xạ giá trị enum sang tên hiển thị
     const deviceStatusMap = {
@@ -107,9 +108,9 @@ const DeviceDialog = ({ open, onOpenChange, onSuccess, device }: DeviceDialogPro
         [EDeviceStatus.Working]: "Đang hoạt động",
         [EDeviceStatus.Repair]: "Đang bảo trì",
         [EDeviceStatus.Broken]: "Đã ngừng sử dụng",
-    }
+    };
 
-    const isUpdate = !!device
+    const isUpdate = !!device;
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -206,7 +207,7 @@ const DeviceDialog = ({ open, onOpenChange, onSuccess, device }: DeviceDialogPro
                 </form>
             </DialogContent>
         </Dialog>
-    )
-}
+    );
+};
 
 export default DeviceDialog;

@@ -1,7 +1,7 @@
-"use client"
+"use client";
 
-import { useCallback, useEffect, useState } from "react"
-import { ChevronDownIcon } from "@radix-ui/react-icons"
+import { useCallback, useEffect, useState } from "react";
+import { ChevronDownIcon } from "@radix-ui/react-icons";
 import {
     type ColumnFiltersState,
     type SortingState,
@@ -12,63 +12,85 @@ import {
     getPaginationRowModel,
     getSortedRowModel,
     useReactTable,
-} from "@tanstack/react-table"
-
-import { Button } from "@/components/ui/button"
+} from "@tanstack/react-table";
+import { Button } from "@/components/ui/button";
 import {
     DropdownMenu,
     DropdownMenuCheckboxItem,
     DropdownMenuContent,
     DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+} from "@/components/ui/dropdown-menu";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import {
     ChevronLeft,
     ChevronRight,
     ChevronsLeft,
     ChevronsRight,
     PlusCircle,
-} from "lucide-react"
-import { Skeleton } from "@/components/ui/skeleton"
-import useDebounce from "@/hooks/use-debounce"
-import { EBaseStatusFilterDropdown } from "@/components/common/ebase-status-filter"
-import { ExportButton, NoResultsRow, PageSizeSelector, RefreshButton, SearchInput } from "@/components/common"
-import { multiSelectFilter } from "@/utils/table"
-import { Kiosk } from "@/types/kiosk"
-import { getKiosks } from "@/services/kiosk"
-import { columns } from "@/components/manage-kiosks/columns"
+} from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import useDebounce from "@/hooks/use-debounce";
+import { EBaseStatusFilterDropdown, ExportButton, NoResultsRow, PageSizeSelector, RefreshButton, SearchInput } from "@/components/common";
+import { getKiosks, deleteKiosk } from "@/services/kiosk";
+import { Kiosk } from "@/types/kiosk";
+import { multiSelectFilter } from "@/utils/table";
+import { useToast } from "@/hooks/use-toast";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { columns } from "@/components/manage-kiosks/columns";
+import { KioskDetailDialog, KioskDialog } from "@/components/dialog/kiosk";
 
 const ManageKiosks = () => {
-    const [loading, setLoading] = useState(true)
-    const [pageSize, setPageSize] = useState(10)
-    const [currentPage, setCurrentPage] = useState(1)
-    const [kiosks, setKiosks] = useState<Kiosk[]>([])
-    const [totalItems, setTotalItems] = useState(0)
-    const [totalPages, setTotalPages] = useState(1)
+    const { toast } = useToast();
+    const [loading, setLoading] = useState(true);
+    const [pageSize, setPageSize] = useState(10);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [kiosks, setKiosks] = useState<Kiosk[]>([]);
+    const [totalItems, setTotalItems] = useState(0);
+    const [totalPages, setTotalPages] = useState(1);
 
-    const [sorting, setSorting] = useState<SortingState>([])
-    const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
-    const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
-    const [rowSelection, setRowSelection] = useState({})
+    const [sorting, setSorting] = useState<SortingState>([]);
+    const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+    const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+    const [rowSelection, setRowSelection] = useState({});
+
+    // State cho dialog thêm/chỉnh sửa
+    const [dialogOpen, setDialogOpen] = useState(false);
+    const [selectedKiosk, setSelectedKiosk] = useState<Kiosk | undefined>(undefined);
+
+    // State cho dialog chi tiết
+    const [detailDialogOpen, setDetailDialogOpen] = useState(false);
+    const [detailKiosk, setDetailKiosk] = useState<Kiosk | null>(null);
+
+    // State cho dialog xóa
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [kioskToDelete, setKioskToDelete] = useState<Kiosk | null>(null);
 
     // State cho giá trị tìm kiếm
-    const [searchValue, setSearchValue] = useState("")
-    const debouncedSearchValue = useDebounce(searchValue, 500)
+    const [searchValue, setSearchValue] = useState("");
+    const debouncedSearchValue = useDebounce(searchValue, 500);
 
     // Cập nhật columnFilters khi debouncedSearchValue thay đổi
     useEffect(() => {
-        table.getColumn("location")?.setFilterValue(debouncedSearchValue)
-    }, [debouncedSearchValue])
+        table.getColumn("location")?.setFilterValue(debouncedSearchValue);
+    }, [debouncedSearchValue]);
 
     const fetchKiosks = useCallback(async () => {
         try {
-            setLoading(true)
-
-            const filterBy = columnFilters.length > 0 ? columnFilters[0]?.id : undefined
-            const filterQuery = columnFilters.length > 0 ? columnFilters[0]?.value as string : undefined
-            const sortBy = sorting.length > 0 ? sorting[0]?.id : undefined
-            const isAsc = sorting.length > 0 ? !sorting[0]?.desc : undefined
-            const statusFilter = columnFilters.find((filter) => filter.id === "status")?.value as string | undefined
+            setLoading(true);
+            const filterBy = columnFilters.length > 0 ? columnFilters[0]?.id : undefined;
+            const filterQuery = columnFilters.length > 0 ? columnFilters[0]?.value as string : undefined;
+            const sortBy = sorting.length > 0 ? sorting[0]?.id : undefined;
+            const isAsc = sorting.length > 0 ? !sorting[0]?.desc : undefined;
+            const statusFilter = columnFilters.find((filter) => filter.id === "status")?.value as string | undefined;
 
             const response = await getKiosks({
                 filterBy,
@@ -78,25 +100,84 @@ const ManageKiosks = () => {
                 sortBy,
                 isAsc,
                 status: statusFilter,
-            })
+            });
 
-            setKiosks(response.items)
-            setTotalItems(response.total)
-            setTotalPages(response.totalPages)
+            setKiosks(response.items);
+            setTotalItems(response.total);
+            setTotalPages(response.totalPages);
         } catch (err) {
-            console.error(err)
+            console.error(err);
+            toast({
+                title: "Lỗi",
+                description: "Không thể tải danh sách kiosk.",
+                variant: "destructive",
+            });
         } finally {
-            setLoading(false)
+            setLoading(false);
         }
-    }, [currentPage, pageSize, columnFilters, sorting])
+    }, [currentPage, pageSize, columnFilters, sorting, toast]);
 
-    useEffect(() => {
-        fetchKiosks()
-    }, [fetchKiosks])
+    // Xử lý khi thêm hoặc chỉnh sửa thành công
+    const handleSuccess = () => {
+        fetchKiosks();
+        setDialogOpen(false);
+        setSelectedKiosk(undefined);
+    };
+
+    // Mở dialog để chỉnh sửa kiosk
+    const handleEdit = (kiosk: Kiosk) => {
+        setSelectedKiosk(kiosk);
+        setDialogOpen(true);
+    };
+
+    // Mở dialog để xem chi tiết kiosk
+    const handleViewDetails = (kiosk: Kiosk) => {
+        setDetailKiosk(kiosk);
+        setDetailDialogOpen(true);
+    };
+
+    // Xử lý xóa kiosk
+    const handleDelete = (kiosk: Kiosk) => {
+        setKioskToDelete(kiosk);
+        setDeleteDialogOpen(true);
+    };
+
+    // Xác nhận xóa kiosk
+    const confirmDelete = async () => {
+        if (!kioskToDelete) return;
+        try {
+            await deleteKiosk(kioskToDelete.kioskId);
+            toast({
+                title: "Thành công",
+                description: `Kiosk tại "${kioskToDelete.location}" đã được xóa.`,
+            });
+            fetchKiosks();
+        } catch (error) {
+            console.error("Lỗi khi xóa kiosk:", error);
+            toast({
+                title: "Lỗi",
+                description: "Không thể xóa kiosk. Vui lòng thử lại.",
+                variant: "destructive",
+            });
+        } finally {
+            setDeleteDialogOpen(false);
+            setKioskToDelete(null);
+        }
+    };
+
+    // Mở dialog để thêm kiosk mới
+    const handleAdd = () => {
+        setSelectedKiosk(undefined);
+        setDialogOpen(true);
+    };
 
     const table = useReactTable({
         data: kiosks,
-        columns,
+        columns: columns({
+            onViewDetails: handleViewDetails,
+            onEdit: handleEdit,
+            onDelete: handleDelete,
+        }),
         onSortingChange: setSorting,
         onColumnFiltersChange: setColumnFilters,
         getCoreRowModel: getCoreRowModel(),
@@ -109,30 +190,29 @@ const ManageKiosks = () => {
             columnFilters,
             columnVisibility,
             rowSelection,
-            pagination: {
-                pageIndex: currentPage - 1,
-                pageSize,
-            },
+            pagination: { pageIndex: currentPage - 1, pageSize },
         },
         manualPagination: true,
         manualFiltering: true,
         manualSorting: true,
         pageCount: totalPages,
-        filterFns: {
-            multiSelect: multiSelectFilter
-        }
-    })
+        filterFns: { multiSelect: multiSelectFilter },
+    });
 
     useEffect(() => {
-        table.setPageSize(pageSize)
-    }, [pageSize, table])
+        table.setPageSize(pageSize);
+    }, [pageSize, table]);
 
-    const startItem = (currentPage - 1) * pageSize + 1
-    const endItem = Math.min(currentPage * pageSize, totalItems)
+    useEffect(() => {
+        fetchKiosks();
+    }, [fetchKiosks]);
+
+    const startItem = (currentPage - 1) * pageSize + 1;
+    const endItem = Math.min(currentPage * pageSize, totalItems);
 
     const toggleLoading = () => {
-        fetchKiosks()
-    }
+        fetchKiosks();
+    };
 
     return (
         <div className="w-full">
@@ -149,7 +229,12 @@ const ManageKiosks = () => {
                 </div>
                 <div className="flex flex-col sm:flex-row items-center py-4 gap-4">
                     <div className="relative w-full sm:w-72">
-                        <SearchInput loading={loading} placeHolderText="Tìm kiếm địa chỉ kiosk..." searchValue={searchValue} setSearchValue={setSearchValue} />
+                        <SearchInput
+                            loading={loading}
+                            placeHolderText="Tìm kiếm địa chỉ kiosk..."
+                            searchValue={searchValue}
+                            setSearchValue={setSearchValue}
+                        />
                     </div>
                     <div className="flex items-center gap-2 ml-auto">
                         <EBaseStatusFilterDropdown loading={loading} table={table} />
@@ -160,8 +245,7 @@ const ManageKiosks = () => {
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                                {table
-                                    .getAllColumns()
+                                {table.getAllColumns()
                                     .filter((column) => column.getCanHide())
                                     .map((column) => (
                                         <DropdownMenuCheckboxItem
@@ -173,20 +257,18 @@ const ManageKiosks = () => {
                                             {{
                                                 kioskId: "Mã kiosk",
                                                 location: "Địa chỉ",
-                                                description: "Mô tả",
+                                                franchise: "Franchise",
+                                                deviceName: "Thiết bị",
                                                 status: "Trạng thái",
                                                 installedDate: "Ngày lắp đặt",
                                                 createdDate: "Ngày tạo",
                                                 updatedDate: "Ngày cập nhật",
-                                                franchise: "Tên thương hiệu",
-                                                deviceName: "Thiết bị chính",
                                             }[column.id] ?? column.id}
                                         </DropdownMenuCheckboxItem>
                                     ))}
                             </DropdownMenuContent>
-
                         </DropdownMenu>
-                        <Button disabled={loading}>
+                        <Button onClick={handleAdd} disabled={loading}>
                             <PlusCircle className="mr-2 h-4 w-4" />
                             Thêm
                         </Button>
@@ -223,39 +305,36 @@ const ManageKiosks = () => {
                             {loading ? (
                                 Array.from({ length: pageSize }).map((_, index) => (
                                     <TableRow key={`skeleton-${index}`} className="animate-pulse">
-                                        {columns.map((column, cellIndex) => (
+                                        {columns({ onViewDetails: () => { }, onEdit: () => { }, onDelete: () => { } }).map((column, cellIndex) => (
                                             <TableCell key={`skeleton-cell-${cellIndex}`}>
                                                 {column.id === "kioskId" ? (
-                                                    <Skeleton className="h-5 w-24" />
+                                                    <Skeleton className="h-5 w-24 mx-auto" />
                                                 ) : column.id === "franchise" ? (
-                                                    <Skeleton className="h-5 w-32" />
+                                                    <Skeleton className="h-5 w-32 mx-auto" />
                                                 ) : column.id === "deviceName" ? (
-                                                    <Skeleton className="h-5 w-40" />
-                                                ) : column.id === "name" ? (
-                                                    <div className="flex items-center gap-2">
+                                                    <Skeleton className="h-5 w-40 mx-auto" />
+                                                ) : column.id === "location" ? (
+                                                    <div className="flex items-center gap-2 justify-center">
                                                         <Skeleton className="h-4 w-4 rounded-full" />
                                                         <Skeleton className="h-5 w-40" />
                                                     </div>
-                                                ) : column.id === "description" ? (
-                                                    <Skeleton className="h-5 w-64" />
                                                 ) : column.id === "status" ? (
-                                                    <Skeleton className="h-6 w-24 rounded-full" />
+                                                    <Skeleton className="h-6 w-24 rounded-full mx-auto" />
                                                 ) : column.id === "installedDate" ? (
-                                                    <Skeleton className="h-5 w-28" />
+                                                    <Skeleton className="h-5 w-28 mx-auto" />
                                                 ) : column.id === "createdDate" || column.id === "updatedDate" ? (
-                                                    <div className="flex items-center gap-2">
+                                                    <div className="flex items-center gap-2 justify-center">
                                                         <Skeleton className="h-4 w-4 rounded-full" />
                                                         <Skeleton className="h-5 w-24" />
                                                     </div>
                                                 ) : column.id === "actions" ? (
-                                                    <div className="flex justify-end">
+                                                    <div className="flex justify-center">
                                                         <Skeleton className="h-8 w-8 rounded-full" />
                                                     </div>
                                                 ) : (
                                                     <Skeleton className="h-5 w-full" />
                                                 )}
                                             </TableCell>
-
                                         ))}
                                     </TableRow>
                                 ))
@@ -263,12 +342,14 @@ const ManageKiosks = () => {
                                 table.getRowModel().rows.map((row) => (
                                     <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
                                         {row.getVisibleCells().map((cell) => (
-                                            <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
+                                            <TableCell key={cell.id}>
+                                                {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                            </TableCell>
                                         ))}
                                     </TableRow>
                                 ))
                             ) : (
-                                <NoResultsRow columns={columns} />
+                                <NoResultsRow columns={columns({ onViewDetails: () => { }, onEdit: () => { }, onDelete: () => { } })} />
                             )}
                         </TableBody>
                     </Table>
@@ -276,7 +357,12 @@ const ManageKiosks = () => {
                 <div className="flex flex-col sm:flex-row items-center justify-between space-y-3 sm:space-y-0 py-4">
                     <div className="flex items-center space-x-2">
                         <p className="text-sm font-medium">Hiển thị</p>
-                        <PageSizeSelector loading={loading} pageSize={pageSize} setCurrentPage={setCurrentPage} setPageSize={setPageSize} />
+                        <PageSizeSelector
+                            loading={loading}
+                            pageSize={pageSize}
+                            setCurrentPage={setCurrentPage}
+                            setPageSize={setPageSize}
+                        />
                         <p className="text-sm font-medium">mục mỗi trang</p>
                     </div>
                     {loading ? (
@@ -318,7 +404,6 @@ const ManageKiosks = () => {
                                     </>
                                 )}
                             </div>
-
                         )}
                         <Button
                             variant="outline"
@@ -341,8 +426,38 @@ const ManageKiosks = () => {
                     </div>
                 </div>
             </div>
+            <KioskDialog
+                open={dialogOpen}
+                onOpenChange={setDialogOpen}
+                onSuccess={handleSuccess}
+                kiosk={selectedKiosk}
+            />
+            <KioskDetailDialog
+                open={detailDialogOpen}
+                onOpenChange={(open) => {
+                    setDetailDialogOpen(open);
+                    if (!open) setDetailKiosk(null);
+                }}
+                kiosk={detailKiosk}
+            />
+            <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Xác nhận xóa</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Bạn có chắc chắn muốn xóa kiosk tại "{kioskToDelete?.location}"? Hành động này không thể hoàn tác.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel onClick={() => setKioskToDelete(null)}>Hủy</AlertDialogCancel>
+                        <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700">
+                            Xóa
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
-    )
-}
+    );
+};
 
-export default ManageKiosks
+export default ManageKiosks;

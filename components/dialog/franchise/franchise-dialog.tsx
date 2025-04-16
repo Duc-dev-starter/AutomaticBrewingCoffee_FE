@@ -1,3 +1,5 @@
+"use client";
+
 import { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
@@ -17,15 +19,18 @@ interface FranchiseDialogProps {
     franchise?: Franchise;
 }
 
+const initialFormData = {
+    name: "",
+    description: "",
+    status: EBaseStatus.Active,
+};
+
 const FranchiseDialog = ({ open, onOpenChange, onSuccess, franchise }: FranchiseDialogProps) => {
     const { toast } = useToast();
-    const [formData, setFormData] = useState({
-        name: "",
-        description: "",
-        status: EBaseStatus.Active,
-    });
+    const [formData, setFormData] = useState(initialFormData);
     const [loading, setLoading] = useState(false);
 
+    // Populate form data when editing
     useEffect(() => {
         if (franchise) {
             setFormData({
@@ -33,14 +38,15 @@ const FranchiseDialog = ({ open, onOpenChange, onSuccess, franchise }: Franchise
                 description: franchise.description || "",
                 status: franchise.status || EBaseStatus.Active,
             });
-        } else {
-            setFormData({
-                name: "",
-                description: "",
-                status: EBaseStatus.Active,
-            });
         }
     }, [franchise]);
+
+    // Reset form data when dialog closes
+    useEffect(() => {
+        if (!open) {
+            setFormData(initialFormData);
+        }
+    }, [open]);
 
     const handleSubmit = async () => {
         if (!formData.name.trim()) {

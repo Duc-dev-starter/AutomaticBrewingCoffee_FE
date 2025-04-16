@@ -30,7 +30,7 @@ import {
     useSidebar,
 } from "@/components/ui/sidebar"
 import Link from "next/link"
-import WebPath from "@/constants/path"
+import { Path } from "@/constants/path"
 
 export function NavUser({
     user,
@@ -86,7 +86,7 @@ export function NavUser({
                         sideOffset={4}
                     >
                         <DropdownMenuLabel className="p-0 font-normal">
-                            <Link href={WebPath.PROFILE}>
+                            <Link href={Path.PROFILE}>
                                 <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm hover:bg-gray-100">
                                     <Avatar className="h-8 w-8 rounded-lg">
                                         <AvatarImage src={"/avatars/shadcn.jpg"} alt={user.fullname} />
@@ -101,10 +101,12 @@ export function NavUser({
                         </DropdownMenuLabel>
                         <DropdownMenuSeparator />
                         <DropdownMenuGroup>
-                            <DropdownMenuItem>
-                                <Sparkles />
-                                Upgrade to Pro
-                            </DropdownMenuItem>
+                            <Link href={Path.REMINDER}>
+                                <DropdownMenuItem>
+                                    <Sparkles />
+                                    Ghi chú
+                                </DropdownMenuItem>
+                            </Link>
                         </DropdownMenuGroup>
                         <DropdownMenuSeparator />
                         <DropdownMenuGroup>

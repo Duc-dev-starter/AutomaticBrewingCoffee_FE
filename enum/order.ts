@@ -7,7 +7,7 @@ export enum EOrderStatus {
     Failed = 5,
 }
 
-export const EOrderStatusDisplay: Record<EOrderStatus, string> = {
+export const EOrderStatusViMap: Record<EOrderStatus, string> = {
     [EOrderStatus.Pending]: "Pending",
     [EOrderStatus.Preparing]: "Preparing",
     [EOrderStatus.Ready]: "Ready",

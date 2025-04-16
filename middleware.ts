@@ -1,4 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
+import { Path } from "./constants/path";
 
 export const config = {
     matcher: [
@@ -7,10 +8,11 @@ export const config = {
 };
 
 export function middleware(req: NextRequest) {
-    // if (!["/", "/about", "/contact"].includes(req.nextUrl.pathname)) {
-    //   return NextResponse.rewrite(new URL("/not-found", req.url));
-    // }
-    console.log(req.nextUrl.pathname)
+    const pathname = req.nextUrl.pathname;
+
+    if (!Object.values(Path).includes(pathname)) {
+        return NextResponse.rewrite(new URL(Path.NOT_FOUND, req.url));
+    }
 
     return NextResponse.next();
 }

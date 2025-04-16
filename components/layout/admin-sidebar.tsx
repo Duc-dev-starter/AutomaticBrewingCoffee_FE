@@ -12,15 +12,21 @@ import {
     SidebarRail,
 } from "@/components/ui/sidebar"
 import Link from "next/link"
-import Path from "@/constants/path"
 import {
     BookOpen,
+    Box,
+    ClipboardList,
     Computer,
+    DollarSign,
+    Layers,
     LayoutDashboard,
     Map,
     PieChart,
-    Settings2,
+    ShoppingCart,
+    Store,
+    Tablet,
 } from "lucide-react"
+import { Path } from "@/constants/path"
 
 // sidebar nav items
 const navMain = [
@@ -31,63 +37,45 @@ const navMain = [
     },
     {
         title: "Quản lý đơn hàng",
-        url: "/manage-orders",
-        icon: Map,
+        url: Path.MANAGE_ORDERS,
+        icon: ShoppingCart,
     },
     {
         title: "Quản lý công thức",
-        url: "/manage-recipes",
-        icon: BookOpen,
+        url: Path.MANAGE_RECIPES,
+        icon: ClipboardList,
     },
     {
         title: "Quản lý nguyên liệu",
-        url: "/manage-ingredients",
-        icon: Map,
+        url: Path.MANAGE_INGREDIENTS,
+        icon: Layers,
     },
     {
         title: "Quản lý thiết bị",
-        url: "/manage-devices",
+        url: Path.MANAGE_DEVICES,
         icon: Computer,
     },
     {
         title: "Quản lý kiosk",
-        url: "/manage-kiosks",
-        icon: Map,
+        url: Path.MANAGE_KIOSKS,
+        icon: Tablet,
     },
     {
         title: "Quản lý chi phí",
-        url: "#",
-        icon: PieChart,
+        url: Path.MANAGE_COSTS,
+        icon: DollarSign,
     },
     {
         title: "Quản lý sản phẩm",
-        url: "/manage-product",
-        icon: PieChart,
+        url: Path.MANAGE_PRODUCTS,
+        icon: Box,
     },
     {
-        title: "Cài đặt",
-        url: "#",
-        icon: Settings2,
-        items: [
-            {
-                title: "General",
-                url: "#",
-            },
-            {
-                title: "Team",
-                url: "#",
-            },
-            {
-                title: "Billing",
-                url: "#",
-            },
-            {
-                title: "Limits",
-                url: "#",
-            },
-        ],
+        title: "Quản lý chi nhánh",
+        url: Path.MANAGE_FRANCHISES,
+        icon: Store,
     },
-]
+];
 
 export function AdminSidebar() {
     const [user, setUser] = React.useState<any>(null)
@@ -107,7 +95,7 @@ export function AdminSidebar() {
     return (
         <Sidebar collapsible="icon" >
             <SidebarHeader>
-                <Link href={Path.HOME}>
+                <Link href={Path.DASHBOARD}>
                     {/* Logo ở đây nếu có */}
                 </Link>
             </SidebarHeader>

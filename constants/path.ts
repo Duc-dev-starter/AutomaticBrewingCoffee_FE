@@ -1,19 +1,15 @@
-const WebPath = {
-    HOME: "/",
-    ABOUT: "/about",
-    CONTACT: "/contact",
-    BLOG: "/blog",
-    BLOG_DETAIL: "/blog/:slug",
-    LOGIN: "/sign-in",
-    REGISTER: "/sign-up",
-    FORGOT_PASSWORD: "/forgot-password",
-    PRODUCT: "/product",
-    PRODUCT_DETAIL: "/product/:slug",
-    INTERNAL_SERVER_ERROR: "/internal-server-error",
+export const Path = {
     DASHBOARD: "/dashboard",
-    MANAGE_CLIENT: "/manage-client",
+    MANAGE_ORDERS: "/manage-orders",
+    MANAGE_RECIPES: "/manage-recipes",
+    MANAGE_INGREDIENTS: "/manage-ingredients",
+    MANAGE_DEVICES: "/manage-devices",
+    MANAGE_KIOSKS: "/manage-kiosks",
+    MANAGE_COSTS: "/manage-costs",
+    MANAGE_PRODUCTS: "/manage-products",
+    MANAGE_FRANCHISES: "/manage-franchises",
     PROFILE: "/profile",
-    FOSTER_DASHBOARD: "/foster/dashboard",
+    REMINDER: "/reminder",
+    NOT_FOUND: "not-found"
 };
 
-export default WebPath;

@@ -1,3 +1,5 @@
+import { EOrderStatus } from "@/enum/order";
+
 export interface OrderDetail {
     productName: string;
     productDescription: string;
@@ -16,7 +18,7 @@ export interface Order {
     orderType: string;
     paymentGateway: string;
     sessionId: string;
-    status: string;
+    status: EOrderStatus;
     totalAmount: number;
     vat: number;
     vatAmount: number;

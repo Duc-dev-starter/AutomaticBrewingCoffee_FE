@@ -1,12 +1,10 @@
-export type DeviceStatus = {
-
-}
+import { EDeviceStatus } from "@/enum/device";
 
 export interface Device {
     deviceId: string;
     name: string;
     description: string;
-    status: string;
+    status: EDeviceStatus;
     createdDate: string;
     updatedDate: string | null;
 }

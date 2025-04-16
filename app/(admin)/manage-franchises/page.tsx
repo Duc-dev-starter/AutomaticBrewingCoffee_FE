@@ -30,19 +30,19 @@ import {
     PlusCircle,
 } from "lucide-react"
 import { Skeleton } from "@/components/ui/skeleton"
-import { columns } from "@/components/manage-devices/columns"
-import { Device } from "@/types/device"
-import { getDevices } from "@/services/device"
+import { columns } from "@/components/manage-franchises/columns"
 import useDebounce from "@/hooks/use-debounce"
 import { EBaseStatusFilterDropdown } from "@/components/common/ebase-status-filter"
 import { ExportButton, NoResultsRow, PageSizeSelector, RefreshButton, SearchInput } from "@/components/common"
+import { getFranchises } from "@/services/franchise"
+import { Franchise } from "@/types/franchise"
 import { multiSelectFilter } from "@/utils/table"
 
-const ManageDevices = () => {
+const ManageFranchises = () => {
     const [loading, setLoading] = useState(true)
     const [pageSize, setPageSize] = useState(10)
     const [currentPage, setCurrentPage] = useState(1)
-    const [devices, setDevices] = useState<Device[]>([])
+    const [franchises, setFranchises] = useState<Franchise[]>([])
     const [totalItems, setTotalItems] = useState(0)
     const [totalPages, setTotalPages] = useState(1)
 
@@ -70,7 +70,7 @@ const ManageDevices = () => {
             const isAsc = sorting.length > 0 ? !sorting[0]?.desc : undefined
             const statusFilter = columnFilters.find((filter) => filter.id === "status")?.value as string | undefined
 
-            const response = await getDevices({
+            const response = await getFranchises({
                 filterBy,
                 filterQuery,
                 page: currentPage,
@@ -80,7 +80,7 @@ const ManageDevices = () => {
                 status: statusFilter,
             })
 
-            setDevices(response.items)
+            setFranchises(response.items)
             setTotalItems(response.total)
             setTotalPages(response.totalPages)
         } catch (err) {
@@ -90,13 +90,12 @@ const ManageDevices = () => {
         }
     }, [currentPage, pageSize, columnFilters, sorting])
 
-
     useEffect(() => {
         fetchDevices()
     }, [fetchDevices])
 
     const table = useReactTable({
-        data: devices,
+        data: franchises,
         columns,
         onSortingChange: setSorting,
         onColumnFiltersChange: setColumnFilters,
@@ -121,7 +120,7 @@ const ManageDevices = () => {
         pageCount: totalPages,
         filterFns: {
             multiSelect: multiSelectFilter
-        },
+        }
     })
 
     useEffect(() => {
@@ -140,7 +139,7 @@ const ManageDevices = () => {
             <div className="flex flex-col space-y-4 p-4 sm:p-6">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                     <div>
-                        <h2 className="text-2xl font-bold tracking-tight">Quản lý thiết bị</h2>
+                        <h2 className="text-2xl font-bold tracking-tight">Quản lý chi nhánh</h2>
                         <p className="text-muted-foreground">Quản lý và giám sát tất cả các thiết bị pha cà phê tự động.</p>
                     </div>
                     <div className="flex items-center gap-2">
@@ -171,7 +170,7 @@ const ManageDevices = () => {
                                             checked={column.getIsVisible()}
                                             onCheckedChange={(value) => column.toggleVisibility(!!value)}
                                         >
-                                            {column.id === "deviceId"
+                                            {column.id === "franchiseId"
                                                 ? "Mã thiết bị"
                                                 : column.id === "name"
                                                     ? "Tên thiết bị"
@@ -227,7 +226,7 @@ const ManageDevices = () => {
                                     <TableRow key={`skeleton-${index}`} className="animate-pulse">
                                         {columns.map((column, cellIndex) => (
                                             <TableCell key={`skeleton-cell-${cellIndex}`}>
-                                                {column.id === "deviceId" ? (
+                                                {column.id === "franchiseId" ? (
                                                     <Skeleton className="h-5 w-24" />
                                                 ) : column.id === "name" ? (
                                                     <div className="flex items-center gap-2">
@@ -254,7 +253,7 @@ const ManageDevices = () => {
                                         ))}
                                     </TableRow>
                                 ))
-                            ) : devices.length ? (
+                            ) : franchises.length ? (
                                 table.getRowModel().rows.map((row) => (
                                     <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
                                         {row.getVisibleCells().map((cell) => (
@@ -340,4 +339,4 @@ const ManageDevices = () => {
     )
 }
 
-export default ManageDevices
+export default ManageFranchises

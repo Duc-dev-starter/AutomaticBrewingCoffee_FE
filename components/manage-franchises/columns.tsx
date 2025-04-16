@@ -1,4 +1,3 @@
-import { Device } from "@/types/device"
 import { Calendar, Cpu, MoreHorizontal, Power } from "lucide-react"
 import { Badge } from "../ui/badge"
 import { format } from "date-fns"
@@ -15,25 +14,26 @@ import {
     type ColumnDef
 } from "@tanstack/react-table"
 import clsx from "clsx"
-import { EDeviceStatus, EDeviceStatusViMap } from '@/enum/device';
 import { truncateText } from "@/utils/text"
+import { Franchise } from "@/types/franchise"
+import { EBaseStatus, EBaseStatusViMap } from "@/enum/base"
 
 // Định nghĩa cột cho bảng
-export const columns: ColumnDef<Device>[] = [
+export const columns: ColumnDef<Franchise>[] = [
     {
         id: "deviceId",
-        header: "Mã thiết bị",
+        header: "Mã chi nhánh",
         cell: ({ row }) => {
-            const deviceId = row.original.deviceId || "";
+            const deviceId = row.original.franchiseId || "";
             const shortId = deviceId.replace(/-/g, "").substring(0, 8);
-            return <div className="font-medium text-center">DEV-{shortId}</div>;
+            return <div className="font-medium text-center">FRA-{shortId}</div>;
         },
         enableSorting: false,
     },
     {
         id: "name",
         accessorKey: "name",
-        header: "Tên thiết bị",
+        header: "Tên chi nhánh",
         cell: ({ row }) => {
             return (
                 <div className="flex items-center justify-center gap-2">
@@ -55,8 +55,8 @@ export const columns: ColumnDef<Device>[] = [
         id: "status",
         header: "Trạng thái",
         cell: ({ row }) => {
-            const status: EDeviceStatus = row.original.status;
-            const statusText = EDeviceStatusViMap[status] ?? "Không rõ";
+            const status: EBaseStatus = row.original.status;
+            const statusText = EBaseStatusViMap[status] ?? "Không rõ";
 
             return (
                 <div className="flex justify-center items-center w-full">
@@ -64,10 +64,8 @@ export const columns: ColumnDef<Device>[] = [
                         className={clsx(
                             "flex items-center justify-center !w-fit !px-2 !py-[2px] !rounded-full !text-white !text-xs",
                             {
-                                "bg-green-500": status === EDeviceStatus.Idle,
-                                "bg-blue-500": status === EDeviceStatus.Working,
-                                "bg-yellow-500": status === EDeviceStatus.Maintenance,
-                                "bg-red-500": status === EDeviceStatus.Decommissioned,
+                                "bg-green-500": status === EBaseStatus.Active,
+                                "bg-red-500": status === EBaseStatus.Inactive,
                             }
                         )}
                     >
@@ -143,13 +141,13 @@ export const columns: ColumnDef<Device>[] = [
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Hành động</DropdownMenuLabel>
-                            <DropdownMenuItem onClick={() => navigator.clipboard.writeText(row.original.deviceId)}>
-                                Sao chép mã thiết bị
+                            <DropdownMenuItem onClick={() => navigator.clipboard.writeText(row.original.franchiseId)}>
+                                Sao chép mã chi nhánh
                             </DropdownMenuItem>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem>Xem chi tiết</DropdownMenuItem>
                             <DropdownMenuItem>Chỉnh sửa</DropdownMenuItem>
-                            <DropdownMenuItem className="text-red-600">Xóa thiết bị</DropdownMenuItem>
+                            <DropdownMenuItem className="text-red-600">Xóa chi nhánh</DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
                 </div>

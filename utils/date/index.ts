@@ -1,9 +1,12 @@
-// Format date to display in a readable format
-export const formatDate = (date: Date): string => {
+export const formatDate = (dateString: string) => {
+    if (!dateString) return "N/A"
+    const date = new Date(dateString)
     return new Intl.DateTimeFormat("vi-VN", {
-        year: "numeric",
-        month: "2-digit",
         day: "2-digit",
+        month: "2-digit",
+        year: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
     }).format(date)
 }
 

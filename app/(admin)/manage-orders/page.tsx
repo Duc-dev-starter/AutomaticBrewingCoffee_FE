@@ -1,7 +1,7 @@
-"use client"
+"use client";
 
-import * as React from "react"
-import { ChevronDownIcon } from "@radix-ui/react-icons"
+import { useCallback, useEffect, useState } from "react";
+import { ChevronDownIcon } from "@radix-ui/react-icons";
 import {
     type ColumnFiltersState,
     type SortingState,
@@ -12,127 +12,142 @@ import {
     getPaginationRowModel,
     getSortedRowModel,
     useReactTable,
-} from "@tanstack/react-table"
+} from "@tanstack/react-table";
 
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button";
 import {
     DropdownMenu,
     DropdownMenuCheckboxItem,
     DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
     DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Input } from "@/components/ui/input"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+} from "@/components/ui/dropdown-menu";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import {
-    Filter,
-    Search,
     ChevronLeft,
     ChevronRight,
     ChevronsLeft,
     ChevronsRight,
-} from "lucide-react"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { filterFns } from "@tanstack/react-table";
-import { Skeleton } from "@/components/ui/skeleton"
-import { Transaction } from "@/types"
-import columns from "@/components/manage-customer/columns"
-import RefreshButton from "@/components/common/refresh-button"
-import ExportButton from "@/components/common/export-button"
+    PlusCircle,
+} from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { columns } from "@/components/manage-orders/columns";
+import useDebounce from "@/hooks/use-debounce";
+import { ExportButton, NoResultsRow, PageSizeSelector, RefreshButton, SearchInput } from "@/components/common";
+import { multiSelectFilter } from "@/utils/table";
+import { Order } from "@/types/order";
+import { getOrders } from "@/services/order";
+import OrderDetailDialog from "@/components/dialog/order";
 
+const ManageOrders = () => {
+    const [loading, setLoading] = useState(true);
+    const [pageSize, setPageSize] = useState(10);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [orders, setOrders] = useState<Order[]>([]);
+    const [totalItems, setTotalItems] = useState(0);
+    const [totalPages, setTotalPages] = useState(1);
 
+    const [sorting, setSorting] = useState<SortingState>([]);
+    const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+    const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+    const [rowSelection, setRowSelection] = useState({});
 
-// Generate sample data
-const generateSampleData = (count: number): Transaction[] => {
-    const waterTypes = ["Nước tinh khiết", "Nước khoáng", "Nước kiềm", "Nước suối"]
-    const paymentMethods = ["Thẻ tín dụng", "Tiền mặt", "Thanh toán di động", "Thẻ trả trước"]
-    const statuses: ("completed" | "pending" | "failed")[] = ["completed", "pending", "failed"]
+    // Dialog state
+    const [dialogOpen, setDialogOpen] = useState(false);
+    const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
 
-    return Array.from({ length: count }, (_, i) => {
-        const now = new Date()
-        const randomDays = Math.floor(Math.random() * 30)
-        const randomHours = Math.floor(Math.random() * 24)
-        const date = new Date(now.getTime() - randomDays * 24 * 60 * 60 * 1000 - randomHours * 60 * 60 * 1000)
+    // Search state
+    const [searchValue, setSearchValue] = useState("");
+    const debouncedSearchValue = useDebounce(searchValue, 500);
 
-        return {
-            id: `GD-${Math.floor(10000 + Math.random() * 90000)}`,
-            date,
-            amount: Math.round((Math.random() * 50 + 5) * 1000) / 100,
-            name: waterTypes[Math.floor(Math.random() * waterTypes.length)],
-            paymentMethod: paymentMethods[Math.floor(Math.random() * paymentMethods.length)],
-            status: statuses[Math.floor(Math.random() * statuses.length)],
+    // Update columnFilters for orderId
+    useEffect(() => {
+        table.getColumn("orderId")?.setFilterValue(debouncedSearchValue || undefined);
+    }, [debouncedSearchValue]);
+
+    const fetchOrders = useCallback(async () => {
+        try {
+            setLoading(true);
+
+            const filterBy = columnFilters.find((f) => f.id === "orderId")?.id || undefined;
+            const filterQuery = columnFilters.find((f) => f.id === "orderId")?.value as string | undefined;
+            const sortBy = sorting.length > 0 ? sorting[0]?.id : undefined;
+            const isAsc = sorting.length > 0 ? !sorting[0]?.desc : undefined;
+            const statusFilter = columnFilters.find((filter) => filter.id === "status")?.value as string | undefined;
+
+            const response = await getOrders({
+                filterBy,
+                filterQuery,
+                page: currentPage,
+                size: pageSize,
+                sortBy,
+                isAsc,
+                status: statusFilter,
+            });
+
+            setOrders(response.items);
+            setTotalItems(response.total);
+            setTotalPages(response.totalPages);
+        } catch (err) {
+            console.error(err);
+        } finally {
+            setLoading(false);
         }
-    })
-}
+    }, [currentPage, pageSize, columnFilters, sorting]);
 
-
-
-const ManageCustomers = () => {
-    const [loading, setLoading] = React.useState(true)
-    const [pageSize, setPageSize] = React.useState(10)
-
-    // Generate 100 sample transactions
-    const data = React.useMemo(() => generateSampleData(100), [])
-
-    // Simulate loading data
-    React.useEffect(() => {
-        // In a real application, this would be replaced with actual data fetching
-        const timer = setTimeout(() => {
-            setLoading(false)
-        }, 3000) // Simulate 3 seconds loading time
-
-        return () => clearTimeout(timer)
-    }, [])
-
-
-    const [sorting, setSorting] = React.useState<SortingState>([])
-    const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
-    const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
-    const [rowSelection, setRowSelection] = React.useState({})
-
+    useEffect(() => {
+        fetchOrders();
+    }, [fetchOrders]);
 
     const table = useReactTable({
-        data,
-        columns,
-        filterFns,
+        data: orders,
+        columns: columns((order) => {
+            setSelectedOrder(order);
+            setDialogOpen(true);
+        }),
+        onSortingChange: setSorting,
+        onColumnFiltersChange: setColumnFilters,
         getCoreRowModel: getCoreRowModel(),
         getSortedRowModel: getSortedRowModel(),
         getFilteredRowModel: getFilteredRowModel(),
         getPaginationRowModel: getPaginationRowModel(),
-        initialState: {
-            pagination: { pageSize: 10 },
+        onColumnVisibilityChange: setColumnVisibility,
+        state: {
+            sorting,
+            columnFilters,
+            columnVisibility,
+            rowSelection,
+            pagination: {
+                pageIndex: currentPage - 1,
+                pageSize,
+            },
+        },
+        manualPagination: true,
+        manualFiltering: true,
+        manualSorting: true,
+        pageCount: totalPages,
+        filterFns: {
+            multiSelect: multiSelectFilter,
         },
     });
 
+    useEffect(() => {
+        table.setPageSize(pageSize);
+    }, [pageSize, table]);
 
-    // Update table page size when pageSize state changes
-    React.useEffect(() => {
-        table.setPageSize(pageSize)
-    }, [pageSize, table])
+    const startItem = (currentPage - 1) * pageSize + 1;
+    const endItem = Math.min(currentPage * pageSize, totalItems);
 
-    // Calculate pagination information
-    const totalItems = data.length
-    const filteredItems = table.getFilteredRowModel().rows.length
-    const currentPage = table.getState().pagination.pageIndex + 1
-    const totalPages = Math.ceil(filteredItems / pageSize)
-    const startItem = (currentPage - 1) * pageSize + 1
-    const endItem = Math.min(currentPage * pageSize, filteredItems)
-
-    // For demo purposes - toggle loading state
     const toggleLoading = () => {
-        setLoading((prev) => !prev)
-    }
-
+        fetchOrders();
+    };
 
     return (
         <div className="w-full">
             <div className="flex flex-col space-y-4 p-4 sm:p-6">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                     <div>
-                        <h2 className="text-2xl font-bold tracking-tight">Giao dịch khách hàng ẩn danh</h2>
-                        <p className="text-muted-foreground">Quản lý và xem tất cả giao dịch mua nước từ máy thanh toán tự động.</p>
+                        <h2 className="text-2xl font-bold tracking-tight">Quản lý đơn hàng</h2>
+                        <p className="text-muted-foreground">Quản lý và giám sát tất cả các đơn hàng.</p>
                     </div>
                     <div className="flex items-center gap-2">
                         <ExportButton loading={loading} />
@@ -141,41 +156,15 @@ const ManageCustomers = () => {
                 </div>
                 <div className="flex flex-col sm:flex-row items-center py-4 gap-4">
                     <div className="relative w-full sm:w-72">
-                        <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                        <Input
-                            placeholder="Tìm kiếm giao dịch..."
-                            value={(table.getColumn("id")?.getFilterValue() as string) ?? ""}
-                            onChange={(event) => table.getColumn("id")?.setFilterValue(event.target.value)}
-                            className="pl-8"
-                            disabled={loading}
+                        <SearchInput
+                            loading={loading}
+                            placeHolderText="Tìm kiếm đơn hàng..."
+                            searchValue={searchValue}
+                            setSearchValue={setSearchValue}
                         />
                     </div>
                     <div className="flex items-center gap-2 ml-auto">
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button variant="outline" className="ml-auto" disabled={loading}>
-                                    <Filter className="mr-2 h-4 w-4" />
-                                    Lọc
-                                    <ChevronDownIcon className="ml-2 h-4 w-4" />
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                                <DropdownMenuLabel>Lọc theo trạng thái</DropdownMenuLabel>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem onClick={() => table.getColumn("status")?.setFilterValue("completed")}>
-                                    Hoàn thành
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => table.getColumn("status")?.setFilterValue("pending")}>
-                                    Đang xử lý
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => table.getColumn("status")?.setFilterValue("failed")}>
-                                    Thất bại
-                                </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => table.getColumn("status")?.setFilterValue("")}>
-                                    Xóa bộ lọc
-                                </DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
+                        {/* Note: Using EDeviceStatusFilterDropdown for orders may need adjustment */}
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button variant="outline" disabled={loading}>
@@ -186,32 +175,30 @@ const ManageCustomers = () => {
                                 {table
                                     .getAllColumns()
                                     .filter((column) => column.getCanHide())
-                                    .map((column) => {
-                                        return (
-                                            <DropdownMenuCheckboxItem
-                                                key={column.id}
-                                                className="capitalize"
-                                                checked={column.getIsVisible()}
-                                                onCheckedChange={(value) => column.toggleVisibility(!!value)}
-                                            >
-                                                {column.id === "id"
-                                                    ? "Mã giao dịch"
-                                                    : column.id === "date"
-                                                        ? "Ngày giờ"
-                                                        : column.id === "amount"
-                                                            ? "Số tiền"
-                                                            : column.id === "waterType"
-                                                                ? "Loại nước"
-                                                                : column.id === "paymentMethod"
-                                                                    ? "Phương thức thanh toán"
-                                                                    : column.id === "status"
-                                                                        ? "Trạng thái"
-                                                                        : column.id}
-                                            </DropdownMenuCheckboxItem>
-                                        )
-                                    })}
+                                    .map((column) => (
+                                        <DropdownMenuCheckboxItem
+                                            key={column.id}
+                                            className="capitalize"
+                                            checked={column.getIsVisible()}
+                                            onCheckedChange={(value) => column.toggleVisibility(!!value)}
+                                        >
+                                            {column.id === "orderId"
+                                                ? "Mã đơn hàng"
+                                                : column.id === "status"
+                                                    ? "Trạng thái"
+                                                    : column.id === "totalAmount"
+                                                        ? "Tổng số tiền"
+                                                        : column.id === "actions"
+                                                            ? "Hành động"
+                                                            : column.id}
+                                        </DropdownMenuCheckboxItem>
+                                    ))}
                             </DropdownMenuContent>
                         </DropdownMenu>
+                        <Button disabled={loading}>
+                            <PlusCircle className="mr-2 h-4 w-4" />
+                            Thêm
+                        </Button>
                     </div>
                 </div>
                 <div className="rounded-md border">
@@ -219,48 +206,44 @@ const ManageCustomers = () => {
                         <TableHeader>
                             {table.getHeaderGroups().map((headerGroup) => (
                                 <TableRow key={headerGroup.id}>
-                                    {headerGroup.headers.map((header) => {
-                                        return (
-                                            <TableHead key={header.id}>
-                                                {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-                                            </TableHead>
-                                        )
-                                    })}
+                                    {headerGroup.headers.map((header) => (
+                                        <TableHead key={header.id} className="text-center">
+                                            {header.isPlaceholder ? null : (
+                                                header.column.getCanSort() ? (
+                                                    <Button
+                                                        variant="ghost"
+                                                        onClick={() => header.column.toggleSorting(header.column.getIsSorted() === "asc")}
+                                                    >
+                                                        {flexRender(header.column.columnDef.header, header.getContext())}
+                                                        {header.column.getIsSorted() ? (
+                                                            header.column.getIsSorted() === "asc" ? " ↑" : " ↓"
+                                                        ) : null}
+                                                    </Button>
+                                                ) : (
+                                                    flexRender(header.column.columnDef.header, header.getContext())
+                                                )
+                                            )}
+                                        </TableHead>
+                                    ))}
                                 </TableRow>
                             ))}
                         </TableHeader>
                         <TableBody>
                             {loading ? (
-                                // Skeleton loading state
                                 Array.from({ length: pageSize }).map((_, index) => (
                                     <TableRow key={`skeleton-${index}`} className="animate-pulse">
-                                        {columns.map((column, cellIndex) => (
+                                        {columns(() => { }).map((column, cellIndex) => (
                                             <TableCell key={`skeleton-cell-${cellIndex}`}>
-                                                {column.id === "id" ? (
-                                                    <Skeleton className="h-5 w-24" />
-                                                ) : column.id === "date" ? (
-                                                    <div className="flex items-center gap-2">
-                                                        <Skeleton className="h-4 w-4 rounded-full" />
-                                                        <Skeleton className="h-5 w-20" />
-                                                        <Skeleton className="h-4 w-4 rounded-full ml-2" />
-                                                        <Skeleton className="h-5 w-16" />
-                                                    </div>
-                                                ) : column.id === "amount" ? (
-                                                    <Skeleton className="h-5 w-24" />
-                                                ) : column.id === "waterType" ? (
-                                                    <div className="flex items-center gap-2">
-                                                        <Skeleton className="h-4 w-4 rounded-full" />
-                                                        <Skeleton className="h-5 w-28" />
-                                                    </div>
-                                                ) : column.id === "paymentMethod" ? (
-                                                    <div className="flex items-center gap-2">
-                                                        <Skeleton className="h-4 w-4 rounded-full" />
-                                                        <Skeleton className="h-5 w-32" />
-                                                    </div>
+                                                {column.id === "orderId" ? (
+                                                    <Skeleton className="h-5 w-24 mx-auto" />
                                                 ) : column.id === "status" ? (
-                                                    <Skeleton className="h-6 w-24 rounded-full" />
+                                                    <Skeleton className="h-6 w-24 rounded-full mx-auto" />
+                                                ) : column.id === "totalAmount" ? (
+                                                    <Skeleton className="h-5 w-24 mx-auto" />
                                                 ) : column.id === "actions" ? (
-                                                    <Skeleton className="h-8 w-8 rounded-full" />
+                                                    <div className="flex justify-center">
+                                                        <Skeleton className="h-8 w-8 rounded-full" />
+                                                    </div>
                                                 ) : (
                                                     <Skeleton className="h-5 w-full" />
                                                 )}
@@ -268,20 +251,18 @@ const ManageCustomers = () => {
                                         ))}
                                     </TableRow>
                                 ))
-                            ) : table.getRowModel().rows?.length ? (
+                            ) : orders.length ? (
                                 table.getRowModel().rows.map((row) => (
                                     <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
                                         {row.getVisibleCells().map((cell) => (
-                                            <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
+                                            <TableCell key={cell.id}>
+                                                {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                            </TableCell>
                                         ))}
                                     </TableRow>
                                 ))
                             ) : (
-                                <TableRow>
-                                    <TableCell colSpan={columns.length} className="h-24 text-center">
-                                        Không có kết quả.
-                                    </TableCell>
-                                </TableRow>
+                                <NoResultsRow columns={columns(() => { })} />
                             )}
                         </TableBody>
                     </Table>
@@ -289,42 +270,27 @@ const ManageCustomers = () => {
                 <div className="flex flex-col sm:flex-row items-center justify-between space-y-3 sm:space-y-0 py-4">
                     <div className="flex items-center space-x-2">
                         <p className="text-sm font-medium">Hiển thị</p>
-                        <Select
-                            value={`${pageSize}`}
-                            onValueChange={(value) => {
-                                setPageSize(Number(value))
-                            }}
-                            disabled={loading}
-                        >
-                            <SelectTrigger className="h-8 w-[70px]">
-                                <SelectValue placeholder={pageSize} />
-                            </SelectTrigger>
-                            <SelectContent side="top">
-                                {[5, 10, 20, 50, 100].map((size) => (
-                                    <SelectItem key={size} value={`${size}`}>
-                                        {size}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
+                        <PageSizeSelector
+                            loading={loading}
+                            pageSize={pageSize}
+                            setCurrentPage={setCurrentPage}
+                            setPageSize={setPageSize}
+                        />
                         <p className="text-sm font-medium">mục mỗi trang</p>
                     </div>
-
                     {loading ? (
                         <Skeleton className="h-5 w-64" />
                     ) : (
                         <div className="text-sm text-muted-foreground">
-                            Đang hiển thị {filteredItems > 0 ? startItem : 0} đến {endItem} trong tổng số {filteredItems} mục
-                            {filteredItems !== totalItems && ` (đã lọc từ ${totalItems} mục)`}
+                            Đang hiển thị {totalItems > 0 ? startItem : 0} đến {endItem} trong tổng số {totalItems} mục
                         </div>
                     )}
-
                     <div className="flex items-center space-x-2">
                         <Button
                             variant="outline"
                             className="hidden h-8 w-8 p-0 lg:flex"
-                            onClick={() => table.setPageIndex(0)}
-                            disabled={!table.getCanPreviousPage() || loading}
+                            onClick={() => setCurrentPage(1)}
+                            disabled={currentPage === 1 || loading || totalPages === 0}
                         >
                             <span className="sr-only">Trang đầu</span>
                             <ChevronsLeft className="h-4 w-4" />
@@ -332,8 +298,8 @@ const ManageCustomers = () => {
                         <Button
                             variant="outline"
                             className="h-8 w-8 p-0"
-                            onClick={() => table.previousPage()}
-                            disabled={!table.getCanPreviousPage() || loading}
+                            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                            disabled={currentPage === 1 || loading || totalPages === 0}
                         >
                             <span className="sr-only">Trang trước</span>
                             <ChevronLeft className="h-4 w-4" />
@@ -342,15 +308,21 @@ const ManageCustomers = () => {
                             <Skeleton className="h-5 w-16" />
                         ) : (
                             <div className="flex items-center gap-1.5">
-                                <span className="text-sm font-medium">Trang {currentPage}</span>
-                                <span className="text-sm text-muted-foreground">/ {totalPages}</span>
+                                {totalPages === 0 ? (
+                                    <span className="text-sm text-muted-foreground">Không có dữ liệu</span>
+                                ) : (
+                                    <>
+                                        <span className="text-sm font-medium">Trang {currentPage}</span>
+                                        <span className="text-sm text-muted-foreground">/ {totalPages}</span>
+                                    </>
+                                )}
                             </div>
                         )}
                         <Button
                             variant="outline"
                             className="h-8 w-8 p-0"
-                            onClick={() => table.nextPage()}
-                            disabled={!table.getCanNextPage() || loading}
+                            onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                            disabled={currentPage === totalPages || loading || totalPages === 0}
                         >
                             <span className="sr-only">Trang sau</span>
                             <ChevronRight className="h-4 w-4" />
@@ -358,8 +330,8 @@ const ManageCustomers = () => {
                         <Button
                             variant="outline"
                             className="hidden h-8 w-8 p-0 lg:flex"
-                            onClick={() => table.setPageIndex(table.getPageCount() - 1)}
-                            disabled={!table.getCanNextPage() || loading}
+                            onClick={() => setCurrentPage(totalPages)}
+                            disabled={currentPage === totalPages || loading || totalPages === 0}
                         >
                             <span className="sr-only">Trang cuối</span>
                             <ChevronsRight className="h-4 w-4" />
@@ -367,9 +339,16 @@ const ManageCustomers = () => {
                     </div>
                 </div>
             </div>
+            <OrderDetailDialog
+                order={selectedOrder}
+                open={dialogOpen}
+                onOpenChange={(open) => {
+                    setDialogOpen(open);
+                    if (!open) setSelectedOrder(null);
+                }}
+            />
         </div>
-    )
-}
+    );
+};
 
-export default ManageCustomers
-
+export default ManageOrders;

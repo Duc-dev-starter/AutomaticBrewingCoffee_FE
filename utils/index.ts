@@ -71,3 +71,9 @@ export const toastService = {
         if (showToast) showToast(options);
     },
 };
+
+
+// Hàm định dạng tiền tệ (thêm vào lib/utils.ts nếu chưa có)
+export const formatCurrency = (amount: number): string => {
+    return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
+};

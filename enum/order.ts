@@ -18,10 +18,22 @@ export enum EOrderStatus {
 }
 
 export const EOrderStatusViMap: Record<EOrderStatus, string> = {
-    [EOrderStatus.Pending]: "Pending",
-    [EOrderStatus.Preparing]: "Preparing",
-    [EOrderStatus.Ready]: "Ready",
-    [EOrderStatus.Completed]: "Completed",
-    [EOrderStatus.Cancelled]: "Cancelled",
-    [EOrderStatus.Failed]: "Failed",
+    [EOrderStatus.Pending]: "Đang chờ",
+    [EOrderStatus.Preparing]: "Đang chuẩn bị",
+    [EOrderStatus.Ready]: "Sẵn sàng",
+    [EOrderStatus.Completed]: "Hoàn tất",
+    [EOrderStatus.Cancelled]: "Đã huỷ",
+    [EOrderStatus.Failed]: "Thất bại",
 };
+
+
+export const EOrderTypeViMap: Record<EOrderType, string> = {
+    [EOrderType.Immediate]: "Giao ngay",
+    [EOrderType.PreOrder]: "Đặt trước",
+};
+
+export const EPaymentGatewayViMap: Record<EPaymentGateway, string> = {
+    [EPaymentGateway.VNPay]: "VNPay",
+    [EPaymentGateway.MoMo]: "MoMo",
+};
+

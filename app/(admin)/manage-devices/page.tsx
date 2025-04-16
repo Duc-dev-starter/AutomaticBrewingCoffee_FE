@@ -34,7 +34,6 @@ import { columns } from "@/components/manage-devices/columns"
 import { Device } from "@/types/device"
 import { getDevices } from "@/services/device"
 import useDebounce from "@/hooks/use-debounce"
-import { EBaseStatusFilterDropdown } from "@/components/common/ebase-status-filter"
 import { EDeviceStatusFilterDropdown, ExportButton, NoResultsRow, PageSizeSelector, RefreshButton, SearchInput } from "@/components/common"
 import { multiSelectFilter } from "@/utils/table"
 

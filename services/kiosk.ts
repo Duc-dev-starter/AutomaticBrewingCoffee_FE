@@ -1,11 +1,10 @@
 import { BaseService } from "./base"
 import { PagingParams, PagingResponse } from "@/types/paging";
-import { Franchise } from "@/types/franchise";
 import { Kiosk } from "@/types/kiosk";
 
 export const getKiosks = async (params: PagingParams = {}): Promise<PagingResponse<Kiosk>> => {
     return BaseService.getPaging<Kiosk>({
-        url: `/franchises`,
+        url: `/kiosks`,
         payload: params,
     });
 };

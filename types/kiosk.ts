@@ -1,13 +1,15 @@
+import { EBaseStatus } from "@/enum/base";
 import { Device } from "./device"
+import { Franchise } from "./franchise";
 
-// Định nghĩa interface Kiosk
 export interface Kiosk {
-    kioskId: string
-    franchiseId: string
-    devices: Device[]
-    location: string
-    status: string
-    installedDate: string
-    createdDate: string
-    updatedDate: string | null
+    kioskId: string;
+    franchiseId: string;
+    franchise: Franchise;
+    devices: Device[];
+    location: string;
+    status: EBaseStatus;
+    installedDate: string;
+    createdDate: string;
+    updatedDate: string | null;
 }

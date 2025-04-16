@@ -35,7 +35,7 @@ import { Device } from "@/types/device"
 import { getDevices } from "@/services/device"
 import useDebounce from "@/hooks/use-debounce"
 import { EBaseStatusFilterDropdown } from "@/components/common/ebase-status-filter"
-import { ExportButton, NoResultsRow, PageSizeSelector, RefreshButton, SearchInput } from "@/components/common"
+import { EDeviceStatusFilterDropdown, ExportButton, NoResultsRow, PageSizeSelector, RefreshButton, SearchInput } from "@/components/common"
 import { multiSelectFilter } from "@/utils/table"
 
 const ManageDevices = () => {
@@ -153,7 +153,7 @@ const ManageDevices = () => {
                         <SearchInput loading={loading} placeHolderText="Tìm kiếm thiết bị..." searchValue={searchValue} setSearchValue={setSearchValue} />
                     </div>
                     <div className="flex items-center gap-2 ml-auto">
-                        <EBaseStatusFilterDropdown loading={loading} table={table} />
+                        <EDeviceStatusFilterDropdown loading={loading} table={table} />
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button variant="outline" disabled={loading}>

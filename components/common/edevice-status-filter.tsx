@@ -11,13 +11,14 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Filter, ChevronDownIcon } from "lucide-react"
 import { Table } from "@tanstack/react-table"
+import { EDeviceStatus, EDeviceStatusViMap } from "@/enum/device"
 
 interface StatusFilterDropdownProps {
     loading: boolean;
     table: Table<any>;
 }
 
-export const EBaseStatusFilterDropdown = ({ loading, table }: StatusFilterDropdownProps) => {
+export const EDeviceStatusFilterDropdown = ({ loading, table }: StatusFilterDropdownProps) => {
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
@@ -30,12 +31,15 @@ export const EBaseStatusFilterDropdown = ({ loading, table }: StatusFilterDropdo
             <DropdownMenuContent align="end">
                 <DropdownMenuLabel>Lọc theo trạng thái</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuItem onClick={() => table.getColumn("status")?.setFilterValue("Active")}>
-                    Hoạt động
-                </DropdownMenuItem>
-                <DropdownMenuItem onClick={() => table.getColumn("status")?.setFilterValue("Inactive")}>
-                    Không hoạt động
-                </DropdownMenuItem>
+                {Object.entries(EDeviceStatusViMap).map(([key, label]) => (
+                    <DropdownMenuItem
+                        key={key}
+                        onClick={() => table.getColumn("status")?.setFilterValue(key)}
+                    >
+                        {label}
+                    </DropdownMenuItem>
+                ))}
+                <DropdownMenuSeparator />
                 <DropdownMenuItem onClick={() => table.getColumn("status")?.setFilterValue("")}>
                     Xóa bộ lọc
                 </DropdownMenuItem>

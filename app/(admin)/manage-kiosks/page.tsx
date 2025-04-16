@@ -1,9 +1,8 @@
 "use client"
 
-import * as React from "react"
+import { useCallback, useEffect, useState } from "react"
 import { ChevronDownIcon } from "@radix-ui/react-icons"
 import {
-    type ColumnDef,
     type ColumnFiltersState,
     type SortingState,
     type VisibilityState,
@@ -20,308 +19,119 @@ import {
     DropdownMenu,
     DropdownMenuCheckboxItem,
     DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
-import { Input } from "@/components/ui/input"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import {
-    Download,
-    Filter,
-    RefreshCw,
-    Search,
     ChevronLeft,
     ChevronRight,
     ChevronsLeft,
     ChevronsRight,
-    MapPin,
-    Calendar,
-    MoreHorizontal,
     PlusCircle,
-    Laptop,
-    Power,
-    Store,
-    X,
-    Check,
 } from "lucide-react"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Skeleton } from "@/components/ui/skeleton"
-import { Badge } from "@/components/ui/badge"
-import { format, parseISO } from "date-fns"
-import ExportButton from "@/components/common/export-button"
-import RefreshButton from "@/components/common/refresh-button"
-import { Device } from "@/types/device"
-
-
-// Định nghĩa interface Kiosk
-interface Kiosk {
-    kioskId: string
-    franchiseId: string
-    devices: Device[]
-    location: string
-    status: string
-    installedDate: string
-    createdDate: string
-    updatedDate: string | null
-}
-
-// Tạo dữ liệu mẫu
-const generateSampleKiosks = (count: number): Kiosk[] => {
-    const locations = [
-        "Quận 1, TP.HCM",
-        "Quận 2, TP.HCM",
-        "Quận 3, TP.HCM",
-        "Quận 7, TP.HCM",
-        "Quận Bình Thạnh, TP.HCM",
-        "Quận Phú Nhuận, TP.HCM",
-        "Quận Tân Bình, TP.HCM",
-        "Quận Gò Vấp, TP.HCM",
-    ]
-    const statuses = ["Online", "Offline", "Maintenance", "Error"]
-    const franchiseIds = [
-        "6613d947-62f9-4134-b4c8-7a12d1ebd58d",
-        "7724e058-73f0-4135-c5d9-8b23e2fcd69e",
-        "8835f169-84g1-5246-d6e0-9c34f3gde70f",
-    ]
-
-    const deviceNames = [
-        "Máy pha cà phê tự động",
-        "Máy thanh toán tự động",
-        "Máy bán hàng tự động",
-        "Máy in hóa đơn",
-        "Máy quét mã QR",
-    ]
-
-    const deviceDescriptions = [
-        "Thiết bị pha chế cà phê tự động",
-        "Thiết bị thanh toán không tiếp xúc",
-        "Thiết bị bán hàng tự động đa năng",
-        "Thiết bị in hóa đơn nhiệt",
-        "Thiết bị quét mã QR đa năng",
-    ]
-
-    return Array.from({ length: count }, (_, i) => {
-        const now = new Date()
-        const randomDays = Math.floor(Math.random() * 365)
-        const randomInstallDays = Math.floor(Math.random() * 300)
-        const randomUpdateDays = Math.floor(Math.random() * 30)
-
-        const createdDate = new Date(now.getTime() - randomDays * 24 * 60 * 60 * 1000)
-        const installedDate = new Date(now.getTime() - randomInstallDays * 24 * 60 * 60 * 1000)
-
-        const hasUpdate = Math.random() > 0.3
-        const updatedDate = hasUpdate ? new Date(now.getTime() - randomUpdateDays * 24 * 60 * 60 * 1000) : null
-
-        // Tạo ngẫu nhiên 1-3 thiết bị cho mỗi kiosk
-        const deviceCount = Math.floor(Math.random() * 3) + 1
-        const devices: Device[] = Array.from({ length: deviceCount }, (_, j) => {
-            const deviceCreatedDate = new Date(installedDate.getTime() + Math.floor(Math.random() * 5) * 24 * 60 * 60 * 1000)
-            const deviceHasUpdate = Math.random() > 0.5
-            const deviceUpdatedDate = deviceHasUpdate
-                ? new Date(deviceCreatedDate.getTime() + Math.floor(Math.random() * 30) * 24 * 60 * 60 * 1000)
-                : null
-
-            return {
-                deviceId: `${j === 0 ? "6fd39f4d-8522-41c2-b6e5-de1e6c8a49cf" : crypto.randomUUID()}`,
-                name: deviceNames[Math.floor(Math.random() * deviceNames.length)],
-                description: deviceDescriptions[Math.floor(Math.random() * deviceDescriptions.length)],
-                status: statuses[Math.floor(Math.random() * statuses.length)],
-                createdDate: deviceCreatedDate.toISOString(),
-                updatedDate: deviceUpdatedDate ? deviceUpdatedDate.toISOString() : null,
-            }
-        })
-
-        return {
-            kioskId: i === 0 ? "9c3b075b-080d-48dd-92dc-d95457896e92" : crypto.randomUUID(),
-            franchiseId: franchiseIds[Math.floor(Math.random() * franchiseIds.length)],
-            devices,
-            location: locations[Math.floor(Math.random() * locations.length)],
-            status: statuses[Math.floor(Math.random() * statuses.length)],
-            installedDate: installedDate.toISOString(),
-            createdDate: createdDate.toISOString(),
-            updatedDate: updatedDate ? updatedDate.toISOString() : null,
-        }
-    })
-}
-
-// Định nghĩa cột cho bảng
-const columns: ColumnDef<Kiosk>[] = [
-    {
-        id: "kioskId",
-        header: "Mã Kiosk",
-        cell: ({ row }) => <div className="font-medium">{row.original.kioskId.substring(0, 8)}...</div>,
-    },
-    {
-        id: "location",
-        header: "Vị trí",
-        cell: ({ row }) => {
-            return (
-                <div className="flex items-center gap-2">
-                    <MapPin className="h-4 w-4 text-muted-foreground" />
-                    <span>{row.original.location}</span>
-                </div>
-            )
-        },
-    },
-    {
-        id: "status",
-        header: "Trạng thái",
-        accessorKey: "status", // Thêm accessorKey để đảm bảo lọc hoạt động đúng
-        cell: ({ row }) => {
-            const status = row.original.status
-            return (
-                <div className="flex items-center">
-                    {status === "Online" ? (
-                        <Badge className="bg-green-500">
-                            <Power className="h-3 w-3 mr-1" /> Hoạt động
-                        </Badge>
-                    ) : status === "Offline" ? (
-                        <Badge variant="outline" className="border-gray-300 text-gray-500">
-                            <Power className="h-3 w-3 mr-1" /> Không hoạt động
-                        </Badge>
-                    ) : status === "Maintenance" ? (
-                        <Badge className="bg-blue-500">
-                            <Power className="h-3 w-3 mr-1" /> Bảo trì
-                        </Badge>
-                    ) : (
-                        <Badge className="bg-red-500">
-                            <Power className="h-3 w-3 mr-1" /> Lỗi
-                        </Badge>
-                    )}
-                </div>
-            )
-        },
-    },
-    {
-        id: "devices",
-        header: "Thiết bị",
-        cell: ({ row }) => {
-            const devices = row.original.devices
-            return (
-                <div className="flex items-center">
-                    <Laptop className="h-4 w-4 mr-1 text-muted-foreground" />
-                    <span>{devices.length} thiết bị</span>
-                </div>
-            )
-        },
-    },
-    {
-        id: "franchise",
-        header: "Nhượng quyền",
-        cell: ({ row }) => {
-            return (
-                <div className="flex items-center">
-                    <Store className="h-4 w-4 mr-1 text-muted-foreground" />
-                    <span>{row.original.franchiseId.substring(0, 8)}...</span>
-                </div>
-            )
-        },
-    },
-    {
-        id: "installedDate",
-        header: "Ngày lắp đặt",
-        cell: ({ row }) => {
-            const date = parseISO(row.original.installedDate)
-            return (
-                <div className="flex items-center">
-                    <Calendar className="h-4 w-4 mr-1 text-muted-foreground" />
-                    <span>{format(date, "dd/MM/yyyy")}</span>
-                </div>
-            )
-        },
-    },
-    {
-        id: "actions",
-        header: "",
-        cell: ({ row }) => {
-            return (
-                <div className="text-right">
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                                <MoreHorizontal className="h-4 w-4" />
-                                <span className="sr-only">Mở menu</span>
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Hành động</DropdownMenuLabel>
-                            <DropdownMenuItem onClick={() => navigator.clipboard.writeText(row.original.kioskId)}>
-                                Sao chép mã Kiosk
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem>Xem chi tiết</DropdownMenuItem>
-                            <DropdownMenuItem>Quản lý thiết bị</DropdownMenuItem>
-                            <DropdownMenuItem>Chỉnh sửa thông tin</DropdownMenuItem>
-                            <DropdownMenuItem className="text-red-600">Xóa Kiosk</DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                </div>
-            )
-        },
-    },
-]
+import useDebounce from "@/hooks/use-debounce"
+import { EBaseStatusFilterDropdown } from "@/components/common/ebase-status-filter"
+import { ExportButton, NoResultsRow, PageSizeSelector, RefreshButton, SearchInput } from "@/components/common"
+import { multiSelectFilter } from "@/utils/table"
+import { Kiosk } from "@/types/kiosk"
+import { getKiosks } from "@/services/kiosk"
+import { columns } from "@/components/manage-kiosks/columns"
 
 const ManageKiosks = () => {
-    const [loading, setLoading] = React.useState(true)
-    const [pageSize, setPageSize] = React.useState(10)
+    const [loading, setLoading] = useState(true)
+    const [pageSize, setPageSize] = useState(10)
+    const [currentPage, setCurrentPage] = useState(1)
+    const [kiosks, setKiosks] = useState<Kiosk[]>([])
+    const [totalItems, setTotalItems] = useState(0)
+    const [totalPages, setTotalPages] = useState(1)
 
-    // Tạo dữ liệu mẫu
-    const data = React.useMemo(() => generateSampleKiosks(50), [])
+    const [sorting, setSorting] = useState<SortingState>([])
+    const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
+    const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
+    const [rowSelection, setRowSelection] = useState({})
 
-    // Giả lập tải dữ liệu
-    React.useEffect(() => {
-        const timer = setTimeout(() => {
+    // State cho giá trị tìm kiếm
+    const [searchValue, setSearchValue] = useState("")
+    const debouncedSearchValue = useDebounce(searchValue, 500)
+
+    // Cập nhật columnFilters khi debouncedSearchValue thay đổi
+    useEffect(() => {
+        table.getColumn("location")?.setFilterValue(debouncedSearchValue)
+    }, [debouncedSearchValue])
+
+    const fetchKiosks = useCallback(async () => {
+        try {
+            setLoading(true)
+
+            const filterBy = columnFilters.length > 0 ? columnFilters[0]?.id : undefined
+            const filterQuery = columnFilters.length > 0 ? columnFilters[0]?.value as string : undefined
+            const sortBy = sorting.length > 0 ? sorting[0]?.id : undefined
+            const isAsc = sorting.length > 0 ? !sorting[0]?.desc : undefined
+            const statusFilter = columnFilters.find((filter) => filter.id === "status")?.value as string | undefined
+
+            const response = await getKiosks({
+                filterBy,
+                filterQuery,
+                page: currentPage,
+                size: pageSize,
+                sortBy,
+                isAsc,
+                status: statusFilter,
+            })
+
+            setKiosks(response.items)
+            setTotalItems(response.total)
+            setTotalPages(response.totalPages)
+        } catch (err) {
+            console.error(err)
+        } finally {
             setLoading(false)
-        }, 1500) // Giả lập 1.5 giây tải dữ liệu
+        }
+    }, [currentPage, pageSize, columnFilters, sorting])
 
-        return () => clearTimeout(timer)
-    }, [])
-
-    const [sorting, setSorting] = React.useState<SortingState>([])
-    const [columnFilters, setColumnFilters] = React.useState<ColumnFiltersState>([])
-    const [columnVisibility, setColumnVisibility] = React.useState<VisibilityState>({})
-    const [rowSelection, setRowSelection] = React.useState({})
+    useEffect(() => {
+        fetchKiosks()
+    }, [fetchKiosks])
 
     const table = useReactTable({
-        data,
+        data: kiosks,
         columns,
         onSortingChange: setSorting,
         onColumnFiltersChange: setColumnFilters,
-        onColumnVisibilityChange: setColumnVisibility,
-        onRowSelectionChange: setRowSelection,
         getCoreRowModel: getCoreRowModel(),
         getSortedRowModel: getSortedRowModel(),
         getFilteredRowModel: getFilteredRowModel(),
         getPaginationRowModel: getPaginationRowModel(),
+        onColumnVisibilityChange: setColumnVisibility,
         state: {
             sorting,
             columnFilters,
             columnVisibility,
             rowSelection,
+            pagination: {
+                pageIndex: currentPage - 1,
+                pageSize,
+            },
         },
-        initialState: {
-            pagination: { pageSize: 10 },
-        },
+        manualPagination: true,
+        manualFiltering: true,
+        manualSorting: true,
+        pageCount: totalPages,
+        filterFns: {
+            multiSelect: multiSelectFilter
+        }
     })
 
-    // Cập nhật kích thước trang khi pageSize thay đổi
-    React.useEffect(() => {
+    useEffect(() => {
         table.setPageSize(pageSize)
     }, [pageSize, table])
 
-    // Tính toán thông tin phân trang
-    const totalItems = data.length
-    const filteredItems = table.getFilteredRowModel().rows.length
-    const currentPage = table.getState().pagination.pageIndex + 1
-    const totalPages = Math.ceil(filteredItems / pageSize)
     const startItem = (currentPage - 1) * pageSize + 1
-    const endItem = Math.min(currentPage * pageSize, filteredItems)
+    const endItem = Math.min(currentPage * pageSize, totalItems)
 
-    // Chuyển đổi trạng thái loading (cho mục đích demo)
     const toggleLoading = () => {
-        setLoading((prev) => !prev)
+        fetchKiosks()
     }
 
     return (
@@ -329,8 +139,8 @@ const ManageKiosks = () => {
             <div className="flex flex-col space-y-4 p-4 sm:p-6">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                     <div>
-                        <h2 className="text-2xl font-bold tracking-tight">Quản lý Kiosk</h2>
-                        <p className="text-muted-foreground">Quản lý và giám sát tất cả các Kiosk bán hàng tự động.</p>
+                        <h2 className="text-2xl font-bold tracking-tight">Quản lý kiosk</h2>
+                        <p className="text-muted-foreground">Quản lý và giám sát tất cả kiosk.</p>
                     </div>
                     <div className="flex items-center gap-2">
                         <ExportButton loading={loading} />
@@ -339,94 +149,10 @@ const ManageKiosks = () => {
                 </div>
                 <div className="flex flex-col sm:flex-row items-center py-4 gap-4">
                     <div className="relative w-full sm:w-72">
-                        <Search className="absolute left-2 top-2.5 h-4 w-4 text-muted-foreground" />
-                        <Input
-                            placeholder="Tìm kiếm Kiosk..."
-                            value={(table.getColumn("location")?.getFilterValue() as string) ?? ""}
-                            onChange={(event) => table.getColumn("location")?.setFilterValue(event.target.value)}
-                            className="pl-8"
-                            disabled={loading}
-                        />
+                        <SearchInput loading={loading} placeHolderText="Tìm kiếm địa chỉ kiosk..." searchValue={searchValue} setSearchValue={setSearchValue} />
                     </div>
                     <div className="flex items-center gap-2 ml-auto">
-                        {table.getColumn("status")?.getFilterValue() && (
-                            <div className="flex items-center mr-2">
-                                <Badge variant="outline" className="flex gap-1 items-center">
-                                    <Filter className="h-3 w-3" />
-                                    Trạng thái:
-                                    {table.getColumn("status")?.getFilterValue() === "Online" && (
-                                        <Badge className="ml-1 bg-green-500">Hoạt động</Badge>
-                                    )}
-                                    {table.getColumn("status")?.getFilterValue() === "Offline" && (
-                                        <Badge className="ml-1 border-gray-300 text-gray-500" variant="outline">
-                                            Không hoạt động
-                                        </Badge>
-                                    )}
-                                    {table.getColumn("status")?.getFilterValue() === "Maintenance" && (
-                                        <Badge className="ml-1 bg-blue-500">Bảo trì</Badge>
-                                    )}
-                                    {table.getColumn("status")?.getFilterValue() === "Error" && (
-                                        <Badge className="ml-1 bg-red-500">Lỗi</Badge>
-                                    )}
-                                    <Button
-                                        variant="ghost"
-                                        onClick={() => table.getColumn("status")?.setFilterValue("")}
-                                        className="h-4 w-4 p-0 ml-1"
-                                    >
-                                        <X className="h-3 w-3" />
-                                    </Button>
-                                </Badge>
-                            </div>
-                        )}
-                        <DropdownMenu>
-                            <DropdownMenuTrigger asChild>
-                                <Button variant="outline" className="ml-auto" disabled={loading}>
-                                    <Filter className="mr-2 h-4 w-4" />
-                                    Lọc
-                                    <ChevronDownIcon className="ml-2 h-4 w-4" />
-                                </Button>
-                            </DropdownMenuTrigger>
-                            <DropdownMenuContent align="end">
-                                <DropdownMenuLabel>Lọc theo trạng thái</DropdownMenuLabel>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem
-                                    onClick={() => table.getColumn("status")?.setFilterValue("Online")}
-                                    className="flex items-center justify-between"
-                                >
-                                    Hoạt động
-                                    {table.getColumn("status")?.getFilterValue() === "Online" && <Check className="h-4 w-4" />}
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                    onClick={() => table.getColumn("status")?.setFilterValue("Offline")}
-                                    className="flex items-center justify-between"
-                                >
-                                    Không hoạt động
-                                    {table.getColumn("status")?.getFilterValue() === "Offline" && <Check className="h-4 w-4" />}
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                    onClick={() => table.getColumn("status")?.setFilterValue("Maintenance")}
-                                    className="flex items-center justify-between"
-                                >
-                                    Bảo trì
-                                    {table.getColumn("status")?.getFilterValue() === "Maintenance" && <Check className="h-4 w-4" />}
-                                </DropdownMenuItem>
-                                <DropdownMenuItem
-                                    onClick={() => table.getColumn("status")?.setFilterValue("Error")}
-                                    className="flex items-center justify-between"
-                                >
-                                    Lỗi
-                                    {table.getColumn("status")?.getFilterValue() === "Error" && <Check className="h-4 w-4" />}
-                                </DropdownMenuItem>
-                                <DropdownMenuSeparator />
-                                <DropdownMenuItem
-                                    onClick={() => table.getColumn("status")?.setFilterValue("")}
-                                    className="flex items-center justify-between"
-                                >
-                                    Xóa bộ lọc
-                                    {!table.getColumn("status")?.getFilterValue() && <Check className="h-4 w-4" />}
-                                </DropdownMenuItem>
-                            </DropdownMenuContent>
-                        </DropdownMenu>
+                        <EBaseStatusFilterDropdown loading={loading} table={table} />
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button variant="outline" disabled={loading}>
@@ -437,31 +163,28 @@ const ManageKiosks = () => {
                                 {table
                                     .getAllColumns()
                                     .filter((column) => column.getCanHide())
-                                    .map((column) => {
-                                        return (
-                                            <DropdownMenuCheckboxItem
-                                                key={column.id}
-                                                className="capitalize"
-                                                checked={column.getIsVisible()}
-                                                onCheckedChange={(value) => column.toggleVisibility(!!value)}
-                                            >
-                                                {column.id === "kioskId"
-                                                    ? "Mã Kiosk"
-                                                    : column.id === "location"
-                                                        ? "Vị trí"
-                                                        : column.id === "status"
-                                                            ? "Trạng thái"
-                                                            : column.id === "devices"
-                                                                ? "Thiết bị"
-                                                                : column.id === "franchise"
-                                                                    ? "Nhượng quyền"
-                                                                    : column.id === "installedDate"
-                                                                        ? "Ngày lắp đặt"
-                                                                        : column.id}
-                                            </DropdownMenuCheckboxItem>
-                                        )
-                                    })}
+                                    .map((column) => (
+                                        <DropdownMenuCheckboxItem
+                                            key={column.id}
+                                            className="capitalize"
+                                            checked={column.getIsVisible()}
+                                            onCheckedChange={(value) => column.toggleVisibility(!!value)}
+                                        >
+                                            {{
+                                                kioskId: "Mã kiosk",
+                                                location: "Địa chỉ",
+                                                description: "Mô tả",
+                                                status: "Trạng thái",
+                                                installedDate: "Ngày lắp đặt",
+                                                createdDate: "Ngày tạo",
+                                                updatedDate: "Ngày cập nhật",
+                                                franchise: "Tên thương hiệu",
+                                                deviceName: "Thiết bị chính",
+                                            }[column.id] ?? column.id}
+                                        </DropdownMenuCheckboxItem>
+                                    ))}
                             </DropdownMenuContent>
+
                         </DropdownMenu>
                         <Button disabled={loading}>
                             <PlusCircle className="mr-2 h-4 w-4" />
@@ -474,43 +197,52 @@ const ManageKiosks = () => {
                         <TableHeader>
                             {table.getHeaderGroups().map((headerGroup) => (
                                 <TableRow key={headerGroup.id}>
-                                    {headerGroup.headers.map((header) => {
-                                        return (
-                                            <TableHead key={header.id}>
-                                                {header.isPlaceholder ? null : flexRender(header.column.columnDef.header, header.getContext())}
-                                            </TableHead>
-                                        )
-                                    })}
+                                    {headerGroup.headers.map((header) => (
+                                        <TableHead key={header.id} className="text-center">
+                                            {header.isPlaceholder ? null : (
+                                                header.column.getCanSort() ? (
+                                                    <Button
+                                                        variant="ghost"
+                                                        onClick={() => header.column.toggleSorting(header.column.getIsSorted() === "asc")}
+                                                    >
+                                                        {flexRender(header.column.columnDef.header, header.getContext())}
+                                                        {header.column.getIsSorted() ? (
+                                                            header.column.getIsSorted() === "asc" ? " ↑" : " ↓"
+                                                        ) : null}
+                                                    </Button>
+                                                ) : (
+                                                    flexRender(header.column.columnDef.header, header.getContext())
+                                                )
+                                            )}
+                                        </TableHead>
+                                    ))}
                                 </TableRow>
                             ))}
                         </TableHeader>
                         <TableBody>
                             {loading ? (
-                                // Skeleton loading state
                                 Array.from({ length: pageSize }).map((_, index) => (
                                     <TableRow key={`skeleton-${index}`} className="animate-pulse">
                                         {columns.map((column, cellIndex) => (
                                             <TableCell key={`skeleton-cell-${cellIndex}`}>
                                                 {column.id === "kioskId" ? (
                                                     <Skeleton className="h-5 w-24" />
-                                                ) : column.id === "location" ? (
+                                                ) : column.id === "franchise" ? (
+                                                    <Skeleton className="h-5 w-32" />
+                                                ) : column.id === "deviceName" ? (
+                                                    <Skeleton className="h-5 w-40" />
+                                                ) : column.id === "name" ? (
                                                     <div className="flex items-center gap-2">
                                                         <Skeleton className="h-4 w-4 rounded-full" />
                                                         <Skeleton className="h-5 w-40" />
                                                     </div>
+                                                ) : column.id === "description" ? (
+                                                    <Skeleton className="h-5 w-64" />
                                                 ) : column.id === "status" ? (
                                                     <Skeleton className="h-6 w-24 rounded-full" />
-                                                ) : column.id === "devices" ? (
-                                                    <div className="flex items-center gap-2">
-                                                        <Skeleton className="h-4 w-4 rounded-full" />
-                                                        <Skeleton className="h-5 w-20" />
-                                                    </div>
-                                                ) : column.id === "franchise" ? (
-                                                    <div className="flex items-center gap-2">
-                                                        <Skeleton className="h-4 w-4 rounded-full" />
-                                                        <Skeleton className="h-5 w-24" />
-                                                    </div>
                                                 ) : column.id === "installedDate" ? (
+                                                    <Skeleton className="h-5 w-28" />
+                                                ) : column.id === "createdDate" || column.id === "updatedDate" ? (
                                                     <div className="flex items-center gap-2">
                                                         <Skeleton className="h-4 w-4 rounded-full" />
                                                         <Skeleton className="h-5 w-24" />
@@ -523,10 +255,11 @@ const ManageKiosks = () => {
                                                     <Skeleton className="h-5 w-full" />
                                                 )}
                                             </TableCell>
+
                                         ))}
                                     </TableRow>
                                 ))
-                            ) : table.getRowModel().rows?.length ? (
+                            ) : kiosks.length ? (
                                 table.getRowModel().rows.map((row) => (
                                     <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
                                         {row.getVisibleCells().map((cell) => (
@@ -535,11 +268,7 @@ const ManageKiosks = () => {
                                     </TableRow>
                                 ))
                             ) : (
-                                <TableRow>
-                                    <TableCell colSpan={columns.length} className="h-24 text-center">
-                                        Không có kết quả.
-                                    </TableCell>
-                                </TableRow>
+                                <NoResultsRow columns={columns} />
                             )}
                         </TableBody>
                     </Table>
@@ -547,42 +276,22 @@ const ManageKiosks = () => {
                 <div className="flex flex-col sm:flex-row items-center justify-between space-y-3 sm:space-y-0 py-4">
                     <div className="flex items-center space-x-2">
                         <p className="text-sm font-medium">Hiển thị</p>
-                        <Select
-                            value={`${pageSize}`}
-                            onValueChange={(value) => {
-                                setPageSize(Number(value))
-                            }}
-                            disabled={loading}
-                        >
-                            <SelectTrigger className="h-8 w-[70px]">
-                                <SelectValue placeholder={pageSize} />
-                            </SelectTrigger>
-                            <SelectContent side="top">
-                                {[5, 10, 20, 50, 100].map((size) => (
-                                    <SelectItem key={size} value={`${size}`}>
-                                        {size}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
+                        <PageSizeSelector loading={loading} pageSize={pageSize} setCurrentPage={setCurrentPage} setPageSize={setPageSize} />
                         <p className="text-sm font-medium">mục mỗi trang</p>
                     </div>
-
                     {loading ? (
                         <Skeleton className="h-5 w-64" />
                     ) : (
                         <div className="text-sm text-muted-foreground">
-                            Đang hiển thị {filteredItems > 0 ? startItem : 0} đến {endItem} trong tổng số {filteredItems} mục
-                            {filteredItems !== totalItems && ` (đã lọc từ ${totalItems} mục)`}
+                            Đang hiển thị {totalItems > 0 ? startItem : 0} đến {endItem} trong tổng số {totalItems} mục
                         </div>
                     )}
-
                     <div className="flex items-center space-x-2">
                         <Button
                             variant="outline"
                             className="hidden h-8 w-8 p-0 lg:flex"
-                            onClick={() => table.setPageIndex(0)}
-                            disabled={!table.getCanPreviousPage() || loading}
+                            onClick={() => setCurrentPage(1)}
+                            disabled={currentPage === 1 || loading || totalPages === 0}
                         >
                             <span className="sr-only">Trang đầu</span>
                             <ChevronsLeft className="h-4 w-4" />
@@ -590,8 +299,8 @@ const ManageKiosks = () => {
                         <Button
                             variant="outline"
                             className="h-8 w-8 p-0"
-                            onClick={() => table.previousPage()}
-                            disabled={!table.getCanPreviousPage() || loading}
+                            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
+                            disabled={currentPage === 1 || loading || totalPages === 0}
                         >
                             <span className="sr-only">Trang trước</span>
                             <ChevronLeft className="h-4 w-4" />
@@ -600,15 +309,22 @@ const ManageKiosks = () => {
                             <Skeleton className="h-5 w-16" />
                         ) : (
                             <div className="flex items-center gap-1.5">
-                                <span className="text-sm font-medium">Trang {currentPage}</span>
-                                <span className="text-sm text-muted-foreground">/ {totalPages}</span>
+                                {totalPages === 0 ? (
+                                    <span className="text-sm text-muted-foreground">Không có dữ liệu</span>
+                                ) : (
+                                    <>
+                                        <span className="text-sm font-medium">Trang {currentPage}</span>
+                                        <span className="text-sm text-muted-foreground">/ {totalPages}</span>
+                                    </>
+                                )}
                             </div>
+
                         )}
                         <Button
                             variant="outline"
                             className="h-8 w-8 p-0"
-                            onClick={() => table.nextPage()}
-                            disabled={!table.getCanNextPage() || loading}
+                            onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
+                            disabled={currentPage === totalPages || loading || totalPages === 0}
                         >
                             <span className="sr-only">Trang sau</span>
                             <ChevronRight className="h-4 w-4" />
@@ -616,8 +332,8 @@ const ManageKiosks = () => {
                         <Button
                             variant="outline"
                             className="hidden h-8 w-8 p-0 lg:flex"
-                            onClick={() => table.setPageIndex(table.getPageCount() - 1)}
-                            disabled={!table.getCanNextPage() || loading}
+                            onClick={() => setCurrentPage(totalPages)}
+                            disabled={currentPage === totalPages || loading || totalPages === 0}
                         >
                             <span className="sr-only">Trang cuối</span>
                             <ChevronsRight className="h-4 w-4" />

@@ -140,7 +140,7 @@ const ManageFranchises = () => {
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                     <div>
                         <h2 className="text-2xl font-bold tracking-tight">Quản lý chi nhánh</h2>
-                        <p className="text-muted-foreground">Quản lý và giám sát tất cả các thiết bị pha cà phê tự động.</p>
+                        <p className="text-muted-foreground">Quản lý và giám sát tất cả chi nhánh.</p>
                     </div>
                     <div className="flex items-center gap-2">
                         <ExportButton loading={loading} />
@@ -149,7 +149,7 @@ const ManageFranchises = () => {
                 </div>
                 <div className="flex flex-col sm:flex-row items-center py-4 gap-4">
                     <div className="relative w-full sm:w-72">
-                        <SearchInput loading={loading} placeHolderText="Tìm kiếm thiết bị..." searchValue={searchValue} setSearchValue={setSearchValue} />
+                        <SearchInput loading={loading} placeHolderText="Tìm kiếm chi nhánh..." searchValue={searchValue} setSearchValue={setSearchValue} />
                     </div>
                     <div className="flex items-center gap-2 ml-auto">
                         <EBaseStatusFilterDropdown loading={loading} table={table} />

@@ -11,7 +11,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Filter, ChevronDownIcon } from "lucide-react"
 import { Table } from "@tanstack/react-table"
-import { EDeviceStatus, EDeviceStatusViMap } from "@/enum/device"
+import { EDeviceStatusViMap } from "@/enum/device"
 
 interface StatusFilterDropdownProps {
     loading: boolean;

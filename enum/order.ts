@@ -1,10 +1,20 @@
+export enum EOrderType {
+    Immediate = "Immediate",
+    PreOrder = "Pre-Order",
+}
+
+export enum EPaymentGateway {
+    VNPay = "VNPay",
+    MoMo = "MoMo"
+}
+
 export enum EOrderStatus {
-    Pending = 0,
-    Preparing = 1,
-    Ready = 2,
-    Completed = 3,
-    Cancelled = 4,
-    Failed = 5,
+    Pending = "Pending",
+    Preparing = "Preparing",
+    Ready = "Ready",
+    Completed = "Completed",
+    Cancelled = "Cancelled",
+    Failed = "Failed",
 }
 
 export const EOrderStatusViMap: Record<EOrderStatus, string> = {

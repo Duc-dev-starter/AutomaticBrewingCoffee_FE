@@ -9,3 +9,9 @@ export enum EProductType {
     Parent = "Parent",
     Child = "Child"
 }
+
+
+export enum EProductStatus {
+    Selling = "Selling",
+    UnSelling = "UnSelling"
+}

@@ -1,4 +1,4 @@
-import { EOrderStatus } from "@/enum/order";
+import { EOrderStatus, EOrderType, EPaymentGateway } from "@/enum/order";
 
 export interface OrderDetail {
     productName: string;
@@ -15,8 +15,8 @@ export interface Order {
     feeDescription: string;
     finalAmount: number;
     invoiceId: string;
-    orderType: string;
-    paymentGateway: string;
+    orderType: EOrderType;
+    paymentGateway: EPaymentGateway;
     sessionId: string;
     status: EOrderStatus;
     totalAmount: number;

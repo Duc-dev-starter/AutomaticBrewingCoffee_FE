@@ -1,44 +1,44 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
-import { Device } from "@/types/device";
+import { Franchise } from "@/types/franchise";
 import { format } from "date-fns";
-import { EDeviceStatusViMap } from "@/enum/device";
+import { EBaseStatusViMap } from "@/enum/base";
 
-interface DeviceDetailDialogProps {
-    device: Device | null;
+interface FranchiseDetailDialogProps {
+    franchise: Franchise | null;
     open: boolean;
     onOpenChange: (open: boolean) => void;
 }
 
-const DeviceDetailDialog = ({ device, open, onOpenChange }: DeviceDetailDialogProps) => {
-    if (!device) return null;
+const FranchiseDetailDialog = ({ franchise, open, onOpenChange }: FranchiseDetailDialogProps) => {
+    if (!franchise) return null;
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-[500px]">
                 <DialogHeader>
-                    <DialogTitle>Chi tiết thiết bị</DialogTitle>
+                    <DialogTitle>Chi tiết chi nhánh</DialogTitle>
                 </DialogHeader>
                 <DialogDescription>
                     <div className="space-y-2">
                         <div>
-                            <strong>Mã thiết bị:</strong> {device.deviceId}
+                            <strong>Mã chi nhánh:</strong> {franchise.franchiseId}
                         </div>
                         <div>
-                            <strong>Tên thiết bị:</strong> {device.name}
+                            <strong>Tên chi nhánh:</strong> {franchise.name}
                         </div>
                         <div>
-                            <strong>Mô tả:</strong> {device.description || "Không có"}
+                            <strong>Mô tả:</strong> {franchise.description || "Không có"}
                         </div>
                         <div>
-                            <strong>Trạng thái:</strong> {EDeviceStatusViMap[device.status] || "Không rõ"}
+                            <strong>Trạng thái:</strong> {EBaseStatusViMap[franchise.status] || "Không rõ"}
                         </div>
                         <div>
                             <strong>Ngày tạo:</strong>{" "}
-                            {device.createdDate ? format(new Date(device.createdDate), "dd/MM/yyyy HH:mm") : "Không có"}
+                            {franchise.createdDate ? format(new Date(franchise.createdDate), "dd/MM/yyyy HH:mm") : "Không có"}
                         </div>
                         <div>
                             <strong>Ngày cập nhật:</strong>{" "}
-                            {device.updatedDate ? format(new Date(device.updatedDate), "dd/MM/yyyy HH:mm") : "Chưa cập nhật"}
+                            {franchise.updatedDate ? format(new Date(franchise.updatedDate), "dd/MM/yyyy HH:mm") : "Chưa cập nhật"}
                         </div>
                     </div>
                 </DialogDescription>
@@ -47,4 +47,4 @@ const DeviceDetailDialog = ({ device, open, onOpenChange }: DeviceDetailDialogPr
     );
 };
 
-export default DeviceDetailDialog;
+export default FranchiseDetailDialog;

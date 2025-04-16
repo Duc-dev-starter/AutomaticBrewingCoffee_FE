@@ -21,7 +21,7 @@ interface DeviceDialogProps {
     device?: Device // Optional device for update
 }
 
-export function DeviceDialog({ open, onOpenChange, onSuccess, device }: DeviceDialogProps) {
+const DeviceDialog = ({ open, onOpenChange, onSuccess, device }: DeviceDialogProps) => {
     const { toast } = useToast()
     const [isSubmitting, setIsSubmitting] = useState(false)
     const [formData, setFormData] = useState({
@@ -208,3 +208,5 @@ export function DeviceDialog({ open, onOpenChange, onSuccess, device }: DeviceDi
         </Dialog>
     )
 }
+
+export default DeviceDialog;

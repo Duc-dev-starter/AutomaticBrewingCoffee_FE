@@ -1,7 +1,7 @@
-"use client"
+"use client";
 
-import { useCallback, useEffect, useState } from "react"
-import { ChevronDownIcon } from "@radix-ui/react-icons"
+import { useCallback, useEffect, useState } from "react";
+import { ChevronDownIcon } from "@radix-ui/react-icons";
 import {
     type ColumnFiltersState,
     type SortingState,
@@ -12,63 +12,75 @@ import {
     getPaginationRowModel,
     getSortedRowModel,
     useReactTable,
-} from "@tanstack/react-table"
-
-import { Button } from "@/components/ui/button"
+} from "@tanstack/react-table";
+import { Button } from "@/components/ui/button";
 import {
     DropdownMenu,
     DropdownMenuCheckboxItem,
     DropdownMenuContent,
     DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+} from "@/components/ui/dropdown-menu";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import {
     ChevronLeft,
     ChevronRight,
     ChevronsLeft,
     ChevronsRight,
     PlusCircle,
-} from "lucide-react"
-import { Skeleton } from "@/components/ui/skeleton"
-import { columns } from "@/components/manage-franchises/columns"
-import useDebounce from "@/hooks/use-debounce"
-import { EBaseStatusFilterDropdown } from "@/components/common/ebase-status-filter"
-import { ExportButton, NoResultsRow, PageSizeSelector, RefreshButton, SearchInput } from "@/components/common"
-import { getFranchises } from "@/services/franchise"
-import { Franchise } from "@/types/franchise"
-import { multiSelectFilter } from "@/utils/table"
+} from "lucide-react";
+import { Skeleton } from "@/components/ui/skeleton";
+import { columns } from "@/components/manage-franchises/columns";
+import useDebounce from "@/hooks/use-debounce";
+import { ConfirmDeleteDialog, EBaseStatusFilterDropdown, ExportButton, NoResultsRow, PageSizeSelector, RefreshButton, SearchInput } from "@/components/common";
+import { getFranchises, deleteFranchise } from "@/services/franchise";
+import { Franchise } from "@/types/franchise";
+import { multiSelectFilter } from "@/utils/table";
+import { useToast } from "@/hooks/use-toast";
+import { FranchiseDetailDialog, FranchiseDialog } from "@/components/dialog/franchise";
 
 const ManageFranchises = () => {
-    const [loading, setLoading] = useState(true)
-    const [pageSize, setPageSize] = useState(10)
-    const [currentPage, setCurrentPage] = useState(1)
-    const [franchises, setFranchises] = useState<Franchise[]>([])
-    const [totalItems, setTotalItems] = useState(0)
-    const [totalPages, setTotalPages] = useState(1)
+    const { toast } = useToast();
+    const [loading, setLoading] = useState(true);
+    const [pageSize, setPageSize] = useState(10);
+    const [currentPage, setCurrentPage] = useState(1);
+    const [franchises, setFranchises] = useState<Franchise[]>([]);
+    const [totalItems, setTotalItems] = useState(0);
+    const [totalPages, setTotalPages] = useState(1);
 
-    const [sorting, setSorting] = useState<SortingState>([])
-    const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
-    const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
-    const [rowSelection, setRowSelection] = useState({})
+    const [sorting, setSorting] = useState<SortingState>([]);
+    const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
+    const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+    const [rowSelection, setRowSelection] = useState({});
+
+    // State cho dialog thêm/chỉnh sửa
+    const [dialogOpen, setDialogOpen] = useState(false);
+    const [selectedFranchise, setSelectedFranchise] = useState<Franchise | undefined>(undefined);
+
+    // State cho dialog chi tiết
+    const [detailDialogOpen, setDetailDialogOpen] = useState(false);
+    const [detailFranchise, setDetailFranchise] = useState<Franchise | null>(null);
+
+    // State cho dialog xóa
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [franchiseToDelete, setFranchiseToDelete] = useState<Franchise | null>(null);
 
     // State cho giá trị tìm kiếm
-    const [searchValue, setSearchValue] = useState("")
-    const debouncedSearchValue = useDebounce(searchValue, 500)
+    const [searchValue, setSearchValue] = useState("");
+    const debouncedSearchValue = useDebounce(searchValue, 500);
 
     // Cập nhật columnFilters khi debouncedSearchValue thay đổi
     useEffect(() => {
-        table.getColumn("name")?.setFilterValue(debouncedSearchValue)
-    }, [debouncedSearchValue])
+        table.getColumn("name")?.setFilterValue(debouncedSearchValue);
+    }, [debouncedSearchValue]);
 
-    const fetchDevices = useCallback(async () => {
+    const fetchFranchises = useCallback(async () => {
         try {
-            setLoading(true)
-
-            const filterBy = columnFilters.length > 0 ? columnFilters[0]?.id : undefined
-            const filterQuery = columnFilters.length > 0 ? columnFilters[0]?.value as string : undefined
-            const sortBy = sorting.length > 0 ? sorting[0]?.id : undefined
-            const isAsc = sorting.length > 0 ? !sorting[0]?.desc : undefined
-            const statusFilter = columnFilters.find((filter) => filter.id === "status")?.value as string | undefined
+            setLoading(true);
+            const filterBy = columnFilters.length > 0 ? columnFilters[0]?.id : undefined;
+            const filterQuery = columnFilters.length > 0 ? columnFilters[0]?.value as string : undefined;
+            const sortBy = sorting.length > 0 ? sorting[0]?.id : undefined;
+            const isAsc = sorting.length > 0 ? !sorting[0]?.desc : undefined;
+            const statusFilter = columnFilters.find((filter) => filter.id === "status")?.value as string | undefined;
 
             const response = await getFranchises({
                 filterBy,
@@ -78,25 +90,84 @@ const ManageFranchises = () => {
                 sortBy,
                 isAsc,
                 status: statusFilter,
-            })
+            });
 
-            setFranchises(response.items)
-            setTotalItems(response.total)
-            setTotalPages(response.totalPages)
+            setFranchises(response.items);
+            setTotalItems(response.total);
+            setTotalPages(response.totalPages);
         } catch (err) {
-            console.error(err)
+            console.error(err);
+            toast({
+                title: "Lỗi",
+                description: "Không thể tải danh sách chi nhánh.",
+                variant: "destructive",
+            });
         } finally {
-            setLoading(false)
+            setLoading(false);
         }
-    }, [currentPage, pageSize, columnFilters, sorting])
+    }, [currentPage, pageSize, columnFilters, sorting, toast]);
 
-    useEffect(() => {
-        fetchDevices()
-    }, [fetchDevices])
+    // Xử lý khi thêm hoặc chỉnh sửa thành công
+    const handleSuccess = () => {
+        fetchFranchises();
+        setDialogOpen(false);
+        setSelectedFranchise(undefined);
+    };
+
+    // Mở dialog để chỉnh sửa chi nhánh
+    const handleEdit = (franchise: Franchise) => {
+        setSelectedFranchise(franchise);
+        setDialogOpen(true);
+    };
+
+    // Mở dialog để xem chi tiết chi nhánh
+    const handleViewDetails = (franchise: Franchise) => {
+        setDetailFranchise(franchise);
+        setDetailDialogOpen(true);
+    };
+
+    // Xử lý xóa chi nhánh
+    const handleDelete = (franchise: Franchise) => {
+        setFranchiseToDelete(franchise);
+        setDeleteDialogOpen(true);
+    };
+
+    // Xác nhận xóa chi nhánh
+    const confirmDelete = async () => {
+        if (!franchiseToDelete) return;
+        try {
+            await deleteFranchise(franchiseToDelete.franchiseId);
+            toast({
+                title: "Thành công",
+                description: `Chi nhánh "${franchiseToDelete.name}" đã được xóa.`,
+            });
+            fetchFranchises();
+        } catch (error) {
+            console.error("Lỗi khi xóa chi nhánh:", error);
+            toast({
+                title: "Lỗi",
+                description: "Không thể xóa chi nhánh. Vui lòng thử lại.",
+                variant: "destructive",
+            });
+        } finally {
+            setDeleteDialogOpen(false);
+            setFranchiseToDelete(null);
+        }
+    };
+
+    // Mở dialog để thêm chi nhánh mới
+    const handleAdd = () => {
+        setSelectedFranchise(undefined);
+        setDialogOpen(true);
+    };
 
     const table = useReactTable({
         data: franchises,
-        columns,
+        columns: columns({
+            onViewDetails: handleViewDetails,
+            onEdit: handleEdit,
+            onDelete: handleDelete,
+        }),
         onSortingChange: setSorting,
         onColumnFiltersChange: setColumnFilters,
         getCoreRowModel: getCoreRowModel(),
@@ -109,30 +180,29 @@ const ManageFranchises = () => {
             columnFilters,
             columnVisibility,
             rowSelection,
-            pagination: {
-                pageIndex: currentPage - 1,
-                pageSize,
-            },
+            pagination: { pageIndex: currentPage - 1, pageSize },
         },
         manualPagination: true,
         manualFiltering: true,
         manualSorting: true,
         pageCount: totalPages,
-        filterFns: {
-            multiSelect: multiSelectFilter
-        }
-    })
+        filterFns: { multiSelect: multiSelectFilter },
+    });
 
     useEffect(() => {
-        table.setPageSize(pageSize)
-    }, [pageSize, table])
+        table.setPageSize(pageSize);
+    }, [pageSize, table]);
 
-    const startItem = (currentPage - 1) * pageSize + 1
-    const endItem = Math.min(currentPage * pageSize, totalItems)
+    useEffect(() => {
+        fetchFranchises();
+    }, [fetchFranchises]);
+
+    const startItem = (currentPage - 1) * pageSize + 1;
+    const endItem = Math.min(currentPage * pageSize, totalItems);
 
     const toggleLoading = () => {
-        fetchDevices()
-    }
+        fetchFranchises();
+    };
 
     return (
         <div className="w-full">
@@ -149,7 +219,12 @@ const ManageFranchises = () => {
                 </div>
                 <div className="flex flex-col sm:flex-row items-center py-4 gap-4">
                     <div className="relative w-full sm:w-72">
-                        <SearchInput loading={loading} placeHolderText="Tìm kiếm chi nhánh..." searchValue={searchValue} setSearchValue={setSearchValue} />
+                        <SearchInput
+                            loading={loading}
+                            placeHolderText="Tìm kiếm chi nhánh..."
+                            searchValue={searchValue}
+                            setSearchValue={setSearchValue}
+                        />
                     </div>
                     <div className="flex items-center gap-2 ml-auto">
                         <EBaseStatusFilterDropdown loading={loading} table={table} />
@@ -160,8 +235,7 @@ const ManageFranchises = () => {
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                                {table
-                                    .getAllColumns()
+                                {table.getAllColumns()
                                     .filter((column) => column.getCanHide())
                                     .map((column) => (
                                         <DropdownMenuCheckboxItem
@@ -171,9 +245,9 @@ const ManageFranchises = () => {
                                             onCheckedChange={(value) => column.toggleVisibility(!!value)}
                                         >
                                             {column.id === "franchiseId"
-                                                ? "Mã thiết bị"
+                                                ? "Mã chi nhánh"
                                                 : column.id === "name"
-                                                    ? "Tên thiết bị"
+                                                    ? "Tên chi nhánh"
                                                     : column.id === "description"
                                                         ? "Mô tả"
                                                         : column.id === "status"
@@ -187,7 +261,7 @@ const ManageFranchises = () => {
                                     ))}
                             </DropdownMenuContent>
                         </DropdownMenu>
-                        <Button disabled={loading}>
+                        <Button onClick={handleAdd} disabled={loading}>
                             <PlusCircle className="mr-2 h-4 w-4" />
                             Thêm
                         </Button>
@@ -224,26 +298,26 @@ const ManageFranchises = () => {
                             {loading ? (
                                 Array.from({ length: pageSize }).map((_, index) => (
                                     <TableRow key={`skeleton-${index}`} className="animate-pulse">
-                                        {columns.map((column, cellIndex) => (
+                                        {columns({ onViewDetails: () => { }, onEdit: () => { }, onDelete: () => { } }).map((column, cellIndex) => (
                                             <TableCell key={`skeleton-cell-${cellIndex}`}>
                                                 {column.id === "franchiseId" ? (
-                                                    <Skeleton className="h-5 w-24" />
+                                                    <Skeleton className="h-5 w-24 mx-auto" />
                                                 ) : column.id === "name" ? (
-                                                    <div className="flex items-center gap-2">
+                                                    <div className="flex items-center gap-2 justify-center">
                                                         <Skeleton className="h-4 w-4 rounded-full" />
                                                         <Skeleton className="h-5 w-40" />
                                                     </div>
                                                 ) : column.id === "description" ? (
-                                                    <Skeleton className="h-5 w-64" />
+                                                    <Skeleton className="h-5 w-64 mx-auto" />
                                                 ) : column.id === "status" ? (
-                                                    <Skeleton className="h-6 w-24 rounded-full" />
+                                                    <Skeleton className="h-6 w-24 rounded-full mx-auto" />
                                                 ) : column.id === "createdDate" || column.id === "updatedDate" ? (
-                                                    <div className="flex items-center gap-2">
+                                                    <div className="flex items-center gap-2 justify-center">
                                                         <Skeleton className="h-4 w-4 rounded-full" />
                                                         <Skeleton className="h-5 w-24" />
                                                     </div>
                                                 ) : column.id === "actions" ? (
-                                                    <div className="flex justify-end">
+                                                    <div className="flex justify-center">
                                                         <Skeleton className="h-8 w-8 rounded-full" />
                                                     </div>
                                                 ) : (
@@ -257,12 +331,14 @@ const ManageFranchises = () => {
                                 table.getRowModel().rows.map((row) => (
                                     <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
                                         {row.getVisibleCells().map((cell) => (
-                                            <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
+                                            <TableCell key={cell.id}>
+                                                {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                            </TableCell>
                                         ))}
                                     </TableRow>
                                 ))
                             ) : (
-                                <NoResultsRow columns={columns} />
+                                <NoResultsRow columns={columns({ onViewDetails: () => { }, onEdit: () => { }, onDelete: () => { } })} />
                             )}
                         </TableBody>
                     </Table>
@@ -270,7 +346,12 @@ const ManageFranchises = () => {
                 <div className="flex flex-col sm:flex-row items-center justify-between space-y-3 sm:space-y-0 py-4">
                     <div className="flex items-center space-x-2">
                         <p className="text-sm font-medium">Hiển thị</p>
-                        <PageSizeSelector loading={loading} pageSize={pageSize} setCurrentPage={setCurrentPage} setPageSize={setPageSize} />
+                        <PageSizeSelector
+                            loading={loading}
+                            pageSize={pageSize}
+                            setCurrentPage={setCurrentPage}
+                            setPageSize={setPageSize}
+                        />
                         <p className="text-sm font-medium">mục mỗi trang</p>
                     </div>
                     {loading ? (
@@ -312,7 +393,6 @@ const ManageFranchises = () => {
                                     </>
                                 )}
                             </div>
-
                         )}
                         <Button
                             variant="outline"
@@ -335,8 +415,30 @@ const ManageFranchises = () => {
                     </div>
                 </div>
             </div>
-        </div>
-    )
-}
+            <FranchiseDialog
+                open={dialogOpen}
+                onOpenChange={setDialogOpen}
+                onSuccess={handleSuccess}
+                franchise={selectedFranchise}
+            />
+            <FranchiseDetailDialog
+                open={detailDialogOpen}
+                onOpenChange={(open) => {
+                    setDetailDialogOpen(open);
+                    if (!open) setDetailFranchise(null);
+                }}
+                franchise={detailFranchise}
+            />
+            <ConfirmDeleteDialog
+                open={deleteDialogOpen}
+                onOpenChange={setDeleteDialogOpen}
+                description={`Bạn có chắc chắn muốn xóa chi nhánh "${franchiseToDelete?.name}"? Hành động này không thể hoàn tác.`}
+                onConfirm={confirmDelete}
+                onCancel={() => setFranchiseToDelete(null)}
+            />
 
-export default ManageFranchises
+        </div>
+    );
+};
+
+export default ManageFranchises;

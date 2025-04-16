@@ -33,21 +33,10 @@ import { columns } from "@/components/manage-devices/columns";
 import { Device } from "@/types/device";
 import { getDevices, deleteDevice } from "@/services/device";
 import useDebounce from "@/hooks/use-debounce";
-import { EDeviceStatusFilterDropdown, ExportButton, NoResultsRow, PageSizeSelector, RefreshButton, SearchInput } from "@/components/common";
+import { ConfirmDeleteDialog, EDeviceStatusFilterDropdown, ExportButton, NoResultsRow, PageSizeSelector, RefreshButton, SearchInput } from "@/components/common";
 import { multiSelectFilter } from "@/utils/table";
-import { DeviceDialog } from "@/components/dialog/devices/device-dialog";
 import { useToast } from "@/hooks/use-toast";
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
-import DeviceDetailDialog from "@/components/dialog/devices/device-detail-dialog";
+import { DeviceDetailDialog, DeviceDialog } from "@/components/dialog/device";
 
 const ManageDevices = () => {
     const { toast } = useToast();
@@ -433,22 +422,13 @@ const ManageDevices = () => {
                 }}
                 device={detailDevice}
             />
-            <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>Xác nhận xóa</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            Bạn có chắc chắn muốn xóa thiết bị "{deviceToDelete?.name}"? Hành động này không thể hoàn tác.
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel onClick={() => setDeviceToDelete(null)}>Hủy</AlertDialogCancel>
-                        <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700">
-                            Xóa
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
+            <ConfirmDeleteDialog
+                open={deleteDialogOpen}
+                onOpenChange={setDeleteDialogOpen}
+                description={`Bạn có chắc chắn muốn xóa thiết bị "${deviceToDelete?.name}"? Hành động này không thể hoàn tác.`}
+                onConfirm={confirmDelete}
+                onCancel={() => setDeviceToDelete(null)}
+            />
         </div>
     );
 };

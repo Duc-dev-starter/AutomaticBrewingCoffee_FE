@@ -13,7 +13,6 @@ import {
     getSortedRowModel,
     useReactTable,
 } from "@tanstack/react-table";
-
 import { Button } from "@/components/ui/button";
 import {
     DropdownMenu,
@@ -33,12 +32,25 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { columns } from "@/components/manage-products/columns";
 import useDebounce from "@/hooks/use-debounce";
 import { EBaseStatusFilterDropdown, ExportButton, NoResultsRow, PageSizeSelector, RefreshButton, SearchInput } from "@/components/common";
-import { getProducts } from "@/services/product"; // Assume this exists
-import { Product } from "@/types/product";
+import { getProducts, deleteProduct } from "@/services/product";
+import { Product } from "@/interfaces/product";
 import { multiSelectFilter } from "@/utils/table";
-import ProductDetailDialog from "@/components/dialog/product";
+import { useToast } from "@/hooks/use-toast";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { ProductDialog, ProductDetailDialog } from "@/components/dialog/product";
+
 
 const ManageProducts = () => {
+    const { toast } = useToast();
     const [loading, setLoading] = useState(true);
     const [pageSize, setPageSize] = useState(10);
     const [currentPage, setCurrentPage] = useState(1);
@@ -46,14 +58,18 @@ const ManageProducts = () => {
     const [totalItems, setTotalItems] = useState(0);
     const [totalPages, setTotalPages] = useState(1);
 
-    const [sorting, setSorting] = useState<SortingState>([]);
+    const [sorting, setSorting] = useState<SortingState>([{ id: "createdDate", desc: true }]);
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
     const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
     const [rowSelection, setRowSelection] = useState({});
 
-    // Dialog state
+    // State for dialogs
     const [dialogOpen, setDialogOpen] = useState(false);
-    const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+    const [selectedProduct, setSelectedProduct] = useState<Product | undefined>(undefined);
+    const [detailDialogOpen, setDetailDialogOpen] = useState(false);
+    const [detailProduct, setDetailProduct] = useState<Product | null>(null);
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [productToDelete, setProductToDelete] = useState<Product | null>(null);
 
     // Search state
     const [searchValue, setSearchValue] = useState("");
@@ -67,7 +83,6 @@ const ManageProducts = () => {
     const fetchProducts = useCallback(async () => {
         try {
             setLoading(true);
-
             const filterBy = columnFilters.find((f) => f.id === "name")?.id || undefined;
             const filterQuery = columnFilters.find((f) => f.id === "name")?.value as string | undefined;
             const sortBy = sorting.length > 0 ? sorting[0]?.id : undefined;
@@ -89,20 +104,76 @@ const ManageProducts = () => {
             setTotalPages(response.totalPages);
         } catch (err) {
             console.error(err);
+            toast({
+                title: "Lỗi",
+                description: "Không thể tải danh sách sản phẩm.",
+                variant: "destructive",
+            });
         } finally {
             setLoading(false);
         }
-    }, [currentPage, pageSize, columnFilters, sorting]);
+    }, [currentPage, pageSize, columnFilters, sorting, toast]);
 
-    useEffect(() => {
+    // Handle add/edit success
+    const handleSuccess = () => {
         fetchProducts();
-    }, [fetchProducts]);
+        setDialogOpen(false);
+        setSelectedProduct(undefined);
+    };
+
+    // Open edit dialog
+    const handleEdit = (product: Product) => {
+        setSelectedProduct(product);
+        setDialogOpen(true);
+    };
+
+    // Open detail dialog
+    const handleViewDetails = (product: Product) => {
+        setDetailProduct(product);
+        setDetailDialogOpen(true);
+    };
+
+    // Handle delete
+    const handleDelete = (product: Product) => {
+        setProductToDelete(product);
+        setDeleteDialogOpen(true);
+    };
+
+    // Confirm delete
+    const confirmDelete = async () => {
+        if (!productToDelete) return;
+        try {
+            await deleteProduct(productToDelete.productId);
+            toast({
+                title: "Thành công",
+                description: `Sản phẩm "${productToDelete.name}" đã được xóa.`,
+            });
+            fetchProducts();
+        } catch (error) {
+            console.error("Lỗi khi xóa sản phẩm:", error);
+            toast({
+                title: "Lỗi",
+                description: "Không thể xóa sản phẩm. Vui lòng thử lại.",
+                variant: "destructive",
+            });
+        } finally {
+            setDeleteDialogOpen(false);
+            setProductToDelete(null);
+        }
+    };
+
+    // Open add dialog
+    const handleAdd = () => {
+        setSelectedProduct(undefined);
+        setDialogOpen(true);
+    };
 
     const table = useReactTable({
         data: products,
-        columns: columns((product) => {
-            setSelectedProduct(product);
-            setDialogOpen(true);
+        columns: columns({
+            onViewDetails: handleViewDetails,
+            onEdit: handleEdit,
+            onDelete: handleDelete,
         }),
         onSortingChange: setSorting,
         onColumnFiltersChange: setColumnFilters,
@@ -116,23 +187,22 @@ const ManageProducts = () => {
             columnFilters,
             columnVisibility,
             rowSelection,
-            pagination: {
-                pageIndex: currentPage - 1,
-                pageSize,
-            },
+            pagination: { pageIndex: currentPage - 1, pageSize },
         },
         manualPagination: true,
         manualFiltering: true,
         manualSorting: true,
         pageCount: totalPages,
-        filterFns: {
-            multiSelect: multiSelectFilter,
-        },
+        filterFns: { multiSelect: multiSelectFilter },
     });
 
     useEffect(() => {
         table.setPageSize(pageSize);
     }, [pageSize, table]);
+
+    useEffect(() => {
+        fetchProducts();
+    }, [fetchProducts]);
 
     const startItem = (currentPage - 1) * pageSize + 1;
     const endItem = Math.min(currentPage * pageSize, totalItems);
@@ -172,8 +242,7 @@ const ManageProducts = () => {
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                                {table
-                                    .getAllColumns()
+                                {table.getAllColumns()
                                     .filter((column) => column.getCanHide())
                                     .map((column) => (
                                         <DropdownMenuCheckboxItem
@@ -182,24 +251,20 @@ const ManageProducts = () => {
                                             checked={column.getIsVisible()}
                                             onCheckedChange={(value) => column.toggleVisibility(!!value)}
                                         >
-                                            {column.id === "productId"
-                                                ? "Mã sản phẩm"
-                                                : column.id === "name"
-                                                    ? "Tên sản phẩm"
-                                                    : column.id === "description"
-                                                        ? "Mô tả"
-                                                        : column.id === "status"
-                                                            ? "Trạng thái"
-                                                            : column.id === "createdDate"
-                                                                ? "Ngày tạo"
-                                                                : column.id === "actions"
-                                                                    ? "Hành động"
-                                                                    : column.id}
+                                            {column.id === "productId" ? "Mã sản phẩm" :
+                                                column.id === "name" ? "Tên sản phẩm" :
+                                                    column.id === "size" ? "Kích thước" :
+                                                        column.id === "type" ? "Loại sản phẩm" :
+                                                            column.id === "price" ? "Giá" :
+                                                                column.id === "status" ? "Trạng thái" :
+                                                                    column.id === "createdDate" ? "Ngày tạo" :
+                                                                        column.id === "updatedDate" ? "Ngày cập nhật" :
+                                                                            column.id}
                                         </DropdownMenuCheckboxItem>
                                     ))}
                             </DropdownMenuContent>
                         </DropdownMenu>
-                        <Button disabled={loading}>
+                        <Button onClick={handleAdd} disabled={loading}>
                             <PlusCircle className="mr-2 h-4 w-4" />
                             Thêm
                         </Button>
@@ -236,17 +301,21 @@ const ManageProducts = () => {
                             {loading ? (
                                 Array.from({ length: pageSize }).map((_, index) => (
                                     <TableRow key={`skeleton-${index}`} className="animate-pulse">
-                                        {columns(() => { }).map((column, cellIndex) => (
+                                        {columns({ onViewDetails: () => { }, onEdit: () => { }, onDelete: () => { } }).map((column, cellIndex) => (
                                             <TableCell key={`skeleton-cell-${cellIndex}`}>
                                                 {column.id === "productId" ? (
                                                     <Skeleton className="h-5 w-24 mx-auto" />
                                                 ) : column.id === "name" ? (
                                                     <Skeleton className="h-5 w-40 mx-auto" />
-                                                ) : column.id === "description" ? (
-                                                    <Skeleton className="h-5 w-64 mx-auto" />
+                                                ) : column.id === "size" ? (
+                                                    <Skeleton className="h-5 w-20 mx-auto" />
+                                                ) : column.id === "type" ? (
+                                                    <Skeleton className="h-5 w-20 mx-auto" />
+                                                ) : column.id === "price" ? (
+                                                    <Skeleton className="h-5 w-28 mx-auto" />
                                                 ) : column.id === "status" ? (
                                                     <Skeleton className="h-6 w-24 rounded-full mx-auto" />
-                                                ) : column.id === "createdDate" ? (
+                                                ) : column.id === "createdDate" || column.id === "updatedDate" ? (
                                                     <div className="flex justify-center items-center gap-2">
                                                         <Skeleton className="h-4 w-4 rounded-full" />
                                                         <Skeleton className="h-5 w-24" />
@@ -273,7 +342,7 @@ const ManageProducts = () => {
                                     </TableRow>
                                 ))
                             ) : (
-                                <NoResultsRow columns={columns(() => { })} />
+                                <NoResultsRow columns={columns({ onViewDetails: () => { }, onEdit: () => { }, onDelete: () => { } })} />
                             )}
                         </TableBody>
                     </Table>
@@ -350,14 +419,36 @@ const ManageProducts = () => {
                     </div>
                 </div>
             </div>
-            <ProductDetailDialog
-                product={selectedProduct}
+            <ProductDialog
                 open={dialogOpen}
-                onOpenChange={(open) => {
-                    setDialogOpen(open);
-                    if (!open) setSelectedProduct(null);
-                }}
+                onOpenChange={setDialogOpen}
+                onSuccess={handleSuccess}
+                product={selectedProduct}
             />
+            <ProductDetailDialog
+                open={detailDialogOpen}
+                onOpenChange={(open) => {
+                    setDetailDialogOpen(open);
+                    if (!open) setDetailProduct(null);
+                }}
+                product={detailProduct}
+            />
+            <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Xác nhận xóa</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Bạn có chắc chắn muốn xóa sản phẩm "{productToDelete?.name}"? Hành động này không thể hoàn tác.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel onClick={() => setProductToDelete(null)}>Hủy</AlertDialogCancel>
+                        <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700">
+                            Xóa
+                        </AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 };

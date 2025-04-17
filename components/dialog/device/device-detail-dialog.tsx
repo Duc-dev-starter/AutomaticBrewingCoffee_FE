@@ -4,7 +4,7 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
-import { Device } from "@/types/device";
+import { Device } from "@/interfaces/device";
 import { format } from "date-fns";
 import { EDeviceStatusViMap } from "@/enum/device";
 import { ScrollArea } from "@/components/ui/scroll-area";

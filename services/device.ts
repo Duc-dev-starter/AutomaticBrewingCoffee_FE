@@ -1,4 +1,4 @@
-import { Device } from "@/types/device";
+import { Device } from "@/interfaces/device";
 import { BaseService } from "./base"
 import { PagingParams, PagingResponse } from "@/types/paging";
 import { Api } from "@/constants/api";

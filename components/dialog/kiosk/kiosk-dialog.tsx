@@ -7,9 +7,9 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Kiosk } from "@/types/kiosk";
-import { Franchise } from "@/types/franchise";
-import { Device } from "@/types/device";
+import { Kiosk } from "@/interfaces/kiosk";
+import { Franchise } from "@/interfaces/franchise";
+import { Device } from "@/interfaces/device";
 import { EBaseStatus } from "@/enum/base";
 import { createKiosk, updateKiosk } from "@/services/kiosk";
 import { getFranchises } from "@/services/franchise";
@@ -20,8 +20,9 @@ import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover
 import { CalendarIcon } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { vi } from "date-fns/locale";
+import { kioskSchema } from "@/schema/kiosk";
 
-interface KioskDialogProps {
+type KioskDialogProps = {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     onSuccess: () => void;
@@ -41,6 +42,7 @@ const KioskDialog = ({ open, onOpenChange, onSuccess, kiosk }: KioskDialogProps)
     const [formData, setFormData] = useState(initialFormData);
     const [franchises, setFranchises] = useState<Franchise[]>([]);
     const [devices, setDevices] = useState<Device[]>([]);
+    const [errors, setErrors] = useState<Record<string, string>>({});
     const [loading, setLoading] = useState(false);
     const [fetching, setFetching] = useState(false);
 
@@ -70,6 +72,7 @@ const KioskDialog = ({ open, onOpenChange, onSuccess, kiosk }: KioskDialogProps)
             fetchData();
             if (!kiosk) {
                 setFormData(initialFormData);
+                setErrors({});
             }
         }
     }, [open, toast, kiosk]);
@@ -84,42 +87,32 @@ const KioskDialog = ({ open, onOpenChange, onSuccess, kiosk }: KioskDialogProps)
                 status: kiosk.status,
                 installedDate: format(new Date(kiosk.installedDate), "yyyy-MM-dd"),
             });
+            setErrors({});
         }
     }, [kiosk]);
 
-    // Reset form data when dialog closes
+    // Reset form data and errors when dialog closes
     useEffect(() => {
         if (!open) {
             setFormData(initialFormData);
+            setErrors({});
         }
     }, [open]);
 
     const handleSubmit = async () => {
-        if (!formData.location.trim()) {
-            toast({
-                title: "Lỗi",
-                description: "Địa chỉ kiosk không được để trống.",
-                variant: "destructive",
-            });
-            return;
-        }
-        if (!formData.franchiseId) {
-            toast({
-                title: "Lỗi",
-                description: "Vui lòng chọn một franchise.",
-                variant: "destructive",
-            });
-            return;
-        }
-        if (!formData.installedDate) {
-            toast({
-                title: "Lỗi",
-                description: "Vui lòng chọn ngày lắp đặt.",
-                variant: "destructive",
-            });
+        const validationResult = kioskSchema.safeParse(formData);
+        if (!validationResult.success) {
+            console.error("Validation errors:", validationResult.error.errors);
+            const fieldErrors = validationResult.error.flatten().fieldErrors;
+            setErrors(
+                Object.fromEntries(
+                    Object.entries(fieldErrors).map(([key, messages]) => [key, messages ? messages[0] : ""])
+                )
+            );
             return;
         }
 
+        setErrors({});
         setLoading(true);
         try {
             const data = {
@@ -158,12 +151,12 @@ const KioskDialog = ({ open, onOpenChange, onSuccess, kiosk }: KioskDialogProps)
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-[600px]">
+            <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto">
                 <DialogHeader>
                     <DialogTitle>{kiosk ? "Chỉnh sửa kiosk" : "Thêm kiosk mới"}</DialogTitle>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
-                    <div className="grid gap-2">
+                    <div className="grid gap-2 min-h-[4.5rem]">
                         <Label htmlFor="franchiseId">Franchise</Label>
                         <Select
                             value={formData.franchiseId}
@@ -181,11 +174,12 @@ const KioskDialog = ({ open, onOpenChange, onSuccess, kiosk }: KioskDialogProps)
                                 ))}
                             </SelectContent>
                         </Select>
+                        {errors.franchiseId && <p className="text-red-500 text-sm">{errors.franchiseId}</p>}
                     </div>
-                    <div className="grid gap-2">
+                    <div className="grid gap-2 min-h-[4.5rem]">
                         <Label htmlFor="deviceId">Thiết bị</Label>
                         <Select
-                            value={formData.deviceIds[0]}
+                            value={formData.deviceIds[0] || ""}
                             onValueChange={(value) => setFormData({ ...formData, deviceIds: value ? [value] : [] })}
                             disabled={loading || fetching}
                         >
@@ -200,8 +194,9 @@ const KioskDialog = ({ open, onOpenChange, onSuccess, kiosk }: KioskDialogProps)
                                 ))}
                             </SelectContent>
                         </Select>
+                        {errors.deviceIds && <p className="text-red-500 text-sm">{errors.deviceIds}</p>}
                     </div>
-                    <div className="grid gap-2">
+                    <div className="grid gap-2 min-h-[4.5rem]">
                         <Label htmlFor="location">Địa chỉ</Label>
                         <Input
                             id="location"
@@ -210,8 +205,9 @@ const KioskDialog = ({ open, onOpenChange, onSuccess, kiosk }: KioskDialogProps)
                             placeholder="Nhập địa chỉ kiosk"
                             disabled={loading}
                         />
+                        {errors.location && <p className="text-red-500 text-sm">{errors.location}</p>}
                     </div>
-                    <div className="grid gap-2">
+                    <div className="grid gap-2 min-h-[4.5rem]">
                         <Label htmlFor="status">Trạng thái</Label>
                         <Select
                             value={formData.status}
@@ -226,8 +222,9 @@ const KioskDialog = ({ open, onOpenChange, onSuccess, kiosk }: KioskDialogProps)
                                 <SelectItem value={EBaseStatus.Inactive}>Không hoạt động</SelectItem>
                             </SelectContent>
                         </Select>
+                        {errors.status && <p className="text-red-500 text-sm">{errors.status}</p>}
                     </div>
-                    <div className="grid gap-2">
+                    <div className="grid gap-2 min-h-[4.5rem]">
                         <Label htmlFor="installedDate">Ngày lắp đặt</Label>
                         <Popover>
                             <PopoverTrigger asChild>
@@ -247,7 +244,7 @@ const KioskDialog = ({ open, onOpenChange, onSuccess, kiosk }: KioskDialogProps)
                                     onSelect={(date) =>
                                         setFormData({
                                             ...formData,
-                                            installedDate: date ? date.toISOString() : "",
+                                            installedDate: date ? format(date, "yyyy-MM-dd") : "",
                                         })
                                     }
                                     locale={vi}
@@ -255,6 +252,7 @@ const KioskDialog = ({ open, onOpenChange, onSuccess, kiosk }: KioskDialogProps)
                                 />
                             </PopoverContent>
                         </Popover>
+                        {errors.installedDate && <p className="text-red-500 text-sm">{errors.installedDate}</p>}
                     </div>
                 </div>
                 <DialogFooter>

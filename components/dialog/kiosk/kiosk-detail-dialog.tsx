@@ -5,7 +5,7 @@ import {
     DialogTitle,
     DialogDescription,
 } from "@/components/ui/dialog";
-import { Kiosk } from "@/types/kiosk";
+import { Kiosk } from "@/interfaces/kiosk";
 import { format } from "date-fns";
 import { EBaseStatusViMap } from "@/enum/base";
 

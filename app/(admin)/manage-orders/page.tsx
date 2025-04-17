@@ -13,7 +13,6 @@ import {
     getSortedRowModel,
     useReactTable,
 } from "@tanstack/react-table";
-
 import { Button } from "@/components/ui/button";
 import {
     DropdownMenu,
@@ -34,11 +33,23 @@ import { columns } from "@/components/manage-orders/columns";
 import useDebounce from "@/hooks/use-debounce";
 import { ExportButton, NoResultsRow, PageSizeSelector, RefreshButton, SearchInput } from "@/components/common";
 import { multiSelectFilter } from "@/utils/table";
-import { Order } from "@/types/order";
-import { getOrders } from "@/services/order";
-import OrderDetailDialog from "@/components/dialog/order";
+import { Order } from "@/interfaces/order";
+import { getOrders, deleteOrder } from "@/services/order";
+import { useToast } from "@/hooks/use-toast";
+import {
+    AlertDialog,
+    AlertDialogAction,
+    AlertDialogCancel,
+    AlertDialogContent,
+    AlertDialogDescription,
+    AlertDialogFooter,
+    AlertDialogHeader,
+    AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
+import { OrderDetailDialog, OrderDialog } from "@/components/dialog/order"
 
 const ManageOrders = () => {
+    const { toast } = useToast();
     const [loading, setLoading] = useState(true);
     const [pageSize, setPageSize] = useState(10);
     const [currentPage, setCurrentPage] = useState(1);
@@ -52,7 +63,9 @@ const ManageOrders = () => {
     const [rowSelection, setRowSelection] = useState({});
 
     // Dialog state
-    const [dialogOpen, setDialogOpen] = useState(false);
+    const [detailDialogOpen, setDetailDialogOpen] = useState(false);
+    const [editDialogOpen, setEditDialogOpen] = useState(false);
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
 
     // Search state
@@ -67,7 +80,6 @@ const ManageOrders = () => {
     const fetchOrders = useCallback(async () => {
         try {
             setLoading(true);
-
             const filterBy = columnFilters.find((f) => f.id === "orderId")?.id || undefined;
             const filterQuery = columnFilters.find((f) => f.id === "orderId")?.value as string | undefined;
             const sortBy = sorting.length > 0 ? sorting[0]?.id : undefined;
@@ -89,20 +101,44 @@ const ManageOrders = () => {
             setTotalPages(response.totalPages);
         } catch (err) {
             console.error(err);
+            toast({ title: "Lỗi", description: "Không thể tải danh sách đơn hàng.", variant: "destructive" });
         } finally {
             setLoading(false);
         }
-    }, [currentPage, pageSize, columnFilters, sorting]);
+    }, [currentPage, pageSize, columnFilters, sorting, toast]);
 
     useEffect(() => {
         fetchOrders();
     }, [fetchOrders]);
 
+    const handleDelete = async () => {
+        if (!selectedOrder) return;
+        try {
+            await deleteOrder(selectedOrder.orderId);
+            toast({ title: "Thành công", description: `Đơn hàng "${selectedOrder.orderId}" đã được xóa.` });
+            fetchOrders();
+        } catch (error) {
+            console.error("Lỗi khi xóa:", error);
+            toast({ title: "Lỗi", description: "Không thể xóa đơn hàng.", variant: "destructive" });
+        } finally {
+            setDeleteDialogOpen(false);
+            setSelectedOrder(null);
+        }
+    };
+
     const table = useReactTable({
         data: orders,
-        columns: columns((order) => {
-            setSelectedOrder(order);
-            setDialogOpen(true);
+        columns: columns((order, action) => {
+            if (action === "view") {
+                setSelectedOrder(order);
+                setDetailDialogOpen(true);
+            } else if (action === "edit") {
+                setSelectedOrder(order);
+                setEditDialogOpen(true);
+            } else if (action === "delete") {
+                setSelectedOrder(order);
+                setDeleteDialogOpen(true);
+            }
         }),
         onSortingChange: setSorting,
         onColumnFiltersChange: setColumnFilters,
@@ -137,10 +173,6 @@ const ManageOrders = () => {
     const startItem = (currentPage - 1) * pageSize + 1;
     const endItem = Math.min(currentPage * pageSize, totalItems);
 
-    const toggleLoading = () => {
-        fetchOrders();
-    };
-
     return (
         <div className="w-full">
             <div className="flex flex-col space-y-4 p-4 sm:p-6">
@@ -151,7 +183,7 @@ const ManageOrders = () => {
                     </div>
                     <div className="flex items-center gap-2">
                         <ExportButton loading={loading} />
-                        <RefreshButton loading={loading} toggleLoading={toggleLoading} />
+                        <RefreshButton loading={loading} toggleLoading={fetchOrders} />
                     </div>
                 </div>
                 <div className="flex flex-col sm:flex-row items-center py-4 gap-4">
@@ -164,7 +196,6 @@ const ManageOrders = () => {
                         />
                     </div>
                     <div className="flex items-center gap-2 ml-auto">
-                        {/* Note: Using EDeviceStatusFilterDropdown for orders may need adjustment */}
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button variant="outline" disabled={loading}>
@@ -188,14 +219,18 @@ const ManageOrders = () => {
                                                     ? "Trạng thái"
                                                     : column.id === "totalAmount"
                                                         ? "Tổng số tiền"
-                                                        : column.id === "actions"
-                                                            ? "Hành động"
-                                                            : column.id}
+                                                        : column.id === "orderType"
+                                                            ? "Loại đơn hàng"
+                                                            : column.id === "paymentGateway"
+                                                                ? "Phương thức thanh toán"
+                                                                : column.id === "actions"
+                                                                    ? "Hành động"
+                                                                    : column.id}
                                         </DropdownMenuCheckboxItem>
                                     ))}
                             </DropdownMenuContent>
                         </DropdownMenu>
-                        <Button disabled={loading}>
+                        <Button onClick={() => setEditDialogOpen(true)} disabled={loading}>
                             <PlusCircle className="mr-2 h-4 w-4" />
                             Thêm
                         </Button>
@@ -240,6 +275,10 @@ const ManageOrders = () => {
                                                     <Skeleton className="h-6 w-24 rounded-full mx-auto" />
                                                 ) : column.id === "totalAmount" ? (
                                                     <Skeleton className="h-5 w-24 mx-auto" />
+                                                ) : column.id === "orderType" ? (
+                                                    <Skeleton className="h-6 w-24 rounded-full mx-auto" />
+                                                ) : column.id === "paymentGateway" ? (
+                                                    <Skeleton className="h-6 w-24 rounded-full mx-auto" />
                                                 ) : column.id === "actions" ? (
                                                     <div className="flex justify-center">
                                                         <Skeleton className="h-8 w-8 rounded-full" />
@@ -341,12 +380,34 @@ const ManageOrders = () => {
             </div>
             <OrderDetailDialog
                 order={selectedOrder}
-                open={dialogOpen}
+                open={detailDialogOpen}
                 onOpenChange={(open) => {
-                    setDialogOpen(open);
+                    setDetailDialogOpen(open);
                     if (!open) setSelectedOrder(null);
                 }}
             />
+            <OrderDialog
+                open={editDialogOpen}
+                onOpenChange={(open) => {
+                    setEditDialogOpen(open);
+                    if (!open) setSelectedOrder(null);
+                }}
+                onSuccess={fetchOrders}
+            />
+            <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+                <AlertDialogContent>
+                    <AlertDialogHeader>
+                        <AlertDialogTitle>Xác nhận xóa đơn hàng</AlertDialogTitle>
+                        <AlertDialogDescription>
+                            Bạn có chắc muốn xóa đơn hàng "{selectedOrder?.orderId}"? Hành động này không thể hoàn tác.
+                        </AlertDialogDescription>
+                    </AlertDialogHeader>
+                    <AlertDialogFooter>
+                        <AlertDialogCancel>Hủy</AlertDialogCancel>
+                        <AlertDialogAction onClick={handleDelete}>Xóa</AlertDialogAction>
+                    </AlertDialogFooter>
+                </AlertDialogContent>
+            </AlertDialog>
         </div>
     );
 };

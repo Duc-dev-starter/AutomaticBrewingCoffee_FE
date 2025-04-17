@@ -5,7 +5,7 @@ import {
     DialogTitle,
     DialogDescription,
 } from "@/components/ui/dialog";
-import { Franchise } from "@/types/franchise";
+import { Franchise } from "@/interfaces/franchise";
 import { format } from "date-fns";
 import { EBaseStatusViMap } from "@/enum/base";
 

@@ -1,7 +1,7 @@
 import { BaseService } from "./base"
 import { PagingParams, PagingResponse } from "@/types/paging";
 import { Api } from "@/constants/api";
-import { Product } from "@/types/product";
+import { Product } from "@/interfaces/product";
 
 export const getProducts = async (params: PagingParams = {}): Promise<PagingResponse<Product>> => {
     return BaseService.getPaging<Product>({

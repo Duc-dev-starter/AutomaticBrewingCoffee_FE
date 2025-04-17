@@ -33,7 +33,7 @@ import { columns } from "@/components/manage-franchises/columns";
 import useDebounce from "@/hooks/use-debounce";
 import { ConfirmDeleteDialog, EBaseStatusFilterDropdown, ExportButton, NoResultsRow, PageSizeSelector, RefreshButton, SearchInput } from "@/components/common";
 import { getFranchises, deleteFranchise } from "@/services/franchise";
-import { Franchise } from "@/types/franchise";
+import { Franchise } from "@/interfaces/franchise";
 import { multiSelectFilter } from "@/utils/table";
 import { useToast } from "@/hooks/use-toast";
 import { FranchiseDetailDialog, FranchiseDialog } from "@/components/dialog/franchise";
@@ -47,7 +47,7 @@ const ManageFranchises = () => {
     const [totalItems, setTotalItems] = useState(0);
     const [totalPages, setTotalPages] = useState(1);
 
-    const [sorting, setSorting] = useState<SortingState>([]);
+    const [sorting, setSorting] = useState<SortingState>([{ id: "createdDate", desc: true }]);
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
     const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
     const [rowSelection, setRowSelection] = useState({});

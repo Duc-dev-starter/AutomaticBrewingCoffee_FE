@@ -3,11 +3,9 @@ import { Badge } from "../ui/badge";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Button } from "../ui/button";
 import { ColumnDef } from "@tanstack/react-table";
-import { truncateText } from "@/utils/text";
-import { Order } from "@/types/order";
+import { Order } from "@/interfaces/order";
 import { EOrderStatus, EOrderStatusViMap, EOrderType, EOrderTypeViMap, EPaymentGateway, EPaymentGatewayViMap } from "@/enum/order";
 import { getOrderStatusColor, getPaymentColor } from "@/utils/color";
-
 
 const getOrderTypeConfig = (orderType: EOrderType) => {
     switch (orderType) {
@@ -15,22 +13,21 @@ const getOrderTypeConfig = (orderType: EOrderType) => {
             return {
                 color: "bg-blue-500",
                 icon: <Store className="w-3 h-3 mr-1" />,
-            }
+            };
         case EOrderType.PreOrder:
             return {
                 color: "bg-amber-500",
                 icon: <ShoppingCart className="w-3 h-3 mr-1" />,
-            }
+            };
         default:
             return {
                 color: "bg-gray-500",
                 icon: <ShoppingCart className="w-3 h-3 mr-1" />,
-            }
+            };
     }
-}
+};
 
-// Định nghĩa cột cho bảng
-export const columns = (onViewDetails: (order: Order) => void): ColumnDef<Order>[] => [
+export const columns = (onAction: (order: Order, action: "view" | "edit" | "delete") => void): ColumnDef<Order>[] => [
     {
         id: "orderId",
         header: "Mã đơn hàng",
@@ -44,21 +41,17 @@ export const columns = (onViewDetails: (order: Order) => void): ColumnDef<Order>
         id: "orderType",
         header: "Loại đơn hàng",
         cell: ({ row }) => {
-            const orderType = row.original.orderType as EOrderType
-            const orderTypeText = orderType ? EOrderTypeViMap[orderType] || "Không có" : "Không có"
-
-            const { color, icon } = getOrderTypeConfig(orderType)
-
+            const orderType = row.original.orderType as EOrderType;
+            const orderTypeText = orderType ? EOrderTypeViMap[orderType] || "Không có" : "Không có";
+            const { color, icon } = getOrderTypeConfig(orderType);
             return (
                 <div className="flex justify-center items-center w-full">
-                    <Badge
-                        className={`flex items-center justify-center !w-fit !px-2 !py-[2px] !rounded-full !text-white !text-xs ${color}`}
-                    >
+                    <Badge className={`flex items-center justify-center !w-fit !px-2 !py-[2px] !rounded-full !text-white !text-xs ${color}`}>
                         {icon}
                         {orderTypeText}
                     </Badge>
                 </div>
-            )
+            );
         },
         enableSorting: false,
     },
@@ -66,22 +59,17 @@ export const columns = (onViewDetails: (order: Order) => void): ColumnDef<Order>
         id: "paymentGateway",
         header: "Phương thức thanh toán",
         cell: ({ row }) => {
-            const paymentGateway: EPaymentGateway = row.original.paymentGateway
-            const statusText = EPaymentGatewayViMap[paymentGateway] ?? "Không rõ"
-
-            // Lấy màu sắc cho trạng thái
-            const statusColor = getPaymentColor(paymentGateway)
-
+            const paymentGateway: EPaymentGateway = row.original.paymentGateway;
+            const statusText = EPaymentGatewayViMap[paymentGateway] ?? "Không rõ";
+            const statusColor = getPaymentColor(paymentGateway);
             return (
                 <div className="flex justify-center items-center w-full">
-                    <Badge
-                        className={`flex items-center justify-center !w-fit !px-2 !py-[2px] !rounded-full !text-white !text-xs ${statusColor}`}
-                    >
+                    <Badge className={`flex items-center justify-center !w-fit !px-2 !py-[2px] !rounded-full !text-white !text-xs ${statusColor}`}>
                         <Power className="w-3 h-3 mr-1" />
                         {statusText}
                     </Badge>
                 </div>
-            )
+            );
         },
         enableSorting: false,
     },
@@ -89,22 +77,17 @@ export const columns = (onViewDetails: (order: Order) => void): ColumnDef<Order>
         id: "status",
         header: "Trạng thái",
         cell: ({ row }) => {
-            const status: EOrderStatus = row.original.status
-            const statusText = EOrderStatusViMap[status] ?? "Không rõ"
-
-            // Lấy màu sắc cho trạng thái
-            const statusColor = getOrderStatusColor(status)
-
+            const status: EOrderStatus = row.original.status;
+            const statusText = EOrderStatusViMap[status] ?? "Không rõ";
+            const statusColor = getOrderStatusColor(status);
             return (
                 <div className="flex justify-center items-center w-full">
-                    <Badge
-                        className={`flex items-center justify-center !w-fit !px-2 !py-[2px] !rounded-full !text-white !text-xs ${statusColor}`}
-                    >
+                    <Badge className={`flex items-center justify-center !w-fit !px-2 !py-[2px] !rounded-full !text-white !text-xs ${statusColor}`}>
                         <Power className="w-3 h-3 mr-1" />
                         {statusText}
                     </Badge>
                 </div>
-            )
+            );
         },
         enableSorting: false,
     },
@@ -131,11 +114,15 @@ export const columns = (onViewDetails: (order: Order) => void): ColumnDef<Order>
                         </DropdownMenuTrigger>
                         <DropdownMenuContent align="end">
                             <DropdownMenuLabel>Hành động</DropdownMenuLabel>
-                            <DropdownMenuItem onClick={() => onViewDetails(row.original)}>
+                            <DropdownMenuItem onClick={() => onAction(row.original, "view")}>
                                 Xem chi tiết
                             </DropdownMenuItem>
-                            <DropdownMenuItem>Chỉnh sửa</DropdownMenuItem>
-                            <DropdownMenuItem className="text-red-600">Xóa đơn hàng</DropdownMenuItem>
+                            <DropdownMenuItem onClick={() => onAction(row.original, "edit")}>
+                                Chỉnh sửa
+                            </DropdownMenuItem>
+                            <DropdownMenuItem className="text-red-600" onClick={() => onAction(row.original, "delete")}>
+                                Xóa đơn hàng
+                            </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>
                 </div>

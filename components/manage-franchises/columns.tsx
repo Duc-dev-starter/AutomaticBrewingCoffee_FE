@@ -13,7 +13,7 @@ import { Button } from "../ui/button";
 import { type ColumnDef } from "@tanstack/react-table";
 import clsx from "clsx";
 import { truncateText } from "@/utils/text";
-import { Franchise } from "@/types/franchise";
+import { Franchise } from "@/interfaces/franchise";
 import { EBaseStatus, EBaseStatusViMap } from "@/enum/base";
 
 // Định nghĩa cột cho bảng, nhận các callback

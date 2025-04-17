@@ -12,9 +12,9 @@ import { EDeviceStatus } from "@/enum/device";
 import { PlusCircle, Loader2, Edit } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { createDevice, updateDevice } from "@/services/device";
-import { Device } from "@/types/device";
+import { Device } from "@/interfaces/device";
 
-interface DeviceDialogProps {
+type DeviceDialogProps = {
     open: boolean;
     onOpenChange: (open: boolean) => void;
     onSuccess: () => void;

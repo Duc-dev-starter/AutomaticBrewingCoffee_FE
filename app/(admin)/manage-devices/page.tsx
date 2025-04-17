@@ -30,7 +30,7 @@ import {
 } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { columns } from "@/components/manage-devices/columns";
-import { Device } from "@/types/device";
+import { Device } from "@/interfaces/device";
 import { getDevices, deleteDevice } from "@/services/device";
 import useDebounce from "@/hooks/use-debounce";
 import { ConfirmDeleteDialog, EDeviceStatusFilterDropdown, ExportButton, NoResultsRow, PageSizeSelector, RefreshButton, SearchInput } from "@/components/common";
@@ -47,7 +47,7 @@ const ManageDevices = () => {
     const [totalItems, setTotalItems] = useState(0);
     const [totalPages, setTotalPages] = useState(1);
 
-    const [sorting, setSorting] = useState<SortingState>([]);
+    const [sorting, setSorting] = useState<SortingState>([{ id: "createdDate", desc: true }]);
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
     const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
     const [rowSelection, setRowSelection] = useState({});

@@ -1,6 +1,6 @@
 import { BaseService } from "./base"
 import { PagingParams, PagingResponse } from "@/types/paging";
-import { Franchise } from "@/types/franchise";
+import { Franchise } from "@/interfaces/franchise";
 import { Api } from "@/constants/api";
 
 export const getFranchises = async (params: PagingParams = {}): Promise<PagingResponse<Franchise>> => {

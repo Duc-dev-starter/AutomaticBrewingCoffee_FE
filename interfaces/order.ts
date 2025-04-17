@@ -25,4 +25,7 @@ export interface Order {
     orderDetails: OrderDetail[];
     paymentUrl: string;
     paymentQr: string;
+    callbackUrl?: string;
+    createdDate?: string;
+    updatedDate?: string;
 }

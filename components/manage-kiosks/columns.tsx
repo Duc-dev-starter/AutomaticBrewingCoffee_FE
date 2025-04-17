@@ -12,7 +12,7 @@ import {
 import { Button } from "../ui/button";
 import { type ColumnDef } from "@tanstack/react-table";
 import clsx from "clsx";
-import { Kiosk } from "@/types/kiosk";
+import { Kiosk } from "@/interfaces/kiosk";
 import { EBaseStatus, EBaseStatusViMap } from "@/enum/base";
 
 // Định nghĩa cột cho bảng, nhận các callback

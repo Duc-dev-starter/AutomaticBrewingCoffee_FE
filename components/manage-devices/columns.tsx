@@ -1,4 +1,4 @@
-import { Device } from "@/types/device";
+import { Device } from "@/interfaces/device";
 import { Calendar, Cpu, MoreHorizontal, Power } from "lucide-react";
 import { Badge } from "../ui/badge";
 import { format } from "date-fns";

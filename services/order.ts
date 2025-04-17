@@ -19,13 +19,3 @@ export const createOrder = async (payload: Partial<Order>) => {
     const response = await BaseService.post({ url: Api.ORDERS, payload });
     return response;
 }
-
-export const updateOrder = async (id: string, payload: Partial<Order>) => {
-    const response = await BaseService.put({ url: `${Api.ORDERS}/${id}`, payload });
-    return response;
-}
-
-export const deleteOrder = async (id: string) => {
-    const response = await BaseService.delete({ url: `${Api.ORDERS}/${id}` })
-    return response;
-}

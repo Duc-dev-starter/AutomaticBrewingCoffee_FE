@@ -27,7 +27,7 @@ const getOrderTypeConfig = (orderType: EOrderType) => {
     }
 };
 
-export const columns = (onAction: (order: Order, action: "view" | "edit" | "delete") => void): ColumnDef<Order>[] => [
+export const columns = (onAction: (order: Order, action: "view") => void): ColumnDef<Order>[] => [
     {
         id: "orderId",
         header: "Mã đơn hàng",
@@ -116,12 +116,6 @@ export const columns = (onAction: (order: Order, action: "view" | "edit" | "dele
                             <DropdownMenuLabel>Hành động</DropdownMenuLabel>
                             <DropdownMenuItem onClick={() => onAction(row.original, "view")}>
                                 Xem chi tiết
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => onAction(row.original, "edit")}>
-                                Chỉnh sửa
-                            </DropdownMenuItem>
-                            <DropdownMenuItem className="text-red-600" onClick={() => onAction(row.original, "delete")}>
-                                Xóa đơn hàng
                             </DropdownMenuItem>
                         </DropdownMenuContent>
                     </DropdownMenu>

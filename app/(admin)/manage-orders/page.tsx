@@ -34,18 +34,8 @@ import useDebounce from "@/hooks/use-debounce";
 import { ExportButton, NoResultsRow, PageSizeSelector, RefreshButton, SearchInput } from "@/components/common";
 import { multiSelectFilter } from "@/utils/table";
 import { Order } from "@/interfaces/order";
-import { getOrders, deleteOrder } from "@/services/order";
+import { getOrders } from "@/services/order";
 import { useToast } from "@/hooks/use-toast";
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { OrderDetailDialog, OrderDialog } from "@/components/dialog/order"
 
 const ManageOrders = () => {
@@ -111,20 +101,6 @@ const ManageOrders = () => {
         fetchOrders();
     }, [fetchOrders]);
 
-    const handleDelete = async () => {
-        if (!selectedOrder) return;
-        try {
-            await deleteOrder(selectedOrder.orderId);
-            toast({ title: "Thành công", description: `Đơn hàng "${selectedOrder.orderId}" đã được xóa.` });
-            fetchOrders();
-        } catch (error) {
-            console.error("Lỗi khi xóa:", error);
-            toast({ title: "Lỗi", description: "Không thể xóa đơn hàng.", variant: "destructive" });
-        } finally {
-            setDeleteDialogOpen(false);
-            setSelectedOrder(null);
-        }
-    };
 
     const table = useReactTable({
         data: orders,
@@ -132,12 +108,6 @@ const ManageOrders = () => {
             if (action === "view") {
                 setSelectedOrder(order);
                 setDetailDialogOpen(true);
-            } else if (action === "edit") {
-                setSelectedOrder(order);
-                setEditDialogOpen(true);
-            } else if (action === "delete") {
-                setSelectedOrder(order);
-                setDeleteDialogOpen(true);
             }
         }),
         onSortingChange: setSorting,
@@ -394,20 +364,6 @@ const ManageOrders = () => {
                 }}
                 onSuccess={fetchOrders}
             />
-            <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>Xác nhận xóa đơn hàng</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            Bạn có chắc muốn xóa đơn hàng "{selectedOrder?.orderId}"? Hành động này không thể hoàn tác.
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel>Hủy</AlertDialogCancel>
-                        <AlertDialogAction onClick={handleDelete}>Xóa</AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
         </div>
     );
 };

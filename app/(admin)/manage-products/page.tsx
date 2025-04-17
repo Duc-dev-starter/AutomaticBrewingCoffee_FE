@@ -31,21 +31,11 @@ import {
 import { Skeleton } from "@/components/ui/skeleton";
 import { columns } from "@/components/manage-products/columns";
 import useDebounce from "@/hooks/use-debounce";
-import { EBaseStatusFilterDropdown, ExportButton, NoResultsRow, PageSizeSelector, RefreshButton, SearchInput } from "@/components/common";
+import { ConfirmDeleteDialog, EBaseStatusFilterDropdown, ExportButton, NoResultsRow, PageSizeSelector, RefreshButton, SearchInput } from "@/components/common";
 import { getProducts, deleteProduct } from "@/services/product";
 import { Product } from "@/interfaces/product";
 import { multiSelectFilter } from "@/utils/table";
 import { useToast } from "@/hooks/use-toast";
-import {
-    AlertDialog,
-    AlertDialogAction,
-    AlertDialogCancel,
-    AlertDialogContent,
-    AlertDialogDescription,
-    AlertDialogFooter,
-    AlertDialogHeader,
-    AlertDialogTitle,
-} from "@/components/ui/alert-dialog";
 import { ProductDialog, ProductDetailDialog } from "@/components/dialog/product";
 
 
@@ -433,22 +423,13 @@ const ManageProducts = () => {
                 }}
                 product={detailProduct}
             />
-            <AlertDialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-                <AlertDialogContent>
-                    <AlertDialogHeader>
-                        <AlertDialogTitle>Xác nhận xóa</AlertDialogTitle>
-                        <AlertDialogDescription>
-                            Bạn có chắc chắn muốn xóa sản phẩm "{productToDelete?.name}"? Hành động này không thể hoàn tác.
-                        </AlertDialogDescription>
-                    </AlertDialogHeader>
-                    <AlertDialogFooter>
-                        <AlertDialogCancel onClick={() => setProductToDelete(null)}>Hủy</AlertDialogCancel>
-                        <AlertDialogAction onClick={confirmDelete} className="bg-red-600 hover:bg-red-700">
-                            Xóa
-                        </AlertDialogAction>
-                    </AlertDialogFooter>
-                </AlertDialogContent>
-            </AlertDialog>
+            <ConfirmDeleteDialog
+                open={deleteDialogOpen}
+                onOpenChange={setDeleteDialogOpen}
+                description={`Bạn có chắc chắn muốn xóa chi nhánh "${productToDelete?.name}"? Hành động này không thể hoàn tác.`}
+                onConfirm={confirmDelete}
+                onCancel={() => setProductToDelete(null)}
+            />
         </div>
     );
 };

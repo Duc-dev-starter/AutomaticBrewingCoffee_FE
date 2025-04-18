@@ -13,8 +13,6 @@ export const getOrderStatusColor = (status: string) => {
             return "bg-red-500"
         case EOrderStatus.Preparing:
             return "bg-blue-500"
-        case EOrderStatus.Ready:
-            return "bg-purple-500"
         case EOrderStatus.Failed:
             return "bg-red-700"
         default:
@@ -23,10 +21,10 @@ export const getOrderStatusColor = (status: string) => {
 }
 
 // Xác định màu sắc cho loại thanh toán
-export const getPaymentColor = (method: string) => {
+export const getPaymentColor = (method: EPaymentGateway) => {
     switch (method) {
         case EPaymentGateway.MoMo:
-            return "bg-gradient-to-r from-white to-pink-400 text-black"
+            return "bg-gradient-to-r from-pink-400 to-pink-600 text-white"
         case EPaymentGateway.VNPay:
             return "bg-gradient-to-r from-red-500 to-blue-500 text-white"
         default:
@@ -78,15 +76,27 @@ export const getProductSizeColor = (size: EProductSize) => {
 // Xác định màu sắc cho trạng thái thiết bị
 export const getDeviceStatusColor = (status: EDeviceStatus) => {
     switch (status) {
-        case EDeviceStatus.Idle:
+        case EDeviceStatus.Stock:
             return "bg-green-500"
         case EDeviceStatus.Working:
             return "bg-blue-500"
-        case EDeviceStatus.Repair:
+        case EDeviceStatus.Maintain:
             return "bg-yellow-500"
-        case EDeviceStatus.Broken:
-            return "bg-red-500"
         default:
             return "bg-gray-500"
+    }
+}
+
+
+export const getBaseStatusColor = (status: string) => {
+    switch (status) {
+        case "Active":
+            return "bg-green-100 text-green-800 border-green-200"
+        case "Inactive":
+            return "bg-red-100 text-red-800 border-red-200"
+        case "Pending":
+            return "bg-yellow-100 text-yellow-800 border-yellow-200"
+        default:
+            return "bg-gray-100 text-gray-800 border-gray-200"
     }
 }

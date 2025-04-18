@@ -53,7 +53,7 @@ const KioskDialog = ({ open, onOpenChange, onSuccess, kiosk }: KioskDialogProps)
             try {
                 const [franchiseRes, deviceRes] = await Promise.all([
                     getFranchises({ status: EBaseStatus.Active }),
-                    getDevices({ status: EDeviceStatus.Idle }),
+                    getDevices({ status: EDeviceStatus.Stock }),
                 ]);
                 setFranchises(franchiseRes.items);
                 setDevices(deviceRes.items);

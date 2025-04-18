@@ -1,6 +1,6 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import type { Order } from "@/interfaces/order"
-import { EOrderStatusViMap, EOrderTypeViMap, EPaymentGatewayViMap } from "@/enum/order"
+import { EOrderStatusViMap, EOrderTypeViMap, EPaymentGateway, EPaymentGatewayViMap } from "@/enum/order"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { Card, CardContent } from "@/components/ui/card"
@@ -9,6 +9,7 @@ import { formatCurrency } from "@/utils"
 import { ScrollArea } from "../../ui/scroll-area"
 import clsx from "clsx"
 import { getOrderStatusColor, getPaymentColor } from "@/utils/color"
+import { images } from "@/public/assets"
 
 
 
@@ -19,11 +20,15 @@ const OrderDetailDialog = ({
 }: { order: Order | null; open: boolean; onOpenChange: (open: boolean) => void }) => {
     if (!order) return null
 
+    const paymentLogoMap: Record<EPaymentGateway, string> = {
+        [EPaymentGateway.MoMo]: images.momo,
+        [EPaymentGateway.VNPay]: images.vnpay,
+    };
 
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-hidden flex flex-col">
+            <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-auto flex flex-col">
                 <DialogHeader>
                     <div className="flex items-center justify-between">
                         <DialogTitle className="text-xl font-bold flex items-center">
@@ -48,7 +53,7 @@ const OrderDetailDialog = ({
                     </div>
                 </DialogHeader>
 
-                <ScrollArea className="flex-1 pr-4">
+                <ScrollArea className="flex-1 overflow-y-auto pr-4 hide-scrollbar">
                     <div className="space-y-6 py-2">
                         {/* Thông tin đơn hàng */}
                         <Card>
@@ -82,12 +87,11 @@ const OrderDetailDialog = ({
                                 <div className="grid grid-cols-2 gap-3 text-sm">
                                     <div className="flex flex-col">
                                         <span className="text-muted-foreground">Hình thức thanh toán</span>
-                                        <Badge
-                                            variant="outline"
-                                            className={clsx("mt-1 w-fit", getPaymentColor(order.paymentGateway))}
-                                        >
-                                            {EPaymentGatewayViMap[order.paymentGateway]}
-                                        </Badge>
+                                        <img
+                                            src={paymentLogoMap[order.paymentGateway]}
+                                            alt={order.paymentGateway}
+                                            className="h-4 w-4 object-contain"
+                                        />
                                     </div>
                                     <div className="flex flex-col">
                                         <span className="text-muted-foreground">Tổng tiền đơn hàng</span>

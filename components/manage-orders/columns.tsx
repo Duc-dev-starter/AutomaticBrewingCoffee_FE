@@ -3,8 +3,10 @@ import { Badge } from "../ui/badge";
 import { ColumnDef } from "@tanstack/react-table";
 import { Order } from "@/interfaces/order";
 import { EOrderStatus, EOrderStatusViMap, EOrderType, EOrderTypeViMap, EPaymentGateway, EPaymentGatewayViMap } from "@/enum/order";
-import { getOrderStatusColor, getPaymentColor } from "@/utils/color";
+import { getOrderStatusColor } from "@/utils/color";
 import { ActionDropdown } from "../common";
+import Image from "next/image";
+import { images } from "@/public/assets";
 
 const getOrderTypeConfig = (orderType: EOrderType) => {
     switch (orderType) {
@@ -59,14 +61,21 @@ export const columns = (onAction: (order: Order, action: "view") => void): Colum
         header: "Phương thức thanh toán",
         cell: ({ row }) => {
             const paymentGateway: EPaymentGateway = row.original.paymentGateway;
-            const statusText = EPaymentGatewayViMap[paymentGateway] ?? "Không rõ";
-            const statusColor = getPaymentColor(paymentGateway);
+
+            const paymentLogoMap: Record<EPaymentGateway, string> = {
+                [EPaymentGateway.MoMo]: images.momo,
+                [EPaymentGateway.VNPay]: images.vnpay,
+            };
+
+            const logoSrc = paymentLogoMap[paymentGateway];
+
             return (
                 <div className="flex justify-center items-center w-full">
-                    <Badge className={`flex items-center justify-center !w-fit !px-2 !py-[2px] !rounded-full !text-white !text-xs ${statusColor}`}>
-                        <Power className="w-3 h-3 mr-1" />
-                        {statusText}
-                    </Badge>
+                    {logoSrc ? (
+                        <Image src={logoSrc} alt={paymentGateway} width={28} height={28} className="object-contain" />
+                    ) : (
+                        <span>Không rõ</span>
+                    )}
                 </div>
             );
         },

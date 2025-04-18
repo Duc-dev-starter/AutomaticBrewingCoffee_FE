@@ -9,7 +9,7 @@ import { Franchise } from "@/interfaces/franchise";
 import { format } from "date-fns";
 import { EBaseStatusViMap } from "@/enum/base";
 
-interface FranchiseDetailDialogProps {
+type FranchiseDetailDialogProps = {
     franchise: Franchise | null;
     open: boolean;
     onOpenChange: (open: boolean) => void;

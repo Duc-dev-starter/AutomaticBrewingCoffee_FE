@@ -1,11 +1,10 @@
-import { MoreHorizontal, Power, ShoppingCart, Store } from "lucide-react";
+import { Power, ShoppingCart, Store } from "lucide-react";
 import { Badge } from "../ui/badge";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
-import { Button } from "../ui/button";
 import { ColumnDef } from "@tanstack/react-table";
 import { Order } from "@/interfaces/order";
 import { EOrderStatus, EOrderStatusViMap, EOrderType, EOrderTypeViMap, EPaymentGateway, EPaymentGatewayViMap } from "@/enum/order";
 import { getOrderStatusColor, getPaymentColor } from "@/utils/color";
+import { ActionDropdown } from "../common";
 
 const getOrderTypeConfig = (orderType: EOrderType) => {
     switch (orderType) {
@@ -102,26 +101,13 @@ export const columns = (onAction: (order: Order, action: "view") => void): Colum
     {
         id: "actions",
         header: "Hành động",
-        cell: ({ row }) => {
-            return (
-                <div className="flex justify-center">
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                                <MoreHorizontal className="h-4 w-4" />
-                                <span className="sr-only">Mở menu</span>
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Hành động</DropdownMenuLabel>
-                            <DropdownMenuItem onClick={() => onAction(row.original, "view")}>
-                                Xem chi tiết
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                </div>
-            );
-        },
+        cell: ({ row }) => (
+            <ActionDropdown
+                item={row.original}
+                onCopy={(item) => navigator.clipboard.writeText(item.orderId)}
+                onViewDetails={(item) => onAction(item, "view")}
+            />
+        ),
         enableSorting: false,
     },
 ];

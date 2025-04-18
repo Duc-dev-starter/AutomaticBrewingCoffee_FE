@@ -1,6 +1,7 @@
 import { HttpStatus } from "@/enum/http";
 import axios from "axios";
 import { toastService } from "@/utils";
+import Cookies from "js-cookie"
 
 export const axiosInstance = axios.create({
     baseURL: "https://localhost:7554/api/v1",
@@ -14,7 +15,7 @@ export const axiosInstance = axios.create({
 let isTokenExpired = false;
 axiosInstance.interceptors.request.use(
     (config) => {
-        const token = localStorage.getItem("token");
+        const token = Cookies.get('accessToken');
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
         }

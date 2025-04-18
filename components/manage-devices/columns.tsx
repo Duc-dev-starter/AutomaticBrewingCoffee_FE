@@ -1,22 +1,12 @@
 import { Device } from "@/interfaces/device";
 import { Calendar, Cpu, MoreHorizontal, Power } from "lucide-react";
 import { Badge } from "../ui/badge";
-import { format } from "date-fns";
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Button } from "../ui/button";
 import { type ColumnDef } from "@tanstack/react-table";
 import clsx from "clsx";
 import { EDeviceStatus, EDeviceStatusViMap } from '@/enum/device';
-import { truncateText } from "@/utils/text";
+import { formatDate } from "@/utils/date";
+import { ActionDropdown } from "../common";
 
-// Định nghĩa cột cho bảng, nhận các callback
 export const columns = ({
     onViewDetails,
     onEdit,
@@ -48,16 +38,6 @@ export const columns = ({
             ),
         },
         {
-            id: "description",
-            header: "Mô tả",
-            cell: ({ row }) => (
-                <div className="max-w-[300px] truncate text-center">
-                    {truncateText(row.original.description, 10)}
-                </div>
-            ),
-            enableSorting: false,
-        },
-        {
             id: "status",
             header: "Trạng thái",
             cell: ({ row }) => {
@@ -69,10 +49,9 @@ export const columns = ({
                             className={clsx(
                                 "flex items-center justify-center !w-fit !px-2 !py-[2px] !rounded-full !text-white !text-xs",
                                 {
-                                    "bg-green-500": status === EDeviceStatus.Idle,
+                                    "bg-green-500": status === EDeviceStatus.Stock,
                                     "bg-blue-500": status === EDeviceStatus.Working,
-                                    "bg-yellow-500": status === EDeviceStatus.Repair,
-                                    "bg-red-500": status === EDeviceStatus.Broken,
+                                    "bg-yellow-500": status === EDeviceStatus.Maintain,
                                 }
                             )}
                         >
@@ -89,11 +68,10 @@ export const columns = ({
             accessorKey: "createdDate",
             header: "Ngày tạo",
             cell: ({ row }) => {
-                const date = new Date(row.original.createdDate);
                 return (
                     <div className="flex items-center justify-center">
                         <Calendar className="h-4 w-4 mr-1 text-muted-foreground" />
-                        <span>{format(date, "dd/MM/yyyy")}</span>
+                        <span>{formatDate(row.original.createdDate)}</span>
                     </div>
                 );
             },
@@ -104,59 +82,40 @@ export const columns = ({
             header: "Ngày cập nhật",
             cell: ({ row }) => {
                 const updatedDate = row.original.updatedDate;
+
                 const renderCentered = (text: string) => (
                     <div className="flex items-center justify-center text-muted-foreground">
                         <span>{text}</span>
                     </div>
                 );
+
                 if (!updatedDate) return renderCentered("Chưa cập nhật");
-                try {
-                    const date = new Date(updatedDate);
-                    if (isNaN(date.getTime())) return renderCentered("Ngày không hợp lệ");
-                    return (
-                        <div className="flex items-center justify-center">
-                            <Calendar className="h-4 w-4 mr-1 text-muted-foreground" />
-                            <span>{format(date, "dd/MM/yyyy")}</span>
-                        </div>
-                    );
-                } catch (error) {
+
+                const date = new Date(updatedDate);
+
+                if (isNaN(date.getTime())) {
                     return renderCentered("Ngày không hợp lệ");
                 }
+
+                return (
+                    <div className="flex items-center justify-center">
+                        <Calendar className="h-4 w-4 mr-1 text-muted-foreground" />
+                        <span>{formatDate(updatedDate)}</span>
+                    </div>
+                );
             },
         },
         {
             id: "actions",
             header: "Hành động",
             cell: ({ row }) => (
-                <div className="flex justify-center">
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                                <MoreHorizontal className="h-4 w-4" />
-                                <span className="sr-only">Mở menu</span>
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Hành động</DropdownMenuLabel>
-                            <DropdownMenuItem onClick={() => navigator.clipboard.writeText(row.original.deviceId)}>
-                                Sao chép mã thiết bị
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={() => onViewDetails(row.original)}>
-                                Xem chi tiết
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => onEdit(row.original)}>
-                                Chỉnh sửa
-                            </DropdownMenuItem>
-                            <DropdownMenuItem
-                                className="text-red-600"
-                                onClick={() => onDelete(row.original)}
-                            >
-                                Xóa thiết bị
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                </div>
+                <ActionDropdown
+                    item={row.original}
+                    onCopy={(item) => navigator.clipboard.writeText(item.deviceId)}
+                    onViewDetails={(item) => onViewDetails(item)}
+                    onEdit={(item) => onEdit(item)}
+                    onDelete={(item) => onDelete(item)}
+                />
             ),
             enableSorting: false,
         },

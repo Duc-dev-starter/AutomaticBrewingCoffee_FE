@@ -10,6 +10,9 @@ export const Path = {
     MANAGE_FRANCHISES: "/manage-franchises",
     PROFILE: "/profile",
     REMINDER: "/reminder",
-    NOT_FOUND: "not-found"
+    NOT_FOUND: "/not-found",
+    RECIPE: "/recipe",
+    HOME: "/",
+    LOGIN: "/login"
 };
 

@@ -34,7 +34,7 @@ const ProductDetailDialog = ({ product, open, onOpenChange }: ProductDetailDialo
                         {renderField("Mã sản phẩm:", product.productId)}
                         {renderField("Tên sản phẩm:", product.name)}
                         {renderField("Mô tả:", product.description)}
-                        {renderField("Mã sản phẩm cha:", product.parentId)}
+                        {renderField("Tên sản phẩm cha:", product.productParentName)}
                         {renderField("Kích thước:", EProductSizeViMap[product.size])}
                         {renderField("Loại sản phẩm:", EProductTypeViMap[product.type])}
                         {renderField("Giá:", formatCurrency(product.price))}

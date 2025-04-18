@@ -8,7 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { EDeviceStatus } from "@/enum/device";
+import { EDeviceStatus, EDeviceStatusViMap } from "@/enum/device";
 import { PlusCircle, Loader2, Edit } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { createDevice, updateDevice } from "@/services/device";
@@ -24,7 +24,7 @@ type DeviceDialogProps = {
 const initialFormData = {
     name: "",
     description: "",
-    status: EDeviceStatus.Idle,
+    status: EDeviceStatus.Stock,
 };
 
 const DeviceDialog = ({ open, onOpenChange, onSuccess, device }: DeviceDialogProps) => {
@@ -98,18 +98,6 @@ const DeviceDialog = ({ open, onOpenChange, onSuccess, device }: DeviceDialogPro
         }
     };
 
-    const resetForm = () => {
-        setFormData(initialFormData);
-    };
-
-    // Ánh xạ giá trị enum sang tên hiển thị
-    const deviceStatusMap = {
-        [EDeviceStatus.Idle]: "Chờ sử dụng",
-        [EDeviceStatus.Working]: "Đang hoạt động",
-        [EDeviceStatus.Repair]: "Đang bảo trì",
-        [EDeviceStatus.Broken]: "Đã ngừng sử dụng",
-    };
-
     const isUpdate = !!device;
 
     return (
@@ -147,18 +135,6 @@ const DeviceDialog = ({ open, onOpenChange, onSuccess, device }: DeviceDialogPro
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="description">Mô tả</Label>
-                            <Textarea
-                                id="description"
-                                placeholder="Nhập mô tả thiết bị"
-                                value={formData.description}
-                                onChange={(e) => handleChange("description", e.target.value)}
-                                disabled={isSubmitting}
-                                className="min-h-[100px]"
-                            />
-                        </div>
-
-                        <div className="space-y-2">
                             <Label htmlFor="status" className="required">
                                 Trạng thái
                             </Label>
@@ -173,11 +149,23 @@ const DeviceDialog = ({ open, onOpenChange, onSuccess, device }: DeviceDialogPro
                                 <SelectContent>
                                     {Object.values(EDeviceStatus).map((status) => (
                                         <SelectItem key={status} value={status}>
-                                            {deviceStatusMap[status]}
+                                            {EDeviceStatusViMap[status]}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label htmlFor="description">Mô tả</Label>
+                            <Textarea
+                                id="description"
+                                placeholder="Nhập mô tả thiết bị"
+                                value={formData.description}
+                                onChange={(e) => handleChange("description", e.target.value)}
+                                disabled={isSubmitting}
+                                className="min-h-[100px]"
+                            />
                         </div>
                     </div>
 

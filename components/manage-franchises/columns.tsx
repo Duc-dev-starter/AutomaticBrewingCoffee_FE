@@ -1,22 +1,13 @@
 import { Calendar, Cpu, MoreHorizontal, Power } from "lucide-react";
 import { Badge } from "../ui/badge";
 import { format } from "date-fns";
-import {
-    DropdownMenu,
-    DropdownMenuContent,
-    DropdownMenuItem,
-    DropdownMenuLabel,
-    DropdownMenuSeparator,
-    DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Button } from "../ui/button";
 import { type ColumnDef } from "@tanstack/react-table";
 import clsx from "clsx";
 import { truncateText } from "@/utils/text";
 import { Franchise } from "@/interfaces/franchise";
 import { EBaseStatus, EBaseStatusViMap } from "@/enum/base";
+import { ActionDropdown } from "../common";
 
-// Định nghĩa cột cho bảng, nhận các callback
 export const columns = ({
     onViewDetails,
     onEdit,
@@ -126,32 +117,13 @@ export const columns = ({
             id: "actions",
             header: "Hành động",
             cell: ({ row }) => (
-                <div className="flex justify-center">
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                                <MoreHorizontal className="h-4 w-4" />
-                                <span className="sr-only">Mở menu</span>
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Hành động</DropdownMenuLabel>
-                            <DropdownMenuItem onClick={() => navigator.clipboard.writeText(row.original.franchiseId)}>
-                                Sao chép mã chi nhánh
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={() => onViewDetails(row.original)}>
-                                Xem chi tiết
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => onEdit(row.original)}>
-                                Chỉnh sửa
-                            </DropdownMenuItem>
-                            <DropdownMenuItem className="text-red-600" onClick={() => onDelete(row.original)}>
-                                Xóa chi nhánh
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                </div>
+                <ActionDropdown
+                    item={row.original}
+                    onCopy={(item) => navigator.clipboard.writeText(item.franchiseId)}
+                    onViewDetails={(item) => onViewDetails(item)}
+                    onEdit={(item) => onEdit(item)}
+                    onDelete={(item) => onDelete(item)}
+                />
             ),
             enableSorting: false,
         },

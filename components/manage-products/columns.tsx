@@ -9,6 +9,7 @@ import { format } from "date-fns";
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "../ui/dropdown-menu";
 import { EProductStatus, EProductStatusViMap, EProductSizeViMap, EProductTypeViMap } from "@/enum/product";
 import { formatCurrency } from "@/utils";
+import { ActionDropdown } from "../common";
 
 // Cột cho bảng sản phẩm
 export const columns = ({
@@ -131,32 +132,13 @@ export const columns = ({
             id: "actions",
             header: "Hành động",
             cell: ({ row }) => (
-                <div className="flex justify-center">
-                    <DropdownMenu>
-                        <DropdownMenuTrigger asChild>
-                            <Button variant="ghost" size="icon">
-                                <MoreHorizontal className="h-4 w-4" />
-                                <span className="sr-only">Mở menu</span>
-                            </Button>
-                        </DropdownMenuTrigger>
-                        <DropdownMenuContent align="end">
-                            <DropdownMenuLabel>Hành động</DropdownMenuLabel>
-                            <DropdownMenuItem onClick={() => navigator.clipboard.writeText(row.original.productId)}>
-                                Sao chép mã sản phẩm
-                            </DropdownMenuItem>
-                            <DropdownMenuSeparator />
-                            <DropdownMenuItem onClick={() => onViewDetails(row.original)}>
-                                Xem chi tiết
-                            </DropdownMenuItem>
-                            <DropdownMenuItem onClick={() => onEdit(row.original)}>
-                                Chỉnh sửa
-                            </DropdownMenuItem>
-                            <DropdownMenuItem className="text-red-600" onClick={() => onDelete(row.original)}>
-                                Xóa sản phẩm
-                            </DropdownMenuItem>
-                        </DropdownMenuContent>
-                    </DropdownMenu>
-                </div>
+                <ActionDropdown
+                    item={row.original}
+                    onCopy={(item) => navigator.clipboard.writeText(item.productId)}
+                    onViewDetails={(item) => onViewDetails(item)}
+                    onEdit={(item) => onEdit(item)}
+                    onDelete={(item) => onDelete(item)}
+                />
             ),
             enableSorting: false,
         },

@@ -77,10 +77,6 @@ const DeviceDetailDialog = ({
                                         <span className="text-muted-foreground">Tên thiết bị</span>
                                         <span className="font-medium">{device.name}</span>
                                     </div>
-                                    <div className="flex flex-col">
-                                        <span className="text-muted-foreground">Mã thiết bị</span>
-                                        <span className="font-medium">{device.deviceId}</span>
-                                    </div>
                                     <div className="col-span-2 flex flex-col">
                                         <span className="text-muted-foreground">Mô tả</span>
                                         <span className="font-medium">{device.description || "Không có"}</span>

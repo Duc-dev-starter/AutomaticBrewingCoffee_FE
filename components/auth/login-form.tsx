@@ -10,15 +10,14 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
-import { AlertCircle, Coffee, Lock, LogIn, User } from "lucide-react"
+import { AlertCircle, Coffee, Lock, LogIn, Mail } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { login } from "@/services/auth"
 import { handleToken } from "@/utils/cookie"
 
-
 export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRef<"div">) {
     const router = useRouter()
-    const [username, setUsername] = useState("")
+    const [email, setEmail] = useState("")
     const [password, setPassword] = useState("")
     const [error, setError] = useState("")
     const [isLoading, setIsLoading] = useState(false)
@@ -27,14 +26,14 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
         e.preventDefault();
         setError("");
 
-        if (!username || !password) {
+        if (!email || !password) {
             setError("Vui lòng nhập đầy đủ thông tin đăng nhập");
             return;
         }
 
         setIsLoading(true);
         try {
-            const response = await login({ username, password });
+            const response = await login({ email, password });
             console.log(response);
             if (response.isSuccess && response.statusCode === 200) {
                 const accessToken = response.response.accessToken;
@@ -42,13 +41,13 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
                 handleToken(accessToken, refreshToken);
                 router.push("/dashboard");
             } else {
-                setError("Tên đăng nhập hoặc mật khẩu không chính xác");
+                setError("Email hoặc mật khẩu không chính xác");
             }
         } catch (error) {
             setError("Đã xảy ra lỗi khi đăng nhập. Vui lòng thử lại.");
             console.error("Login error:", error);
         } finally {
-            setIsLoading(false); // Always reset isLoading
+            setIsLoading(false);
         }
     };
 
@@ -77,16 +76,17 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
                     <form onSubmit={handleSubmit}>
                         <div className="flex flex-col gap-4">
                             <div className="grid gap-2">
-                                <Label htmlFor="username">Tên đăng nhập</Label>
+                                <Label htmlFor="email">Email</Label>
                                 <div className="relative">
-                                    <User className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
+                                    <Mail className="absolute left-3 top-3 h-4 w-4 text-muted-foreground" />
                                     <Input
-                                        id="username"
+                                        id="email"
+                                        type="email"
                                         className="pl-9"
-                                        placeholder="admin"
-                                        value={username}
-                                        onChange={(e) => setUsername(e.target.value)}
-                                        autoComplete="username"
+                                        placeholder="you@example.com"
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
+                                        autoComplete="email"
                                     />
                                 </div>
                             </div>
@@ -158,4 +158,3 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
         </div>
     )
 }
-

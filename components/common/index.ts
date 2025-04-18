@@ -6,6 +6,7 @@ import { NoResultsRow } from './no-result-row';
 import { SearchInput } from './search-input';
 import { EDeviceStatusFilterDropdown } from './edevice-status-filter';
 import ConfirmDeleteDialog from './confirm-delete-alert';
+import { ActionDropdown } from './action-dropdown';
 
 export {
     EBaseStatusFilterDropdown,
@@ -15,5 +16,6 @@ export {
     NoResultsRow,
     SearchInput,
     EDeviceStatusFilterDropdown,
-    ConfirmDeleteDialog
+    ConfirmDeleteDialog,
+    ActionDropdown
 }

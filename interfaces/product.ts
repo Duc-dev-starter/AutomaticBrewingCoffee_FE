@@ -10,6 +10,7 @@ export interface Product {
     type: EProductType;
     price: number;
     imageUrl: string;
+    productParentName: string;
     status: EProductStatus
     createdDate: string;
     updatedDate: string;

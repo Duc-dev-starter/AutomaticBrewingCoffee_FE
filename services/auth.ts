@@ -2,7 +2,7 @@ import { ApiResponse } from "@/types/api";
 import { BaseService } from "./base"
 import { Api } from "@/constants/api";
 
-export const login = async (payload: { username: string; password: string }): Promise<ApiResponse> => {
+export const login = async (payload: { email: string; password: string }): Promise<ApiResponse> => {
     const response = await BaseService.post<ApiResponse>({ url: Api.LOGIN, payload });
     return response;
 };

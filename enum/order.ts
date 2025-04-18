@@ -11,7 +11,6 @@ export enum EPaymentGateway {
 export enum EOrderStatus {
     Pending = "Pending",
     Preparing = "Preparing",
-    Ready = "Ready",
     Completed = "Completed",
     Cancelled = "Cancelled",
     Failed = "Failed",
@@ -20,7 +19,6 @@ export enum EOrderStatus {
 export const EOrderStatusViMap: Record<EOrderStatus, string> = {
     [EOrderStatus.Pending]: "Đang chờ",
     [EOrderStatus.Preparing]: "Đang chuẩn bị",
-    [EOrderStatus.Ready]: "Sẵn sàng",
     [EOrderStatus.Completed]: "Hoàn tất",
     [EOrderStatus.Cancelled]: "Đã huỷ",
     [EOrderStatus.Failed]: "Thất bại",

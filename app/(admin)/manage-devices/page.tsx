@@ -246,10 +246,9 @@ const ManageDevices = () => {
                                         >
                                             {column.id === "deviceId" ? "Mã thiết bị" :
                                                 column.id === "name" ? "Tên thiết bị" :
-                                                    column.id === "description" ? "Mô tả" :
-                                                        column.id === "status" ? "Trạng thái" :
-                                                            column.id === "createdDate" ? "Ngày tạo" :
-                                                                column.id === "updatedDate" ? "Ngày cập nhật" : column.id}
+                                                    column.id === "status" ? "Trạng thái" :
+                                                        column.id === "createdDate" ? "Ngày tạo" :
+                                                            column.id === "updatedDate" ? "Ngày cập nhật" : column.id}
                                         </DropdownMenuCheckboxItem>
                                     ))}
                             </DropdownMenuContent>
@@ -300,8 +299,6 @@ const ManageDevices = () => {
                                                         <Skeleton className="h-4 w-4 rounded-full" />
                                                         <Skeleton className="h-5 w-40" />
                                                     </div>
-                                                ) : column.id === "description" ? (
-                                                    <Skeleton className="h-5 w-64 mx-auto" />
                                                 ) : column.id === "status" ? (
                                                     <Skeleton className="h-6 w-24 rounded-full mx-auto" />
                                                 ) : column.id === "createdDate" || column.id === "updatedDate" ? (

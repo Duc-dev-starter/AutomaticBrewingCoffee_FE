@@ -1,7 +1,7 @@
-"use client";
+"use client"
 
-import { useCallback, useEffect, useState } from "react";
-import { ChevronDownIcon } from "@radix-ui/react-icons";
+import { useCallback, useEffect, useState } from "react"
+import { ChevronDownIcon } from "@radix-ui/react-icons"
 import {
     type ColumnFiltersState,
     type SortingState,
@@ -12,69 +12,71 @@ import {
     getPaginationRowModel,
     getSortedRowModel,
     useReactTable,
-} from "@tanstack/react-table";
-import { Button } from "@/components/ui/button";
+} from "@tanstack/react-table"
+import { Button } from "@/components/ui/button"
 import {
     DropdownMenu,
     DropdownMenuCheckboxItem,
     DropdownMenuContent,
     DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import {
-    ChevronLeft,
-    ChevronRight,
-    ChevronsLeft,
-    ChevronsRight,
-    PlusCircle,
-} from "lucide-react";
-import { Skeleton } from "@/components/ui/skeleton";
-import { columns } from "@/components/manage-orders/columns";
-import useDebounce from "@/hooks/use-debounce";
-import { ExportButton, NoResultsRow, PageSizeSelector, RefreshButton, SearchInput } from "@/components/common";
-import { multiSelectFilter } from "@/utils/table";
-import { Order } from "@/interfaces/order";
-import { getOrders } from "@/services/order";
-import { useToast } from "@/hooks/use-toast";
+} from "@/components/ui/dropdown-menu"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, PlusCircle } from "lucide-react"
+import { Skeleton } from "@/components/ui/skeleton"
+import useDebounce from "@/hooks/use-debounce"
+import { ExportButton, NoResultsRow, PageSizeSelector, RefreshButton, SearchInput } from "@/components/common"
+import { multiSelectFilter } from "@/utils/table"
+import type { Order } from "@/interfaces/order"
+import { getOrders } from "@/services/order"
+import { useToast } from "@/hooks/use-toast"
 import { OrderDetailDialog, OrderDialog } from "@/components/dialog/order"
+import { columns, FilterBadges, OrderFilter } from "@/components/manage-orders"
 
 const ManageOrders = () => {
-    const { toast } = useToast();
-    const [loading, setLoading] = useState(true);
-    const [pageSize, setPageSize] = useState(10);
-    const [currentPage, setCurrentPage] = useState(1);
-    const [orders, setOrders] = useState<Order[]>([]);
-    const [totalItems, setTotalItems] = useState(0);
-    const [totalPages, setTotalPages] = useState(1);
+    const { toast } = useToast()
+    const [loading, setLoading] = useState(true)
+    const [pageSize, setPageSize] = useState(10)
+    const [currentPage, setCurrentPage] = useState(1)
+    const [orders, setOrders] = useState<Order[]>([])
+    const [totalItems, setTotalItems] = useState(0)
+    const [totalPages, setTotalPages] = useState(1)
 
-    const [sorting, setSorting] = useState<SortingState>([]);
-    const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-    const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
-    const [rowSelection, setRowSelection] = useState({});
+    const [sorting, setSorting] = useState<SortingState>([])
+    const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
+    const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
+    const [rowSelection, setRowSelection] = useState({})
 
     // Dialog state
-    const [detailDialogOpen, setDetailDialogOpen] = useState(false);
-    const [editDialogOpen, setEditDialogOpen] = useState(false);
-    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-    const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+    const [detailDialogOpen, setDetailDialogOpen] = useState(false)
+    const [editDialogOpen, setEditDialogOpen] = useState(false)
+    const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
+
+    // Filter states - changed to single string instead of array
+    const [orderTypeFilter, setOrderTypeFilter] = useState<string>("")
+    const [paymentGatewayFilter, setPaymentGatewayFilter] = useState<string>("")
+    const [statusFilter, setStatusFilter] = useState<string>("")
 
     // Search state
-    const [searchValue, setSearchValue] = useState("");
-    const debouncedSearchValue = useDebounce(searchValue, 500);
+    const [searchValue, setSearchValue] = useState("")
+    const debouncedSearchValue = useDebounce(searchValue, 500)
 
     // Update columnFilters for orderId
     useEffect(() => {
-        table.getColumn("orderId")?.setFilterValue(debouncedSearchValue || undefined);
-    }, [debouncedSearchValue]);
+        table.getColumn("orderId")?.setFilterValue(debouncedSearchValue || undefined)
+    }, [debouncedSearchValue])
 
     const fetchOrders = useCallback(async () => {
         try {
-            setLoading(true);
-            const filterBy = columnFilters.find((f) => f.id === "orderId")?.id || undefined;
-            const filterQuery = columnFilters.find((f) => f.id === "orderId")?.value as string | undefined;
-            const sortBy = sorting.length > 0 ? sorting[0]?.id : undefined;
-            const isAsc = sorting.length > 0 ? !sorting[0]?.desc : undefined;
-            const statusFilter = columnFilters.find((filter) => filter.id === "status")?.value as string | undefined;
+            setLoading(true)
+            const filterBy = columnFilters.find((f) => f.id === "orderId")?.id || undefined
+            const filterQuery = columnFilters.find((f) => f.id === "orderId")?.value as string | undefined
+            const sortBy = sorting.length > 0 ? sorting[0]?.id : undefined
+            const isAsc = sorting.length > 0 ? !sorting[0]?.desc : undefined
+
+            // Changed to use single values instead of arrays
+            const orderTypeFilterValue = orderTypeFilter || undefined
+            const paymentGatewayFilterValue = paymentGatewayFilter || undefined
+            const statusFilterValue = statusFilter || undefined
 
             const response = await getOrders({
                 filterBy,
@@ -83,31 +85,32 @@ const ManageOrders = () => {
                 size: pageSize,
                 sortBy,
                 isAsc,
-                status: statusFilter,
-            });
+                orderType: orderTypeFilterValue,
+                paymentGateway: paymentGatewayFilterValue,
+                status: statusFilterValue,
+            })
 
-            setOrders(response.items);
-            setTotalItems(response.total);
-            setTotalPages(response.totalPages);
+            setOrders(response.items)
+            setTotalItems(response.total)
+            setTotalPages(response.totalPages)
         } catch (err) {
-            console.error(err);
-            toast({ title: "Lỗi", description: "Không thể tải danh sách đơn hàng.", variant: "destructive" });
+            console.error(err)
+            toast({ title: "Lỗi", description: "Không thể tải danh sách đơn hàng.", variant: "destructive" })
         } finally {
-            setLoading(false);
+            setLoading(false)
         }
-    }, [currentPage, pageSize, columnFilters, sorting, toast]);
+    }, [currentPage, pageSize, columnFilters, sorting, toast, orderTypeFilter, paymentGatewayFilter, statusFilter])
 
     useEffect(() => {
-        fetchOrders();
-    }, [fetchOrders]);
-
+        fetchOrders()
+    }, [fetchOrders])
 
     const table = useReactTable({
         data: orders,
         columns: columns((order, action) => {
             if (action === "view") {
-                setSelectedOrder(order);
-                setDetailDialogOpen(true);
+                setSelectedOrder(order)
+                setDetailDialogOpen(true)
             }
         }),
         onSortingChange: setSorting,
@@ -134,14 +137,27 @@ const ManageOrders = () => {
         filterFns: {
             multiSelect: multiSelectFilter,
         },
-    });
+    })
 
     useEffect(() => {
-        table.setPageSize(pageSize);
-    }, [pageSize, table]);
+        table.setPageSize(pageSize)
+    }, [pageSize, table])
 
-    const startItem = (currentPage - 1) * pageSize + 1;
-    const endItem = Math.min(currentPage * pageSize, totalItems);
+    const startItem = (currentPage - 1) * pageSize + 1
+    const endItem = Math.min(currentPage * pageSize, totalItems)
+
+    // Hàm xóa tất cả bộ lọc
+    const clearAllFilters = () => {
+        setOrderTypeFilter("")
+        setPaymentGatewayFilter("")
+        setStatusFilter("")
+        setSearchValue("")
+        table.resetColumnFilters()
+    }
+
+    // Kiểm tra xem có bộ lọc nào đang được áp dụng không
+    const hasActiveFilters =
+        orderTypeFilter !== "" || paymentGatewayFilter !== "" || statusFilter !== "" || searchValue !== ""
 
     return (
         <div className="w-full">
@@ -156,6 +172,7 @@ const ManageOrders = () => {
                         <RefreshButton loading={loading} toggleLoading={fetchOrders} />
                     </div>
                 </div>
+
                 <div className="flex flex-col sm:flex-row items-center py-4 gap-4">
                     <div className="relative w-full sm:w-72">
                         <SearchInput
@@ -165,7 +182,22 @@ const ManageOrders = () => {
                             setSearchValue={setSearchValue}
                         />
                     </div>
+
+
+
                     <div className="flex items-center gap-2 ml-auto">
+                        {/* Filter Button */}
+                        <OrderFilter
+                            orderTypeFilter={orderTypeFilter}
+                            setOrderTypeFilter={setOrderTypeFilter}
+                            paymentGatewayFilter={paymentGatewayFilter}
+                            setPaymentGatewayFilter={setPaymentGatewayFilter}
+                            statusFilter={statusFilter}
+                            setStatusFilter={setStatusFilter}
+                            clearAllFilters={clearAllFilters}
+                            hasActiveFilters={hasActiveFilters}
+                            loading={loading}
+                        />
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button variant="outline" disabled={loading}>
@@ -181,7 +213,7 @@ const ManageOrders = () => {
                                             key={column.id}
                                             className="capitalize"
                                             checked={column.getIsVisible()}
-                                            onCheckedChange={(value) => column.toggleVisibility(!!value)}
+                                            onCheckedChange={() => column.toggleVisibility(!column.getIsVisible())}
                                         >
                                             {column.id === "orderId"
                                                 ? "Mã đơn hàng"
@@ -206,6 +238,20 @@ const ManageOrders = () => {
                         </Button>
                     </div>
                 </div>
+
+                {/* Filter Badges - Separated into its own component and row */}
+                <FilterBadges
+                    searchValue={searchValue}
+                    setSearchValue={setSearchValue}
+                    orderTypeFilter={orderTypeFilter}
+                    setOrderTypeFilter={setOrderTypeFilter}
+                    paymentGatewayFilter={paymentGatewayFilter}
+                    setPaymentGatewayFilter={setPaymentGatewayFilter}
+                    statusFilter={statusFilter}
+                    setStatusFilter={setStatusFilter}
+                    hasActiveFilters={hasActiveFilters}
+                />
+
                 <div className="rounded-md border">
                     <Table>
                         <TableHeader>
@@ -213,20 +259,16 @@ const ManageOrders = () => {
                                 <TableRow key={headerGroup.id}>
                                     {headerGroup.headers.map((header) => (
                                         <TableHead key={header.id} className="text-center">
-                                            {header.isPlaceholder ? null : (
-                                                header.column.getCanSort() ? (
-                                                    <Button
-                                                        variant="ghost"
-                                                        onClick={() => header.column.toggleSorting(header.column.getIsSorted() === "asc")}
-                                                    >
-                                                        {flexRender(header.column.columnDef.header, header.getContext())}
-                                                        {header.column.getIsSorted() ? (
-                                                            header.column.getIsSorted() === "asc" ? " ↑" : " ↓"
-                                                        ) : null}
-                                                    </Button>
-                                                ) : (
-                                                    flexRender(header.column.columnDef.header, header.getContext())
-                                                )
+                                            {header.isPlaceholder ? null : header.column.getCanSort() ? (
+                                                <Button
+                                                    variant="ghost"
+                                                    onClick={() => header.column.toggleSorting(header.column.getIsSorted() === "asc")}
+                                                >
+                                                    {flexRender(header.column.columnDef.header, header.getContext())}
+                                                    {header.column.getIsSorted() ? (header.column.getIsSorted() === "asc" ? " ↑" : " ↓") : null}
+                                                </Button>
+                                            ) : (
+                                                flexRender(header.column.columnDef.header, header.getContext())
                                             )}
                                         </TableHead>
                                     ))}
@@ -264,9 +306,7 @@ const ManageOrders = () => {
                                 table.getRowModel().rows.map((row) => (
                                     <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
                                         {row.getVisibleCells().map((cell) => (
-                                            <TableCell key={cell.id}>
-                                                {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                                            </TableCell>
+                                            <TableCell key={cell.id}>{flexRender(cell.column.columnDef.cell, cell.getContext())}</TableCell>
                                         ))}
                                     </TableRow>
                                 ))
@@ -352,20 +392,20 @@ const ManageOrders = () => {
                 order={selectedOrder}
                 open={detailDialogOpen}
                 onOpenChange={(open) => {
-                    setDetailDialogOpen(open);
-                    if (!open) setSelectedOrder(null);
+                    setDetailDialogOpen(open)
+                    if (!open) setSelectedOrder(null)
                 }}
             />
             <OrderDialog
                 open={editDialogOpen}
                 onOpenChange={(open) => {
-                    setEditDialogOpen(open);
-                    if (!open) setSelectedOrder(null);
+                    setEditDialogOpen(open)
+                    if (!open) setSelectedOrder(null)
                 }}
                 onSuccess={fetchOrders}
             />
         </div>
-    );
-};
+    )
+}
 
-export default ManageOrders;
+export default ManageOrders

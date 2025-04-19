@@ -2,6 +2,7 @@ import { HttpStatus } from "@/enum/http";
 import axios from "axios";
 import { toastService } from "@/utils";
 import Cookies from "js-cookie"
+import { refreshToken } from "@/services/auth";
 
 export const axiosInstance = axios.create({
     baseURL: "https://localhost:7554/api/v1",
@@ -13,6 +14,20 @@ export const axiosInstance = axios.create({
 })
 
 let isTokenExpired = false;
+let isRefreshing = false;
+let failedQueue: any[] = [];
+
+const processQueue = (error: any, token: string | null = null) => {
+    failedQueue.forEach((prom) => {
+        if (token) {
+            prom.resolve(token);
+        } else {
+            prom.reject(error);
+        }
+    });
+    failedQueue = [];
+};
+
 axiosInstance.interceptors.request.use(
     (config) => {
         const token = Cookies.get('accessToken');
@@ -33,25 +48,49 @@ axiosInstance.interceptors.response.use(
             return response.data;
         }
     },
-    (error) => {
+    async (error) => {
         if (error.response) {
+            const originalRequest = error.config;
             const { data } = error.response;
-            console.log(error.response);
-            if (data.errors && typeof data.errors === 'object') {
-                const messages = Object.entries(data.errors)
-                    .map(([field, messages]) => `${field}: ${(messages as string[]).join(', ')}`)
-                    .join('\n');
 
-                toastService.show({
-                    variant: "destructive",
-                    title: "Hệ thống gặp trục trặc",
-                    description: messages,
-                });
+            // Xử lý lỗi 401
+            if (error.response.status === HttpStatus.Unauthorized && !originalRequest._retry) {
+                if (isRefreshing) {
+                    return new Promise((resolve, reject) => {
+                        failedQueue.push({ resolve, reject });
+                    })
+                        .then((token) => {
+                            originalRequest.headers['Authorization'] = `Bearer ${token}`;
+                            return axiosInstance(originalRequest);
+                        })
+                        .catch((err) => {
+                            return Promise.reject(err);
+                        });
+                }
+
+                originalRequest._retry = true;
+                isRefreshing = true;
+
+                try {
+                    const newAccessToken = await refreshToken();
+                    processQueue(null, newAccessToken);
+                    originalRequest.headers['Authorization'] = `Bearer ${newAccessToken}`;
+                    return axiosInstance(originalRequest); // Thử lại request ban đầu
+                } catch (refreshError) {
+                    processQueue(refreshError, null);
+                    toastService.show({
+                        variant: "destructive",
+                        title: "Hệ thống gặp trục trặc",
+                        description: "Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.",
+                    });
+                    // window.location.href = '/login';
+                    return Promise.reject(refreshError);
+                } finally {
+                    isRefreshing = false;
+                }
             }
-
             else {
                 switch (error.response.status) {
-                    case HttpStatus.Unauthorized:
                     case HttpStatus.Forbidden: {
                         if (!isTokenExpired) {
                             isTokenExpired = true

@@ -2,7 +2,6 @@
 const nextConfig = {
     images: {
         domains: [
-            "cdn.haitrieu.com"
         ]
     }
 };

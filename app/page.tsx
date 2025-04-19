@@ -39,9 +39,7 @@ export default function Home() {
 
   return (
     <div className="min-h-screen bg-gradient-to-b from-sky-400 to-sky-200">
-      {/* Hero Section */}
       <section className="relative overflow-hidden">
-        {/* Background Elements */}
         <div
           className="absolute inset-0 z-0 opacity-10"
           style={{
@@ -101,7 +99,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* Features Section */}
       <section className="py-16 md:py-24 bg-white/80 backdrop-blur-sm">
         <div className="container mx-auto px-4">
           <motion.div
@@ -168,7 +165,6 @@ export default function Home() {
         </div>
       </section>
 
-      {/* CTA Section */}
       <section className="py-16 md:py-24 bg-gradient-to-r from-sky-600 to-sky-500 text-white">
         <div className="container mx-auto px-4 text-center">
           <motion.div
@@ -192,7 +188,6 @@ export default function Home() {
       </section>
 
 
-      {/* Footer */}
       <footer className="bg-sky-900 text-sky-200 py-8">
         <div className="container mx-auto px-4 text-center">
           <div className="flex items-center justify-center mb-4">

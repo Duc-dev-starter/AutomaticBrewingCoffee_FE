@@ -14,6 +14,7 @@ import { AlertCircle, Coffee, Lock, LogIn, Mail } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
 import { login } from "@/services/auth"
 import { handleToken } from "@/utils/cookie"
+import { Path } from "@/constants/path"
 
 export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRef<"div">) {
     const router = useRouter()
@@ -39,7 +40,7 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
                 const accessToken = response.response.accessToken;
                 const refreshToken = response.response.refreshToken;
                 handleToken(accessToken, refreshToken);
-                router.push("/dashboard");
+                router.push(Path.DASHBOARD);
             } else {
                 setError("Email hoặc mật khẩu không chính xác");
             }

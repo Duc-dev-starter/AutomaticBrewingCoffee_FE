@@ -194,14 +194,14 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                             {errors.parentId && <p className="text-red-500 text-sm">{errors.parentId}</p>}
                         </div>
                         <div className="grid gap-2 min-h-[4.5rem]">
-                            <Label htmlFor="size">Kích thước</Label>
+                            <Label htmlFor="size">Size</Label>
                             <Select
                                 value={formData.size}
                                 onValueChange={(value) => setFormData({ ...formData, size: value as EProductSize })}
                                 disabled={loading}
                             >
                                 <SelectTrigger>
-                                    <SelectValue placeholder="Chọn kích thước" />
+                                    <SelectValue placeholder="Chọn size" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     <SelectItem value={EProductSize.S}>Nhỏ</SelectItem>

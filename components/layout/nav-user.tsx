@@ -4,7 +4,6 @@ import {
     BadgeCheck,
     Bell,
     ChevronsUpDown,
-    CreditCard,
     LogOut,
     Sparkles,
 } from "lucide-react"
@@ -31,6 +30,7 @@ import {
 } from "@/components/ui/sidebar"
 import Link from "next/link"
 import { Path } from "@/constants/path"
+import { ThemeSelector } from "./theme-selector"
 
 export function NavUser({
     user,
@@ -115,13 +115,14 @@ export function NavUser({
                                 Account
                             </DropdownMenuItem>
                             <DropdownMenuItem>
-                                <CreditCard />
-                                Billing
-                            </DropdownMenuItem>
-                            <DropdownMenuItem>
                                 <Bell />
                                 Notifications
                             </DropdownMenuItem>
+                            <DropdownMenuSeparator />
+                            <DropdownMenuItem>
+                                <ThemeSelector />
+                            </DropdownMenuItem>
+
                         </DropdownMenuGroup>
                         <DropdownMenuSeparator />
                         <DropdownMenuItem className="cursor-pointer">

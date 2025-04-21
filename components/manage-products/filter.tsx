@@ -75,7 +75,7 @@ export const ProductFilter = ({
                 </DropdownMenuRadioGroup>
 
                 <DropdownMenuSeparator />
-                <DropdownMenuLabel>Lọc theo kích cỡ</DropdownMenuLabel>
+                <DropdownMenuLabel>Lọc theo size</DropdownMenuLabel>
                 <DropdownMenuSeparator />
                 <DropdownMenuRadioGroup value={productSizeFilter} onValueChange={setProductSizeFilter}>
                     {sizes.map((status) => (
@@ -85,7 +85,7 @@ export const ProductFilter = ({
                     ))}
                     {productSizeFilter && (
                         <DropdownMenuRadioItem value="">
-                            Xóa bộ lọc kích cỡ
+                            Xóa bộ lọc size
                         </DropdownMenuRadioItem>
                     )}
                 </DropdownMenuRadioGroup>

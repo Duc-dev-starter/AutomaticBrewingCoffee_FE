@@ -1,15 +1,13 @@
-import { MoreHorizontal } from "lucide-react";
 import { Badge } from "../ui/badge";
-import { Button } from "../ui/button";
 import { Calendar } from "lucide-react";
 import { ColumnDef } from "@tanstack/react-table";
 import { Product } from "@/interfaces/product";
 import clsx from "clsx";
 import { format } from "date-fns";
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "../ui/dropdown-menu";
-import { EProductStatus, EProductStatusViMap, EProductSizeViMap, EProductTypeViMap } from "@/enum/product";
+import { EProductStatus, EProductStatusViMap, EProductTypeViMap } from "@/enum/product";
 import { formatCurrency } from "@/utils";
 import { ActionDropdown } from "../common";
+import { SizeBadge } from "./product-badge";
 
 // Cột cho bảng sản phẩm
 export const columns = ({
@@ -39,10 +37,10 @@ export const columns = ({
         },
         {
             id: "size",
-            header: "Kích thước",
+            header: "Size",
             cell: ({ row }) => {
                 const size = row.original.size;
-                return <div className="text-center">{EProductSizeViMap[size] ?? "Không rõ"}</div>;
+                return <SizeBadge size={size} />
             },
             enableSorting: false,
         },

@@ -12,6 +12,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { Info, Monitor, Calendar, FileText } from "lucide-react";
 import clsx from "clsx";
+import { getDeviceStatusColor } from "@/utils/color";
 
 interface DeviceDetailDialogProps {
     device: Device | null;
@@ -19,16 +20,6 @@ interface DeviceDetailDialogProps {
     onOpenChange: (open: boolean) => void;
 }
 
-const getDeviceStatusColor = (status: string) => {
-    switch (status) {
-        case "Active":
-            return "bg-green-100 text-green-600";
-        case "Inactive":
-            return "bg-red-100 text-red-600";
-        default:
-            return "bg-gray-100 text-gray-600";
-    }
-};
 
 const DeviceDetailDialog = ({
     device,

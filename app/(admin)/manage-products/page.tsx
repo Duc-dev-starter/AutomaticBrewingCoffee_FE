@@ -1,6 +1,5 @@
 "use client";
-
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useRef } from "react";
 import { ChevronDownIcon } from "@radix-ui/react-icons";
 import {
     type ColumnFiltersState,
@@ -32,7 +31,7 @@ import { multiSelectFilter } from "@/utils/table";
 import { useToast } from "@/hooks/use-toast";
 import { ProductDialog, ProductDetailDialog } from "@/components/dialog/product";
 import { ProductFilter } from "@/components/manage-products/filter";
-import { FilterBadges } from "@/components/manage-products/filter-badges"; // Import FilterBadges đã sửa
+import { FilterBadges } from "@/components/manage-products/filter-badges";
 
 const ManageProducts = () => {
     const { toast } = useToast();
@@ -48,12 +47,10 @@ const ManageProducts = () => {
     const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
     const [rowSelection, setRowSelection] = useState({});
 
-    // State cho bộ lọc
     const [statusFilter, setStatusFilter] = useState<string>("");
     const [productTypeFilter, setProductTypeFilter] = useState<string>("");
     const [productSizeFilter, setProductSizeFilter] = useState<string>("");
 
-    // State cho dialog
     const [dialogOpen, setDialogOpen] = useState(false);
     const [selectedProduct, setSelectedProduct] = useState<Product | undefined>(undefined);
     const [detailDialogOpen, setDetailDialogOpen] = useState(false);
@@ -61,34 +58,39 @@ const ManageProducts = () => {
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [productToDelete, setProductToDelete] = useState<Product | null>(null);
 
-    // State tìm kiếm
     const [searchValue, setSearchValue] = useState("");
     const debouncedSearchValue = useDebounce(searchValue, 500);
 
-    // Cập nhật columnFilters cho tìm kiếm theo tên
-    useEffect(() => {
-        table.getColumn("name")?.setFilterValue(debouncedSearchValue || undefined);
-    }, [debouncedSearchValue]);
+    const isInitialMount = useRef(true);
 
-    // Hàm lấy danh sách sản phẩm
+    // Gộp đồng bộ tất cả bộ lọc trong một useEffect
+    useEffect(() => {
+        if (isInitialMount.current) {
+            isInitialMount.current = false;
+            return; // Bỏ qua lần đầu tiên khi mount
+        }
+        table.getColumn("name")?.setFilterValue(debouncedSearchValue || undefined);
+        table.getColumn("status")?.setFilterValue(statusFilter || undefined);
+        table.getColumn("type")?.setFilterValue(productTypeFilter || undefined);
+        table.getColumn("size")?.setFilterValue(productSizeFilter || undefined);
+    }, [debouncedSearchValue, statusFilter, productTypeFilter, productSizeFilter]);
+
     const fetchProducts = useCallback(async () => {
+        console.log("Fetching products..."); // Để kiểm tra số lần gọi
         try {
             setLoading(true);
 
-            // Lấy filterBy và filterQuery cho trường chính (ví dụ: name)
-            const filterBy = columnFilters.length > 0 ? columnFilters[0]?.id : undefined;
-            const filterQuery = columnFilters.length > 0 ? columnFilters[0]?.value as string : undefined;
+            const nameFilter = columnFilters.find((filter) => filter.id === "name");
+            const filterBy = nameFilter ? "name" : undefined;
+            const filterQuery = nameFilter?.value as string | undefined;
 
-            // Lấy các bộ lọc khác từ columnFilters
-            const statusFilter = columnFilters.find((filter) => filter.id === "status")?.value as string | undefined;
-            const productTypeFilter = columnFilters.find((filter) => filter.id === "type")?.value as string | undefined;
-            const productSizeFilter = columnFilters.find((filter) => filter.id === "size")?.value as string | undefined;
+            const statusFilterValue = columnFilters.find((filter) => filter.id === "status")?.value as string | undefined;
+            const productTypeFilterValue = columnFilters.find((filter) => filter.id === "type")?.value as string | undefined;
+            const productSizeFilterValue = columnFilters.find((filter) => filter.id === "size")?.value as string | undefined;
 
-            // Lấy thông tin sắp xếp
             const sortBy = sorting.length > 0 ? sorting[0]?.id : undefined;
             const isAsc = sorting.length > 0 ? !sorting[0]?.desc : undefined;
 
-            // Gọi API với các tham số lọc
             const response = await getProducts({
                 filterBy,
                 filterQuery,
@@ -96,9 +98,9 @@ const ManageProducts = () => {
                 size: pageSize,
                 sortBy,
                 isAsc,
-                status: statusFilter,
-                productType: productTypeFilter,
-                productSize: productSizeFilter,
+                status: statusFilterValue,
+                productType: productTypeFilterValue,
+                productSize: productSizeFilterValue,
             });
 
             setProducts(response.items);
@@ -116,7 +118,16 @@ const ManageProducts = () => {
         }
     }, [currentPage, pageSize, columnFilters, sorting, toast]);
 
-    // Các hàm xử lý dialog
+    // Gọi fetchProducts khi mount và khi có thay đổi
+    useEffect(() => {
+        if (isInitialMount.current) {
+            fetchProducts(); // Gọi lần đầu khi mount
+            isInitialMount.current = false;
+        } else {
+            fetchProducts(); // Gọi khi có thay đổi trong dependencies
+        }
+    }, [fetchProducts]);
+
     const handleSuccess = () => {
         fetchProducts();
         setDialogOpen(false);
@@ -165,7 +176,6 @@ const ManageProducts = () => {
         setDialogOpen(true);
     };
 
-    // Hàm xóa tất cả bộ lọc
     const clearAllFilters = () => {
         setStatusFilter("");
         setProductTypeFilter("");
@@ -174,7 +184,6 @@ const ManageProducts = () => {
         table.resetColumnFilters();
     };
 
-    // Kiểm tra xem có bộ lọc nào đang hoạt động không
     const hasActiveFilters = statusFilter !== "" || productTypeFilter !== "" || productSizeFilter !== "" || searchValue !== "";
 
     const table = useReactTable({
@@ -208,10 +217,6 @@ const ManageProducts = () => {
     useEffect(() => {
         table.setPageSize(pageSize);
     }, [pageSize, table]);
-
-    useEffect(() => {
-        fetchProducts();
-    }, [fetchProducts]);
 
     return (
         <div className="w-full">
@@ -265,13 +270,12 @@ const ManageProducts = () => {
                                         >
                                             {column.id === "productId" ? "Mã sản phẩm" :
                                                 column.id === "name" ? "Tên sản phẩm" :
-                                                    column.id === "size" ? "Kích thước" :
+                                                    column.id === "size" ? "Size" :
                                                         column.id === "type" ? "Loại sản phẩm" :
                                                             column.id === "price" ? "Giá" :
                                                                 column.id === "status" ? "Trạng thái" :
                                                                     column.id === "createdDate" ? "Ngày tạo" :
-                                                                        column.id === "updatedDate" ? "Ngày cập nhật" :
-                                                                            column.id}
+                                                                        column.id === "updatedDate" ? "Ngày cập nhật" : column.id}
                                         </DropdownMenuCheckboxItem>
                                     ))}
                             </DropdownMenuContent>
@@ -282,6 +286,7 @@ const ManageProducts = () => {
                         </Button>
                     </div>
                 </div>
+
                 <FilterBadges
                     searchValue={searchValue}
                     setSearchValue={setSearchValue}
@@ -293,6 +298,7 @@ const ManageProducts = () => {
                     productSizeFilter={productSizeFilter}
                     setProductSizeFilter={setProductSizeFilter}
                 />
+
                 <div className="rounded-md border">
                     <Table>
                         <TableHeader>

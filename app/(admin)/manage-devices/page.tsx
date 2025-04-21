@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useRef } from "react";
 import { ChevronDownIcon } from "@radix-ui/react-icons";
 import {
     type ColumnFiltersState,
@@ -27,7 +27,7 @@ import { columns } from "@/components/manage-devices/columns";
 import { Device } from "@/interfaces/device";
 import { getDevices, deleteDevice } from "@/services/device";
 import useDebounce from "@/hooks/use-debounce";
-import { ConfirmDeleteDialog, ExportButton, NoResultsRow, PageSizeSelector, Pagination, RefreshButton, SearchInput } from "@/components/common";
+import { ConfirmDeleteDialog, ExportButton, NoResultsRow, Pagination, RefreshButton, SearchInput } from "@/components/common";
 import { multiSelectFilter } from "@/utils/table";
 import { useToast } from "@/hooks/use-toast";
 import { DeviceDetailDialog, DeviceDialog } from "@/components/dialog/device";
@@ -42,42 +42,48 @@ const ManageDevices = () => {
     const [devices, setDevices] = useState<Device[]>([]);
     const [totalItems, setTotalItems] = useState(0);
     const [totalPages, setTotalPages] = useState(1);
-    const [statusFilter, setStatusFilter] = useState<string>("")
+    const [statusFilter, setStatusFilter] = useState<string>("");
 
     const [sorting, setSorting] = useState<SortingState>([{ id: "createdDate", desc: true }]);
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
     const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
     const [rowSelection, setRowSelection] = useState({});
 
-    // State cho dialog thêm/chỉnh sửa
     const [dialogOpen, setDialogOpen] = useState(false);
     const [selectedDevice, setSelectedDevice] = useState<Device | undefined>(undefined);
-
-    // State cho dialog chi tiết
     const [detailDialogOpen, setDetailDialogOpen] = useState(false);
     const [detailDevice, setDetailDevice] = useState<Device | null>(null);
-
-    // State cho dialog xóa
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [deviceToDelete, setDeviceToDelete] = useState<Device | null>(null);
 
-    // State cho giá trị tìm kiếm
     const [searchValue, setSearchValue] = useState("");
     const debouncedSearchValue = useDebounce(searchValue, 500);
 
-    // Cập nhật columnFilters khi debouncedSearchValue thay đổi
+    const isInitialMount = useRef(true);
+
+    // Gộp đồng bộ tất cả bộ lọc trong một useEffect
     useEffect(() => {
-        table.getColumn("name")?.setFilterValue(debouncedSearchValue);
-    }, [debouncedSearchValue]);
+        if (isInitialMount.current) {
+            isInitialMount.current = false;
+            return; // Bỏ qua lần đầu tiên khi mount
+        }
+        table.getColumn("name")?.setFilterValue(debouncedSearchValue || undefined);
+        table.getColumn("status")?.setFilterValue(statusFilter || undefined);
+    }, [debouncedSearchValue, statusFilter]);
 
     const fetchDevices = useCallback(async () => {
+        console.log("Fetching devices..."); // Để kiểm tra số lần gọi
         try {
             setLoading(true);
-            const filterBy = columnFilters.length > 0 ? columnFilters[0]?.id : undefined;
-            const filterQuery = columnFilters.length > 0 ? columnFilters[0]?.value as string : undefined;
+
+            const nameFilter = columnFilters.find((filter) => filter.id === "name");
+            const filterBy = nameFilter ? "name" : undefined;
+            const filterQuery = nameFilter?.value as string | undefined;
+
+            const statusFilterValue = columnFilters.find((filter) => filter.id === "status")?.value as string | undefined;
+
             const sortBy = sorting.length > 0 ? sorting[0]?.id : undefined;
             const isAsc = sorting.length > 0 ? !sorting[0]?.desc : undefined;
-            const statusFilter = columnFilters.find((filter) => filter.id === "status")?.value as string | undefined;
 
             const response = await getDevices({
                 filterBy,
@@ -86,7 +92,7 @@ const ManageDevices = () => {
                 size: pageSize,
                 sortBy,
                 isAsc,
-                status: statusFilter,
+                status: statusFilterValue,
             });
 
             setDevices(response.items);
@@ -104,32 +110,37 @@ const ManageDevices = () => {
         }
     }, [currentPage, pageSize, columnFilters, sorting, toast]);
 
-    // Xử lý khi thêm hoặc chỉnh sửa thành công
+    // Chỉ gọi fetchDevices khi mount và khi các giá trị thay đổi
+    useEffect(() => {
+        if (isInitialMount.current) {
+            fetchDevices(); // Gọi lần đầu khi mount
+            isInitialMount.current = false;
+        } else {
+            fetchDevices(); // Gọi khi có thay đổi thực sự
+        }
+    }, [fetchDevices, currentPage, pageSize, sorting, columnFilters]);
+
     const handleSuccess = () => {
         fetchDevices();
         setDialogOpen(false);
         setSelectedDevice(undefined);
     };
 
-    // Mở dialog để chỉnh sửa thiết bị
     const handleEdit = (device: Device) => {
         setSelectedDevice(device);
         setDialogOpen(true);
     };
 
-    // Mở dialog để xem chi tiết thiết bị
     const handleViewDetails = (device: Device) => {
         setDetailDevice(device);
         setDetailDialogOpen(true);
     };
 
-    // Xử lý xóa thiết bị
     const handleDelete = (device: Device) => {
         setDeviceToDelete(device);
         setDeleteDialogOpen(true);
     };
 
-    // Xác nhận xóa thiết bị
     const confirmDelete = async () => {
         if (!deviceToDelete) return;
         try {
@@ -152,11 +163,18 @@ const ManageDevices = () => {
         }
     };
 
-    // Mở dialog để thêm thiết bị mới
     const handleAdd = () => {
         setSelectedDevice(undefined);
         setDialogOpen(true);
     };
+
+    const clearAllFilters = () => {
+        setStatusFilter("");
+        setSearchValue("");
+        table.resetColumnFilters();
+    };
+
+    const hasActiveFilters = statusFilter !== "" || searchValue !== "";
 
     const table = useReactTable({
         data: devices,
@@ -190,24 +208,6 @@ const ManageDevices = () => {
         table.setPageSize(pageSize);
     }, [pageSize, table]);
 
-    useEffect(() => {
-        fetchDevices();
-    }, [fetchDevices]);
-
-    const toggleLoading = () => {
-        fetchDevices();
-    };
-
-    // Hàm xóa tất cả bộ lọc
-    const clearAllFilters = () => {
-        setStatusFilter("")
-        setSearchValue("")
-        table.resetColumnFilters()
-    }
-
-    // Kiểm tra xem có bộ lọc nào đang được áp dụng không
-    const hasActiveFilters = statusFilter !== "" || searchValue !== ""
-
     return (
         <div className="w-full">
             <div className="flex flex-col space-y-4 p-4 sm:p-6">
@@ -218,7 +218,7 @@ const ManageDevices = () => {
                     </div>
                     <div className="flex items-center gap-2">
                         <ExportButton loading={loading} />
-                        <RefreshButton loading={loading} toggleLoading={toggleLoading} />
+                        <RefreshButton loading={loading} toggleLoading={fetchDevices} />
                     </div>
                 </div>
                 <div className="flex flex-col sm:flex-row items-center py-4 gap-4">
@@ -270,7 +270,6 @@ const ManageDevices = () => {
                     </div>
                 </div>
 
-                {/* Filter Badges - Separated into its own component and row */}
                 <FilterBadges
                     searchValue={searchValue}
                     setSearchValue={setSearchValue}

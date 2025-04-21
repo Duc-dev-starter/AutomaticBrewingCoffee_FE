@@ -68,7 +68,7 @@ const ProductDetailDialog = ({ product, open, onOpenChange }: ProductDetailDialo
 
                                 <div className="grid grid-cols-2 gap-3 text-sm">
                                     <div className="flex flex-col">
-                                        <span className="text-muted-foreground">Kích thước</span>
+                                        <span className="text-muted-foreground">Size</span>
                                         <Badge variant="outline" className="mt-1 w-fit">
                                             {EProductSizeViMap[product.size]}
                                         </Badge>

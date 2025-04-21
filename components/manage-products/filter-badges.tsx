@@ -40,10 +40,10 @@ export const FilterBadges = ({
             )}
             {productSizeFilter && (
                 <Badge variant="secondary" className="flex items-center gap-1 px-3 py-1">
-                    <span>Kích thước: {EProductSizeViMap[productSizeFilter]}</span>
+                    <span>Size: {EProductSizeViMap[productSizeFilter]}</span>
                     <X className="h-3 w-3 cursor-pointer" onClick={() => setProductSizeFilter("")} />
                 </Badge>
             )}
         </div>
     );
-};
+};  

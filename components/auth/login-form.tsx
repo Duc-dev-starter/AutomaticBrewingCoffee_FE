@@ -43,6 +43,7 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
                 router.push(Path.DASHBOARD);
             } else {
                 setError("Email hoặc mật khẩu không chính xác");
+                setIsLoading(false);
             }
         } catch (error) {
             setError("Đã xảy ra lỗi khi đăng nhập. Vui lòng thử lại.");

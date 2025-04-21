@@ -12,6 +12,8 @@ export interface PagingParams {
     paymentGateway?: string;
     productId?: string;
     type?: string;
+    productType?: string;
+    productSize?: string;
 }
 
 export interface PagingResponse<T> {

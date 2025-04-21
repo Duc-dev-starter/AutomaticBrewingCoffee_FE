@@ -1,8 +1,10 @@
 "use client"
-import { X } from "lucide-react";
-import { Badge } from "../ui/badge";
-import { EDeviceStatusViMap } from "@/enum/device";
-import { FilterBadgesProps } from "@/types/filter";
+
+import { X } from "lucide-react"
+import { Badge } from "@/components/ui/badge"
+import { FilterBadgesProps } from "@/types/filter"
+import { EBaseStatusViMap } from "@/enum/base"
+
 
 export const FilterBadges = ({
     searchValue,
@@ -11,7 +13,7 @@ export const FilterBadges = ({
     setStatusFilter,
     hasActiveFilters,
 }: FilterBadgesProps) => {
-    if (!hasActiveFilters) return null;
+    if (!hasActiveFilters) return null
 
     return (
         <div className="flex flex-wrap gap-2 mb-4">
@@ -23,10 +25,10 @@ export const FilterBadges = ({
             )}
             {statusFilter && (
                 <Badge variant="secondary" className="flex items-center gap-1 px-3 py-1">
-                    <span>Trạng thái: {EDeviceStatusViMap[statusFilter]}</span>
+                    <span>Trạng thái: {EBaseStatusViMap[statusFilter]}</span>
                     <X className="h-3 w-3 cursor-pointer" onClick={() => setStatusFilter("")} />
                 </Badge>
             )}
         </div>
-    );
-};
+    )
+}

@@ -19,18 +19,8 @@ import {
     EPaymentGateway,
     EPaymentGatewayViMap,
 } from "@/enum/order"
+import { OrderFilterProps } from "@/types/filter"
 
-interface OrderFilterProps {
-    orderTypeFilter: string
-    setOrderTypeFilter: (value: string) => void
-    paymentGatewayFilter: string
-    setPaymentGatewayFilter: (value: string) => void
-    statusFilter: string
-    setStatusFilter: (value: string) => void
-    clearAllFilters: () => void
-    hasActiveFilters: boolean
-    loading: boolean
-}
 
 export const OrderFilter = ({
     orderTypeFilter,

@@ -21,10 +21,10 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
-import { ChevronLeft, ChevronRight, ChevronsLeft, ChevronsRight, PlusCircle } from "lucide-react"
+import { PlusCircle } from "lucide-react"
 import { Skeleton } from "@/components/ui/skeleton"
 import useDebounce from "@/hooks/use-debounce"
-import { ExportButton, NoResultsRow, PageSizeSelector, RefreshButton, SearchInput } from "@/components/common"
+import { ExportButton, NoResultsRow, Pagination, RefreshButton, SearchInput } from "@/components/common"
 import { multiSelectFilter } from "@/utils/table"
 import type { Order } from "@/interfaces/order"
 import { getOrders } from "@/services/order"
@@ -142,9 +142,6 @@ const ManageOrders = () => {
     useEffect(() => {
         table.setPageSize(pageSize)
     }, [pageSize, table])
-
-    const startItem = (currentPage - 1) * pageSize + 1
-    const endItem = Math.min(currentPage * pageSize, totalItems)
 
     // Hàm xóa tất cả bộ lọc
     const clearAllFilters = () => {
@@ -316,77 +313,15 @@ const ManageOrders = () => {
                         </TableBody>
                     </Table>
                 </div>
-                <div className="flex flex-col sm:flex-row items-center justify-between space-y-3 sm:space-y-0 py-4">
-                    <div className="flex items-center space-x-2">
-                        <p className="text-sm font-medium">Hiển thị</p>
-                        <PageSizeSelector
-                            loading={loading}
-                            pageSize={pageSize}
-                            setCurrentPage={setCurrentPage}
-                            setPageSize={setPageSize}
-                        />
-                        <p className="text-sm font-medium">mục mỗi trang</p>
-                    </div>
-                    {loading ? (
-                        <Skeleton className="h-5 w-64" />
-                    ) : (
-                        <div className="text-sm text-muted-foreground">
-                            Đang hiển thị {totalItems > 0 ? startItem : 0} đến {endItem} trong tổng số {totalItems} mục
-                        </div>
-                    )}
-                    <div className="flex items-center space-x-2">
-                        <Button
-                            variant="outline"
-                            className="hidden h-8 w-8 p-0 lg:flex"
-                            onClick={() => setCurrentPage(1)}
-                            disabled={currentPage === 1 || loading || totalPages === 0}
-                        >
-                            <span className="sr-only">Trang đầu</span>
-                            <ChevronsLeft className="h-4 w-4" />
-                        </Button>
-                        <Button
-                            variant="outline"
-                            className="h-8 w-8 p-0"
-                            onClick={() => setCurrentPage((prev) => Math.max(prev - 1, 1))}
-                            disabled={currentPage === 1 || loading || totalPages === 0}
-                        >
-                            <span className="sr-only">Trang trước</span>
-                            <ChevronLeft className="h-4 w-4" />
-                        </Button>
-                        {loading ? (
-                            <Skeleton className="h-5 w-16" />
-                        ) : (
-                            <div className="flex items-center gap-1.5">
-                                {totalPages === 0 ? (
-                                    <span className="text-sm text-muted-foreground">Không có dữ liệu</span>
-                                ) : (
-                                    <>
-                                        <span className="text-sm font-medium">Trang {currentPage}</span>
-                                        <span className="text-sm text-muted-foreground">/ {totalPages}</span>
-                                    </>
-                                )}
-                            </div>
-                        )}
-                        <Button
-                            variant="outline"
-                            className="h-8 w-8 p-0"
-                            onClick={() => setCurrentPage((prev) => Math.min(prev + 1, totalPages))}
-                            disabled={currentPage === totalPages || loading || totalPages === 0}
-                        >
-                            <span className="sr-only">Trang sau</span>
-                            <ChevronRight className="h-4 w-4" />
-                        </Button>
-                        <Button
-                            variant="outline"
-                            className="hidden h-8 w-8 p-0 lg:flex"
-                            onClick={() => setCurrentPage(totalPages)}
-                            disabled={currentPage === totalPages || loading || totalPages === 0}
-                        >
-                            <span className="sr-only">Trang cuối</span>
-                            <ChevronsRight className="h-4 w-4" />
-                        </Button>
-                    </div>
-                </div>
+                <Pagination
+                    loading={loading}
+                    pageSize={pageSize}
+                    setPageSize={setPageSize}
+                    currentPage={currentPage}
+                    setCurrentPage={setCurrentPage}
+                    totalItems={totalItems}
+                    totalPages={totalPages}
+                />
             </div>
             <OrderDetailDialog
                 order={selectedOrder}

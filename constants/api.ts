@@ -16,5 +16,8 @@ export const Api = {
     PRODUCTS: '/products',
 
     // ORDER
-    ORDERS: '/orders'
+    ORDERS: '/orders',
+
+    // MENU
+    MENUS: '/menus'
 }

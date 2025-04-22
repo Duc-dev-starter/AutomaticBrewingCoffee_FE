@@ -11,18 +11,18 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
+import { EDeviceStatus, EDeviceStatusViMap } from "@/enum/device"
 import { FilterProps } from "@/types/filter"
-import { EBaseStatus, EBaseStatusViMap } from "@/enum/base"
 
 
-export const KioskFilter = ({
+export const MenuFilter = ({
     statusFilter,
     setStatusFilter,
     clearAllFilters,
     hasActiveFilters,
     loading,
 }: FilterProps) => {
-    const statuses = Object.values(EBaseStatus);
+    const statuses = Object.values(EDeviceStatus);
 
     return (
         <DropdownMenu>
@@ -42,7 +42,7 @@ export const KioskFilter = ({
                 <DropdownMenuRadioGroup value={statusFilter} onValueChange={setStatusFilter}>
                     {statuses.map((status) => (
                         <DropdownMenuRadioItem key={status} value={status}>
-                            {EBaseStatusViMap[status as EBaseStatus]}
+                            {EDeviceStatusViMap[status as EDeviceStatus]}
                         </DropdownMenuRadioItem>
                     ))}
                     {statusFilter && (

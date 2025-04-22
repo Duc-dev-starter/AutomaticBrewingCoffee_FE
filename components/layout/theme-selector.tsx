@@ -46,7 +46,7 @@ export function ThemeSelector() {
 
     return (
         <div className="flex items-center justify-between">
-            <p>Theme</p>
+            <p className="mr-16">Theme</p>
             <div className="flex flex-1 justify-end">
                 <div className="flex items-center gap-1 rounded-md border p-1">
                     {themes.map((option) => (

@@ -13,15 +13,13 @@ import {
 } from "@/components/ui/sidebar"
 import Link from "next/link"
 import {
-    BookOpen,
     Box,
     ClipboardList,
     Computer,
     DollarSign,
     Layers,
     LayoutDashboard,
-    Map,
-    PieChart,
+    Menu,
     ShoppingCart,
     Store,
     Tablet,
@@ -74,6 +72,11 @@ const navMain = [
         title: "Quản lý chi nhánh",
         url: Path.MANAGE_FRANCHISES,
         icon: Store,
+    },
+    {
+        title: "Quản lý menu",
+        url: Path.MANAGE_MENUS,
+        icon: Menu,
     },
 ];
 

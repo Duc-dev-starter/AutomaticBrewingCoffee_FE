@@ -49,6 +49,7 @@ axiosInstance.interceptors.response.use(
         }
     },
     async (error) => {
+        console.log(error.response);
         if (error.response) {
             const originalRequest = error.config;
             const { data } = error.response;
@@ -148,6 +149,7 @@ axiosInstance.interceptors.response.use(
                         break;
 
                     default:
+                        console.log(data.message)
                         toastService.show({
                             variant: "destructive",
                             title: "Hệ thống gặp trục trặc",

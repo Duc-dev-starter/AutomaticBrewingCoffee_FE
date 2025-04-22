@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useRef } from "react";
 import { ChevronDownIcon } from "@radix-ui/react-icons";
 import {
     type ColumnFiltersState,
@@ -46,35 +46,38 @@ const ManageKiosks = () => {
     const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
     const [rowSelection, setRowSelection] = useState({});
 
-    // State cho dialog thêm/chỉnh sửa
     const [dialogOpen, setDialogOpen] = useState(false);
     const [selectedKiosk, setSelectedKiosk] = useState<Kiosk | undefined>(undefined);
-
-    // State cho dialog chi tiết
     const [detailDialogOpen, setDetailDialogOpen] = useState(false);
     const [detailKiosk, setDetailKiosk] = useState<Kiosk | null>(null);
-
-    // State cho dialog xóa
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [kioskToDelete, setKioskToDelete] = useState<Kiosk | null>(null);
 
-    // State cho giá trị tìm kiếm
     const [searchValue, setSearchValue] = useState("");
     const debouncedSearchValue = useDebounce(searchValue, 500);
 
-    // Cập nhật columnFilters khi debouncedSearchValue thay đổi
+    const isInitialMount = useRef(true);
+
+    // Đồng bộ tìm kiếm với columnFilters
     useEffect(() => {
-        table.getColumn("location")?.setFilterValue(debouncedSearchValue);
+        if (isInitialMount.current) {
+            return; // Bỏ qua lần đầu khi mount
+        }
+        table.getColumn("location")?.setFilterValue(debouncedSearchValue || undefined);
     }, [debouncedSearchValue]);
 
     const fetchKiosks = useCallback(async () => {
         try {
             setLoading(true);
-            const filterBy = columnFilters.length > 0 ? columnFilters[0]?.id : undefined;
-            const filterQuery = columnFilters.length > 0 ? columnFilters[0]?.value as string : undefined;
+
+            const locationFilter = columnFilters.find((filter) => filter.id === "location");
+            const filterBy = locationFilter ? "location" : undefined;
+            const filterQuery = locationFilter?.value as string | undefined;
+
+            const statusFilterValue = columnFilters.find((filter) => filter.id === "status")?.value as string | undefined;
+
             const sortBy = sorting.length > 0 ? sorting[0]?.id : undefined;
             const isAsc = sorting.length > 0 ? !sorting[0]?.desc : undefined;
-            const statusFilter = columnFilters.find((filter) => filter.id === "status")?.value as string | undefined;
 
             const response = await getKiosks({
                 filterBy,
@@ -83,7 +86,7 @@ const ManageKiosks = () => {
                 size: pageSize,
                 sortBy,
                 isAsc,
-                status: statusFilter,
+                status: statusFilterValue,
             });
 
             setKiosks(response.items);
@@ -101,32 +104,33 @@ const ManageKiosks = () => {
         }
     }, [currentPage, pageSize, columnFilters, sorting, toast]);
 
-    // Xử lý khi thêm hoặc chỉnh sửa thành công
+    // Gọi fetchKiosks khi mount và khi có thay đổi
+    useEffect(() => {
+        fetchKiosks();
+        isInitialMount.current = false;
+    }, [fetchKiosks]);
+
     const handleSuccess = () => {
         fetchKiosks();
         setDialogOpen(false);
         setSelectedKiosk(undefined);
     };
 
-    // Mở dialog để chỉnh sửa kiosk
     const handleEdit = (kiosk: Kiosk) => {
         setSelectedKiosk(kiosk);
         setDialogOpen(true);
     };
 
-    // Mở dialog để xem chi tiết kiosk
     const handleViewDetails = (kiosk: Kiosk) => {
         setDetailKiosk(kiosk);
         setDetailDialogOpen(true);
     };
 
-    // Xử lý xóa kiosk
     const handleDelete = (kiosk: Kiosk) => {
         setKioskToDelete(kiosk);
         setDeleteDialogOpen(true);
     };
 
-    // Xác nhận xóa kiosk
     const confirmDelete = async () => {
         if (!kioskToDelete) return;
         try {
@@ -149,7 +153,6 @@ const ManageKiosks = () => {
         }
     };
 
-    // Mở dialog để thêm kiosk mới
     const handleAdd = () => {
         setSelectedKiosk(undefined);
         setDialogOpen(true);
@@ -186,10 +189,6 @@ const ManageKiosks = () => {
     useEffect(() => {
         table.setPageSize(pageSize);
     }, [pageSize, table]);
-
-    useEffect(() => {
-        fetchKiosks();
-    }, [fetchKiosks]);
 
     const toggleLoading = () => {
         fetchKiosks();
@@ -321,7 +320,7 @@ const ManageKiosks = () => {
                                 ))
                             ) : kiosks.length ? (
                                 table.getRowModel().rows.map((row) => (
-                                    <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
+                                    <TableRow key={row.id} data-state={row.getIsSelected() ? "selected" : undefined}>
                                         {row.getVisibleCells().map((cell) => (
                                             <TableCell key={cell.id}>
                                                 {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -362,7 +361,7 @@ const ManageKiosks = () => {
             <ConfirmDeleteDialog
                 open={deleteDialogOpen}
                 onOpenChange={setDeleteDialogOpen}
-                description={`Bạn có chắc chắn muốn xóa chi nhánh "${kioskToDelete?.location}"? Hành động này không thể hoàn tác.`}
+                description={`Bạn có chắc chắn muốn xóa kiosk tại "${kioskToDelete?.location}"? Hành động này không thể hoàn tác.`}
                 onConfirm={confirmDelete}
                 onCancel={() => setKioskToDelete(null)}
             />

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useState, useRef } from "react";
 import { ChevronDownIcon } from "@radix-ui/react-icons";
 import {
     type ColumnFiltersState,
@@ -46,35 +46,41 @@ const ManageFranchises = () => {
     const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
     const [rowSelection, setRowSelection] = useState({});
 
-    // State cho dialog thêm/chỉnh sửa
     const [dialogOpen, setDialogOpen] = useState(false);
     const [selectedFranchise, setSelectedFranchise] = useState<Franchise | undefined>(undefined);
-
-    // State cho dialog chi tiết
     const [detailDialogOpen, setDetailDialogOpen] = useState(false);
     const [detailFranchise, setDetailFranchise] = useState<Franchise | null>(null);
-
-    // State cho dialog xóa
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [franchiseToDelete, setFranchiseToDelete] = useState<Franchise | null>(null);
 
-    // State cho giá trị tìm kiếm
     const [searchValue, setSearchValue] = useState("");
     const debouncedSearchValue = useDebounce(searchValue, 500);
 
-    // Cập nhật columnFilters khi debouncedSearchValue thay đổi
+    // Sử dụng useRef để kiểm soát lần mount đầu tiên
+    const isInitialMount = useRef(true);
+
+    // Đồng bộ tìm kiếm với columnFilters
     useEffect(() => {
-        table.getColumn("name")?.setFilterValue(debouncedSearchValue);
+        if (isInitialMount.current) {
+            return; // Bỏ qua lần đầu khi mount
+        }
+        table.getColumn("name")?.setFilterValue(debouncedSearchValue || undefined);
     }, [debouncedSearchValue]);
 
     const fetchFranchises = useCallback(async () => {
         try {
             setLoading(true);
-            const filterBy = columnFilters.length > 0 ? columnFilters[0]?.id : undefined;
-            const filterQuery = columnFilters.length > 0 ? columnFilters[0]?.value as string : undefined;
+
+            // Lấy bộ lọc cho cột "name" (tìm kiếm)
+            const nameFilter = columnFilters.find((filter) => filter.id === "name");
+            const filterBy = nameFilter ? "name" : undefined;
+            const filterQuery = nameFilter?.value as string | undefined;
+
+            // Lấy bộ lọc cho cột "status"
+            const statusFilterValue = columnFilters.find((filter) => filter.id === "status")?.value as string | undefined;
+
             const sortBy = sorting.length > 0 ? sorting[0]?.id : undefined;
             const isAsc = sorting.length > 0 ? !sorting[0]?.desc : undefined;
-            const statusFilter = columnFilters.find((filter) => filter.id === "status")?.value as string | undefined;
 
             const response = await getFranchises({
                 filterBy,
@@ -83,7 +89,7 @@ const ManageFranchises = () => {
                 size: pageSize,
                 sortBy,
                 isAsc,
-                status: statusFilter,
+                status: statusFilterValue,
             });
 
             setFranchises(response.items);
@@ -101,32 +107,33 @@ const ManageFranchises = () => {
         }
     }, [currentPage, pageSize, columnFilters, sorting, toast]);
 
-    // Xử lý khi thêm hoặc chỉnh sửa thành công
+    // Gọi fetchFranchises khi mount và khi có thay đổi
+    useEffect(() => {
+        fetchFranchises();
+        isInitialMount.current = false;
+    }, [fetchFranchises]);
+
     const handleSuccess = () => {
         fetchFranchises();
         setDialogOpen(false);
         setSelectedFranchise(undefined);
     };
 
-    // Mở dialog để chỉnh sửa chi nhánh
     const handleEdit = (franchise: Franchise) => {
         setSelectedFranchise(franchise);
         setDialogOpen(true);
     };
 
-    // Mở dialog để xem chi tiết chi nhánh
     const handleViewDetails = (franchise: Franchise) => {
         setDetailFranchise(franchise);
         setDetailDialogOpen(true);
     };
 
-    // Xử lý xóa chi nhánh
     const handleDelete = (franchise: Franchise) => {
         setFranchiseToDelete(franchise);
         setDeleteDialogOpen(true);
     };
 
-    // Xác nhận xóa chi nhánh
     const confirmDelete = async () => {
         if (!franchiseToDelete) return;
         try {
@@ -149,7 +156,6 @@ const ManageFranchises = () => {
         }
     };
 
-    // Mở dialog để thêm chi nhánh mới
     const handleAdd = () => {
         setSelectedFranchise(undefined);
         setDialogOpen(true);
@@ -187,9 +193,6 @@ const ManageFranchises = () => {
         table.setPageSize(pageSize);
     }, [pageSize, table]);
 
-    useEffect(() => {
-        fetchFranchises();
-    }, [fetchFranchises]);
 
     const toggleLoading = () => {
         fetchFranchises();
@@ -365,7 +368,6 @@ const ManageFranchises = () => {
                 onConfirm={confirmDelete}
                 onCancel={() => setFranchiseToDelete(null)}
             />
-
         </div>
     );
 };

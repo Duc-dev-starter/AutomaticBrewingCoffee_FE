@@ -72,7 +72,6 @@ const ManageDevices = () => {
     }, [debouncedSearchValue, statusFilter]);
 
     const fetchDevices = useCallback(async () => {
-        console.log("Fetching devices..."); // Để kiểm tra số lần gọi
         try {
             setLoading(true);
 

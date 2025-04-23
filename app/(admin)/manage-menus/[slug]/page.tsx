@@ -50,7 +50,7 @@ const MenuDetail = () => {
         image: true,
         name: true,
         price: true,
-        order: true, // Đã thêm "order" vào columnVisibility
+        order: true,
         actions: true,
     });
 
@@ -88,7 +88,6 @@ const MenuDetail = () => {
         fetchMenu();
     }, [fetchMenu]);
 
-    // Filter and paginate products
     const filterAndPaginateProducts = useCallback(() => {
         let filtered = products.filter((product) =>
             product.name.toLowerCase().includes(searchValue.toLowerCase())
@@ -110,12 +109,7 @@ const MenuDetail = () => {
         filterAndPaginateProducts();
     }, [filterAndPaginateProducts]);
 
-    // Handlers
-    const handlePageChange = (page: number) => setCurrentPage(page);
-    const handlePageSizeChange = (size: string) => {
-        setPageSize(Number(size));
-        setCurrentPage(1);
-    };
+
     const handleFilterChange = () => setCurrentPage(1);
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setSearchValue(e.target.value);
@@ -125,14 +119,7 @@ const MenuDetail = () => {
         setStatusFilter(value);
         handleFilterChange();
     };
-    const handleRefresh = () => {
-        setLoading(true);
-        setTimeout(() => {
-            fetchMenu();
-            filterAndPaginateProducts();
-            setLoading(false);
-        }, 500);
-    };
+
 
     const handleAddProductSuccess = () => {
         fetchMenu();
@@ -291,7 +278,10 @@ const MenuDetail = () => {
 
             <div>
                 <div className="flex justify-between items-center mb-6">
-                    <h2 className="text-2xl font-bold">Danh sách sản phẩm</h2>
+                    <div>
+                        <h2 className="text-2xl font-bold">Danh sách sản phẩm</h2>
+                        <p className="text-muted-foreground">Quản lý và giám sát tất cả sản phẩm trong menu.</p>
+                    </div>
                     <div className="flex items-center gap-2">
                         <ExportButton loading={loading} />
                         <RefreshButton loading={loading} toggleLoading={toggleLoading} />
@@ -489,7 +479,7 @@ const MenuDetail = () => {
                     pageSize={pageSize}
                     setPageSize={setPageSize}
                     currentPage={currentPage}
-                    setCurrentPage={handlePageChange}
+                    setCurrentPage={setCurrentPage}
                     totalItems={totalItems}
                     totalPages={totalPages}
                 />

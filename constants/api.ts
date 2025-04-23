@@ -22,4 +22,7 @@ export const Api = {
     MENUS: '/menus',
     MENU_PRODUCTS: '/menu-products',
 
+    // WORKFLOW
+    WORKFLOW: '/workflows'
+
 }

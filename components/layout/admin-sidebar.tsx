@@ -44,8 +44,8 @@ const navMain = [
         icon: ClipboardList,
     },
     {
-        title: "Quản lý nguyên liệu",
-        url: Path.MANAGE_INGREDIENTS,
+        title: "Quản lý quy trình",
+        url: Path.MANAGE_WORKFLOWS,
         icon: Layers,
     },
     {

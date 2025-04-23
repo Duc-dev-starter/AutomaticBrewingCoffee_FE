@@ -8,6 +8,7 @@ export const Path = {
     MANAGE_COSTS: "/manage-costs",
     MANAGE_PRODUCTS: "/manage-products",
     MANAGE_FRANCHISES: "/manage-franchises",
+    MANAGE_WORKFLOWS: "/manage-workflows",
     MANAGE_MENUS: "/manage-menus",
     PROFILE: "/profile",
     REMINDER: "/reminder",

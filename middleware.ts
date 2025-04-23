@@ -7,10 +7,45 @@ export const config = {
     ],
 };
 
+const allowedPaths = [
+    Path.DASHBOARD,
+    Path.MANAGE_ORDERS,
+    Path.MANAGE_RECIPES,
+    Path.MANAGE_INGREDIENTS,
+    Path.MANAGE_DEVICES,
+    Path.MANAGE_KIOSKS,
+    Path.MANAGE_COSTS,
+    Path.MANAGE_PRODUCTS,
+    Path.MANAGE_FRANCHISES,
+    Path.PROFILE,
+    Path.REMINDER,
+    Path.RECIPE,
+    Path.HOME,
+    Path.LOGIN,
+    Path.NOT_FOUND,
+];
+
+const dynamicPathPrefixes = [
+    "/manage-menus",
+];
+
 export function middleware(req: NextRequest) {
     const pathname = req.nextUrl.pathname;
 
-    if (!Object.values(Path).includes(pathname)) {
+    const accessToken = req.cookies.get("accessToken")?.value;
+    const refreshToken = req.cookies.get("refreshToken")?.value;
+
+    const isPublicPath = pathname === Path.LOGIN || pathname === Path.HOME;
+
+    if (!accessToken || !refreshToken) {
+        if (!isPublicPath) {
+            return NextResponse.redirect(new URL(Path.LOGIN, req.url));
+        }
+    }
+
+    const isAllowed = allowedPaths.includes(pathname) || dynamicPathPrefixes.some(prefix => pathname.startsWith(prefix));
+
+    if (!isAllowed) {
         return NextResponse.rewrite(new URL(Path.NOT_FOUND, req.url));
     }
 

@@ -2,7 +2,7 @@ import { AxiosResponse } from "axios";
 import { cleanParams } from "@/utils";
 import { axiosInstance } from "@/lib/axios";
 import { PagingResponse } from "@/types/paging";
-import { ApiRequest } from "@/types/api";
+import { ApiRequest, ApiResponse } from "@/types/api";
 
 export const BaseService = {
     async get<T = any>({ url, payload, headers }: ApiRequest): Promise<AxiosResponse<T>> {
@@ -85,9 +85,9 @@ export const BaseService = {
         }
     },
 
-    async getById<T = any>({ url, id, headers }: { url: string; id: string | number; headers?: any }): Promise<AxiosResponse<T>> {
+    async getById<T = any>({ url, id, headers }: { url: string; id: string | number; headers?: any }): Promise<ApiResponse<T>> {
         try {
-            const response = await axiosInstance.get<T, AxiosResponse<T>>(`${url}/${id}`, {
+            const response = await axiosInstance.get<T, ApiResponse<T>>(`${url}/${id}`, {
                 headers: headers || {},
             });
             return response;

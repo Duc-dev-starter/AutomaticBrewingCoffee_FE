@@ -19,5 +19,7 @@ export const Api = {
     ORDERS: '/orders',
 
     // MENU
-    MENUS: '/menus'
+    MENUS: '/menus',
+    MENU_PRODUCTS: '/menu-products',
+
 }

@@ -1,8 +1,10 @@
-import { Device } from "@/interfaces/device";
 import { BaseService } from "./base"
 import { PagingParams, PagingResponse } from "@/types/paging";
 import { Api } from "@/constants/api";
-import { Menu } from "@/interfaces/menu";
+import { Menu, MenuProductMapping } from "@/interfaces/menu";
+import { EBaseStatus } from "@/enum/base";
+import { ApiResponse } from "@/types/api";
+import { MenuDetailType } from "@/app/(admin)/manage-menus/[slug]/page";
 
 export const getMenus = async (params: PagingParams = {}): Promise<PagingResponse<Menu>> => {
     return BaseService.getPaging<Menu>({
@@ -11,10 +13,11 @@ export const getMenus = async (params: PagingParams = {}): Promise<PagingRespons
     });
 };
 
-export const getMenu = async (id: string) => {
+export const getMenu = async (id: string): Promise<ApiResponse<MenuDetailType>> => {
     const response = await BaseService.getById({ url: Api.MENUS, id });
     return response;
-}
+};
+
 
 export const createMenu = async (payload: Partial<Menu>) => {
     const response = await BaseService.post({ url: Api.MENUS, payload });
@@ -28,5 +31,22 @@ export const updateMenu = async (id: string, payload: Partial<Menu>) => {
 
 export const deleteMenu = async (id: string) => {
     const response = await BaseService.delete({ url: `${Api.MENUS}/${id}` })
+    return response;
+}
+
+export const getMenuProducts = async (params: PagingParams = {}): Promise<PagingResponse<MenuProductMapping>> => {
+    return BaseService.getPaging<MenuProductMapping>({
+        url: Api.MENU_PRODUCTS,
+        payload: params,
+    });
+};
+
+
+export const addProductToMenu = async (payload: { menuId: string, productId: string, status: EBaseStatus }): Promise<PagingResponse<MenuProductMapping>> => {
+    return BaseService.post({ url: `${Api.MENUS}${Api.MENU_PRODUCTS}`, payload });
+}
+
+export const removeProductFromMenu = async (menuId: string, productId: string) => {
+    const response = await BaseService.delete({ url: `${Api.MENUS}/${menuId}/${Api.MENU_PRODUCTS}/${productId}` })
     return response;
 }

@@ -15,5 +15,6 @@ export const Path = {
     RECIPE: "/recipe",
     HOME: "/",
     LOGIN: "/login",
+    MENUS_DETAIL: "/manage-menus/:slug"
 };
 

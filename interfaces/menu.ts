@@ -1,5 +1,6 @@
 import { EBaseStatus } from "@/enum/base";
 import { Product } from "./product";
+import { Kiosk } from "./kiosk";
 
 export interface MenuProductMapping {
     menuId: string;
@@ -12,6 +13,7 @@ export interface MenuProductMapping {
 export interface Menu {
     menuId: string;
     kioskId: string;
+    kiosk: Kiosk;
     name: string;
     description?: string;
     status: EBaseStatus;

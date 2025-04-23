@@ -15,6 +15,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert"
 import { login } from "@/services/auth"
 import { handleToken } from "@/utils/cookie"
 import { Path } from "@/constants/path"
+import { useToast } from "@/hooks/use-toast"
 
 export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRef<"div">) {
     const router = useRouter()
@@ -22,6 +23,7 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
     const [password, setPassword] = useState("")
     const [error, setError] = useState("")
     const [isLoading, setIsLoading] = useState(false)
+    const { toast } = useToast();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -39,6 +41,10 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
             if (response.isSuccess && response.statusCode === 200) {
                 const accessToken = response.response.accessToken;
                 const refreshToken = response.response.refreshToken;
+                toast({
+                    title: "Đăng nhập thành công",
+                    description: `Chuẩn bị điều hướng sang dashboard`,
+                });
                 handleToken(accessToken, refreshToken);
                 router.push(Path.DASHBOARD);
             } else {

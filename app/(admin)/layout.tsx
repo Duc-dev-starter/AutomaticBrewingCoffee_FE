@@ -1,6 +1,5 @@
 "use client"
 import { AdminSearchbar, AdminSidebar } from "@/components/layout"
-import DarkModeTheme from "@/components/layout/dark-mode"
 import { Separator } from "@/components/ui/separator"
 import {
     SidebarInset,
@@ -26,7 +25,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                         <Separator orientation="vertical" className="mr-2 h-4" />
                     </div>
                     <AdminSearchbar />
-                    <DarkModeTheme />
                 </header>
                 {children}
             </SidebarInset>

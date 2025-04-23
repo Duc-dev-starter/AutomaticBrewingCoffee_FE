@@ -25,6 +25,15 @@ export const columns = ({
                 return <div className="font-medium text-center">MEN-{shortId}</div>;
             },
             enableSorting: false,
+        }, {
+            id: "kioskId",
+            header: "Mã kiosk",
+            cell: ({ row }) => {
+                const kioskId = row.original.kioskId || "";
+                const shortId = kioskId.replace(/-/g, "").substring(0, 8);
+                return <div className="font-medium text-center">KIO-{shortId}</div>;
+            },
+            enableSorting: false,
         },
         {
             id: "name",

@@ -1,4 +1,5 @@
 import { EProductSize, EProductStatus, EProductType } from "@/enum/product";
+import { MenuProductMapping } from "./menu";
 
 export interface Product {
     productId: string;
@@ -14,4 +15,8 @@ export interface Product {
     status: EProductStatus
     createdDate: string;
     updatedDate: string;
+}
+
+export interface ProductInMenu extends Product {
+    menuProductMappings: MenuProductMapping[];
 }

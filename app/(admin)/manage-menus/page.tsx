@@ -32,6 +32,7 @@ import { useToast } from "@/hooks/use-toast";
 import { columns } from "@/components/manage-menus/columns";
 import MenuDialog from "@/components/dialog/menu/menu-dialog";
 import MenuDetailDialog from "@/components/dialog/menu/menu-detail-dialog";
+import { useRouter } from "next/navigation";
 
 const ManageMenus = () => {
     const { toast } = useToast();
@@ -53,6 +54,7 @@ const ManageMenus = () => {
     const [detailMenu, setDetailMenu] = useState<Menu | null>(null);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [menuToDelete, setMenuToDelete] = useState<Menu | null>(null);
+    const router = useRouter();
 
     const [searchValue, setSearchValue] = useState("");
     const debouncedSearchValue = useDebounce(searchValue, 500);
@@ -123,8 +125,7 @@ const ManageMenus = () => {
     };
 
     const handleViewDetails = (menu: Menu) => {
-        setDetailMenu(menu);
-        setDetailDialogOpen(true);
+        router.push(`/manage-menus/${menu.menuId}`)
     };
 
     const handleDelete = (menu: Menu) => {

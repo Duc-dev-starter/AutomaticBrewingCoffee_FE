@@ -44,7 +44,7 @@ axiosInstance.interceptors.request.use(
 axiosInstance.interceptors.response.use(
     (response) => {
         console.log(response);
-        if (response.status === HttpStatus.Success || response.status === HttpStatus.Created) {
+        if (response.status === HttpStatus.Success || response.status === HttpStatus.Created || response.status === HttpStatus.Accepted) {
             return response.data;
         }
     },

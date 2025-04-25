@@ -12,7 +12,7 @@ export const getWorkflows = async (params: PagingParams = {}): Promise<PagingRes
 };
 
 export const getWorkflow = async (id: string): Promise<ApiResponse<Workflow>> => {
-    const response = await BaseService.getById({ url: Api.MENUS, id });
+    const response = await BaseService.getById({ url: Api.WORKFLOW, id });
     return response;
 };
 

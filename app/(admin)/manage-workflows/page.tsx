@@ -178,7 +178,7 @@ const ManageWorkflows = () => {
             onViewDetails: handleViewDetails,
             onEdit: handleEdit,
             onDelete: handleDelete,
-            onViewSteps: (workflow: Workflow) => router.push(`/manage-workflows/${workflow.workflowId}/steps`),
+            onViewSteps: (workflow: Workflow) => router.push(`/manage-workflows/${workflow.workflowId}`),
         }),
         onSortingChange: setSorting,
         onColumnFiltersChange: setColumnFilters,

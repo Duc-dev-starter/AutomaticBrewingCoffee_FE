@@ -27,7 +27,8 @@ const allowedPaths = [
 ];
 
 const dynamicPathPrefixes = [
-    "/manage-menus",
+    Path.MANAGE_MENUS,
+    Path.MANAGE_WORKFLOWS
 ];
 
 export function middleware(req: NextRequest) {

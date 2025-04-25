@@ -22,7 +22,6 @@ type FilterProps = {
     setStatusFilter: (value: string) => void
     clearAllFilters: () => void
     hasActiveFilters: boolean
-    loading: boolean
 }
 
 export const DeviceFilter = ({
@@ -30,14 +29,13 @@ export const DeviceFilter = ({
     setStatusFilter,
     clearAllFilters,
     hasActiveFilters,
-    loading,
 }: FilterProps) => {
     const statuses = Object.values(EDeviceStatus);
 
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="ml-auto" disabled={loading}>
+                <Button variant="outline" className="ml-auto">
                     <Filter className="mr-2 h-4 w-4" />
                     Lọc
                     {hasActiveFilters && (

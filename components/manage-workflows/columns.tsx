@@ -62,7 +62,7 @@ export const columns = ({
             cell: ({ row }) => (
                 <div className="text-center">
                     <Link
-                        href={`/manage-workflows/${row.original.workflowId}/steps`}
+                        href={`/manage-workflows/${row.original.workflowId}`}
                         className="text-blue-600 hover:underline"
                         onClick={() => onViewSteps(row.original)}
                     >

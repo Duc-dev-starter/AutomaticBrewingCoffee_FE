@@ -203,7 +203,7 @@ const ManageOrders = () => {
                         />
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <Button variant="outline" disabled={loading}>
+                                <Button variant="outline">
                                     Cột <ChevronDownIcon className="ml-2 h-4 w-4" />
                                 </Button>
                             </DropdownMenuTrigger>
@@ -235,7 +235,7 @@ const ManageOrders = () => {
                                     ))}
                             </DropdownMenuContent>
                         </DropdownMenu>
-                        <Button onClick={() => setEditDialogOpen(true)} disabled={loading}>
+                        <Button onClick={() => setEditDialogOpen(true)}>
                             <PlusCircle className="mr-2 h-4 w-4" />
                             Thêm
                         </Button>

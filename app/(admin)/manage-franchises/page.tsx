@@ -221,10 +221,10 @@ const ManageFranchises = () => {
                         />
                     </div>
                     <div className="flex items-center gap-2 ml-auto">
-                        <EBaseStatusFilterDropdown loading={loading} table={table} />
+                        <EBaseStatusFilterDropdown table={table} />
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <Button variant="outline" disabled={loading}>
+                                <Button variant="outline">
                                     Cột <ChevronDownIcon className="ml-2 h-4 w-4" />
                                 </Button>
                             </DropdownMenuTrigger>
@@ -255,7 +255,7 @@ const ManageFranchises = () => {
                                     ))}
                             </DropdownMenuContent>
                         </DropdownMenu>
-                        <Button onClick={handleAdd} disabled={loading}>
+                        <Button onClick={handleAdd}>
                             <PlusCircle className="mr-2 h-4 w-4" />
                             Thêm
                         </Button>

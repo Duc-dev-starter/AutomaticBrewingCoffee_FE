@@ -219,10 +219,10 @@ const ManageMenus = () => {
                         />
                     </div>
                     <div className="flex items-center gap-2 ml-auto">
-                        <EBaseStatusFilterDropdown loading={loading} table={table} />
+                        <EBaseStatusFilterDropdown table={table} />
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <Button variant="outline" disabled={loading}>
+                                <Button variant="outline">
                                     Cột <ChevronDownIcon className="ml-2 h-4 w-4" />
                                 </Button>
                             </DropdownMenuTrigger>
@@ -239,7 +239,6 @@ const ManageMenus = () => {
                                             {{
                                                 menuId: "Mã menu",
                                                 name: "Tên menu",
-                                                description: "Mô tả",
                                                 status: "Trạng thái",
                                                 actions: "Hành động",
                                             }[column.id] ?? column.id}
@@ -247,7 +246,7 @@ const ManageMenus = () => {
                                     ))}
                             </DropdownMenuContent>
                         </DropdownMenu>
-                        <Button onClick={handleAdd} disabled={loading}>
+                        <Button onClick={handleAdd}>
                             <PlusCircle className="mr-2 h-4 w-4" />
                             Thêm
                         </Button>
@@ -293,8 +292,6 @@ const ManageMenus = () => {
                                                         <Skeleton className="h-4 w-4 rounded-full" />
                                                         <Skeleton className="h-5 w-40" />
                                                     </div>
-                                                ) : column.id === "description" ? (
-                                                    <Skeleton className="h-5 w-64 mx-auto" />
                                                 ) : column.id === "status" ? (
                                                     <Skeleton className="h-6 w-24 rounded-full mx-auto" />
                                                 ) : column.id === "actions" ? (

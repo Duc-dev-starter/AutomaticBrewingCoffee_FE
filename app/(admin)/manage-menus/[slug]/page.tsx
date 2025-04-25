@@ -1,165 +1,259 @@
-"use client";
+"use client"
 
-import { useParams } from "next/navigation";
-import { useState, useEffect, useCallback } from "react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Button } from "@/components/ui/button";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Edit, Info, PlusCircle, RefreshCw, Store, Trash2 } from "lucide-react";
-import { Input } from "@/components/ui/input";
-import { Skeleton } from "@/components/ui/skeleton";
-import { ChevronDownIcon } from "@radix-ui/react-icons";
+import type React from "react"
+
+import { useParams } from "next/navigation"
+import { useState, useEffect, useCallback } from "react"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Card, CardContent } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Button } from "@/components/ui/button"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Edit, Info, PlusCircle, Store } from "lucide-react"
+import { Skeleton } from "@/components/ui/skeleton"
+import { ChevronDownIcon } from "@radix-ui/react-icons"
 import {
     DropdownMenu,
     DropdownMenuCheckboxItem,
     DropdownMenuContent,
     DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Pagination, ConfirmDeleteDialog, ExportButton, RefreshButton } from "@/components/common";
-import { Product } from "@/interfaces/product";
-import { Menu, MenuProductMapping } from "@/interfaces/menu";
-import { useToast } from "@/hooks/use-toast";
-import { getMenu, removeProductFromMenu } from "@/services/menu";
-import { columns } from "@/components/manage-menus-detail/columns";
-import AddProductToMenuDialog from "@/components/dialog/menu/add-product-to-menu";
-import { EBaseStatusViMap } from "@/enum/base";
+} from "@/components/ui/dropdown-menu"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Pagination, ConfirmDeleteDialog, ExportButton, RefreshButton } from "@/components/common"
+import type { Product } from "@/interfaces/product"
+import type { Menu, MenuProductMapping } from "@/interfaces/menu"
+import { useToast } from "@/hooks/use-toast"
+import { getMenu, removeProductFromMenu } from "@/services/menu"
+import { columns } from "@/components/manage-menus-detail/columns"
+import AddProductToMenuDialog from "@/components/dialog/menu/add-product-to-menu"
+import { EBaseStatusViMap } from "@/enum/base"
+import { SearchInput } from "@/components/common/search-input"
 
 export type MenuDetailType = Menu & {
-    menuProductMappings: MenuProductMapping[];
-};
+    menuProductMappings: MenuProductMapping[]
+}
 
 const MenuDetail = () => {
-    const params = useParams();
-    const slug = params.slug as string;
-    const { toast } = useToast();
+    const params = useParams()
+    const slug = params.slug as string
+    const { toast } = useToast()
 
-    const [menu, setMenu] = useState<MenuDetailType | null>(null);
-    const [products, setProducts] = useState<Product[]>([]);
-    const [filteredProducts, setFilteredProducts] = useState<Product[]>([]);
-    const [loading, setLoading] = useState(true);
-    const [searchValue, setSearchValue] = useState("");
-    const [statusFilter, setStatusFilter] = useState<string>("all");
-    const [currentPage, setCurrentPage] = useState(1);
-    const [pageSize, setPageSize] = useState(5);
-    const [totalPages, setTotalPages] = useState(1);
-    const [totalItems, setTotalItems] = useState(0);
+    const [menu, setMenu] = useState<MenuDetailType | null>(null)
+    const [products, setProducts] = useState<Product[]>([])
+    const [filteredProducts, setFilteredProducts] = useState<Product[]>([])
+    const [loading, setLoading] = useState(true)
+    const [searchValue, setSearchValue] = useState("")
+    const [statusFilter, setStatusFilter] = useState<string>("all")
+    const [currentPage, setCurrentPage] = useState(1)
+    const [pageSize, setPageSize] = useState(5)
+    const [totalPages, setTotalPages] = useState(1)
+    const [totalItems, setTotalItems] = useState(0)
     const [columnVisibility, setColumnVisibility] = useState({
         image: true,
         name: true,
         price: true,
         order: true,
         actions: true,
-    });
+    })
 
-    const existingProductIds = menu ? menu.menuProductMappings.map((mapping) => mapping.product.productId) : [];
+    const existingProductIds = menu ? menu.menuProductMappings.map((mapping) => mapping.product.productId) : []
 
     // Dialog states
-    const [addProductDialogOpen, setAddProductDialogOpen] = useState(false);
-    const [deleteProductDialogOpen, setDeleteProductDialogOpen] = useState(false);
-    const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
+    const [addProductDialogOpen, setAddProductDialogOpen] = useState(false)
+    const [deleteProductDialogOpen, setDeleteProductDialogOpen] = useState(false)
+    const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
 
     // Fetch menu data
     const fetchMenu = useCallback(async () => {
         try {
-            setLoading(true);
-            const response = await getMenu(slug);
-            setMenu(response.response);
-            const productList = response.response.menuProductMappings.map(
-                (mapping: MenuProductMapping) => mapping.product
-            );
-            setProducts(productList);
-            setTotalItems(productList.length);
+            setLoading(true)
+            const response = await getMenu(slug)
+            setMenu(response.response)
+            const productList = response.response.menuProductMappings.map((mapping: MenuProductMapping) => mapping.product)
+            setProducts(productList)
+            setTotalItems(productList.length)
         } catch (error) {
-            console.error("Lỗi khi tải dữ liệu menu:", error);
+            console.error("Lỗi khi tải dữ liệu menu:", error)
             toast({
                 title: "Lỗi",
                 description: "Không thể tải dữ liệu menu.",
                 variant: "destructive",
-            });
+            })
         } finally {
-            setLoading(false);
+            setLoading(false)
         }
-    }, [slug, toast]);
+    }, [slug, toast])
 
     useEffect(() => {
-        fetchMenu();
-    }, [fetchMenu]);
+        fetchMenu()
+    }, [fetchMenu])
 
     const filterAndPaginateProducts = useCallback(() => {
-        let filtered = products.filter((product) =>
-            product.name.toLowerCase().includes(searchValue.toLowerCase())
-        );
+        let filtered = products.filter((product) => product.name.toLowerCase().includes(searchValue.toLowerCase()))
 
         if (statusFilter !== "all") {
-            filtered = filtered.filter((product) => product.status === statusFilter);
+            filtered = filtered.filter((product) => product.status === statusFilter)
         }
 
-        const total = Math.ceil(filtered.length / pageSize);
-        setTotalPages(total);
+        const total = Math.ceil(filtered.length / pageSize)
+        setTotalPages(total)
 
-        const startIndex = (currentPage - 1) * pageSize;
-        const paginatedProducts = filtered.slice(startIndex, startIndex + pageSize);
-        setFilteredProducts(paginatedProducts);
-    }, [products, searchValue, statusFilter, currentPage, pageSize]);
+        const startIndex = (currentPage - 1) * pageSize
+        const paginatedProducts = filtered.slice(startIndex, startIndex + pageSize)
+        setFilteredProducts(paginatedProducts)
+    }, [products, searchValue, statusFilter, currentPage, pageSize])
 
     useEffect(() => {
-        filterAndPaginateProducts();
-    }, [filterAndPaginateProducts]);
+        filterAndPaginateProducts()
+    }, [filterAndPaginateProducts])
 
-
-    const handleFilterChange = () => setCurrentPage(1);
+    const handleFilterChange = () => setCurrentPage(1)
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setSearchValue(e.target.value);
-        handleFilterChange();
-    };
+        setSearchValue(e.target.value)
+        handleFilterChange()
+    }
     const handleStatusFilterChange = (value: string) => {
-        setStatusFilter(value);
-        handleFilterChange();
-    };
-
+        setStatusFilter(value)
+        handleFilterChange()
+    }
 
     const handleAddProductSuccess = () => {
-        fetchMenu();
-        setAddProductDialogOpen(false);
-    };
+        fetchMenu()
+        setAddProductDialogOpen(false)
+    }
 
     const handleDeleteProduct = async () => {
-        if (!selectedProduct) return;
+        if (!selectedProduct) return
         try {
-            await removeProductFromMenu(menu!.menuId, selectedProduct.productId);
-            toast({ title: "Thành công", description: "Đã xóa sản phẩm khỏi menu." });
-            fetchMenu();
+            await removeProductFromMenu(menu!.menuId, selectedProduct.productId)
+            toast({ title: "Thành công", description: "Đã xóa sản phẩm khỏi menu." })
+            fetchMenu()
         } catch (error) {
-            console.error("Lỗi khi xóa sản phẩm:", error);
+            console.error("Lỗi khi xóa sản phẩm:", error)
             toast({
                 title: "Lỗi",
                 description: "Không thể xóa sản phẩm.",
                 variant: "destructive",
-            });
+            })
         } finally {
-            setDeleteProductDialogOpen(false);
-            setSelectedProduct(null);
+            setDeleteProductDialogOpen(false)
+            setSelectedProduct(null)
         }
-    };
+    }
 
     const handleDeleteClick = (product: Product) => {
-        setSelectedProduct(product);
-        setDeleteProductDialogOpen(true);
-    };
+        setSelectedProduct(product)
+        setDeleteProductDialogOpen(true)
+    }
 
     const toggleLoading = () => {
-        fetchMenu();
-    };
+        fetchMenu()
+    }
 
     if (loading && !menu) {
         return (
-            <div className="flex items-center justify-center min-h-screen">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-primary"></div>
+            <div className="container mx-auto py-6 px-4">
+                <div className="mb-8">
+                    <Skeleton className="h-10 w-64 mb-6" />
+
+                    <div className="w-full">
+                        <div className="mb-6">
+                            <Skeleton className="h-10 w-full mb-6" />
+                        </div>
+
+                        <div className="space-y-6">
+                            <Card>
+                                <CardContent className="pt-6">
+                                    <div className="flex justify-between items-start">
+                                        <div className="space-y-6 w-full">
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                <div className="space-y-4">
+                                                    <div>
+                                                        <Skeleton className="h-8 w-48 mb-4" />
+                                                        <div className="grid grid-cols-3 gap-4">
+                                                            {Array.from({ length: 6 }).map((_, index) => (
+                                                                <div key={index}>
+                                                                    <Skeleton className="h-4 w-24 mb-2" />
+                                                                    <Skeleton className="h-6 w-32" />
+                                                                </div>
+                                                            ))}
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <Skeleton className="h-10 w-32" />
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        </div>
+                    </div>
+                </div>
+
+                <div>
+                    <div className="flex justify-between items-center mb-6">
+                        <div>
+                            <Skeleton className="h-8 w-48 mb-2" />
+                            <Skeleton className="h-4 w-64" />
+                        </div>
+                        <div className="flex items-center gap-2">
+                            <Skeleton className="h-10 w-32" />
+                            <Skeleton className="h-10 w-32" />
+                        </div>
+                    </div>
+
+                    <div className="flex flex-col sm:flex-row items-center py-4 gap-4">
+                        <Skeleton className="h-10 w-72" />
+                        <div className="flex items-center gap-2 ml-auto">
+                            <Skeleton className="h-10 w-44" />
+                            <Skeleton className="h-10 w-24" />
+                            <Skeleton className="h-10 w-24" />
+                        </div>
+                    </div>
+
+                    <Card>
+                        <CardContent className="p-0">
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        {Array.from({ length: 5 }).map((_, index) => (
+                                            <TableHead key={index}>
+                                                <Skeleton className="h-6 w-full" />
+                                            </TableHead>
+                                        ))}
+                                    </TableRow>
+                                </TableHeader>
+                                <TableBody>
+                                    {Array.from({ length: 5 }).map((_, rowIndex) => (
+                                        <TableRow key={`skeleton-row-${rowIndex}`} className="animate-pulse">
+                                            <TableCell>
+                                                <Skeleton className="h-10 w-10 rounded-md" />
+                                            </TableCell>
+                                            <TableCell>
+                                                <Skeleton className="h-5 w-40" />
+                                            </TableCell>
+                                            <TableCell className="text-right">
+                                                <Skeleton className="h-5 w-20 ml-auto" />
+                                            </TableCell>
+                                            <TableCell className="text-center">
+                                                <Skeleton className="h-8 w-16 mx-auto rounded" />
+                                            </TableCell>
+                                            <TableCell className="text-right">
+                                                <Skeleton className="h-8 w-8 rounded-full ml-auto" />
+                                            </TableCell>
+                                        </TableRow>
+                                    ))}
+                                </TableBody>
+                            </Table>
+                        </CardContent>
+                    </Card>
+
+                    <div className="mt-4">
+                        <Skeleton className="h-10 w-full" />
+                    </div>
+                </div>
             </div>
-        );
+        )
     }
 
     if (!menu) {
@@ -167,12 +261,10 @@ const MenuDetail = () => {
             <div className="flex items-center justify-center min-h-screen">
                 <div className="text-center">
                     <h2 className="text-2xl font-bold">Menu không tồn tại</h2>
-                    <p className="text-muted-foreground">
-                        Không tìm thấy thông tin menu với mã {slug}
-                    </p>
+                    <p className="text-muted-foreground">Không tìm thấy thông tin menu với mã {slug}</p>
                 </div>
             </div>
-        );
+        )
     }
 
     return (
@@ -200,51 +292,33 @@ const MenuDetail = () => {
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                             <div className="space-y-4">
                                                 <div>
-                                                    <h3 className="text-xl font-semibold mb-4">
-                                                        Thông tin Menu
-                                                    </h3>
+                                                    <h3 className="text-xl font-semibold mb-4">Thông tin Menu</h3>
                                                     <div className="grid grid-cols-3 gap-4">
                                                         <div>
-                                                            <p className="text-sm text-muted-foreground">
-                                                                Mã menu:
-                                                            </p>
+                                                            <p className="text-sm text-muted-foreground">Mã menu:</p>
                                                             <p className="font-medium">ORD-{menu.menuId.substring(0, 8)}</p>
                                                         </div>
                                                         <div>
-                                                            <p className="text-sm text-muted-foreground">
-                                                                Mã kiosk:
-                                                            </p>
+                                                            <p className="text-sm text-muted-foreground">Mã kiosk:</p>
                                                             <p className="font-medium">KIO-{menu.kioskId.substring(0, 8)}</p>
                                                         </div>
                                                         <div>
-                                                            <p className="text-sm text-muted-foreground">
-                                                                Tên menu:
-                                                            </p>
+                                                            <p className="text-sm text-muted-foreground">Tên menu:</p>
                                                             <p className="font-medium">{menu.name}</p>
                                                         </div>
                                                         <div>
-                                                            <p className="text-sm text-muted-foreground">
-                                                                Địa chỉ kiosk:
-                                                            </p>
+                                                            <p className="text-sm text-muted-foreground">Địa chỉ kiosk:</p>
                                                             <p className="font-medium">{menu.kiosk.location}</p>
                                                         </div>
                                                         <div>
-                                                            <p className="text-sm text-muted-foreground">
-                                                                Mô tả:
-                                                            </p>
-                                                            <p className="font-medium">
-                                                                {menu.description || "Không có"}
-                                                            </p>
+                                                            <p className="text-sm text-muted-foreground">Mô tả:</p>
+                                                            <p className="font-medium">{menu.description || "Không có"}</p>
                                                         </div>
                                                         <div>
-                                                            <p className="text-sm text-muted-foreground">
-                                                                Trạng thái:
-                                                            </p>
+                                                            <p className="text-sm text-muted-foreground">Trạng thái:</p>
                                                             <Badge
                                                                 className={
-                                                                    menu.status === "Active"
-                                                                        ? "bg-green-100 text-green-800"
-                                                                        : "bg-gray-100 text-gray-800"
+                                                                    menu.status === "Active" ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"
                                                                 }
                                                             >
                                                                 {EBaseStatusViMap[menu.status] || "Không rõ"}
@@ -267,9 +341,7 @@ const MenuDetail = () => {
                     <TabsContent value="stores">
                         <Card>
                             <CardContent className="pt-6">
-                                <p className="text-muted-foreground">
-                                    Chưa có cửa hàng nào áp dụng menu này.
-                                </p>
+                                <p className="text-muted-foreground">Chưa có cửa hàng nào áp dụng menu này.</p>
                             </CardContent>
                         </Card>
                     </TabsContent>
@@ -290,35 +362,20 @@ const MenuDetail = () => {
 
                 <div className="flex flex-col sm:flex-row items-center py-4 gap-4">
                     <div className="relative w-full sm:w-72">
-                        <Input
-                            placeholder="Tìm kiếm sản phẩm..."
-                            value={searchValue}
-                            onChange={handleSearchChange}
-                            className="pl-10"
-                            disabled={loading}
+                        <SearchInput
+                            loading={loading}
+                            placeHolderText="Tìm kiếm sản phẩm..."
+                            searchValue={searchValue}
+                            setSearchValue={(value) => {
+                                setSearchValue(value)
+                                handleFilterChange()
+                            }}
+                            className="border-gray-200 dark:border-gray-700"
                         />
-                        <svg
-                            xmlns="http://www.w3.org/2000/svg"
-                            className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground"
-                            fill="none"
-                            viewBox="0 0 24 24"
-                            stroke="currentColor"
-                        >
-                            <path
-                                strokeLinecap="round"
-                                strokeLinejoin="round"
-                                strokeWidth={2}
-                                d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z"
-                            />
-                        </svg>
                     </div>
 
                     <div className="flex items-center gap-2 ml-auto">
-                        <Select
-                            value={statusFilter}
-                            onValueChange={handleStatusFilterChange}
-                            disabled={loading}
-                        >
+                        <Select value={statusFilter} onValueChange={handleStatusFilterChange}>
                             <SelectTrigger className="w-[180px]">
                                 <SelectValue placeholder="Trạng thái" />
                             </SelectTrigger>
@@ -331,7 +388,7 @@ const MenuDetail = () => {
 
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <Button variant="outline" disabled={loading}>
+                                <Button variant="outline">
                                     Cột <ChevronDownIcon className="ml-2 h-4 w-4" />
                                 </Button>
                             </DropdownMenuTrigger>
@@ -351,12 +408,12 @@ const MenuDetail = () => {
                                             >
                                                 {column.header as string}
                                             </DropdownMenuCheckboxItem>
-                                        )
+                                        ),
                                 )}
                             </DropdownMenuContent>
                         </DropdownMenu>
 
-                        <Button onClick={() => setAddProductDialogOpen(true)} disabled={loading}>
+                        <Button onClick={() => setAddProductDialogOpen(true)}>
                             <PlusCircle className="mr-2 h-4 w-4" />
                             Thêm
                         </Button>
@@ -369,10 +426,7 @@ const MenuDetail = () => {
                             <TableHeader>
                                 <TableRow>
                                     {columns({ onDelete: handleDeleteClick })
-                                        .filter(
-                                            (column) =>
-                                                columnVisibility[column.id as keyof typeof columnVisibility]
-                                        )
+                                        .filter((column) => columnVisibility[column.id as keyof typeof columnVisibility])
                                         .map((column) => (
                                             <TableHead
                                                 key={column.id}
@@ -394,10 +448,7 @@ const MenuDetail = () => {
                                     Array.from({ length: pageSize }).map((_, index) => (
                                         <TableRow key={`skeleton-${index}`} className="animate-pulse">
                                             {columns({ onDelete: handleDeleteClick })
-                                                .filter(
-                                                    (column) =>
-                                                        columnVisibility[column.id as keyof typeof columnVisibility]
-                                                )
+                                                .filter((column) => columnVisibility[column.id as keyof typeof columnVisibility])
                                                 .map((column) => (
                                                     <TableCell
                                                         key={`${column.id}-skeleton-${index}`}
@@ -428,10 +479,7 @@ const MenuDetail = () => {
                                     filteredProducts.map((product) => (
                                         <TableRow key={product.productId}>
                                             {columns({ onDelete: handleDeleteClick })
-                                                .filter(
-                                                    (column) =>
-                                                        columnVisibility[column.id as keyof typeof columnVisibility]
-                                                )
+                                                .filter((column) => columnVisibility[column.id as keyof typeof columnVisibility])
                                                 .map((column) => (
                                                     <TableCell
                                                         key={`${column.id}-${product.productId}`}
@@ -443,9 +491,9 @@ const MenuDetail = () => {
                                                                     : ""
                                                         }
                                                     >
-                                                        {column.cell && typeof column.cell === "function" ? (
-                                                            column.cell({ row: { original: product } } as any)
-                                                        ) : null}
+                                                        {column.cell && typeof column.cell === "function"
+                                                            ? column.cell({ row: { original: product } } as any)
+                                                            : null}
                                                     </TableCell>
                                                 ))}
                                         </TableRow>
@@ -453,15 +501,11 @@ const MenuDetail = () => {
                                 ) : (
                                     <TableRow>
                                         <TableCell
-                                            colSpan={
-                                                Object.values(columnVisibility).filter(Boolean).length
-                                            }
+                                            colSpan={Object.values(columnVisibility).filter(Boolean).length}
                                             className="h-24 text-center"
                                         >
                                             <div className="flex flex-col items-center justify-center text-center">
-                                                <p className="text-lg font-medium">
-                                                    Không tìm thấy sản phẩm
-                                                </p>
+                                                <p className="text-lg font-medium">Không tìm thấy sản phẩm</p>
                                                 <p className="text-sm text-muted-foreground">
                                                     Thử thay đổi bộ lọc hoặc tìm kiếm với từ khóa khác
                                                 </p>
@@ -501,7 +545,7 @@ const MenuDetail = () => {
                 onCancel={() => setSelectedProduct(null)}
             />
         </div>
-    );
-};
+    )
+}
 
-export default MenuDetail;
+export default MenuDetail

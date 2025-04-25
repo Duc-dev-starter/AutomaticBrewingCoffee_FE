@@ -13,15 +13,14 @@ import { Filter, ChevronDownIcon } from "lucide-react"
 import { Table } from "@tanstack/react-table"
 
 interface StatusFilterDropdownProps {
-    loading: boolean;
     table: Table<any>;
 }
 
-export const EBaseStatusFilterDropdown = ({ loading, table }: StatusFilterDropdownProps) => {
+export const EBaseStatusFilterDropdown = ({ table }: StatusFilterDropdownProps) => {
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
-                <Button variant="outline" className="ml-auto" disabled={loading}>
+                <Button variant="outline" className="ml-auto">
                     <Filter className="mr-2 h-4 w-4" />
                     Lọc
                     <ChevronDownIcon className="ml-2 h-4 w-4" />

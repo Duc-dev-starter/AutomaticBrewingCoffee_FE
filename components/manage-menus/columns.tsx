@@ -47,16 +47,6 @@ export const columns = ({
             ),
         },
         {
-            id: "description",
-            header: "Miêu tả",
-            cell: ({ row }) => (
-                <div className="text-center">
-                    {row.original.description || "Không có"}
-                </div>
-            ),
-            enableSorting: false,
-        },
-        {
             id: "status",
             header: "Trạng thái",
             cell: ({ row }) => {

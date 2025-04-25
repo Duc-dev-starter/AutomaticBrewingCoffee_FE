@@ -1,4 +1,5 @@
 import { EWorkflowStepType, EWorkflowType } from "@/enum/workflow";
+import { Product } from "./product";
 
 export interface WorkflowStep {
     name: string;
@@ -12,6 +13,7 @@ export interface WorkflowStep {
 export interface Workflow {
     workflowId: string;
     productId: string;
+    product: Product;
     name: string;
     description: string;
     type: EWorkflowType;

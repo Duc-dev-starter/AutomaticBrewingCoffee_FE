@@ -254,7 +254,7 @@ const ManageProducts = () => {
                         />
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <Button variant="outline" disabled={loading}>
+                                <Button variant="outline">
                                     Cột <ChevronDownIcon className="ml-2 h-4 w-4" />
                                 </Button>
                             </DropdownMenuTrigger>
@@ -280,7 +280,7 @@ const ManageProducts = () => {
                                     ))}
                             </DropdownMenuContent>
                         </DropdownMenu>
-                        <Button onClick={handleAdd} disabled={loading}>
+                        <Button onClick={handleAdd}>
                             <PlusCircle className="mr-2 h-4 w-4" />
                             Thêm
                         </Button>

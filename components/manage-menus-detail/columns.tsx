@@ -1,20 +1,20 @@
 import { ColumnDef } from "@tanstack/react-table";
-import { Product, ProductInMenu } from "@/interfaces/product";
+import { MenuProductMapping } from "@/interfaces/menu"; // Import MenuProductMapping thay vì ProductInMenu
 import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
 
 export const columns = ({
     onDelete,
 }: {
-    onDelete: (product: ProductInMenu) => void;
-}): ColumnDef<ProductInMenu>[] => [
+    onDelete: (mapping: MenuProductMapping) => void;
+}): ColumnDef<MenuProductMapping>[] => [
         {
             id: "image",
             header: "Hình ảnh",
             cell: ({ row }) => (
                 <img
-                    src={row.original.imageUrl || "/placeholder.svg"}
-                    alt={row.original.name}
+                    src={row.original.product?.imageUrl || "/placeholder.svg"}
+                    alt={row.original.product?.name || "Không có tên"}
                     className="h-10 w-10 rounded-md object-cover"
                 />
             ),
@@ -23,14 +23,20 @@ export const columns = ({
         {
             id: "name",
             header: "Tên sản phẩm",
-            cell: ({ row }) => <div className="font-medium">{row.original.name}</div>,
+            cell: ({ row }) => (
+                <div className="font-medium">
+                    {row.original.product?.name || "Không có tên"}
+                </div>
+            ),
             enableHiding: true,
         },
         {
             id: "price",
             header: "Giá (VNĐ)",
             cell: ({ row }) => (
-                <div className="text-right">{row.original.price.toLocaleString()}</div>
+                <div className="text-right">
+                    {row.original.product?.price?.toLocaleString() || "0"}
+                </div>
             ),
             enableHiding: true,
         },
@@ -42,12 +48,10 @@ export const columns = ({
                     <input
                         type="number"
                         className="w-16 px-2 py-1 border rounded text-center"
-                        value={row.original.menuProductMappings?.[0]?.displayOrder ?? ''}
+                        value={row.original.displayOrder ?? ""}
                         onChange={(e) => {
                             const newOrder = Number(e.target.value);
-                            if (row.original.menuProductMappings?.[0]) {
-                                row.original.menuProductMappings[0].displayOrder = newOrder;
-                            }
+                            row.original.displayOrder = newOrder;
                         }}
                     />
                 </div>

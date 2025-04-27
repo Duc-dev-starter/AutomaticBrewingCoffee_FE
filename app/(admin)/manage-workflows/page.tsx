@@ -27,10 +27,9 @@ import { columns } from "@/components/manage-workflows/columns";
 import { Workflow } from "@/interfaces/workflow";
 import { getWorkflows, deleteWorkflow } from "@/services/workflow";
 import useDebounce from "@/hooks/use-debounce";
-import { ConfirmDeleteDialog, ExportButton, NoResultsRow, Pagination, RefreshButton, SearchInput } from "@/components/common";
+import { ConfirmDeleteDialog, EBaseStatusFilterDropdown, ExportButton, NoResultsRow, Pagination, RefreshButton, SearchInput } from "@/components/common";
 import { multiSelectFilter } from "@/utils/table";
 import { useToast } from "@/hooks/use-toast";
-import { WorkflowFilter } from "@/components/manage-workflows/filter";
 import { FilterBadges } from "@/components/manage-workflows/filter-badges";
 import { useRouter } from "next/navigation";
 import { WorkflowDetailDialog, WorkflowDialog } from "@/components/dialog/workflow";
@@ -228,13 +227,7 @@ const ManageWorkflows = () => {
                         />
                     </div>
                     <div className="flex items-center gap-2 ml-auto">
-                        <WorkflowFilter
-                            typeFilter={typeFilter}
-                            setTypeFilter={setTypeFilter}
-                            clearAllFilters={clearAllFilters}
-                            hasActiveFilters={hasActiveFilters}
-                            loading={loading}
-                        />
+                        <EBaseStatusFilterDropdown table={table} />
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button variant="outline" disabled={loading}>

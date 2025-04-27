@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useParams } from "next/navigation"
 import { useState, useEffect, useCallback } from "react"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
@@ -34,121 +33,162 @@ export type MenuDetailType = Menu & {
 }
 
 const MenuDetail = () => {
-    const params = useParams()
-    const slug = params.slug as string
-    const { toast } = useToast()
+    const params = useParams();
+    const slug = params.slug as string;
+    const { toast } = useToast();
 
-    const [menu, setMenu] = useState<MenuDetailType | null>(null)
-    const [products, setProducts] = useState<Product[]>([])
-    const [filteredProducts, setFilteredProducts] = useState<Product[]>([])
-    const [loading, setLoading] = useState(true)
-    const [searchValue, setSearchValue] = useState("")
-    const [statusFilter, setStatusFilter] = useState<string>("all")
-    const [currentPage, setCurrentPage] = useState(1)
-    const [pageSize, setPageSize] = useState(5)
-    const [totalPages, setTotalPages] = useState(1)
-    const [totalItems, setTotalItems] = useState(0)
+    const [menu, setMenu] = useState<MenuDetailType | null>(null);
+    const [filteredMappings, setFilteredMappings] = useState<MenuProductMapping[]>([]);
+    const [loading, setLoading] = useState(true);
+    const [searchValue, setSearchValue] = useState("");
+
+    const [statusFilter, setStatusFilter] = useState<string>("");
+    const [productTypeFilter, setProductTypeFilter] = useState<string>("");
+    const [productSizeFilter, setProductSizeFilter] = useState<string>("");
+
+    const [currentPage, setCurrentPage] = useState(1);
+    const [pageSize, setPageSize] = useState(5);
+    const [totalPages, setTotalPages] = useState(1);
+    const [totalItems, setTotalItems] = useState(0);
     const [columnVisibility, setColumnVisibility] = useState({
         image: true,
         name: true,
         price: true,
         order: true,
         actions: true,
-    })
+    });
 
-    const existingProductIds = menu ? menu.menuProductMappings.map((mapping) => mapping.product.productId) : []
+    const existingProductIds = menu
+        ? menu.menuProductMappings.map((mapping) => mapping.product?.productId).filter(Boolean)
+        : [];
 
-    // Dialog states
-    const [addProductDialogOpen, setAddProductDialogOpen] = useState(false)
-    const [deleteProductDialogOpen, setDeleteProductDialogOpen] = useState(false)
-    const [selectedProduct, setSelectedProduct] = useState<Product | null>(null)
+    const hasActiveFilters =
+        statusFilter !== "" ||
+        productTypeFilter !== "" ||
+        productSizeFilter !== "" ||
+        searchValue !== "";
 
-    // Fetch menu data
+    const [addProductDialogOpen, setAddProductDialogOpen] = useState(false);
+    const [deleteProductDialogOpen, setDeleteProductDialogOpen] = useState(false);
+    const [selectedMapping, setSelectedMapping] = useState<MenuProductMapping | null>(null);
+
     const fetchMenu = useCallback(async () => {
         try {
-            setLoading(true)
-            const response = await getMenu(slug)
-            setMenu(response.response)
-            const productList = response.response.menuProductMappings.map((mapping: MenuProductMapping) => mapping.product)
-            setProducts(productList)
-            setTotalItems(productList.length)
+            setLoading(true);
+            const response = await getMenu(slug);
+            setMenu(response.response);
+            setTotalItems(response.response.menuProductMappings.length);
         } catch (error) {
-            console.error("Lỗi khi tải dữ liệu menu:", error)
+            console.error("Lỗi khi tải dữ liệu menu:", error);
             toast({
                 title: "Lỗi",
                 description: "Không thể tải dữ liệu menu.",
                 variant: "destructive",
-            })
+            });
         } finally {
-            setLoading(false)
+            setLoading(false);
         }
-    }, [slug, toast])
+    }, [slug, toast]);
 
     useEffect(() => {
-        fetchMenu()
-    }, [fetchMenu])
+        fetchMenu();
+    }, [fetchMenu]);
 
     const filterAndPaginateProducts = useCallback(() => {
-        let filtered = products.filter((product) => product.name.toLowerCase().includes(searchValue.toLowerCase()))
+        if (!menu) return;
 
-        if (statusFilter !== "all") {
-            filtered = filtered.filter((product) => product.status === statusFilter)
+        let filtered = menu.menuProductMappings.filter(
+            (mapping) => mapping.product !== null
+        );
+
+        filtered = filtered.filter((mapping) =>
+            mapping.product?.name.toLowerCase().includes(searchValue.toLowerCase())
+        );
+
+        if (statusFilter !== "" && statusFilter !== "all") {
+            filtered = filtered.filter((mapping) => mapping.product?.status === statusFilter);
         }
 
-        const total = Math.ceil(filtered.length / pageSize)
-        setTotalPages(total)
+        if (productTypeFilter !== "" && productTypeFilter !== "all") {
+            filtered = filtered.filter((mapping) => mapping.product?.type === productTypeFilter);
+        }
 
-        const startIndex = (currentPage - 1) * pageSize
-        const paginatedProducts = filtered.slice(startIndex, startIndex + pageSize)
-        setFilteredProducts(paginatedProducts)
-    }, [products, searchValue, statusFilter, currentPage, pageSize])
+        if (productSizeFilter !== "" && productSizeFilter !== "all") {
+            filtered = filtered.filter((mapping) => mapping.product?.size === productSizeFilter);
+        }
+
+        // Sắp xếp theo displayOrder tăng dần
+        filtered.sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0));
+
+        const total = Math.ceil(filtered.length / pageSize);
+        setTotalPages(total);
+
+        const startIndex = (currentPage - 1) * pageSize;
+        const paginatedMappings = filtered.slice(startIndex, startIndex + pageSize);
+        setFilteredMappings(paginatedMappings);
+    }, [menu, searchValue, statusFilter, productTypeFilter, productSizeFilter, currentPage, pageSize]);
 
     useEffect(() => {
-        filterAndPaginateProducts()
-    }, [filterAndPaginateProducts])
+        filterAndPaginateProducts();
+    }, [filterAndPaginateProducts]);
 
-    const handleFilterChange = () => setCurrentPage(1)
+    const handleFilterChange = () => setCurrentPage(1);
     const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setSearchValue(e.target.value)
-        handleFilterChange()
-    }
+        setSearchValue(e.target.value);
+        handleFilterChange();
+    };
     const handleStatusFilterChange = (value: string) => {
-        setStatusFilter(value)
-        handleFilterChange()
-    }
+        setStatusFilter(value);
+        handleFilterChange();
+    };
+    const handleProductTypeFilterChange = (value: string) => {
+        setProductTypeFilter(value);
+        handleFilterChange();
+    };
+    const handleProductSizeFilterChange = (value: string) => {
+        setProductSizeFilter(value);
+        handleFilterChange();
+    };
 
     const handleAddProductSuccess = () => {
-        fetchMenu()
-        setAddProductDialogOpen(false)
-    }
+        fetchMenu();
+        setAddProductDialogOpen(false);
+    };
 
     const handleDeleteProduct = async () => {
-        if (!selectedProduct) return
+        if (!selectedMapping || !selectedMapping.product) return;
         try {
-            await removeProductFromMenu(menu!.menuId, selectedProduct.productId)
-            toast({ title: "Thành công", description: "Đã xóa sản phẩm khỏi menu." })
-            fetchMenu()
+            await removeProductFromMenu(menu!.menuId, selectedMapping.product.productId);
+            toast({ title: "Thành công", description: "Đã xóa sản phẩm khỏi menu." });
+            fetchMenu();
         } catch (error) {
-            console.error("Lỗi khi xóa sản phẩm:", error)
+            console.error("Lỗi khi xóa sản phẩm:", error);
             toast({
                 title: "Lỗi",
                 description: "Không thể xóa sản phẩm.",
                 variant: "destructive",
-            })
+            });
         } finally {
-            setDeleteProductDialogOpen(false)
-            setSelectedProduct(null)
+            setDeleteProductDialogOpen(false);
+            setSelectedMapping(null);
         }
-    }
+    };
 
-    const handleDeleteClick = (product: Product) => {
-        setSelectedProduct(product)
-        setDeleteProductDialogOpen(true)
-    }
+    const handleDeleteClick = (mapping: MenuProductMapping) => {
+        setSelectedMapping(mapping);
+        setDeleteProductDialogOpen(true);
+    };
 
     const toggleLoading = () => {
-        fetchMenu()
-    }
+        fetchMenu();
+    };
+
+    const clearAllFilters = () => {
+        setStatusFilter("");
+        setProductTypeFilter("");
+        setProductSizeFilter("");
+        setSearchValue("");
+    };
 
     if (loading && !menu) {
         return (
@@ -433,9 +473,7 @@ const MenuDetail = () => {
                                                 className={
                                                     column.id === "price" || column.id === "actions"
                                                         ? "text-right"
-                                                        : column.id === "order"
-                                                            ? "text-center"
-                                                            : ""
+                                                        : "text-center"
                                                 }
                                             >
                                                 {column.header as string}
@@ -455,15 +493,13 @@ const MenuDetail = () => {
                                                         className={
                                                             column.id === "price" || column.id === "actions"
                                                                 ? "text-right"
-                                                                : column.id === "order"
-                                                                    ? "text-center"
-                                                                    : ""
+                                                                : "text-center" // Căn giữa tất cả các cột khác
                                                         }
                                                     >
                                                         {column.id === "image" ? (
-                                                            <Skeleton className="h-10 w-10 rounded-md" />
+                                                            <Skeleton className="h-10 w-10 rounded-md mx-auto" />
                                                         ) : column.id === "name" ? (
-                                                            <Skeleton className="h-5 w-40" />
+                                                            <Skeleton className="h-5 w-40 mx-auto" />
                                                         ) : column.id === "price" ? (
                                                             <Skeleton className="h-5 w-20 ml-auto" />
                                                         ) : column.id === "order" ? (
@@ -475,24 +511,22 @@ const MenuDetail = () => {
                                                 ))}
                                         </TableRow>
                                     ))
-                                ) : filteredProducts.length > 0 ? (
-                                    filteredProducts.map((product) => (
-                                        <TableRow key={product.productId}>
+                                ) : filteredMappings.length > 0 ? (
+                                    filteredMappings.map((mapping) => (
+                                        <TableRow key={mapping.product?.productId || mapping.productId}>
                                             {columns({ onDelete: handleDeleteClick })
                                                 .filter((column) => columnVisibility[column.id as keyof typeof columnVisibility])
                                                 .map((column) => (
                                                     <TableCell
-                                                        key={`${column.id}-${product.productId}`}
+                                                        key={`${column.id}-${mapping.product?.productId || mapping.productId}`}
                                                         className={
                                                             column.id === "price" || column.id === "actions"
                                                                 ? "text-right"
-                                                                : column.id === "order"
-                                                                    ? "text-center"
-                                                                    : ""
+                                                                : "text-center" // Căn giữa tất cả các cột khác
                                                         }
                                                     >
                                                         {column.cell && typeof column.cell === "function"
-                                                            ? column.cell({ row: { original: product } } as any)
+                                                            ? column.cell({ row: { original: mapping } } as any)
                                                             : null}
                                                     </TableCell>
                                                 ))}
@@ -540,12 +574,12 @@ const MenuDetail = () => {
             <ConfirmDeleteDialog
                 open={deleteProductDialogOpen}
                 onOpenChange={setDeleteProductDialogOpen}
-                description={`Bạn có chắc chắn muốn xóa sản phẩm "${selectedProduct?.name}" khỏi menu? Hành động này không thể hoàn tác.`}
+                description={`Bạn có chắc chắn muốn xóa sản phẩm "${selectedMapping?.product?.name || "Không có tên"}" khỏi menu? Hành động này không thể hoàn tác.`}
                 onConfirm={handleDeleteProduct}
-                onCancel={() => setSelectedProduct(null)}
+                onCancel={() => setSelectedMapping(null)}
             />
         </div>
-    )
-}
+    );
+};
 
-export default MenuDetail
+export default MenuDetail;

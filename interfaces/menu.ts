@@ -6,8 +6,8 @@ export interface MenuProductMapping {
     menuId: string;
     productId: string;
     displayOrder: number;
-    statusInMenu: EBaseStatus;
-    product: Product;
+    statusInMenu: EBaseStatus | null;
+    product: Product | null;
 }
 
 export interface Menu {

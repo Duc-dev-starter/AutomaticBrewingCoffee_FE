@@ -12,14 +12,7 @@ import { EDeviceStatus, EDeviceStatusViMap } from "@/enum/device";
 import { PlusCircle, Loader2, Edit } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { createDevice, updateDevice } from "@/services/device";
-import { Device } from "@/interfaces/device";
-
-type DeviceDialogProps = {
-    open: boolean;
-    onOpenChange: (open: boolean) => void;
-    onSuccess: () => void;
-    device?: Device;
-}
+import { DeviceDialogProps } from "@/types/dialog";
 
 const initialFormData = {
     name: "",

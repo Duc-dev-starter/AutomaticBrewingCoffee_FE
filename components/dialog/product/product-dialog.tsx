@@ -12,13 +12,7 @@ import { Product } from "@/interfaces/product";
 import { EProductStatus, EProductSize, EProductType } from "@/enum/product";
 import { createProduct, updateProduct, getProducts } from "@/services/product";
 import { productSchema } from "@/schema/product";
-
-type ProductDialogProps = {
-    open: boolean;
-    onOpenChange: (open: boolean) => void;
-    onSuccess: () => void;
-    product?: Product;
-}
+import { ProductDialogProps } from "@/types/dialog";
 
 const initialFormData = {
     name: "",

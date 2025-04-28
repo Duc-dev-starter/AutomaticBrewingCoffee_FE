@@ -11,18 +11,10 @@ import { Badge } from "@/components/ui/badge";
 import { Info, Workflow as WorkflowIcon, FileText } from "lucide-react";
 import clsx from "clsx";
 import { EWorkflowTypeViMap } from "@/enum/workflow";
+import { WorkflowDialogProps } from "@/types/dialog";
 
-interface WorkflowDetailDialogProps {
-    workflow: Workflow | null;
-    open: boolean;
-    onOpenChange: (open: boolean) => void;
-}
 
-const WorkflowDetailDialog = ({
-    workflow,
-    open,
-    onOpenChange,
-}: WorkflowDetailDialogProps) => {
+const WorkflowDetailDialog = ({ workflow, open, onOpenChange }: WorkflowDialogProps) => {
     if (!workflow) return null;
 
     return (

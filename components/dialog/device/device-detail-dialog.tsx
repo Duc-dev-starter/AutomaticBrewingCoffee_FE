@@ -4,7 +4,6 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
-import { Device } from "@/interfaces/device";
 import { format } from "date-fns";
 import { EDeviceStatusViMap } from "@/enum/device";
 import { ScrollArea } from "@/components/ui/scroll-area";
@@ -13,19 +12,14 @@ import { Badge } from "@/components/ui/badge";
 import { Info, Monitor, Calendar, FileText } from "lucide-react";
 import clsx from "clsx";
 import { getDeviceStatusColor } from "@/utils/color";
-
-interface DeviceDetailDialogProps {
-    device: Device | null;
-    open: boolean;
-    onOpenChange: (open: boolean) => void;
-}
+import { DeviceDialogProps } from "@/types/dialog";
 
 
 const DeviceDetailDialog = ({
     device,
     open,
     onOpenChange,
-}: DeviceDetailDialogProps) => {
+}: DeviceDialogProps) => {
     if (!device) return null;
 
     return (

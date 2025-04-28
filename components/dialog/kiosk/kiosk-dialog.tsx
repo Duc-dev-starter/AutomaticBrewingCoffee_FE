@@ -7,7 +7,6 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import { Kiosk } from "@/interfaces/kiosk";
 import { Franchise } from "@/interfaces/franchise";
 import { Device } from "@/interfaces/device";
 import { EBaseStatus } from "@/enum/base";
@@ -21,13 +20,8 @@ import { CalendarIcon } from "lucide-react";
 import { Calendar } from "@/components/ui/calendar";
 import { vi } from "date-fns/locale";
 import { kioskSchema } from "@/schema/kiosk";
+import { KioskDialogProps } from "@/types/dialog";
 
-type KioskDialogProps = {
-    open: boolean;
-    onOpenChange: (open: boolean) => void;
-    onSuccess: () => void;
-    kiosk?: Kiosk;
-}
 
 const initialFormData = {
     franchiseId: "",

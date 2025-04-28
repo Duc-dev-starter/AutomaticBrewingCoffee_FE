@@ -12,14 +12,8 @@ import { EWorkflowType, EWorkflowTypeViMap } from "@/enum/workflow";
 import { PlusCircle, Loader2, Edit } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { createWorkflow, updateWorkflow } from "@/services/workflow";
-import { Workflow } from "@/interfaces/workflow";
+import { WorkflowDialogProps } from "@/types/dialog";
 
-type WorkflowDialogProps = {
-    open: boolean;
-    onOpenChange: (open: boolean) => void;
-    onSuccess: () => void;
-    workflow?: Workflow;
-};
 
 const initialFormData = {
     name: "",

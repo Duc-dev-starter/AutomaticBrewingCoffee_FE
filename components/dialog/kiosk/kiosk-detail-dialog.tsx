@@ -11,14 +11,10 @@ import { Separator } from "@/components/ui/separator"
 import { Calendar, Clock, FileText, Info, MapPin, Package, Store, Tag } from 'lucide-react'
 import clsx from "clsx"
 import { getBaseStatusColor } from "@/utils/color"
+import { KioskDialogProps } from "@/types/dialog"
 
-type KioskDetailDialogProps = {
-    kiosk: Kiosk | null
-    open: boolean
-    onOpenChange: (open: boolean) => void
-}
 
-const KioskDetailDialog = ({ kiosk, open, onOpenChange }: KioskDetailDialogProps) => {
+const KioskDetailDialog = ({ kiosk, open, onOpenChange }: KioskDialogProps) => {
     if (!kiosk) return null
 
     return (

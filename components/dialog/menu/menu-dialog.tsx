@@ -15,13 +15,8 @@ import { Menu } from "@/interfaces/menu";
 import { Kiosk } from "@/interfaces/kiosk";
 import { getKiosks } from "@/services/kiosk";
 import InfiniteScroll from "react-infinite-scroll-component";
+import { MenuDialogProps } from "@/types/dialog";
 
-type MenuDialogProps = {
-    open: boolean;
-    onOpenChange: (open: boolean) => void;
-    onSuccess: () => void;
-    menu?: Menu;
-};
 
 const initialFormData = {
     kioskId: "",

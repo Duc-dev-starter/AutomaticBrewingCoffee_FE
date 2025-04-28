@@ -7,17 +7,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Franchise } from "@/interfaces/franchise";
 import { EBaseStatus } from "@/enum/base";
 import { useToast } from "@/hooks/use-toast";
 import { createFranchise, updateFranchise } from "@/services/franchise";
+import { FranchiseDialogProps } from "@/types/dialog";
 
-type FranchiseDialogProps = {
-    open: boolean;
-    onOpenChange: (open: boolean) => void;
-    onSuccess: () => void;
-    franchise?: Franchise;
-}
 
 const initialFormData = {
     name: "",

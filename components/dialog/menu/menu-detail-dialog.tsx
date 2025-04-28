@@ -5,19 +5,14 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog";
 import { EBaseStatusViMap } from "@/enum/base";
-import { Menu } from "@/interfaces/menu";
+import { MenuDialogProps } from "@/types/dialog";
 
-type MenuDetailDialogProps = {
-    menu: Menu | null;
-    open: boolean;
-    onOpenChange: (open: boolean) => void;
-}
 
 const MenuDetailDialog = ({
     menu,
     open,
     onOpenChange,
-}: MenuDetailDialogProps) => {
+}: MenuDialogProps) => {
     if (!menu) return null;
 
     const renderField = (label: string, value: string) => (

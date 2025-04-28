@@ -5,21 +5,16 @@ import {
     DialogTitle,
     DialogDescription,
 } from "@/components/ui/dialog";
-import { Franchise } from "@/interfaces/franchise";
 import { format } from "date-fns";
 import { EBaseStatusViMap } from "@/enum/base";
+import { FranchiseDialogProps } from "@/types/dialog";
 
-type FranchiseDetailDialogProps = {
-    franchise: Franchise | null;
-    open: boolean;
-    onOpenChange: (open: boolean) => void;
-}
 
 const FranchiseDetailDialog = ({
     franchise,
     open,
     onOpenChange,
-}: FranchiseDetailDialogProps) => {
+}: FranchiseDialogProps) => {
     if (!franchise) return null;
 
     const renderField = (label: string, value: string) => (

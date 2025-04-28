@@ -11,12 +11,7 @@ import { useToast } from "@/hooks/use-toast";
 import { EOrderType, EPaymentGateway } from "@/enum/order";
 import { createOrder } from "@/services/order";
 import { orderSchema } from "@/schema/order";
-
-type OrderDialogProps = {
-    open: boolean;
-    onOpenChange: (open: boolean) => void;
-    onSuccess: () => void;
-};
+import { OrderDialogProps } from "@/types/dialog";
 
 
 // Initial form data

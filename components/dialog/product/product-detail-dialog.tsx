@@ -12,15 +12,11 @@ import { Separator } from "@/components/ui/separator"
 import { Calendar, Clock, DollarSign, FileText, ImageIcon, Info, ShoppingBag } from "lucide-react"
 import clsx from "clsx"
 import { getProductStatusColor } from "@/utils/color"
-
-type ProductDetailDialogProps = {
-    product: Product | null
-    open: boolean
-    onOpenChange: (open: boolean) => void
-}
+import { ProductDialogProps } from "@/types/dialog"
 
 
-const ProductDetailDialog = ({ product, open, onOpenChange }: ProductDetailDialogProps) => {
+
+const ProductDetailDialog = ({ product, open, onOpenChange }: ProductDialogProps) => {
     if (!product) return null
 
     return (

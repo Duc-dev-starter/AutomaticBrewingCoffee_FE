@@ -10,14 +10,11 @@ import { ScrollArea } from "../../ui/scroll-area"
 import clsx from "clsx"
 import { getOrderStatusColor, getPaymentColor } from "@/utils/color"
 import { images } from "@/public/assets"
+import { OrderDialogProps } from "@/types/dialog"
 
 
 
-const OrderDetailDialog = ({
-    order,
-    open,
-    onOpenChange,
-}: { order: Order | null; open: boolean; onOpenChange: (open: boolean) => void }) => {
+const OrderDetailDialog = ({ order, open, onOpenChange }: OrderDialogProps) => {
     if (!order) return null
 
     const paymentLogoMap: Record<EPaymentGateway, string> = {

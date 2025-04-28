@@ -24,13 +24,14 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { PlusCircle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import useDebounce from "@/hooks/use-debounce";
-import { ConfirmDeleteDialog, EBaseStatusFilterDropdown, ExportButton, NoResultsRow, PageSizeSelector, Pagination, RefreshButton, SearchInput } from "@/components/common";
+import { ConfirmDeleteDialog, BaseStatusFilter, ExportButton, NoResultsRow, PageSizeSelector, Pagination, RefreshButton, SearchInput } from "@/components/common";
 import { getKiosks, deleteKiosk } from "@/services/kiosk";
 import { Kiosk } from "@/interfaces/kiosk";
 import { multiSelectFilter } from "@/utils/table";
 import { useToast } from "@/hooks/use-toast";
 import { columns } from "@/components/manage-kiosks/columns";
 import { KioskDetailDialog, KioskDialog } from "@/components/dialog/kiosk";
+import { BaseFilterBadges } from "@/components/common/base-filter-badges";
 
 const ManageKiosks = () => {
     const { toast } = useToast();
@@ -40,6 +41,10 @@ const ManageKiosks = () => {
     const [kiosks, setKiosks] = useState<Kiosk[]>([]);
     const [totalItems, setTotalItems] = useState(0);
     const [totalPages, setTotalPages] = useState(1);
+
+    const [statusFilter, setStatusFilter] = useState<string>("");
+    const [searchValue, setSearchValue] = useState("");
+    const debouncedSearchValue = useDebounce(searchValue, 500);
 
     const [sorting, setSorting] = useState<SortingState>([{ id: "createdDate", desc: true }]);
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
@@ -53,18 +58,18 @@ const ManageKiosks = () => {
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [kioskToDelete, setKioskToDelete] = useState<Kiosk | null>(null);
 
-    const [searchValue, setSearchValue] = useState("");
-    const debouncedSearchValue = useDebounce(searchValue, 500);
-
     const isInitialMount = useRef(true);
 
-    // Đồng bộ tìm kiếm với columnFilters
+    const hasActiveFilters = statusFilter !== "" || searchValue !== "";
+
+    // Đồng bộ cả searchValue và statusFilter với columnFilters
     useEffect(() => {
         if (isInitialMount.current) {
             return; // Bỏ qua lần đầu khi mount
         }
         table.getColumn("location")?.setFilterValue(debouncedSearchValue || undefined);
-    }, [debouncedSearchValue]);
+        table.getColumn("status")?.setFilterValue(statusFilter || undefined);
+    }, [debouncedSearchValue, statusFilter]);
 
     const fetchKiosks = useCallback(async () => {
         try {
@@ -106,8 +111,12 @@ const ManageKiosks = () => {
 
     // Gọi fetchKiosks khi mount và khi có thay đổi
     useEffect(() => {
-        fetchKiosks();
-        isInitialMount.current = false;
+        if (isInitialMount.current) {
+            fetchKiosks(); // Gọi lần đầu khi mount
+            isInitialMount.current = false;
+        } else {
+            fetchKiosks(); // Gọi khi có thay đổi thực sự
+        }
     }, [fetchKiosks]);
 
     const handleSuccess = () => {
@@ -156,6 +165,12 @@ const ManageKiosks = () => {
     const handleAdd = () => {
         setSelectedKiosk(undefined);
         setDialogOpen(true);
+    };
+
+    const clearAllFilters = () => {
+        setStatusFilter("");
+        setSearchValue("");
+        table.resetColumnFilters();
     };
 
     const table = useReactTable({
@@ -217,7 +232,13 @@ const ManageKiosks = () => {
                         />
                     </div>
                     <div className="flex items-center gap-2 ml-auto">
-                        <EBaseStatusFilterDropdown table={table} />
+                        <BaseStatusFilter
+                            statusFilter={statusFilter}
+                            setStatusFilter={setStatusFilter}
+                            clearAllFilters={clearAllFilters}
+                            hasActiveFilters={hasActiveFilters}
+                            loading={loading}
+                        />
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button variant="outline">
@@ -254,6 +275,15 @@ const ManageKiosks = () => {
                         </Button>
                     </div>
                 </div>
+
+                <BaseFilterBadges
+                    searchValue={searchValue}
+                    setSearchValue={setSearchValue}
+                    statusFilter={statusFilter}
+                    setStatusFilter={setStatusFilter}
+                    hasActiveFilters={hasActiveFilters}
+                />
+
                 <div className="rounded-md border">
                     <Table>
                         <TableHeader>

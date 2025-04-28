@@ -1,4 +1,4 @@
-import { EBaseStatusFilterDropdown } from './ebase-status-filter'
+import { BaseStatusFilter } from './base-status-filter'
 import ExportButton from './export-button';
 import RefreshButton from './refresh-button';
 import { PageSizeSelector } from './page-size-selector';
@@ -9,7 +9,7 @@ import { ActionDropdown } from './action-dropdown';
 import { Pagination } from './pagination';
 
 export {
-    EBaseStatusFilterDropdown,
+    BaseStatusFilter,
     ExportButton,
     RefreshButton,
     PageSizeSelector,

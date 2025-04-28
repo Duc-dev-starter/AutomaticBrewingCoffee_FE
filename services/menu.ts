@@ -41,12 +41,16 @@ export const getMenuProducts = async (params: PagingParams = {}): Promise<Paging
     });
 };
 
-
 export const addProductToMenu = async (payload: { menuId: string, productId: string, status: EBaseStatus }): Promise<PagingResponse<MenuProductMapping>> => {
     return BaseService.post({ url: `${Api.MENUS}${Api.MENU_PRODUCTS}`, payload });
 }
 
 export const removeProductFromMenu = async (menuId: string, productId: string) => {
     const response = await BaseService.delete({ url: `${Api.MENUS}/${menuId}/${Api.MENU_PRODUCTS}/${productId}` })
+    return response;
+}
+
+export const reorderMenuProducts = async (menuId: string, payload: { dragProductId: string, targetProductId: string, insertAfter: boolean }) => {
+    const response = await BaseService.put({ url: `${Api.MENUS}/${menuId}/${Api.MENU_PRODUCTS}/reorder`, payload })
     return response;
 }

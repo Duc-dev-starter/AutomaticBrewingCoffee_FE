@@ -9,7 +9,7 @@ import { Workflow } from "@/interfaces/workflow";
 type BaseDialogProps = {
     open: boolean;
     onOpenChange: (open: boolean) => void;
-    onSuccess: () => void;
+    onSuccess?: () => void;
 };
 
 export type DeviceDialogProps = BaseDialogProps & {

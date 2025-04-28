@@ -24,7 +24,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { PlusCircle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import useDebounce from "@/hooks/use-debounce";
-import { ConfirmDeleteDialog, EBaseStatusFilterDropdown, ExportButton, NoResultsRow, PageSizeSelector, Pagination, RefreshButton, SearchInput } from "@/components/common";
+import { ConfirmDeleteDialog, BaseStatusFilter, ExportButton, NoResultsRow, PageSizeSelector, Pagination, RefreshButton, SearchInput } from "@/components/common";
 import { getMenus, deleteMenu } from "@/services/menu";
 import { Menu } from "@/interfaces/menu";
 import { multiSelectFilter } from "@/utils/table";
@@ -43,6 +43,9 @@ const ManageMenus = () => {
     const [totalItems, setTotalItems] = useState(0);
     const [totalPages, setTotalPages] = useState(1);
 
+    const [statusFilter, setStatusFilter] = useState<string>("");
+
+
     const [sorting, setSorting] = useState<SortingState>([{ id: "createdDate", desc: true }]);
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
     const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
@@ -60,6 +63,18 @@ const ManageMenus = () => {
     const debouncedSearchValue = useDebounce(searchValue, 500);
 
     const isInitialMount = useRef(true);
+
+    const hasActiveFilters = statusFilter !== "" || searchValue !== "";
+
+    // Đồng bộ cả searchValue và statusFilter với columnFilters
+    useEffect(() => {
+        if (isInitialMount.current) {
+            return; // Bỏ qua lần đầu khi mount
+        }
+        table.getColumn("location")?.setFilterValue(debouncedSearchValue || undefined);
+        table.getColumn("status")?.setFilterValue(statusFilter || undefined);
+    }, [debouncedSearchValue, statusFilter]);
+
 
     // Đồng bộ tìm kiếm với columnFilters
     useEffect(() => {
@@ -160,6 +175,13 @@ const ManageMenus = () => {
         setDialogOpen(true);
     };
 
+    const clearAllFilters = () => {
+        setStatusFilter("");
+        setSearchValue("");
+        table.resetColumnFilters();
+    };
+
+
     const table = useReactTable({
         data: menus,
         columns: columns({
@@ -219,7 +241,13 @@ const ManageMenus = () => {
                         />
                     </div>
                     <div className="flex items-center gap-2 ml-auto">
-                        <EBaseStatusFilterDropdown table={table} />
+                        <BaseStatusFilter
+                            statusFilter={statusFilter}
+                            setStatusFilter={setStatusFilter}
+                            clearAllFilters={clearAllFilters}
+                            hasActiveFilters={hasActiveFilters}
+                            loading={loading}
+                        />
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button variant="outline">

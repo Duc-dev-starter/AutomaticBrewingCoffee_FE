@@ -89,7 +89,7 @@ const WorkflowDialog = ({ open, onOpenChange, onSuccess, workflow }: WorkflowDia
                     description: "Thêm quy trình mới thành công",
                 });
             }
-            onSuccess();
+            onSuccess?.();
             onOpenChange(false);
         } catch (error) {
             console.error("Lỗi khi xử lý quy trình:", error);

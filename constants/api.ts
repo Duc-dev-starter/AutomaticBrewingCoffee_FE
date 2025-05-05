@@ -23,6 +23,9 @@ export const Api = {
     MENU_PRODUCTS: '/menu-products',
 
     // WORKFLOW
-    WORKFLOW: '/workflows'
+    WORKFLOWS: '/workflows',
+
+    // LOCATIONTYPE
+    LOCATION_TYPES: '/location-types',
 
 }

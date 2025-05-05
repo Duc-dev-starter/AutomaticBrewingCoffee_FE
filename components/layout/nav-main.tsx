@@ -115,6 +115,10 @@ const menuSections: MenuSection[] = [
                 title: "Quản lý menu",
                 url: Path.MANAGE_MENUS,
                 icon: Menu,
+            }, {
+                title: "Quản lý location",
+                url: Path.MANAGE_LOCATION_TYPES,
+                icon: Menu,
             },
         ],
     },

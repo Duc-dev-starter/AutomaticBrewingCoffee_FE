@@ -18,6 +18,7 @@ export const Path = {
     RECIPE: "/recipe",
     HOME: "/",
     LOGIN: "/login",
-    MENUS_DETAIL: "/manage-menus/:slug"
+    MENUS_DETAIL: "/manage-menus/:slug",
+    MANAGE_LOCATION_TYPES: "/manage-location-types"
 };
 

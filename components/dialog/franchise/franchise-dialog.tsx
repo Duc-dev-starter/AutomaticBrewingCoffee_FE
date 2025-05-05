@@ -75,7 +75,7 @@ const FranchiseDialog = ({ open, onOpenChange, onSuccess, franchise }: Franchise
                     description: `Chi nhánh "${formData.name}" đã được tạo.`,
                 });
             }
-            onSuccess();
+            onSuccess?.();
             onOpenChange(false);
         } catch (error) {
             console.error("Lỗi:", error);

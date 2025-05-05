@@ -129,7 +129,7 @@ const KioskDialog = ({ open, onOpenChange, onSuccess, kiosk }: KioskDialogProps)
                     description: `Kiosk tại "${formData.location}" đã được tạo.`,
                 });
             }
-            onSuccess();
+            onSuccess?.();
             onOpenChange(false);
         } catch (error) {
             console.error("Lỗi:", error);

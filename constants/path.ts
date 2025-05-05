@@ -10,6 +10,8 @@ export const Path = {
     MANAGE_FRANCHISES: "/manage-franchises",
     MANAGE_WORKFLOWS: "/manage-workflows",
     MANAGE_MENUS: "/manage-menus",
+    MANAGE_ORGANIZATIONS: "/manage-organizations",
+    MANAGE_STORES: "/manage-stores",
     PROFILE: "/profile",
     REMINDER: "/reminder",
     NOT_FOUND: "/not-found",

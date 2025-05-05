@@ -97,13 +97,18 @@ const menuSections: MenuSection[] = [
                 icon: DollarSign,
             },
             {
+                title: "Quản lý tổ chức",
+                url: Path.MANAGE_ORGANIZATIONS,
+                icon: DollarSign,
+            },
+            {
                 title: "Quản lý sản phẩm",
                 url: Path.MANAGE_PRODUCTS,
                 icon: Box,
             },
             {
-                title: "Quản lý chi nhánh",
-                url: Path.MANAGE_FRANCHISES,
+                title: "Quản lý cửa hàng",
+                url: Path.MANAGE_STORES,
                 icon: Store,
             },
             {

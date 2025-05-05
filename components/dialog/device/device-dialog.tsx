@@ -77,7 +77,7 @@ const DeviceDialog = ({ open, onOpenChange, onSuccess, device }: DeviceDialogPro
                     description: "Thêm thiết bị mới thành công",
                 });
             }
-            onSuccess();
+            onSuccess?.();
             onOpenChange(false);
         } catch (error) {
             console.error("Lỗi khi xử lý thiết bị:", error);

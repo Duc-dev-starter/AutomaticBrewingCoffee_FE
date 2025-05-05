@@ -7,4 +7,21 @@ export interface Device {
     status: EDeviceStatus;
     createdDate: string;
     updatedDate: string | null;
+    deviceModel: DeviceModel;
+    serialNumber: string;
+}
+
+
+export interface DeviceType {
+    name: string;
+    description: string;
+    deviceTypeId: string;
+}
+
+export interface DeviceModel {
+    modelName: string;
+    manufacturer: string;
+    deviceModelId: string;
+    deviceTypeId: string;
+    deviceType: DeviceType;
 }

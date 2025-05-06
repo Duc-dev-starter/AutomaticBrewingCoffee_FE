@@ -28,4 +28,10 @@ export const Api = {
     // LOCATIONTYPE
     LOCATION_TYPES: '/location-types',
 
+    // ORGANIZATION
+    ORGANIZATIONS: '/organizations',
+
+    // STORE
+    STORES: '/stores'
+
 }

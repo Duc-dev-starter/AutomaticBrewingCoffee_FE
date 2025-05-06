@@ -6,6 +6,7 @@ import { Menu } from "@/interfaces/menu";
 import { Order } from "@/interfaces/order";
 import { Workflow } from "@/interfaces/workflow";
 import { LocationType } from "@/interfaces/location";
+import { Organization } from "@/interfaces/organization";
 
 type BaseDialogProps = {
     open: boolean;
@@ -43,4 +44,8 @@ export type WorkflowDialogProps = BaseDialogProps & {
 
 export type LocationTypeDialogProps = BaseDialogProps & {
     locationType?: LocationType | null;
+}
+
+export type OrganizationDialogProps = BaseDialogProps & {
+    organization?: Organization | null;
 }

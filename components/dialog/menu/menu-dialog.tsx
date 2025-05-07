@@ -11,7 +11,6 @@ import { PlusCircle, Loader2, Edit } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { EBaseStatus, EBaseStatusViMap } from "@/enum/base";
 import { createMenu, updateMenu } from "@/services/menu";
-import { Menu } from "@/interfaces/menu";
 import { Kiosk } from "@/interfaces/kiosk";
 import { getKiosks } from "@/services/kiosk";
 import InfiniteScroll from "react-infinite-scroll-component";

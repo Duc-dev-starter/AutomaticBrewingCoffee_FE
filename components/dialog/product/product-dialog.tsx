@@ -127,7 +127,7 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                     description: `Sản phẩm "${formData.name}" đã được tạo.`,
                 });
             }
-            onSuccess();
+            onSuccess?.();
             onOpenChange(false);
         } catch (error) {
             console.error("Lỗi:", error);

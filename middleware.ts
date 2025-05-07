@@ -25,7 +25,8 @@ const allowedPaths = [
     Path.NOT_FOUND,
     Path.MANAGE_WORKFLOWS,
     Path.MANAGE_LOCATION_TYPES,
-    Path.MANAGE_ORGANIZATIONS
+    Path.MANAGE_ORGANIZATIONS,
+    Path.MANAGE_STORES
 ];
 
 const dynamicPathPrefixes = [

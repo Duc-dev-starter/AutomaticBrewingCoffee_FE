@@ -72,7 +72,7 @@ const OrderDialog = ({ open, onOpenChange, onSuccess }: OrderDialogProps) => {
                 title: "Thành công",
                 description: "Đơn hàng mới đã được tạo.",
             });
-            onSuccess();
+            onSuccess?.();
             onOpenChange(false);
         } catch (error) {
             toast({

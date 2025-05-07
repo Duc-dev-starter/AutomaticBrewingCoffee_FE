@@ -35,9 +35,8 @@ const OrganizationDetailDialog = ({ organization, open, onOpenChange }: Organiza
                     </div>
                 </DialogHeader>
 
-                <ScrollArea className="flex-1 pr-4">
+                <ScrollArea className="flex-1 overflow-y-auto pr-4 hide-scrollbar">
                     <div className="space-y-6 py-2">
-                        {/* Logo và thông tin cơ bản */}
                         <div className="flex items-center space-x-4">
                             <Avatar className="h-24 w-24 rounded-md border">
                                 <AvatarImage src={organization.logoUrl || "/placeholder.svg"} alt={organization.name} />

@@ -95,6 +95,20 @@ const OrganizationDialog = ({ open, onOpenChange, onSuccess, organization }: Org
         setLogoFile(null)
     }
 
+    const fileToBase64 = (file: File): Promise<string> => {
+        return new Promise((resolve, reject) => {
+            const reader = new FileReader()
+            reader.onload = () => {
+                const base64String = reader.result as string
+                // Remove the data:image/*;base64, prefix
+                const base64Data = base64String;
+                resolve(base64Data)
+            }
+            reader.onerror = (error) => reject(error)
+            reader.readAsDataURL(file)
+        })
+    }
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
 
@@ -110,18 +124,27 @@ const OrganizationDialog = ({ open, onOpenChange, onSuccess, organization }: Org
         try {
             setIsSubmitting(true)
 
-            let payload: Partial<Organization> | FormData
+            let payload: {
+                name: string
+                description: string
+                contactPhone: string
+                contactEmail: string
+                logoBase64?: string
+                taxId: string
+                status: string
+            }
 
             if (logoFile) {
-                const formDataPayload = new FormData()
-                formDataPayload.append("name", formData.name)
-                formDataPayload.append("description", formData.description)
-                formDataPayload.append("contactPhone", formData.contactPhone)
-                formDataPayload.append("contactEmail", formData.contactEmail)
-                formDataPayload.append("taxId", formData.taxId)
-                formDataPayload.append("status", formData.status)
-                formDataPayload.append("logo", logoFile)
-                payload = formDataPayload
+                const logoBase64 = await fileToBase64(logoFile)
+                payload = {
+                    name: formData.name,
+                    description: formData.description,
+                    contactPhone: formData.contactPhone,
+                    contactEmail: formData.contactEmail,
+                    logoBase64,
+                    taxId: formData.taxId,
+                    status: formData.status,
+                }
             } else {
                 payload = {
                     name: formData.name,

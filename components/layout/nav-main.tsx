@@ -12,6 +12,10 @@ import {
     Store,
     Menu,
     type LucideIcon,
+    ChevronRight,
+    Settings,
+    Cpu,
+    HardDrive,
 } from "lucide-react"
 import {
     SidebarGroup,
@@ -22,14 +26,26 @@ import {
 } from "@/components/ui/sidebar"
 import { usePathname } from "next/navigation"
 import { Path } from "@/constants/path"
-import { useEffect, useRef } from "react"
+import { useEffect, useRef, useState } from "react"
+import { cn } from "@/lib/utils"
 
 // Định nghĩa các section menu
-type MenuItem = {
+type BaseMenuItem = {
     title: string
-    url: string
     icon: LucideIcon
 }
+
+type StandardMenuItem = BaseMenuItem & {
+    url: string
+    children?: never
+}
+
+type DropdownMenuItem = BaseMenuItem & {
+    url?: never
+    children: StandardMenuItem[]
+}
+
+type MenuItem = StandardMenuItem | DropdownMenuItem
 
 type MenuSection = {
     title: string
@@ -78,13 +94,45 @@ const menuSections: MenuSection[] = [
         items: [
             {
                 title: "Quản lý thiết bị",
-                url: Path.MANAGE_DEVICES,
                 icon: Computer,
+                children: [
+                    {
+                        title: "Thiết bị",
+                        url: Path.MANAGE_DEVICES,
+                        icon: Cpu,
+                    },
+                    {
+                        title: "Loại thiết bị",
+                        url: "/manage-device-types",
+                        icon: Settings,
+                    },
+                    {
+                        title: "Mẫu thiết bị",
+                        url: "/manage-device-models",
+                        icon: HardDrive,
+                    },
+                ],
             },
             {
                 title: "Quản lý kiosk",
-                url: Path.MANAGE_KIOSKS,
                 icon: Tablet,
+                children: [
+                    {
+                        title: "Kiosk",
+                        url: Path.MANAGE_KIOSKS,
+                        icon: Cpu,
+                    },
+                    {
+                        title: "Loại kiosk",
+                        url: "/manage-kiosk-types",
+                        icon: Settings,
+                    },
+                    {
+                        title: "Mẫu kiosk",
+                        url: "/manage-kiosk-version",
+                        icon: HardDrive,
+                    },
+                ],
             },
         ],
     },
@@ -115,7 +163,8 @@ const menuSections: MenuSection[] = [
                 title: "Quản lý menu",
                 url: Path.MANAGE_MENUS,
                 icon: Menu,
-            }, {
+            },
+            {
                 title: "Quản lý location",
                 url: Path.MANAGE_LOCATION_TYPES,
                 icon: Menu,
@@ -128,6 +177,30 @@ export function NavMain() {
     const path = usePathname()
     const activeItemRef = useRef<HTMLAnchorElement>(null)
     const containerRef = useRef<HTMLDivElement>(null)
+    const [openDropdowns, setOpenDropdowns] = useState<Record<string, boolean>>({})
+
+    // Kiểm tra xem một dropdown có chứa đường dẫn hiện tại không
+    const isDropdownActive = (children: StandardMenuItem[]) => {
+        return children.some((child) => child.url === path)
+    }
+
+    // Khởi tạo trạng thái mở cho các dropdown có mục con đang active
+    useEffect(() => {
+        const initialOpenState: Record<string, boolean> = {}
+
+        menuSections.forEach((section) => {
+            section.items.forEach((item) => {
+                if ("children" in item && item.children) {
+                    const isActive = isDropdownActive(item.children)
+                    if (isActive) {
+                        initialOpenState[item.title] = true
+                    }
+                }
+            })
+        })
+
+        setOpenDropdowns(initialOpenState)
+    }, [path])
 
     // Tự động cuộn đến mục đang active khi component mount hoặc path thay đổi
     useEffect(() => {
@@ -148,7 +221,15 @@ export function NavMain() {
                 behavior: "smooth",
             })
         }
-    }, [path])
+    }, [path, openDropdowns])
+
+    // Xử lý đóng/mở dropdown
+    const toggleDropdown = (title: string) => {
+        setOpenDropdowns((prev) => ({
+            ...prev,
+            [title]: !prev[title],
+        }))
+    }
 
     return (
         <div ref={containerRef} className="h-full overflow-y-auto no-scrollbar">
@@ -159,27 +240,86 @@ export function NavMain() {
                     </SidebarGroupLabel>
                     <SidebarMenu>
                         {section.items.map((item) => {
-                            const isActive = path === item.url
-                            return (
-                                <SidebarMenuItem key={item.title}>
-                                    <SidebarMenuButton asChild tooltip={item.title}>
-                                        <a
-                                            ref={isActive ? activeItemRef : null}
-                                            className={`transition-all duration-200 hover:bg-[#e1f9f9] dark:hover:bg-[#1a3333] ${isActive ? "bg-[#e1f9f9] dark:bg-[#1a3333]" : ""
-                                                }`}
-                                            href={item.url}
-                                        >
-                                            {item.icon && <item.icon className={`${isActive ? "text-[#68e0df]" : "text-[#68e0df]"}`} />}
-                                            <span
-                                                className={`text-gray-600 dark:text-gray-300 group-data-[collapsible=icon]:hidden ${isActive ? "font-medium" : ""
-                                                    }`}
+                            // Nếu là menu item thông thường (không có children)
+                            if (!("children" in item) || !item.children) {
+                                const isActive = path === item.url
+                                return (
+                                    <SidebarMenuItem key={item.title}>
+                                        <SidebarMenuButton asChild tooltip={item.title}>
+                                            <a
+                                                ref={isActive ? activeItemRef : null}
+                                                className={`transition-all duration-200 hover:bg-[#e1f9f9] dark:hover:bg-[#1a3333] ${isActive ? "bg-[#e1f9f9] dark:bg-[#1a3333]" : ""}`}
+                                                href={item.url}
                                             >
-                                                {item.title}
-                                            </span>
-                                        </a>
-                                    </SidebarMenuButton>
-                                </SidebarMenuItem>
-                            )
+                                                {item.icon && <item.icon className={`${isActive ? "text-[#68e0df]" : "text-[#68e0df]"}`} />}
+                                                <span
+                                                    className={`text-gray-600 dark:text-gray-300 group-data-[collapsible=icon]:hidden ${isActive ? "font-medium" : ""}`}
+                                                >
+                                                    {item.title}
+                                                </span>
+                                            </a>
+                                        </SidebarMenuButton>
+                                    </SidebarMenuItem>
+                                )
+                            }
+                            // Nếu là dropdown menu (có children)
+                            else {
+                                const isActive = isDropdownActive(item.children)
+                                const isOpen = openDropdowns[item.title] || false
+
+                                return (
+                                    <div key={item.title} className="space-y-1">
+                                        {/* Dropdown trigger */}
+                                        <SidebarMenuItem>
+                                            <SidebarMenuButton asChild tooltip={item.title}>
+                                                <button
+                                                    onClick={() => toggleDropdown(item.title)}
+                                                    className={`flex w-full items-center justify-between transition-all duration-200 hover:bg-[#e1f9f9] dark:hover:bg-[#1a3333] ${isActive ? "bg-[#e1f9f9] dark:bg-[#1a3333]" : ""}`}
+                                                >
+                                                    <div className="flex items-center">
+                                                        {item.icon && <item.icon className={`${isActive ? "text-[#68e0df]" : "text-[#68e0df]"}`} />}
+                                                        <span className="text-gray-600 dark:text-gray-300 group-data-[collapsible=icon]:hidden">
+                                                            {item.title}
+                                                        </span>
+                                                    </div>
+                                                    <ChevronRight
+                                                        className={cn("h-4 w-4 text-gray-500 transition-transform", isOpen && "rotate-90")}
+                                                    />
+                                                </button>
+                                            </SidebarMenuButton>
+                                        </SidebarMenuItem>
+
+                                        {/* Dropdown content */}
+                                        {isOpen && (
+                                            <div className="pl-6 border-l border-border ml-3 mt-1 space-y-1">
+                                                {item.children.map((child) => {
+                                                    const isChildActive = path === child.url
+                                                    return (
+                                                        <SidebarMenuItem key={child.title}>
+                                                            <SidebarMenuButton asChild tooltip={child.title}>
+                                                                <a
+                                                                    ref={isChildActive ? activeItemRef : null}
+                                                                    className={`transition-all duration-200 hover:bg-[#e1f9f9] dark:hover:bg-[#1a3333] ${isChildActive ? "bg-[#e1f9f9] dark:bg-[#1a3333]" : ""}`}
+                                                                    href={child.url}
+                                                                >
+                                                                    {child.icon && (
+                                                                        <child.icon className={`${isChildActive ? "text-[#68e0df]" : "text-[#68e0df]"}`} />
+                                                                    )}
+                                                                    <span
+                                                                        className={`text-gray-600 dark:text-gray-300 group-data-[collapsible=icon]:hidden ${isChildActive ? "font-medium" : ""}`}
+                                                                    >
+                                                                        {child.title}
+                                                                    </span>
+                                                                </a>
+                                                            </SidebarMenuButton>
+                                                        </SidebarMenuItem>
+                                                    )
+                                                })}
+                                            </div>
+                                        )}
+                                    </div>
+                                )
+                            }
                         })}
                     </SidebarMenu>
                 </SidebarGroup>

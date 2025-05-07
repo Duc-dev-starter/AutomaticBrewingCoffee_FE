@@ -16,7 +16,6 @@ const allowedPaths = [
     Path.MANAGE_KIOSKS,
     Path.MANAGE_COSTS,
     Path.MANAGE_PRODUCTS,
-    Path.MANAGE_FRANCHISES,
     Path.PROFILE,
     Path.REMINDER,
     Path.RECIPE,

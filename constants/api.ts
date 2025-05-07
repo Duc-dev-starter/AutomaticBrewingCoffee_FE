@@ -9,9 +9,6 @@ export const Api = {
     // KIOSK
     KIOSKS: '/kiosks',
 
-    // FRANCHISE
-    FRANCHISES: '/franchises',
-
     // PRODUCT
     PRODUCTS: '/products',
 

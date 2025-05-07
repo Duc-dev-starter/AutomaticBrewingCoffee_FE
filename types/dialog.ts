@@ -1,6 +1,5 @@
 import { Device } from "@/interfaces/device";
 import { Product } from "../interfaces/product";
-import { Franchise } from "@/interfaces/franchise";
 import { Kiosk } from "@/interfaces/kiosk";
 import { Menu } from "@/interfaces/menu";
 import { Order } from "@/interfaces/order";
@@ -17,10 +16,6 @@ type BaseDialogProps = {
 
 export type DeviceDialogProps = BaseDialogProps & {
     device?: Device | null;
-}
-
-export type FranchiseDialogProps = BaseDialogProps & {
-    franchise?: Franchise | null;
 }
 
 export type KioskDialogProps = BaseDialogProps & {

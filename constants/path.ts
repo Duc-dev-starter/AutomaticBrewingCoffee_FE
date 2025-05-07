@@ -7,7 +7,6 @@ export const Path = {
     MANAGE_KIOSKS: "/manage-kiosks",
     MANAGE_COSTS: "/manage-costs",
     MANAGE_PRODUCTS: "/manage-products",
-    MANAGE_FRANCHISES: "/manage-franchises",
     MANAGE_WORKFLOWS: "/manage-workflows",
     MANAGE_MENUS: "/manage-menus",
     MANAGE_ORGANIZATIONS: "/manage-organizations",
@@ -19,6 +18,8 @@ export const Path = {
     HOME: "/",
     LOGIN: "/login",
     MENUS_DETAIL: "/manage-menus/:slug",
-    MANAGE_LOCATION_TYPES: "/manage-location-types"
+    MANAGE_LOCATION_TYPES: "/manage-location-types",
+    MANAGE_DEVICE_TYPES: "/manage-device-types",
+    MANAGE_DEVICE_MODELS: "/manage-device-models",
 };
 

@@ -131,7 +131,7 @@ const OrganizationDialog = ({ open, onOpenChange, onSuccess, organization }: Org
                 contactEmail: string
                 logoBase64?: string
                 taxId: string
-                status: string
+                status: EBaseStatus
             }
 
             if (logoFile) {

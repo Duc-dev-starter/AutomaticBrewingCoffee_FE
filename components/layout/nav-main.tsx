@@ -29,7 +29,6 @@ import { Path } from "@/constants/path"
 import { useEffect, useRef, useState } from "react"
 import { cn } from "@/lib/utils"
 
-// Định nghĩa các section menu
 type BaseMenuItem = {
     title: string
     icon: LucideIcon
@@ -52,7 +51,6 @@ type MenuSection = {
     items: MenuItem[]
 }
 
-// Phân chia menu thành các section
 const menuSections: MenuSection[] = [
     {
         title: "Tổng quan",
@@ -103,12 +101,12 @@ const menuSections: MenuSection[] = [
                     },
                     {
                         title: "Loại thiết bị",
-                        url: "/manage-device-types",
+                        url: Path.MANAGE_DEVICE_TYPES,
                         icon: Settings,
                     },
                     {
                         title: "Mẫu thiết bị",
-                        url: "/manage-device-models",
+                        url: Path.MANAGE_DEVICE_MODELS,
                         icon: HardDrive,
                     },
                 ],
@@ -173,21 +171,19 @@ const menuSections: MenuSection[] = [
     },
 ]
 
+
 export function NavMain() {
     const path = usePathname()
     const activeItemRef = useRef<HTMLAnchorElement>(null)
     const containerRef = useRef<HTMLDivElement>(null)
     const [openDropdowns, setOpenDropdowns] = useState<Record<string, boolean>>({})
 
-    // Kiểm tra xem một dropdown có chứa đường dẫn hiện tại không
     const isDropdownActive = (children: StandardMenuItem[]) => {
         return children.some((child) => child.url === path)
     }
 
-    // Khởi tạo trạng thái mở cho các dropdown có mục con đang active
     useEffect(() => {
         const initialOpenState: Record<string, boolean> = {}
-
         menuSections.forEach((section) => {
             section.items.forEach((item) => {
                 if ("children" in item && item.children) {
@@ -198,32 +194,36 @@ export function NavMain() {
                 }
             })
         })
-
         setOpenDropdowns(initialOpenState)
     }, [path])
 
-    // Tự động cuộn đến mục đang active khi component mount hoặc path thay đổi
     useEffect(() => {
         if (activeItemRef.current && containerRef.current) {
-            // Tính toán vị trí cuộn
             const container = containerRef.current
             const activeItem = activeItemRef.current
-            const containerHeight = container.clientHeight
-            const activeItemTop = activeItem.offsetTop
-            const activeItemHeight = activeItem.clientHeight
 
-            // Cuộn để mục active nằm ở giữa container nếu có thể
-            const scrollTo = activeItemTop - containerHeight / 2 + activeItemHeight / 2
+            const containerRect = container.getBoundingClientRect()
+            const activeItemRect = activeItem.getBoundingClientRect()
 
-            // Cuộn mượt đến vị trí
-            container.scrollTo({
-                top: Math.max(0, scrollTo),
-                behavior: "smooth",
-            })
+            const isFullyVisible =
+                activeItemRect.top >= containerRect.top &&
+                activeItemRect.bottom <= containerRect.bottom
+
+            if (!isFullyVisible) {
+                const containerHeight = container.clientHeight
+                const activeItemTop = activeItem.offsetTop
+                const activeItemHeight = activeItem.clientHeight
+
+                const scrollToPosition = activeItemTop - containerHeight / 2 + activeItemHeight / 2
+
+                container.scrollTo({
+                    top: Math.max(0, scrollToPosition),
+                    behavior: "smooth",
+                })
+            }
         }
-    }, [path, openDropdowns])
+    }, [path, openDropdowns, activeItemRef.current])
 
-    // Xử lý đóng/mở dropdown
     const toggleDropdown = (title: string) => {
         setOpenDropdowns((prev) => ({
             ...prev,
@@ -240,7 +240,6 @@ export function NavMain() {
                     </SidebarGroupLabel>
                     <SidebarMenu>
                         {section.items.map((item) => {
-                            // Nếu là menu item thông thường (không có children)
                             if (!("children" in item) || !item.children) {
                                 const isActive = path === item.url
                                 return (
@@ -251,7 +250,9 @@ export function NavMain() {
                                                 className={`transition-all duration-200 hover:bg-[#e1f9f9] dark:hover:bg-[#1a3333] ${isActive ? "bg-[#e1f9f9] dark:bg-[#1a3333]" : ""}`}
                                                 href={item.url}
                                             >
-                                                {item.icon && <item.icon className={`${isActive ? "text-[#68e0df]" : "text-[#68e0df]"}`} />}
+                                                {item.icon && (
+                                                    <item.icon className={`size-4 text-[#68e0df]`} />
+                                                )}
                                                 <span
                                                     className={`text-gray-600 dark:text-gray-300 group-data-[collapsible=icon]:hidden ${isActive ? "font-medium" : ""}`}
                                                 >
@@ -261,35 +262,38 @@ export function NavMain() {
                                         </SidebarMenuButton>
                                     </SidebarMenuItem>
                                 )
-                            }
-                            // Nếu là dropdown menu (có children)
-                            else {
-                                const isActive = isDropdownActive(item.children)
+                            } else {
+                                const isActiveParent = isDropdownActive(item.children)
                                 const isOpen = openDropdowns[item.title] || false
 
                                 return (
                                     <div key={item.title} className="space-y-1">
-                                        {/* Dropdown trigger */}
                                         <SidebarMenuItem>
                                             <SidebarMenuButton asChild tooltip={item.title}>
                                                 <button
                                                     onClick={() => toggleDropdown(item.title)}
-                                                    className={`flex w-full items-center justify-between transition-all duration-200 hover:bg-[#e1f9f9] dark:hover:bg-[#1a3333] ${isActive ? "bg-[#e1f9f9] dark:bg-[#1a3333]" : ""}`}
+                                                    className={`flex w-full items-center justify-between transition-all duration-200 hover:bg-[#e1f9f9] dark:hover:bg-[#1a3333] ${isActiveParent ? "bg-[#e1f9f9] dark:bg-[#1a3333]" : ""}`}
                                                 >
-                                                    <div className="flex items-center">
-                                                        {item.icon && <item.icon className={`${isActive ? "text-[#68e0df]" : "text-[#68e0df]"}`} />}
+                                                    <div className="flex items-center gap-2">
+                                                        {item.icon && (
+                                                            <item.icon
+                                                                className={`size-4 text-[#68e0df]`}
+                                                            />
+                                                        )}
                                                         <span className="text-gray-600 dark:text-gray-300 group-data-[collapsible=icon]:hidden">
                                                             {item.title}
                                                         </span>
                                                     </div>
                                                     <ChevronRight
-                                                        className={cn("h-4 w-4 text-gray-500 transition-transform", isOpen && "rotate-90")}
+                                                        className={cn(
+                                                            "h-4 w-4 text-gray-500 transition-transform",
+                                                            isOpen && "rotate-90"
+                                                        )}
                                                     />
                                                 </button>
                                             </SidebarMenuButton>
                                         </SidebarMenuItem>
 
-                                        {/* Dropdown content */}
                                         {isOpen && (
                                             <div className="pl-6 border-l border-border ml-3 mt-1 space-y-1">
                                                 {item.children.map((child) => {
@@ -303,7 +307,9 @@ export function NavMain() {
                                                                     href={child.url}
                                                                 >
                                                                     {child.icon && (
-                                                                        <child.icon className={`${isChildActive ? "text-[#68e0df]" : "text-[#68e0df]"}`} />
+                                                                        <child.icon
+                                                                            className={`size-4 text-[#68e0df]`}
+                                                                        />
                                                                     )}
                                                                     <span
                                                                         className={`text-gray-600 dark:text-gray-300 group-data-[collapsible=icon]:hidden ${isChildActive ? "font-medium" : ""}`}

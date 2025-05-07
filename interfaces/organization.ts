@@ -8,5 +8,7 @@ export interface Organization {
     contactEmail: string,
     logoUrl: string,
     taxId: string,
-    status: EBaseStatus
+    status: EBaseStatus,
+    createdDate: string;
+    updatedDate: string | null;
 }

@@ -1,4 +1,4 @@
-import { Device } from "@/interfaces/device";
+import { Device, DeviceModel, DeviceType } from "@/interfaces/device";
 import { Product } from "../interfaces/product";
 import { Kiosk } from "@/interfaces/kiosk";
 import { Menu } from "@/interfaces/menu";
@@ -16,6 +16,8 @@ type BaseDialogProps = {
 
 export type DeviceDialogProps = BaseDialogProps & {
     device?: Device | null;
+    deviceType?: DeviceType | null;
+    deviceModel?: DeviceModel | null;
 }
 
 export type KioskDialogProps = BaseDialogProps & {

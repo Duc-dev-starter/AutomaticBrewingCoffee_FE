@@ -5,6 +5,8 @@ export const Api = {
 
     // DEVICE
     DEVICES: '/devices',
+    DEVICE_MODELS: '/device-models',
+    DEVICE_TYPES: '/device-types',
 
     // KIOSK
     KIOSKS: '/kiosks',

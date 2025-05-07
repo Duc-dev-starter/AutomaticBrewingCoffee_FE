@@ -1,28 +1,29 @@
-import { Device } from "@/interfaces/device";
-import { Calendar, Cpu, MoreHorizontal, Power } from "lucide-react";
-import { Badge } from "../ui/badge";
+import { DeviceType } from "@/interfaces/device";
+import { Calendar, Cpu, Power } from "lucide-react";
 import { type ColumnDef } from "@tanstack/react-table";
 import clsx from "clsx";
-import { EDeviceStatus, EDeviceStatusViMap } from '@/enum/device';
 import { formatDate } from "@/utils/date";
-import { ActionDropdown } from "../common";
+import { ActionDropdown } from "@/components/common";
+import { EBaseStatus, EBaseStatusViMap } from "@/enum/base";
+import { Badge } from "@/components/ui/badge";
+import { truncateText } from "@/utils/text";
 
 export const columns = ({
     onViewDetails,
     onEdit,
     onDelete
 }: {
-    onViewDetails: (device: Device) => void;
-    onEdit: (device: Device) => void;
-    onDelete: (device: Device) => void;
-}): ColumnDef<Device>[] => [
+    onViewDetails: (deviceType: DeviceType) => void;
+    onEdit: (deviceType: DeviceType) => void;
+    onDelete: (deviceType: DeviceType) => void;
+}): ColumnDef<DeviceType>[] => [
         {
-            id: "deviceId",
-            header: "Mã thiết bị",
+            id: "deviceTypeId",
+            header: "Mã loại thiết bị",
             cell: ({ row }) => {
-                const deviceId = row.original.deviceId || "";
-                const shortId = deviceId.replace(/-/g, "").substring(0, 8);
-                return <div className="font-medium text-center">DEV-{shortId}</div>;
+                const deviceTypeId = row.original.deviceTypeId || "";
+                const shortId = deviceTypeId.replace(/-/g, "").substring(0, 8);
+                return <div className="font-medium text-center">DVT-{shortId}</div>;
             },
             enableSorting: false,
         },
@@ -38,47 +39,29 @@ export const columns = ({
             ),
         },
         {
-            id: "serialNumber",
-            accessorKey: "serialNumber",
-            header: "Mã serial",
+            id: "description",
+            header: "Mô tả",
             cell: ({ row }) => (
-                <div className="flex items-center justify-center gap-2">
-                    <Cpu className="h-4 w-4 text-muted-foreground" />
-                    <span>{row.original.serialNumber}</span>
+                <div className="max-w-[300px] truncate text-center">
+                    {truncateText(row.original.description, 10)}
                 </div>
             ),
+            enableSorting: false,
         },
-        {
-            id: "deviceInfo",
-            header: "Thiết bị",
-            cell: ({ row }) => {
-                const modelName = row.original.deviceModel?.modelName || "N/A";
-                const deviceTypeName = row.original.deviceModel?.deviceType?.name || "N/A";
-
-                return (
-                    <div className="flex flex-col items-center justify-center h-full text-center">
-                        <span className="font-medium">{modelName}</span>
-                        <span className="text-muted-foreground text-xs">{deviceTypeName}</span>
-                    </div>
-                );
-            },
-        }
-        ,
         {
             id: "status",
             header: "Trạng thái",
             cell: ({ row }) => {
-                const status: EDeviceStatus = row.original.status;
-                const statusText = EDeviceStatusViMap[status] ?? "Không rõ";
+                const status: EBaseStatus = row.original.status;
+                const statusText = EBaseStatusViMap[status] ?? "Không rõ";
                 return (
                     <div className="flex justify-center items-center w-full">
                         <Badge
                             className={clsx(
                                 "flex items-center justify-center !w-fit !px-2 !py-[2px] !rounded-full !text-white !text-xs",
                                 {
-                                    "bg-green-500": status === EDeviceStatus.Stock,
-                                    "bg-blue-500": status === EDeviceStatus.Working,
-                                    "bg-yellow-500": status === EDeviceStatus.Maintain,
+                                    "bg-green-500": status === EBaseStatus.Active,
+                                    "bg-red-500": status === EBaseStatus.Inactive,
                                 }
                             )}
                         >
@@ -138,7 +121,7 @@ export const columns = ({
             cell: ({ row }) => (
                 <ActionDropdown
                     item={row.original}
-                    onCopy={(item) => navigator.clipboard.writeText(item.deviceId)}
+                    onCopy={(item) => navigator.clipboard.writeText(item.deviceTypeId)}
                     onViewDetails={(item) => onViewDetails(item)}
                     onEdit={(item) => onEdit(item)}
                     onDelete={(item) => onDelete(item)}

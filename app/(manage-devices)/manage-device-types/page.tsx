@@ -23,23 +23,22 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { PlusCircle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { columns } from "@/components/manage-devices/columns";
-import { Device } from "@/interfaces/device";
-import { getDevices, deleteDevice } from "@/services/device";
+import { DeviceType } from "@/interfaces/device";
 import useDebounce from "@/hooks/use-debounce";
-import { ConfirmDeleteDialog, ExportButton, NoResultsRow, Pagination, RefreshButton, SearchInput } from "@/components/common";
+import { BaseStatusFilter, ConfirmDeleteDialog, ExportButton, NoResultsRow, Pagination, RefreshButton, SearchInput } from "@/components/common";
 import { multiSelectFilter } from "@/utils/table";
 import { useToast } from "@/hooks/use-toast";
-import { DeviceDetailDialog, DeviceDialog } from "@/components/dialog/device";
-import { DeviceFilter } from "@/components/manage-devices/filter";
-import { FilterBadges } from "@/components/manage-devices/filter-badges";
+import { deleteDeviceType, getDeviceTypes } from "@/services/device";
+import { columns } from "@/components/manage-devices/manage-device-types/columns";
+import { BaseFilterBadges } from "@/components/common/base-filter-badges";
+import { DeviceTypeDetailDialog, DeviceTypeDialog } from "@/components/dialog/device";
 
-const ManageDevices = () => {
+const ManageDeviceTypes = () => {
     const { toast } = useToast();
     const [loading, setLoading] = useState(true);
     const [pageSize, setPageSize] = useState(10);
     const [currentPage, setCurrentPage] = useState(1);
-    const [devices, setDevices] = useState<Device[]>([]);
+    const [deviceTypes, setDeviceTypes] = useState<DeviceType[]>([]);
     const [totalItems, setTotalItems] = useState(0);
     const [totalPages, setTotalPages] = useState(1);
     const [statusFilter, setStatusFilter] = useState<string>("");
@@ -50,11 +49,11 @@ const ManageDevices = () => {
     const [rowSelection, setRowSelection] = useState({});
 
     const [dialogOpen, setDialogOpen] = useState(false);
-    const [selectedDevice, setSelectedDevice] = useState<Device | undefined>(undefined);
+    const [selectedDeviceType, setSelectedDeviceType] = useState<DeviceType | undefined>(undefined);
     const [detailDialogOpen, setDetailDialogOpen] = useState(false);
-    const [detailDevice, setDetailDevice] = useState<Device | null>(null);
+    const [detailDeviceType, setDetailDeviceType] = useState<DeviceType | null>(null);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-    const [deviceToDelete, setDeviceToDelete] = useState<Device | null>(null);
+    const [deviceTypeToDelete, setTypeDeviceToDelete] = useState<DeviceType | null>(null);
 
     const [searchValue, setSearchValue] = useState("");
     const debouncedSearchValue = useDebounce(searchValue, 500);
@@ -71,7 +70,7 @@ const ManageDevices = () => {
         table.getColumn("status")?.setFilterValue(statusFilter || undefined);
     }, [debouncedSearchValue, statusFilter]);
 
-    const fetchDevices = useCallback(async () => {
+    const fetchDeviceTypes = useCallback(async () => {
         try {
             setLoading(true);
 
@@ -84,7 +83,7 @@ const ManageDevices = () => {
             const sortBy = sorting.length > 0 ? sorting[0]?.id : undefined;
             const isAsc = sorting.length > 0 ? !sorting[0]?.desc : undefined;
 
-            const response = await getDevices({
+            const response = await getDeviceTypes({
                 filterBy,
                 filterQuery,
                 page: currentPage,
@@ -94,7 +93,7 @@ const ManageDevices = () => {
                 status: statusFilterValue,
             });
 
-            setDevices(response.items);
+            setDeviceTypes(response.items);
             setTotalItems(response.total);
             setTotalPages(response.totalPages);
         } catch (err) {
@@ -112,43 +111,43 @@ const ManageDevices = () => {
     // Chỉ gọi fetchDevices khi mount và khi các giá trị thay đổi
     useEffect(() => {
         if (isInitialMount.current) {
-            fetchDevices(); // Gọi lần đầu khi mount
+            fetchDeviceTypes(); // Gọi lần đầu khi mount
             isInitialMount.current = false;
         } else {
-            fetchDevices(); // Gọi khi có thay đổi thực sự
+            fetchDeviceTypes(); // Gọi khi có thay đổi thực sự
         }
-    }, [fetchDevices, currentPage, pageSize, sorting, columnFilters]);
+    }, [fetchDeviceTypes, currentPage, pageSize, sorting, columnFilters]);
 
     const handleSuccess = () => {
-        fetchDevices();
+        fetchDeviceTypes();
         setDialogOpen(false);
-        setSelectedDevice(undefined);
+        setSelectedDeviceType(undefined);
     };
 
-    const handleEdit = (device: Device) => {
-        setSelectedDevice(device);
+    const handleEdit = (deviceType: DeviceType) => {
+        setSelectedDeviceType(deviceType);
         setDialogOpen(true);
     };
 
-    const handleViewDetails = (device: Device) => {
-        setDetailDevice(device);
+    const handleViewDetails = (deviceType: DeviceType) => {
+        setDetailDeviceType(deviceType);
         setDetailDialogOpen(true);
     };
 
-    const handleDelete = (device: Device) => {
-        setDeviceToDelete(device);
+    const handleDelete = (deviceType: DeviceType) => {
+        setTypeDeviceToDelete(deviceType);
         setDeleteDialogOpen(true);
     };
 
     const confirmDelete = async () => {
-        if (!deviceToDelete) return;
+        if (!deviceTypeToDelete) return;
         try {
-            await deleteDevice(deviceToDelete.deviceId);
+            await deleteDeviceType(deviceTypeToDelete.deviceTypeId);
             toast({
                 title: "Thành công",
-                description: `Thiết bị "${deviceToDelete.name}" đã được xóa.`,
+                description: `Loại thiết bị "${deviceTypeToDelete.name}" đã được xóa.`,
             });
-            fetchDevices();
+            fetchDeviceTypes();
         } catch (error) {
             console.error("Lỗi khi xóa thiết bị:", error);
             toast({
@@ -158,12 +157,12 @@ const ManageDevices = () => {
             });
         } finally {
             setDeleteDialogOpen(false);
-            setDeviceToDelete(null);
+            setTypeDeviceToDelete(null);
         }
     };
 
     const handleAdd = () => {
-        setSelectedDevice(undefined);
+        setSelectedDeviceType(undefined);
         setDialogOpen(true);
     };
 
@@ -176,7 +175,7 @@ const ManageDevices = () => {
     const hasActiveFilters = statusFilter !== "" || searchValue !== "";
 
     const table = useReactTable({
-        data: devices,
+        data: deviceTypes,
         columns: columns({
             onViewDetails: handleViewDetails,
             onEdit: handleEdit,
@@ -212,12 +211,12 @@ const ManageDevices = () => {
             <div className="flex flex-col space-y-4 p-4 sm:p-6">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                     <div>
-                        <h2 className="text-2xl font-bold tracking-tight">Quản lý thiết bị</h2>
-                        <p className="text-muted-foreground">Quản lý và giám sát tất cả các thiết bị pha cà phê tự động.</p>
+                        <h2 className="text-2xl font-bold tracking-tight">Quản lý loại thiết bị</h2>
+                        <p className="text-muted-foreground">Quản lý và giám sát tất cả các loại thiết bị pha cà phê tự động.</p>
                     </div>
                     <div className="flex items-center gap-2">
                         <ExportButton loading={loading} />
-                        <RefreshButton loading={loading} toggleLoading={fetchDevices} />
+                        <RefreshButton loading={loading} toggleLoading={fetchDeviceTypes} />
                     </div>
                 </div>
                 <div className="flex flex-col sm:flex-row items-center py-4 gap-4">
@@ -230,7 +229,8 @@ const ManageDevices = () => {
                         />
                     </div>
                     <div className="flex items-center gap-2 ml-auto">
-                        <DeviceFilter
+                        <BaseStatusFilter
+                            loading={loading}
                             statusFilter={statusFilter}
                             setStatusFilter={setStatusFilter}
                             clearAllFilters={clearAllFilters}
@@ -252,11 +252,12 @@ const ManageDevices = () => {
                                             checked={column.getIsVisible()}
                                             onCheckedChange={(value) => column.toggleVisibility(!!value)}
                                         >
-                                            {column.id === "deviceId" ? "Mã thiết bị" :
+                                            {column.id === "deviceTypeId" ? "Mã loại thiết bị" :
                                                 column.id === "name" ? "Tên thiết bị" :
-                                                    column.id === "status" ? "Trạng thái" :
-                                                        column.id === "createdDate" ? "Ngày tạo" :
-                                                            column.id === "updatedDate" ? "Ngày cập nhật" : column.id}
+                                                    column.id === "description" ? "Mô tả" :
+                                                        column.id === "status" ? "Trạng thái" :
+                                                            column.id === "createdDate" ? "Ngày tạo" :
+                                                                column.id === "updatedDate" ? "Ngày cập nhật" : column.id}
                                         </DropdownMenuCheckboxItem>
                                     ))}
                             </DropdownMenuContent>
@@ -268,7 +269,7 @@ const ManageDevices = () => {
                     </div>
                 </div>
 
-                <FilterBadges
+                <BaseFilterBadges
                     searchValue={searchValue}
                     setSearchValue={setSearchValue}
                     statusFilter={statusFilter}
@@ -309,9 +310,14 @@ const ManageDevices = () => {
                                     <TableRow key={`skeleton-${index}`} className="animate-pulse">
                                         {columns({ onViewDetails: () => { }, onEdit: () => { }, onDelete: () => { } }).map((column, cellIndex) => (
                                             <TableCell key={`skeleton-cell-${cellIndex}`}>
-                                                {column.id === "deviceId" ? (
+                                                {column.id === "deviceTypeId" ? (
                                                     <Skeleton className="h-5 w-24 mx-auto" />
                                                 ) : column.id === "name" ? (
+                                                    <div className="flex items-center gap-2 justify-center">
+                                                        <Skeleton className="h-4 w-4 rounded-full" />
+                                                        <Skeleton className="h-5 w-40" />
+                                                    </div>
+                                                ) : column.id === "description" ? (
                                                     <div className="flex items-center gap-2 justify-center">
                                                         <Skeleton className="h-4 w-4 rounded-full" />
                                                         <Skeleton className="h-5 w-40" />
@@ -334,7 +340,7 @@ const ManageDevices = () => {
                                         ))}
                                     </TableRow>
                                 ))
-                            ) : devices.length ? (
+                            ) : deviceTypes.length ? (
                                 table.getRowModel().rows.map((row) => (
                                     <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
                                         {row.getVisibleCells().map((cell) => (
@@ -360,29 +366,29 @@ const ManageDevices = () => {
                     totalPages={totalPages}
                 />
             </div>
-            <DeviceDialog
+            <DeviceTypeDialog
                 open={dialogOpen}
                 onOpenChange={setDialogOpen}
                 onSuccess={handleSuccess}
-                device={selectedDevice}
+                deviceType={selectedDeviceType}
             />
-            <DeviceDetailDialog
+            <DeviceTypeDetailDialog
                 open={detailDialogOpen}
                 onOpenChange={(open) => {
                     setDetailDialogOpen(open);
-                    if (!open) setDetailDevice(null);
+                    if (!open) setDetailDeviceType(null);
                 }}
-                device={detailDevice}
+                deviceType={detailDeviceType}
             />
             <ConfirmDeleteDialog
                 open={deleteDialogOpen}
                 onOpenChange={setDeleteDialogOpen}
-                description={`Bạn có chắc chắn muốn xóa thiết bị "${deviceToDelete?.name}"? Hành động này không thể hoàn tác.`}
+                description={`Bạn có chắc chắn muốn xóa loại thiết bị "${deviceTypeToDelete?.name}"? Hành động này không thể hoàn tác.`}
                 onConfirm={confirmDelete}
-                onCancel={() => setDeviceToDelete(null)}
+                onCancel={() => setTypeDeviceToDelete(null)}
             />
         </div>
     );
 };
 
-export default ManageDevices;
+export default ManageDeviceTypes;

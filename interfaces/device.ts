@@ -1,7 +1,9 @@
+import { EBaseStatus } from "@/enum/base";
 import { EDeviceStatus } from "@/enum/device";
 
 export interface Device {
     deviceId: string;
+    deviceModelId: string;
     name: string;
     description: string;
     status: EDeviceStatus;
@@ -16,6 +18,9 @@ export interface DeviceType {
     name: string;
     description: string;
     deviceTypeId: string;
+    status: EBaseStatus;
+    createdDate: string;
+    updatedDate: string | null;
 }
 
 export interface DeviceModel {
@@ -24,4 +29,7 @@ export interface DeviceModel {
     deviceModelId: string;
     deviceTypeId: string;
     deviceType: DeviceType;
+    status: EBaseStatus;
+    createdDate: string;
+    updatedDate: string | null;
 }

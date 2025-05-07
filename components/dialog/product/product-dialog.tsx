@@ -13,6 +13,7 @@ import { EProductStatus, EProductSize, EProductType } from "@/enum/product";
 import { createProduct, updateProduct, getProducts } from "@/services/product";
 import { productSchema } from "@/schema/product";
 import { ProductDialogProps } from "@/types/dialog";
+import { Upload, X } from "lucide-react";
 
 const initialFormData = {
     name: "",
@@ -22,7 +23,7 @@ const initialFormData = {
     type: EProductType.Single,
     status: EProductStatus.Selling,
     price: "",
-    imageUrl: "",
+    imageBase64: "",
     isActive: true,
 };
 
@@ -33,6 +34,7 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
     const [loading, setLoading] = useState(false);
     const [fetching, setFetching] = useState(false);
     const [products, setProducts] = useState<Product[]>([]);
+    const [imagePreview, setImagePreview] = useState<string | null>(null);
 
     // Fetch products for parentId selection
     useEffect(() => {
@@ -68,10 +70,14 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                 type: product.type,
                 status: product.status,
                 price: product.price.toString(),
-                imageUrl: product.imageUrl || "",
+                imageBase64: "", // Reset imageBase64 for editing
                 isActive: product.isActive,
             });
+            setImagePreview(product.imageUrl || null); // Use imageUrl for preview
             setErrors({});
+        } else {
+            setFormData(initialFormData);
+            setImagePreview(null);
         }
     }, [product]);
 
@@ -81,8 +87,45 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
             setFormData(initialFormData);
             setErrors({});
             setProducts([]);
+            setImagePreview(null);
         }
     }, [open]);
+
+    const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const file = e.target.files?.[0];
+        if (!file) return;
+
+        if (!file.type.startsWith("image/")) {
+            toast({
+                title: "Lỗi",
+                description: "Vui lòng chọn file hình ảnh",
+                variant: "destructive",
+            });
+            return;
+        }
+
+        if (file.size > 2 * 1024 * 1024) {
+            toast({
+                title: "Lỗi",
+                description: "Kích thước file không được vượt quá 2MB",
+                variant: "destructive",
+            });
+            return;
+        }
+
+        const reader = new FileReader();
+        reader.onload = () => {
+            const base64String = reader.result as string;
+            setFormData({ ...formData, imageBase64: base64String });
+            setImagePreview(base64String); // Preview new uploaded image
+        };
+        reader.readAsDataURL(file);
+    };
+
+    const handleRemoveImage = () => {
+        setFormData({ ...formData, imageBase64: "" });
+        setImagePreview(null); // Clear preview
+    };
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
@@ -111,7 +154,7 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                 type: formData.type,
                 status: formData.status,
                 price: Number(formData.price),
-                imageUrl: formData.imageUrl || undefined,
+                imageBase64: formData.imageBase64 || undefined, // Send imageBase64 if available
                 isActive: formData.isActive,
             };
             if (product) {
@@ -141,7 +184,6 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
         }
     };
 
-    // Prevent Enter key from closing dialog
     const handleKeyDown = (e: React.KeyboardEvent<HTMLFormElement>) => {
         if (e.key === "Enter" && !e.shiftKey) {
             e.stopPropagation();
@@ -155,147 +197,180 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                     <DialogTitle>{product ? "Chỉnh sửa sản phẩm" : "Thêm sản phẩm mới"}</DialogTitle>
                 </DialogHeader>
                 <form onSubmit={handleSubmit} onKeyDown={handleKeyDown}>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 py-4">
-                        <div className="grid gap-2 min-h-[4.5rem]">
-                            <Label htmlFor="name">Tên sản phẩm</Label>
-                            <Input
-                                id="name"
-                                value={formData.name}
-                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                placeholder="Nhập tên sản phẩm"
-                                disabled={loading}
-                            />
-                            {errors.name && <p className="text-red-500 text-sm">{errors.name}</p>}
+                    <div className="space-y-4 py-4">
+                        <div className="space-y-2">
+                            <Label htmlFor="image">Hình ảnh sản phẩm</Label>
+                            <div className="flex items-center gap-4">
+                                <div className="w-24 h-24 border rounded-md overflow-hidden">
+                                    <img
+                                        src={imagePreview || "/placeholder.svg"}
+                                        alt="Product Image"
+                                        className="w-full h-full object-cover"
+                                    />
+                                </div>
+                                <div className="flex flex-col gap-2">
+                                    <div className="flex gap-2">
+                                        <Button type="button" variant="outline" size="sm" className="relative" disabled={loading}>
+                                            <input
+                                                id="image"
+                                                type="file"
+                                                accept="image/*"
+                                                className="absolute inset-0 opacity-0 cursor-pointer"
+                                                onChange={handleImageChange}
+                                                disabled={loading}
+                                            />
+                                            <Upload className="h-4 w-4 mr-1" />
+                                            Tải lên
+                                        </Button>
+                                        {imagePreview && (
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={handleRemoveImage}
+                                                disabled={loading}
+                                            >
+                                                <X className="h-4 w-4 mr-1" />
+                                                Xóa
+                                            </Button>
+                                        )}
+                                    </div>
+                                    <p className="text-xs text-muted-foreground">Hỗ trợ JPG, PNG. Tối đa 2MB.</p>
+                                </div>
+                            </div>
                         </div>
-                        <div className="grid gap-2 min-h-[4.5rem]">
-                            <Label htmlFor="parentId">Sản phẩm cha</Label>
-                            <Select
-                                value={formData.parentId}
-                                onValueChange={(value) => setFormData({ ...formData, parentId: value })}
-                                disabled={loading || fetching}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Chọn sản phẩm cha (tùy chọn)" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {products.map((p) => (
-                                        <SelectItem key={p.productId} value={p.productId}>
-                                            {p.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            {errors.parentId && <p className="text-red-500 text-sm">{errors.parentId}</p>}
-                        </div>
-                        <div className="grid gap-2 min-h-[4.5rem]">
-                            <Label htmlFor="size">Size</Label>
-                            <Select
-                                value={formData.size}
-                                onValueChange={(value) => setFormData({ ...formData, size: value as EProductSize })}
-                                disabled={loading}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Chọn size" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value={EProductSize.S}>Nhỏ</SelectItem>
-                                    <SelectItem value={EProductSize.M}>Trung</SelectItem>
-                                    <SelectItem value={EProductSize.L}>Lớn</SelectItem>
-                                </SelectContent>
-                            </Select>
-                            {errors.size && <p className="text-red-500 text-sm">{errors.size}</p>}
-                        </div>
-                        <div className="grid gap-2 min-h-[4.5rem]">
-                            <Label htmlFor="type">Loại sản phẩm</Label>
-                            <Select
-                                value={formData.type}
-                                onValueChange={(value) => setFormData({ ...formData, type: value as EProductType })}
-                                disabled={loading}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Chọn loại sản phẩm" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value={EProductType.Single}>Đơn</SelectItem>
-                                    <SelectItem value={EProductType.Parent}>Cha</SelectItem>
-                                    <SelectItem value={EProductType.Child}>Con</SelectItem>
-                                </SelectContent>
-                            </Select>
-                            {errors.type && <p className="text-red-500 text-sm">{errors.type}</p>}
-                        </div>
-                        <div className="grid gap-2 min-h-[4.5rem]">
-                            <Label htmlFor="status">Trạng thái</Label>
-                            <Select
-                                value={formData.status}
-                                onValueChange={(value) => setFormData({ ...formData, status: value as EProductStatus })}
-                                disabled={loading}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Chọn trạng thái" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value={EProductStatus.Selling}>Đang bán</SelectItem>
-                                    <SelectItem value={EProductStatus.UnSelling}>Ngừng bán</SelectItem>
-                                </SelectContent>
-                            </Select>
-                            {errors.status && <p className="text-red-500 text-sm">{errors.status}</p>}
-                        </div>
-                        <div className="grid gap-2 min-h-[4.5rem]">
-                            <Label htmlFor="price">Giá (VNĐ)</Label>
-                            <Input
-                                id="price"
-                                type="number"
-                                min="0"
-                                value={formData.price}
-                                onChange={(e) => {
-                                    const value = e.target.value;
-                                    if (value === "" || (/^\d+$/.test(value) && Number(value) >= 0)) {
-                                        setFormData({ ...formData, price: value });
-                                    }
-                                }}
-                                placeholder="Nhập giá sản phẩm"
-                                disabled={loading}
-                            />
-                            {errors.price && <p className="text-red-500 text-sm">{errors.price}</p>}
-                        </div>
-                        <div className="grid gap-2 min-h-[4.5rem]">
-                            <Label htmlFor="imageUrl">URL hình ảnh</Label>
-                            <Input
-                                id="imageUrl"
-                                value={formData.imageUrl}
-                                onChange={(e) => setFormData({ ...formData, imageUrl: e.target.value })}
-                                placeholder="Nhập URL hình ảnh (tùy chọn)"
-                                disabled={loading}
-                            />
-                            {errors.imageUrl && <p className="text-red-500 text-sm">{errors.imageUrl}</p>}
-                        </div>
-                        <div className="grid gap-2 min-h-[4.5rem]">
-                            <Label htmlFor="isActive">Hoạt động</Label>
-                            <Select
-                                value={formData.isActive.toString()}
-                                onValueChange={(value) => setFormData({ ...formData, isActive: value === "true" })}
-                                disabled={loading}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Chọn trạng thái hoạt động" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="true">Hoạt động</SelectItem>
-                                    <SelectItem value="false">Không hoạt động</SelectItem>
-                                </SelectContent>
-                            </Select>
-                            {errors.isActive && <p className="text-red-500 text-sm">{errors.isActive}</p>}
-                        </div>
-                        <div className="grid gap-2 col-span-1 sm:col-span-2">
-                            <Label htmlFor="description">Mô tả</Label>
-                            <Textarea
-                                id="description"
-                                value={formData.description}
-                                onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                                placeholder="Nhập mô tả sản phẩm (tùy chọn)"
-                                disabled={loading}
-                            />
-                            {errors.description && <p className="text-red-500 text-sm">{errors.description}</p>}
+
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                            <div className="grid gap-2 min-h-[4.5rem]">
+                                <Label htmlFor="name">Tên sản phẩm</Label>
+                                <Input
+                                    id="name"
+                                    value={formData.name}
+                                    onChange={(e) => setFormData({ ...formData, name: e.target.value })}
+                                    placeholder="Nhập tên sản phẩm"
+                                    disabled={loading}
+                                />
+                                {errors.name && <p className="text-red-500 text-sm">{errors.name}</p>}
+                            </div>
+                            <div className="grid gap-2 min-h-[4.5rem]">
+                                <Label htmlFor="parentId">Sản phẩm cha</Label>
+                                <Select
+                                    value={formData.parentId}
+                                    onValueChange={(value) => setFormData({ ...formData, parentId: value })}
+                                    disabled={loading || fetching}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Chọn sản phẩm cha (tùy chọn)" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {products.map((p) => (
+                                            <SelectItem key={p.productId} value={p.productId}>
+                                                {p.name}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                {errors.parentId && <p className="text-red-500 text-sm">{errors.parentId}</p>}
+                            </div>
+                            <div className="grid gap-2 min-h-[4.5rem]">
+                                <Label htmlFor="size">Size</Label>
+                                <Select
+                                    value={formData.size}
+                                    onValueChange={(value) => setFormData({ ...formData, size: value as EProductSize })}
+                                    disabled={loading}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Chọn size" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value={EProductSize.S}>Nhỏ</SelectItem>
+                                        <SelectItem value={EProductSize.M}>Trung</SelectItem>
+                                        <SelectItem value={EProductSize.L}>Lớn</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                {errors.size && <p className="text-red-500 text-sm">{errors.size}</p>}
+                            </div>
+                            <div className="grid gap-2 min-h-[4.5rem]">
+                                <Label htmlFor="type">Loại sản phẩm</Label>
+                                <Select
+                                    value={formData.type}
+                                    onValueChange={(value) => setFormData({ ...formData, type: value as EProductType })}
+                                    disabled={loading}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Chọn loại sản phẩm" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value={EProductType.Single}>Đơn</SelectItem>
+                                        <SelectItem value={EProductType.Parent}>Cha</SelectItem>
+                                        <SelectItem value={EProductType.Child}>Con</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                {errors.type && <p className="text-red-500 text-sm">{errors.type}</p>}
+                            </div>
+                            <div className="grid gap-2 min-h-[4.5rem]">
+                                <Label htmlFor="status">Trạng thái</Label>
+                                <Select
+                                    value={formData.status}
+                                    onValueChange={(value) => setFormData({ ...formData, status: value as EProductStatus })}
+                                    disabled={loading}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Chọn trạng thái" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value={EProductStatus.Selling}>Đang bán</SelectItem>
+                                        <SelectItem value={EProductStatus.UnSelling}>Ngừng bán</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                {errors.status && <p className="text-red-500 text-sm">{errors.status}</p>}
+                            </div>
+                            <div className="grid gap-2 min-h-[4.5rem]">
+                                <Label htmlFor="price">Giá (VNĐ)</Label>
+                                <Input
+                                    id="price"
+                                    type="number"
+                                    min="0"
+                                    value={formData.price}
+                                    onChange={(e) => {
+                                        const value = e.target.value;
+                                        if (value === "" || (/^\d+$/.test(value) && Number(value) >= 0)) {
+                                            setFormData({ ...formData, price: value });
+                                        }
+                                    }}
+                                    placeholder="Nhập giá sản phẩm"
+                                    disabled={loading}
+                                />
+                                {errors.price && <p className="text-red-500 text-sm">{errors.price}</p>}
+                            </div>
+                            <div className="grid gap-2 min-h-[4.5rem]">
+                                <Label htmlFor="isActive">Hoạt động</Label>
+                                <Select
+                                    value={formData.isActive.toString()}
+                                    onValueChange={(value) => setFormData({ ...formData, isActive: value === "true" })}
+                                    disabled={loading}
+                                >
+                                    <SelectTrigger>
+                                        <SelectValue placeholder="Chọn trạng thái hoạt động" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <SelectItem value="true">Hoạt động</SelectItem>
+                                        <SelectItem value="false">Không hoạt động</SelectItem>
+                                    </SelectContent>
+                                </Select>
+                                {errors.isActive && <p className="text-red-500 text-sm">{errors.isActive}</p>}
+                            </div>
+                            <div className="grid gap-2 col-span-1 sm:col-span-2">
+                                <Label htmlFor="description">Mô tả</Label>
+                                <Textarea
+                                    id="description"
+                                    value={formData.description}
+                                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
+                                    placeholder="Nhập mô tả sản phẩm (tùy chọn)"
+                                    disabled={loading}
+                                />
+                                {errors.description && <p className="text-red-500 text-sm">{errors.description}</p>}
+                            </div>
                         </div>
                     </div>
                     <DialogFooter>

@@ -30,6 +30,27 @@ export const columns = ({
             enableSorting: false,
         },
         {
+            id: "image",
+            header: "Hình ảnh",
+            cell: ({ row }) => {
+                const imageUrl = row.original.imageUrl;
+                return (
+                    <div className="flex justify-center">
+                        {imageUrl ? (
+                            <img
+                                src={imageUrl}
+                                alt="product"
+                                className="w-16 h-16 object-cover rounded-md border"
+                            />
+                        ) : (
+                            <span className="text-muted-foreground">Không có ảnh</span>
+                        )}
+                    </div>
+                );
+            },
+            enableSorting: false,
+        },
+        {
             id: "name",
             header: "Tên sản phẩm",
             accessorKey: "name",

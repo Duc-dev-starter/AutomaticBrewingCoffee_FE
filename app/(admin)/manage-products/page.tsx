@@ -269,13 +269,14 @@ const ManageProducts = () => {
                                             onCheckedChange={(value) => column.toggleVisibility(!!value)}
                                         >
                                             {column.id === "productId" ? "Mã sản phẩm" :
-                                                column.id === "name" ? "Tên sản phẩm" :
-                                                    column.id === "size" ? "Size" :
-                                                        column.id === "type" ? "Loại sản phẩm" :
-                                                            column.id === "price" ? "Giá" :
-                                                                column.id === "status" ? "Trạng thái" :
-                                                                    column.id === "createdDate" ? "Ngày tạo" :
-                                                                        column.id === "updatedDate" ? "Ngày cập nhật" : column.id}
+                                                column.id == "imageUrl" ? "Hình ảnh" :
+                                                    column.id === "name" ? "Tên sản phẩm" :
+                                                        column.id === "size" ? "Size" :
+                                                            column.id === "type" ? "Loại sản phẩm" :
+                                                                column.id === "price" ? "Giá" :
+                                                                    column.id === "status" ? "Trạng thái" :
+                                                                        column.id === "createdDate" ? "Ngày tạo" :
+                                                                            column.id === "updatedDate" ? "Ngày cập nhật" : column.id}
                                         </DropdownMenuCheckboxItem>
                                     ))}
                             </DropdownMenuContent>
@@ -334,6 +335,8 @@ const ManageProducts = () => {
                                             <TableCell key={`skeleton-cell-${cellIndex}`}>
                                                 {column.id === "productId" ? (
                                                     <Skeleton className="h-5 w-24 mx-auto" />
+                                                ) : column.id === "imageUrl" ? (
+                                                    <Skeleton className="h-5 w-40 mx-auto" />
                                                 ) : column.id === "name" ? (
                                                     <Skeleton className="h-5 w-40 mx-auto" />
                                                 ) : column.id === "size" ? (

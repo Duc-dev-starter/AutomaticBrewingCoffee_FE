@@ -83,3 +83,8 @@ export const deleteKioskVersion = async (id: string) => {
     const response = await BaseService.delete({ url: `${Api.KIOSKS_VERSIONS}/${id}` })
     return response;
 }
+
+export const createDeviceModelInKioskVersion = async (payload: { kioskVersionId: string, deviceModelId: string, quantity: number }) => {
+    const response = await BaseService.post({ url: `${Api.KIOSKS_VERSIONS}/device-models`, payload });
+    return response;
+}

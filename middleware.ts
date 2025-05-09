@@ -34,7 +34,8 @@ const allowedPaths = [
 
 const dynamicPathPrefixes = [
     Path.MANAGE_MENUS,
-    Path.MANAGE_WORKFLOWS
+    Path.MANAGE_WORKFLOWS,
+    Path.MANAGE_KIOSK_VERSIONS
 ];
 
 export function middleware(req: NextRequest) {

@@ -1,5 +1,6 @@
 import { EBaseStatus } from "@/enum/base";
 import { Device, DeviceModel } from "../interfaces/device"
+import { Store } from "./store";
 
 export interface Kiosk {
     kioskId: string;
@@ -14,6 +15,7 @@ export interface Kiosk {
     position: string;
     warrantyTime: string;
     storeId: string;
+    store: Store;
 }
 
 export interface KioskType {

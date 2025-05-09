@@ -38,23 +38,26 @@ export const columns = ({
             ),
         },
         {
-            id: "franchise",
+            id: "store",
             header: "Tên chi nhánh",
             cell: ({ row }) => (
                 <div className="text-center">
-                    {row.original.franchise?.name || "Không có"}
+                    {row.original.store?.name || "Không có"}
                 </div>
             ),
             enableSorting: false,
         },
         {
-            id: "deviceName",
+            id: "devices",
             header: "Thiết bị",
-            cell: ({ row }) => (
-                <div className="text-center">
-                    {row.original.devices?.[0]?.name || "Không có thiết bị"}
-                </div>
-            ),
+            cell: ({ row }) => {
+                const devices = row.original.devices || [];
+                return (
+                    <div className="text-center">
+                        {devices.length > 0 ? `${devices.length} thiết bị` : "Không có thiết bị"}
+                    </div>
+                );
+            },
             enableSorting: false,
         },
         {
@@ -94,46 +97,6 @@ export const columns = ({
                         <span>{format(date, "dd/MM/yyyy")}</span>
                     </div>
                 );
-            },
-        },
-        {
-            id: "createdDate",
-            accessorKey: "createdDate",
-            header: "Ngày tạo",
-            cell: ({ row }) => {
-                const date = new Date(row.original.createdDate);
-                return (
-                    <div className="flex items-center justify-center">
-                        <Calendar className="h-4 w-4 mr-1 text-muted-foreground" />
-                        <span>{format(date, "dd/MM/yyyy")}</span>
-                    </div>
-                );
-            },
-        },
-        {
-            id: "updatedDate",
-            accessorKey: "updatedDate",
-            header: "Ngày cập nhật",
-            cell: ({ row }) => {
-                const updatedDate = row.original.updatedDate;
-                const renderCentered = (text: string) => (
-                    <div className="flex items-center justify-center text-muted-foreground">
-                        <span>{text}</span>
-                    </div>
-                );
-                if (!updatedDate) return renderCentered("Chưa cập nhật");
-                try {
-                    const date = new Date(updatedDate);
-                    if (isNaN(date.getTime())) return renderCentered("Ngày không hợp lệ");
-                    return (
-                        <div className="flex items-center justify-center">
-                            <Calendar className="h-4 w-4 mr-1 text-muted-foreground" />
-                            <span>{format(date, "dd/MM/yyyy")}</span>
-                        </div>
-                    );
-                } catch (error) {
-                    return renderCentered("Ngày không hợp lệ");
-                }
             },
         },
         {

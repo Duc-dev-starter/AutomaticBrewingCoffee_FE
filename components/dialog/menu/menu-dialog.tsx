@@ -16,7 +16,6 @@ import { getKiosks } from "@/services/kiosk";
 import InfiniteScroll from "react-infinite-scroll-component";
 import { MenuDialogProps } from "@/types/dialog";
 
-
 const initialFormData = {
     kioskId: "",
     name: "",
@@ -31,25 +30,29 @@ const MenuDialog = ({ open, onOpenChange, onSuccess, menu }: MenuDialogProps) =>
     const [kiosks, setKiosks] = useState<Kiosk[]>([]);
     const [page, setPage] = useState(1);
     const [hasMore, setHasMore] = useState(true);
+    const [noKiosks, setNoKiosks] = useState(false);
 
     const fetchKiosks = async (pageNumber: number) => {
         try {
             const response = await getKiosks({ page: pageNumber, size: 10 });
-            if (pageNumber === 1) {
-                setKiosks(response.items);
-            } else {
-                setKiosks(prev => [...prev, ...response.items]);
-            }
-            if (response.items.length < 10) {
+            if (response.items.length === 0 && pageNumber === 1) {
+                setNoKiosks(true);
                 setHasMore(false);
+            } else {
+                setNoKiosks(false);
+                if (pageNumber === 1) {
+                    setKiosks(response.items);
+                } else {
+                    setKiosks(prev => [...prev, ...response.items]);
+                }
+                if (response.items.length < 10) {
+                    setHasMore(false);
+                }
             }
         } catch (error) {
             console.error("Lỗi khi lấy danh sách kiosk:", error);
-            toast({
-                title: "Lỗi",
-                description: "Không thể tải danh sách kiosk.",
-                variant: "destructive",
-            });
+            setNoKiosks(true);
+            setHasMore(false);
         }
     };
 
@@ -76,6 +79,7 @@ const MenuDialog = ({ open, onOpenChange, onSuccess, menu }: MenuDialogProps) =>
             setPage(1);
             setKiosks([]);
             setHasMore(true);
+            setNoKiosks(false);
         }
     }, [open]);
 
@@ -113,7 +117,7 @@ const MenuDialog = ({ open, onOpenChange, onSuccess, menu }: MenuDialogProps) =>
                     description: "Thêm menu mới thành công",
                 });
             }
-            onSuccess();
+            onSuccess?.();
             onOpenChange(false);
         } catch (error) {
             console.error("Lỗi khi xử lý menu:", error);
@@ -163,31 +167,36 @@ const MenuDialog = ({ open, onOpenChange, onSuccess, menu }: MenuDialogProps) =>
                             <Select
                                 value={formData.kioskId}
                                 onValueChange={(value) => handleChange("kioskId", value)}
-                                disabled={isSubmitting}
+                                disabled={isSubmitting || noKiosks}
                             >
                                 <SelectTrigger id="kioskId">
-                                    <SelectValue placeholder="Chọn kiosk" />
+                                    <SelectValue placeholder={noKiosks ? "Không có kiosk" : "Chọn kiosk"} />
                                 </SelectTrigger>
                                 <SelectContent className="max-h-[300px] overflow-y-auto">
-                                    <InfiniteScroll
-                                        dataLength={kiosks.length}
-                                        next={loadMoreKiosks}
-                                        hasMore={hasMore}
-                                        loader={<div className="p-2 text-center text-sm">Đang tải thêm...</div>}
-                                        scrollableTarget="select-content"
-                                        style={{ overflow: "hidden" }} // để tránh scroll xấu
-                                    >
-                                        {kiosks.map((kiosk) => (
-                                            <SelectItem key={kiosk.kioskId} value={kiosk.kioskId}>
-                                                {kiosk.location}
-                                            </SelectItem>
-                                        ))}
-                                    </InfiniteScroll>
+                                    {noKiosks ? (
+                                        <div className="p-2 text-center text-sm text-gray-500">
+                                            Không có kiosk
+                                        </div>
+                                    ) : (
+                                        <InfiniteScroll
+                                            dataLength={kiosks.length}
+                                            next={loadMoreKiosks}
+                                            hasMore={hasMore}
+                                            loader={<div className="p-2 text-center text-sm">Đang tải thêm...</div>}
+                                            scrollableTarget="select-content"
+                                            style={{ overflow: "hidden" }}
+                                        >
+                                            {kiosks.map((kiosk) => (
+                                                <SelectItem key={kiosk.kioskId} value={kiosk.kioskId}>
+                                                    {kiosk.location}
+                                                </SelectItem>
+                                            ))}
+                                        </InfiniteScroll>
+                                    )}
                                 </SelectContent>
                             </Select>
                         </div>
 
-                        {/* Các trường khác */}
                         <div className="space-y-2">
                             <Label htmlFor="name" className="required">
                                 Tên menu

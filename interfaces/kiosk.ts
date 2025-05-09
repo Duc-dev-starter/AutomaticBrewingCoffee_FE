@@ -1,5 +1,5 @@
 import { EBaseStatus } from "@/enum/base";
-import { Device } from "../interfaces/device"
+import { Device, DeviceModel } from "../interfaces/device"
 
 export interface Kiosk {
     kioskId: string;
@@ -14,14 +14,15 @@ export interface Kiosk {
     position: string;
     warrantyTime: string;
     storeId: string;
-
 }
 
 export interface KioskType {
     name: string;
     description: string;
-    status: string;
+    status: EBaseStatus;
     kioskTypeId: string;
+    createdDate: string;
+    updatedDate: string | null;
 }
 
 export interface KioskVersion {
@@ -32,5 +33,16 @@ export interface KioskVersion {
     versionNumber: string;
     status: EBaseStatus;
     kiosks: Kiosk[];
-    kioskType: KioskType
+    kioskVersionDeviceModelMappings: KioskVersionDeviceModelMappings[];
+    kioskType: KioskType;
+    createdDate: string;
+    updatedDate: string | null;
+}
+
+export interface KioskVersionDeviceModelMappings {
+    kioskVersionId: string;
+    deviceModelId: string;
+    kioskVersion: KioskVersion;
+    deviceModel: DeviceModel;
+    quantity: number;
 }

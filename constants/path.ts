@@ -21,5 +21,7 @@ export const Path = {
     MANAGE_LOCATION_TYPES: "/manage-location-types",
     MANAGE_DEVICE_TYPES: "/manage-device-types",
     MANAGE_DEVICE_MODELS: "/manage-device-models",
+    MANAGE_KIOSK_VERSIONS: "/manage-kiosk-versions",
+    MANAGE_KIOSK_TYPES: "/manage-kiosk-types",
 };
 

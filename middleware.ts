@@ -27,7 +27,9 @@ const allowedPaths = [
     Path.MANAGE_ORGANIZATIONS,
     Path.MANAGE_STORES,
     Path.MANAGE_DEVICE_TYPES,
-    Path.MANAGE_DEVICE_MODELS
+    Path.MANAGE_DEVICE_MODELS,
+    Path.MANAGE_KIOSK_VERSIONS,
+    Path.MANAGE_KIOSK_TYPES
 ];
 
 const dynamicPathPrefixes = [

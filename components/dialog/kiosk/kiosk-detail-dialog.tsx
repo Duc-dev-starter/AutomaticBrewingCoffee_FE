@@ -49,7 +49,6 @@ const KioskDetailDialog = ({ kiosk, open, onOpenChange }: KioskDialogProps) => {
                                 <div className="grid grid-cols-2 gap-3 text-sm">
                                     <div className="flex flex-col">
                                         <span className="text-muted-foreground">Franchise</span>
-                                        <span className="font-medium">{kiosk.franchise?.name || "Không có"}</span>
                                     </div>
                                     <div className="flex flex-col">
                                         <span className="text-muted-foreground">Địa chỉ</span>
@@ -71,7 +70,6 @@ const KioskDetailDialog = ({ kiosk, open, onOpenChange }: KioskDialogProps) => {
                                     </div>
                                     <div className="flex flex-col">
                                         <span className="text-muted-foreground">Tên chi nhánh</span>
-                                        <span className="font-medium">{kiosk.franchise.name || "Không có"}</span>
                                     </div>
                                 </div>
                             </CardContent>

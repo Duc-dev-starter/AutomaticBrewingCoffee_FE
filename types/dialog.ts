@@ -1,6 +1,6 @@
 import { Device, DeviceModel, DeviceType } from "@/interfaces/device";
 import { Product } from "../interfaces/product";
-import { Kiosk } from "@/interfaces/kiosk";
+import { Kiosk, KioskType, KioskVersion } from "@/interfaces/kiosk";
 import { Menu } from "@/interfaces/menu";
 import { Order } from "@/interfaces/order";
 import { Workflow } from "@/interfaces/workflow";
@@ -22,6 +22,8 @@ export type DeviceDialogProps = BaseDialogProps & {
 
 export type KioskDialogProps = BaseDialogProps & {
     kiosk?: Kiosk | null;
+    kioskType?: KioskType | null;
+    kioskVersion?: KioskVersion | null;
 }
 
 export type MenuDialogProps = BaseDialogProps & {

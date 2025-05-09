@@ -122,12 +122,12 @@ const menuSections: MenuSection[] = [
                     },
                     {
                         title: "Loại kiosk",
-                        url: "/manage-kiosk-types",
+                        url: Path.MANAGE_KIOSK_TYPES,
                         icon: Settings,
                     },
                     {
                         title: "Mẫu kiosk",
-                        url: "/manage-kiosk-version",
+                        url: Path.MANAGE_KIOSK_VERSIONS,
                         icon: HardDrive,
                     },
                 ],

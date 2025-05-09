@@ -35,7 +35,6 @@ const DeviceDialog = ({ open, onOpenChange, onSuccess, device }: DeviceDialogPro
 
     const fetchDeviceModels = async (pageNumber: number) => {
         try {
-            // Giả sử getDeviceModels trả về { items: DeviceModel[], ... }
             const response = await getDeviceModels({ page: pageNumber, size: 10 });
             if (pageNumber === 1) {
                 setDeviceModels(response.items);
@@ -55,11 +54,10 @@ const DeviceDialog = ({ open, onOpenChange, onSuccess, device }: DeviceDialogPro
         }
     };
 
-    // Populate form data when editing an existing device or reset for create
     useEffect(() => {
         if (open) {
-            fetchDeviceModels(1); // Luôn tải danh sách mẫu khi dialog mở
-            if (device) { // Chế độ chỉnh sửa
+            fetchDeviceModels(1);
+            if (device) {
                 setFormData({
                     name: device.name || "",
                     description: device.description || "",
@@ -73,7 +71,6 @@ const DeviceDialog = ({ open, onOpenChange, onSuccess, device }: DeviceDialogPro
         }
     }, [device, open]);
 
-    // Reset states when dialog closes
     useEffect(() => {
         if (!open) {
             setFormData(initialFormData);

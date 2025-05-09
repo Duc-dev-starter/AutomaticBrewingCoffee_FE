@@ -10,6 +10,8 @@ export const Api = {
 
     // KIOSK
     KIOSKS: '/kiosks',
+    KIOSKS_VERSIONS: '/kiosk-versions',
+    KIOSKS_TYPES: '/kiosk-types',
 
     // PRODUCT
     PRODUCTS: '/products',

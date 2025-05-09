@@ -3,41 +3,24 @@ import {
     DialogContent,
     DialogHeader,
     DialogTitle,
-    DialogFooter,
 } from "@/components/ui/dialog";
 import { format } from "date-fns";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Info, Monitor, Calendar } from "lucide-react";
+import { Info, Monitor, Calendar, FileText } from "lucide-react";
 import clsx from "clsx";
 import { getBaseStatusColor } from "@/utils/color";
-import { DeviceDialogProps } from "@/types/dialog";
+import { DeviceDialogProps, KioskDialogProps } from "@/types/dialog";
 import { EBaseStatusViMap } from "@/enum/base";
-import { Button } from "@/components/ui/button";
 
-const DeviceModelDetailDialog = ({
-    deviceModel,
+
+const KioskTypeDetailDialog = ({
+    kioskType,
     open,
     onOpenChange,
-}: DeviceDialogProps) => {
-    if (!deviceModel) {
-        return (
-            <Dialog open={open} onOpenChange={onOpenChange}>
-                <DialogContent className="sm:max-w-[600px]">
-                    <DialogHeader>
-                        <DialogTitle>Lỗi</DialogTitle>
-                    </DialogHeader>
-                    <div className="py-4">
-                        <p>Không tìm thấy thông tin mẫu thiết bị.</p>
-                    </div>
-                    <DialogFooter>
-                        <Button onClick={() => onOpenChange(false)}>Đóng</Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
-        );
-    }
+}: KioskDialogProps) => {
+    if (!kioskType) return null;
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -46,11 +29,23 @@ const DeviceModelDetailDialog = ({
                     <div className="flex items-center justify-between">
                         <DialogTitle className="text-xl font-bold flex items-center">
                             <Monitor className="mr-2 h-5 w-5" />
-                            Chi tiết mẫu thiết bị
+                            Chi tiết loại kiosk
                         </DialogTitle>
-                        <Badge className={clsx("mr-4", getBaseStatusColor(deviceModel.status))}>
-                            {EBaseStatusViMap[deviceModel.status] || "Không rõ"}
+                        <Badge className={clsx("mr-4", getBaseStatusColor(kioskType.status))}>
+                            {EBaseStatusViMap[kioskType.status] || "Không rõ"}
                         </Badge>
+                    </div>
+                    <div className="flex items-center justify-between text-sm text-muted-foreground mt-2">
+                        <div className="flex items-center">
+                            <FileText className="mr-1 h-4 w-4" />
+                            Mã loại kiosk: <span className="font-medium ml-1">{kioskType.kioskTypeId}</span>
+                        </div>
+                        {kioskType.createdDate && (
+                            <div className="flex items-center">
+                                <Calendar className="mr-1 h-4 w-4" />
+                                {format(new Date(kioskType.createdDate), "dd/MM/yyyy HH:mm")}
+                            </div>
+                        )}
                     </div>
                 </DialogHeader>
 
@@ -60,24 +55,16 @@ const DeviceModelDetailDialog = ({
                             <CardContent className="p-4">
                                 <h3 className="font-semibold text-sm flex items-center mb-3">
                                     <Info className="mr-2 h-4 w-4" />
-                                    Thông tin thiết bị
+                                    Thông tin kiosk
                                 </h3>
                                 <div className="grid grid-cols-2 gap-3 text-sm">
                                     <div className="flex flex-col">
-                                        <span className="text-muted-foreground">Tên mẫu thiết bị</span>
-                                        <span className="font-medium">{deviceModel.modelName}</span>
-                                    </div>
-                                    <div className="flex flex-col">
-                                        <span className="text-muted-foreground">Nhà sản xuất</span>
-                                        <span className="font-medium">{deviceModel.manufacturer || "Không có"}</span>
-                                    </div>
-                                    <div className="flex flex-col">
-                                        <span className="text-muted-foreground">Loại thiết bị</span>
-                                        <span className="font-medium">{deviceModel.deviceType?.name || "Không có"}</span>
+                                        <span className="text-muted-foreground">Tên kiosk</span>
+                                        <span className="font-medium">{kioskType.name}</span>
                                     </div>
                                     <div className="col-span-2 flex flex-col">
-                                        <span className="text-muted-foreground">Trạng thái</span>
-                                        <span className="font-medium">{deviceModel.status || "Không có"}</span>
+                                        <span className="text-muted-foreground">Mô tả</span>
+                                        <span className="font-medium">{kioskType.description || "Không có"}</span>
                                     </div>
                                 </div>
                             </CardContent>
@@ -93,16 +80,16 @@ const DeviceModelDetailDialog = ({
                                     <div className="flex flex-col">
                                         <span className="text-muted-foreground">Ngày tạo</span>
                                         <span className="font-medium">
-                                            {deviceModel.createdDate
-                                                ? format(new Date(deviceModel.createdDate), "dd/MM/yyyy HH:mm")
+                                            {kioskType.createdDate
+                                                ? format(new Date(kioskType.createdDate), "dd/MM/yyyy HH:mm")
                                                 : "Không có"}
                                         </span>
                                     </div>
                                     <div className="flex flex-col">
                                         <span className="text-muted-foreground">Ngày cập nhật</span>
                                         <span className="font-medium">
-                                            {deviceModel.updatedDate
-                                                ? format(new Date(deviceModel.updatedDate), "dd/MM/yyyy HH:mm")
+                                            {kioskType.updatedDate
+                                                ? format(new Date(kioskType.updatedDate), "dd/MM/yyyy HH:mm")
                                                 : "Chưa cập nhật"}
                                         </span>
                                     </div>
@@ -111,13 +98,9 @@ const DeviceModelDetailDialog = ({
                         </Card>
                     </div>
                 </ScrollArea>
-
-                <DialogFooter>
-                    <Button onClick={() => onOpenChange(false)}>Đóng</Button>
-                </DialogFooter>
             </DialogContent>
         </Dialog>
     );
 };
 
-export default DeviceModelDetailDialog;
+export default KioskTypeDetailDialog;

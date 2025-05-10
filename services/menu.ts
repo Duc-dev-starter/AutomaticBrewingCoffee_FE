@@ -51,6 +51,6 @@ export const removeProductFromMenu = async (menuId: string, productId: string) =
 }
 
 export const reorderMenuProducts = async (menuId: string, payload: { dragProductId: string, targetProductId: string, insertAfter: boolean }) => {
-    const response = await BaseService.put({ url: `${Api.MENUS}/${menuId}/${Api.MENU_PRODUCTS}/reorder`, payload })
+    const response = await BaseService.put({ url: `${Api.MENUS}/${menuId}${Api.MENU_PRODUCTS}/reorder`, payload })
     return response;
 }

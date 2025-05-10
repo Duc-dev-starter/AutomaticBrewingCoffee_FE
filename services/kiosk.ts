@@ -88,3 +88,8 @@ export const createDeviceModelInKioskVersion = async (payload: { kioskVersionId:
     const response = await BaseService.post({ url: `${Api.KIOSKS_VERSIONS}/device-models`, payload });
     return response;
 }
+
+export const addDeviceInKiosk = async (payload: { kioskId: string, deviceId: string }) => {
+    const response = await BaseService.post({ url: `${Api.KIOSKS}/devices`, payload });
+    return response;
+}

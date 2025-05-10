@@ -32,8 +32,10 @@ import { useToast } from "@/hooks/use-toast";
 import { columns } from "@/components/manage-kiosks/columns";
 import { KioskDetailDialog, KioskDialog } from "@/components/dialog/kiosk";
 import { BaseFilterBadges } from "@/components/common/base-filter-badges";
+import { useRouter } from "next/navigation";
 
 const ManageKiosks = () => {
+    const router = useRouter();
     const { toast } = useToast();
     const [loading, setLoading] = useState(true);
     const [pageSize, setPageSize] = useState(10);
@@ -131,8 +133,7 @@ const ManageKiosks = () => {
     };
 
     const handleViewDetails = (kiosk: Kiosk) => {
-        setDetailKiosk(kiosk);
-        setDetailDialogOpen(true);
+        router.push(`/manage-kiosks/${kiosk.kioskId}`);
     };
 
     const handleDelete = (kiosk: Kiosk) => {

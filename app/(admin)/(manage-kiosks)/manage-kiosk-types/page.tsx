@@ -32,6 +32,7 @@ import { KioskType } from "@/interfaces/kiosk";
 import { columns } from "@/components/manage-kiosks/manage-kiosk-types/columns";
 import { KioskTypeDetailDialog, KioskTypeDialog } from "@/components/dialog/kiosk";
 import { deleteKioskType, getKioskTypes } from "@/services/kiosk";
+import { ErrorResponse } from "@/types/error";
 
 const ManageKioskTypes = () => {
     const { toast } = useToast();
@@ -96,11 +97,12 @@ const ManageKioskTypes = () => {
             setDeviceTypes(response.items);
             setTotalItems(response.total);
             setTotalPages(response.totalPages);
-        } catch (err) {
-            console.error(err);
+        } catch (error: unknown) {
+            const err = error as ErrorResponse;
+            console.error("Lỗi khi lấy danh sách loại kiosk:", err);
             toast({
-                title: "Lỗi",
-                description: "Không thể tải danh sách kiosk.",
+                title: "Lỗi khi lấy danh sách loại kiosk",
+                description: err.message,
                 variant: "destructive",
             });
         } finally {
@@ -148,11 +150,12 @@ const ManageKioskTypes = () => {
                 description: `Loại kiosk "${kioskTypeToDelete.name}" đã được xóa.`,
             });
             fetchKioskTypes();
-        } catch (error) {
-            console.error("Lỗi khi xóa loại kiosk:", error);
+        } catch (error: unknown) {
+            const err = error as ErrorResponse;
+            console.error("Lỗi khi xóa loại kiosk:", err);
             toast({
-                title: "Lỗi",
-                description: "Không thể xóa loại kiosk. Vui lòng thử lại.",
+                title: "Lỗi khi xóa loại kiosk",
+                description: err.message,
                 variant: "destructive",
             });
         } finally {

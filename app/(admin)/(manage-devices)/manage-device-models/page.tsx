@@ -34,6 +34,7 @@ import { FilterBadges } from "@/components/manage-devices/filter-badges";
 import DeviceModelDialog from "@/components/dialog/device/device-model-dialog";
 import DeviceModelDetailDialog from "@/components/dialog/device/device-model-detail-dialog";
 import { columns } from "@/components/manage-devices/manage-device-models/columns";
+import { ErrorResponse } from "@/types/error";
 
 const ManageDeviceModels = () => {
     const { toast } = useToast();
@@ -98,11 +99,12 @@ const ManageDeviceModels = () => {
             setDevices(response.items);
             setTotalItems(response.total);
             setTotalPages(response.totalPages);
-        } catch (err) {
-            console.error(err);
+        } catch (error: unknown) {
+            const err = error as ErrorResponse;
+            console.error("Lỗi khi lấy danh sách mẫu thiết bị:", err);
             toast({
-                title: "Lỗi",
-                description: "Không thể tải danh sách thiết bị.",
+                title: "Lỗi khi lấy danh sách mẫu thiết bị",
+                description: err.message,
                 variant: "destructive",
             });
         } finally {
@@ -150,11 +152,12 @@ const ManageDeviceModels = () => {
                 description: `Thiết bị "${deviceModelToDelete.modelName}" đã được xóa.`,
             });
             fetchDevices();
-        } catch (error) {
-            console.error("Lỗi khi xóa thiết bị:", error);
+        } catch (error: unknown) {
+            const err = error as ErrorResponse;
+            console.error("Lỗi khi xóa mẫu thiết bị:", err);
             toast({
-                title: "Lỗi",
-                description: "Không thể xóa thiết bị. Vui lòng thử lại.",
+                title: "Lỗi khi xóa mẫu thiết bị",
+                description: err.message,
                 variant: "destructive",
             });
         } finally {

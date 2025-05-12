@@ -34,6 +34,7 @@ import { KioskVersion } from "@/interfaces/kiosk";
 import { getKioskVersions, deleteKioskVersion } from "@/services/kiosk";
 import { KioskVersionDialog } from "@/components/dialog/kiosk";
 import { useRouter } from "next/navigation";
+import { ErrorResponse } from "@/types/error";
 
 const ManageKioskVersions = () => {
     const router = useRouter();
@@ -99,11 +100,12 @@ const ManageKioskVersions = () => {
             setKioskVersions(response.items);
             setTotalItems(response.total);
             setTotalPages(response.totalPages);
-        } catch (err) {
-            console.error(err);
+        } catch (error) {
+            const err = error as ErrorResponse;
+            console.error("không thể lấy danh sách kiosk version:", err);
             toast({
-                title: "Lỗi",
-                description: "Không thể tải danh sách phiên bản kiosk.",
+                title: "Lỗi khi lấy danh sách kiosk version",
+                description: err.message,
                 variant: "destructive",
             });
         } finally {

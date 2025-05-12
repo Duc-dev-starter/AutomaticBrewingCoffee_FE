@@ -32,6 +32,7 @@ import { deleteDeviceType, getDeviceTypes } from "@/services/device";
 import { columns } from "@/components/manage-devices/manage-device-types/columns";
 import { BaseFilterBadges } from "@/components/common/base-filter-badges";
 import { DeviceTypeDetailDialog, DeviceTypeDialog } from "@/components/dialog/device";
+import { ErrorResponse } from "@/types/error";
 
 const ManageDeviceTypes = () => {
     const { toast } = useToast();
@@ -96,11 +97,12 @@ const ManageDeviceTypes = () => {
             setDeviceTypes(response.items);
             setTotalItems(response.total);
             setTotalPages(response.totalPages);
-        } catch (err) {
-            console.error(err);
+        } catch (error: unknown) {
+            const err = error as ErrorResponse;
+            console.error("Lỗi khi lấy danh sách loại thiết bị:", err);
             toast({
-                title: "Lỗi",
-                description: "Không thể tải danh sách thiết bị.",
+                title: "Lỗi khi lấy danh sách loại thiết bị",
+                description: err.message,
                 variant: "destructive",
             });
         } finally {
@@ -148,11 +150,12 @@ const ManageDeviceTypes = () => {
                 description: `Loại thiết bị "${deviceTypeToDelete.name}" đã được xóa.`,
             });
             fetchDeviceTypes();
-        } catch (error) {
-            console.error("Lỗi khi xóa thiết bị:", error);
+        } catch (error: unknown) {
+            const err = error as ErrorResponse;
+            console.error("Lỗi khi xóa thiết bị:", err);
             toast({
-                title: "Lỗi",
-                description: "Không thể xóa thiết bị. Vui lòng thử lại.",
+                title: "Lỗi khi xóa loại thiết bị",
+                description: err.message,
                 variant: "destructive",
             });
         } finally {

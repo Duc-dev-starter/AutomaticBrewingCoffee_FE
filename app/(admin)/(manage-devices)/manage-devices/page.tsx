@@ -33,6 +33,7 @@ import { useToast } from "@/hooks/use-toast";
 import { DeviceDetailDialog, DeviceDialog } from "@/components/dialog/device";
 import { DeviceFilter } from "@/components/manage-devices/filter";
 import { FilterBadges } from "@/components/manage-devices/filter-badges";
+import { ErrorResponse } from "@/types/error";
 
 const ManageDevices = () => {
     const { toast } = useToast();
@@ -97,11 +98,12 @@ const ManageDevices = () => {
             setDevices(response.items);
             setTotalItems(response.total);
             setTotalPages(response.totalPages);
-        } catch (err) {
-            console.error(err);
+        } catch (error: unknown) {
+            const err = error as ErrorResponse;
+            console.error("Lỗi khi lấy danh sách thiết bị:", err);
             toast({
-                title: "Lỗi",
-                description: "Không thể tải danh sách thiết bị.",
+                title: "Lỗi khi lấy danh sách thiết bị",
+                description: err.message,
                 variant: "destructive",
             });
         } finally {
@@ -149,11 +151,12 @@ const ManageDevices = () => {
                 description: `Thiết bị "${deviceToDelete.name}" đã được xóa.`,
             });
             fetchDevices();
-        } catch (error) {
-            console.error("Lỗi khi xóa thiết bị:", error);
+        } catch (error: unknown) {
+            const err = error as ErrorResponse;
+            console.error("Lỗi không xóa được thiết bị:", err);
             toast({
-                title: "Lỗi",
-                description: "Không thể xóa thiết bị. Vui lòng thử lại.",
+                title: "Lỗi khi xóa thiết bị",
+                description: err.message,
                 variant: "destructive",
             });
         } finally {

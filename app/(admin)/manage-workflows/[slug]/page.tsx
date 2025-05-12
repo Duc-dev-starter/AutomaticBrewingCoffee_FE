@@ -15,6 +15,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { WorkflowStepCard } from "@/components/manage-workflows/workflow-step-card"
 
 import React from 'react'
+import { ErrorResponse } from "@/types/error"
 
 const WorkflowDetail = () => {
     const { slug } = useParams()
@@ -30,13 +31,14 @@ const WorkflowDetail = () => {
                 const response = await getWorkflow(slug as string)
                 console.log(response);
                 setWorkflow(response.response)
-            } catch (error) {
-                console.error("Error fetching workflow:", error)
+            } catch (error: unknown) {
+                const err = error as ErrorResponse;
+                console.error("Lỗi khi lấy thông tin quy trinh:", err);
                 toast({
-                    title: "Lỗi",
-                    description: "Không thể tải thông tin quy trình. Vui lòng thử lại sau.",
+                    title: "Lỗi khi thông tin quy trình",
+                    description: err.message,
                     variant: "destructive",
-                })
+                });
             } finally {
                 setLoading(false)
             }

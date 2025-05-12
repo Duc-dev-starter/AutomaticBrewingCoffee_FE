@@ -32,6 +32,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ProductDialog, ProductDetailDialog } from "@/components/dialog/product";
 import { ProductFilter } from "@/components/manage-products/filter";
 import { FilterBadges } from "@/components/manage-products/filter-badges";
+import { ErrorResponse } from "@/types/error";
 
 const ManageProducts = () => {
     const { toast } = useToast();
@@ -106,11 +107,12 @@ const ManageProducts = () => {
             setProducts(response.items);
             setTotalItems(response.total);
             setTotalPages(response.totalPages);
-        } catch (err) {
-            console.error(err);
+        } catch (error: unknown) {
+            const err = error as ErrorResponse;
+            console.error("Lỗi khi lấy danh sách sản phẩm:", err);
             toast({
-                title: "Lỗi",
-                description: "Không thể tải danh sách sản phẩm.",
+                title: "Lỗi khi lấy danh sách sản phẩm",
+                description: err.message,
                 variant: "destructive",
             });
         } finally {
@@ -158,11 +160,12 @@ const ManageProducts = () => {
                 description: `Sản phẩm "${productToDelete.name}" đã được xóa.`,
             });
             fetchProducts();
-        } catch (error) {
-            console.error("Lỗi khi xóa sản phẩm:", error);
+        } catch (error: unknown) {
+            const err = error as ErrorResponse;
+            console.error("Lỗi khi xóa sản phẩm:", err);
             toast({
-                title: "Lỗi",
-                description: "Không thể xóa sản phẩm. Vui lòng thử lại.",
+                title: "Lỗi khi xóa sản phẩm",
+                description: err.message,
                 variant: "destructive",
             });
         } finally {

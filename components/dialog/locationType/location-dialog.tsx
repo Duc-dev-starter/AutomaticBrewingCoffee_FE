@@ -11,6 +11,7 @@ import { PlusCircle, Loader2, Edit } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { LocationTypeDialogProps } from "@/types/dialog";
 import { createLocationType, updateLocationType } from "@/services/locationType";
+import { ErrorResponse } from "@/types/error";
 
 const initialFormData = {
     name: "",
@@ -76,10 +77,11 @@ const LocationTypeDialog = ({ open, onOpenChange, onSuccess, locationType }: Loc
             onSuccess?.();
             onOpenChange(false);
         } catch (error) {
-            console.error("Lỗi khi xử lý location:", error);
+            const err = error as ErrorResponse;
+            console.error("Lỗi khi xử lý kiosk:", error);
             toast({
-                title: "Lỗi",
-                description: "Có lỗi xảy ra khi xử lý location. Vui lòng thử lại sau.",
+                title: "Lỗi khi xử lý location type",
+                description: err.message,
                 variant: "destructive",
             });
         } finally {

@@ -31,6 +31,7 @@ import { getOrders } from "@/services/order";
 import { useToast } from "@/hooks/use-toast";
 import { OrderDetailDialog, OrderDialog } from "@/components/dialog/order";
 import { columns, FilterBadges, OrderFilter } from "@/components/manage-orders";
+import { ErrorResponse } from "@/types/error";
 
 const ManageOrders = () => {
     const { toast } = useToast();
@@ -102,9 +103,14 @@ const ManageOrders = () => {
             setOrders(response.items);
             setTotalItems(response.total);
             setTotalPages(response.totalPages);
-        } catch (err) {
-            console.error(err);
-            toast({ title: "Lỗi", description: "Không thể tải danh sách đơn hàng.", variant: "destructive" });
+        } catch (error: unknown) {
+            const err = error as ErrorResponse;
+            console.error("Lỗi khi lấy danh sách order:", err);
+            toast({
+                title: "Lỗi khi lấy danh sách order",
+                description: err.message,
+                variant: "destructive",
+            });
         } finally {
             setLoading(false);
         }

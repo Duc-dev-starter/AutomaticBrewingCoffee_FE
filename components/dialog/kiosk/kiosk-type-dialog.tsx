@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { EBaseStatus, EBaseStatusViMap } from "@/enum/base";
 import { KioskDialogProps } from "@/types/dialog";
 import { createKioskType, updateKioskType } from "@/services/kiosk";
+import { ErrorResponse } from "@/types/error";
 
 const initialFormData = {
     name: "",
@@ -90,10 +91,11 @@ const KioskTypeDialog = ({ open, onOpenChange, onSuccess, kioskType }: KioskDial
             onSuccess?.();
             onOpenChange(false);
         } catch (error) {
+            const err = error as ErrorResponse;
             console.error("Lỗi khi xử lý loại kiosk:", error);
             toast({
-                title: "Lỗi",
-                description: "Có lỗi xảy ra khi xử lý loại kiosk. Vui lòng thử lại sau.",
+                title: "Lỗi khi xử lý loại kiosk",
+                description: err.message,
                 variant: "destructive",
             });
         } finally {

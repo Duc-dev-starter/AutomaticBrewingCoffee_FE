@@ -40,6 +40,7 @@ import { useToast } from "@/hooks/use-toast"
 import { columns } from "@/components/manage-organizations/columns"
 import { OrganizationDetailDialog, OrganizationDialog } from "@/components/dialog/organization"
 import { BaseFilterBadges } from "@/components/common/base-filter-badges"
+import { ErrorResponse } from "@/types/error"
 
 const ManageOrganizations = () => {
     const { toast } = useToast()
@@ -105,13 +106,14 @@ const ManageOrganizations = () => {
             setOrganizations(response.items)
             setTotalItems(response.total)
             setTotalPages(response.totalPages)
-        } catch (err) {
-            console.error(err)
+        } catch (error: unknown) {
+            const err = error as ErrorResponse;
+            console.error("Lỗi khi lấy danh sách tổ chức:", err);
             toast({
-                title: "Lỗi",
-                description: "Không thể tải danh sách tổ chức.",
+                title: "Lỗi khi lấy danh sách tổ chức",
+                description: err.message,
                 variant: "destructive",
-            })
+            });
         } finally {
             setLoading(false)
         }
@@ -157,13 +159,14 @@ const ManageOrganizations = () => {
                 description: `Tổ chức "${organizationToDelete.name}" đã được xóa.`,
             })
             fetchOrganizations()
-        } catch (error) {
-            console.error("Lỗi khi xóa tổ chức:", error)
+        } catch (error: unknown) {
+            const err = error as ErrorResponse;
+            console.error("Lỗi khi xóa tổ chức:", err);
             toast({
-                title: "Lỗi",
-                description: "Không thể xóa tổ chức. Vui lòng thử lại.",
+                title: "Lỗi khi xóa tổ chức",
+                description: err.message,
                 variant: "destructive",
-            })
+            });
         } finally {
             setDeleteDialogOpen(false)
             setOrganizationToDelete(null)

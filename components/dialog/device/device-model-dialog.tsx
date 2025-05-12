@@ -14,6 +14,7 @@ import { DeviceDialogProps } from "@/types/dialog";
 import { DeviceType } from "@/interfaces/device";
 import InfiniteScroll from "react-infinite-scroll-component";
 import { EBaseStatus, EBaseStatusViMap } from "@/enum/base";
+import { ErrorResponse } from "@/types/error";
 
 const initialFormData = {
     modelName: "",
@@ -126,10 +127,11 @@ const DeviceModelDialog = ({ open, onOpenChange, onSuccess, deviceModel }: Devic
             onSuccess?.();
             onOpenChange(false);
         } catch (error) {
-            console.error("Error processing device model:", error);
+            const err = error as ErrorResponse;
+            console.error("Lỗi khi xử lý mẫu thiết bị:", error);
             toast({
-                title: "Lỗi",
-                description: "Đã xảy ra lỗi trong khi xử lý kiểu thiết bị. Vui lòng thử lại sau.",
+                title: "Có lỗi xảy ra khi xử lý mẫu thiết bị",
+                description: err.message,
                 variant: "destructive",
             });
         } finally {

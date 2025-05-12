@@ -15,6 +15,7 @@ import { Kiosk } from "@/interfaces/kiosk";
 import { getKiosks } from "@/services/kiosk";
 import InfiniteScroll from "react-infinite-scroll-component";
 import { MenuDialogProps } from "@/types/dialog";
+import { ErrorResponse } from "@/types/error";
 
 const initialFormData = {
     kioskId: "",
@@ -120,10 +121,11 @@ const MenuDialog = ({ open, onOpenChange, onSuccess, menu }: MenuDialogProps) =>
             onSuccess?.();
             onOpenChange(false);
         } catch (error) {
+            const err = error as ErrorResponse;
             console.error("Lỗi khi xử lý menu:", error);
             toast({
-                title: "Lỗi",
-                description: "Có lỗi xảy ra khi xử lý menu. Vui lòng thử lại sau.",
+                title: "Lỗi khi xử lý menu",
+                description: err.message,
                 variant: "destructive",
             });
         } finally {

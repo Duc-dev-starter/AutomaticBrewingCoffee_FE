@@ -14,7 +14,7 @@ import { useToast } from "@/hooks/use-toast"
 import { createOrganization, updateOrganization } from "@/services/organization"
 import type { OrganizationDialogProps } from "@/types/dialog"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { Organization } from "@/interfaces/organization"
+import { ErrorResponse } from "@/types/error"
 
 const statusMap = {
     [EBaseStatus.Active]: "Hoạt động",
@@ -172,12 +172,13 @@ const OrganizationDialog = ({ open, onOpenChange, onSuccess, organization }: Org
             onSuccess?.()
             onOpenChange(false)
         } catch (error) {
-            console.error("Lỗi khi xử lý tổ chức:", error)
+            const err = error as ErrorResponse;
+            console.error("Lỗi khi xử lý tổ chứcchức:", error);
             toast({
-                title: "Lỗi",
-                description: "Có lỗi xảy ra khi xử lý tổ chức. Vui lòng thử lại sau.",
+                title: "Lỗi khi xử lý tổ chứcchức",
+                description: err.message,
                 variant: "destructive",
-            })
+            });
         } finally {
             setIsSubmitting(false)
         }

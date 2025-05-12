@@ -24,13 +24,14 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { PlusCircle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import useDebounce from "@/hooks/use-debounce";
-import { ConfirmDeleteDialog, ExportButton, NoResultsRow, Pagination, RefreshButton, SearchInput } from "@/components/common";
+import { BaseStatusFilter, ConfirmDeleteDialog, ExportButton, NoResultsRow, Pagination, RefreshButton, SearchInput } from "@/components/common";
 import { multiSelectFilter } from "@/utils/table";
 import { useToast } from "@/hooks/use-toast";
 import { LocationType } from "@/interfaces/location";
 import { columns } from "@/components/manage-locations/columns";
 import { getLocationTypes, deleteLocationType } from "@/services/locationType";
 import { LocationTypeDetailDialog, LocationTypeDialog } from "@/components/dialog/locationType";
+import { ErrorResponse } from "@/types/error";
 
 const ManageLocationTypes = () => {
     const { toast } = useToast();
@@ -142,11 +143,12 @@ const ManageLocationTypes = () => {
                 description: `Location "${locationTypeToDelete.name}" đã được xóa.`,
             });
             fetchLocationTypes();
-        } catch (error) {
-            console.error("Lỗi khi xóa location:", error);
+        } catch (error: unknown) {
+            const err = error as ErrorResponse;
+            console.error("Lỗi khi xóa location:", err);
             toast({
-                title: "Lỗi",
-                description: "Không thể xóa location. Vui lòng thử lại.",
+                title: "Lỗi khi xóa loại location",
+                description: err.message,
                 variant: "destructive",
             });
         } finally {
@@ -223,6 +225,13 @@ const ManageLocationTypes = () => {
                         />
                     </div>
                     <div className="flex items-center gap-2 ml-auto">
+                        <BaseStatusFilter
+                            loading={loading}
+                            statusFilter={statusFilter}
+                            setStatusFilter={setStatusFilter}
+                            clearAllFilters={clearAllFilters}
+                            hasActiveFilters={hasActiveFilters}
+                        />
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button variant="outline">

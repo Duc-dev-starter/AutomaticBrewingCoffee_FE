@@ -10,6 +10,7 @@ import { EBaseStatus } from "@/enum/base";
 import { addProductToMenu } from "@/services/menu";
 import { getProducts } from "@/services/product";
 import { Product } from "@/interfaces/product";
+import { ErrorResponse } from "@/types/error";
 
 type AddProductToMenuDialogProps = {
     open: boolean;
@@ -82,10 +83,11 @@ const AddProductToMenuDialog = ({ open, onOpenChange, onSuccess, menuId, existin
             onSuccess();
             onOpenChange(false);
         } catch (error) {
-            console.error("Lỗi khi thêm sản phẩm vào menu:", error);
+            const err = error as ErrorResponse;
+            console.error("Lỗi khi xử lý kiosk:", error);
             toast({
-                title: "Lỗi",
-                description: "Không thể thêm sản phẩm vào menu.",
+                title: "Lỗi khi thêm sản phẩm vào menu",
+                description: err.message,
                 variant: "destructive",
             });
         } finally {

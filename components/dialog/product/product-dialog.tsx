@@ -14,6 +14,7 @@ import { createProduct, updateProduct, getProducts } from "@/services/product";
 import { productSchema } from "@/schema/product";
 import { ProductDialogProps } from "@/types/dialog";
 import { Upload, X } from "lucide-react";
+import { ErrorResponse } from "@/types/error";
 
 const initialFormData = {
     name: "",
@@ -173,10 +174,11 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
             onSuccess?.();
             onOpenChange(false);
         } catch (error) {
-            console.error("Lỗi:", error);
+            const err = error as ErrorResponse;
+            console.error("Lỗi khi xử lý sản phẩm:", error);
             toast({
-                title: "Lỗi",
-                description: product ? "Không thể cập nhật sản phẩm." : "Không thể tạo sản phẩm.",
+                title: "Lỗi khi xử lý sản phẩm",
+                description: err.message,
                 variant: "destructive",
             });
         } finally {

@@ -15,6 +15,7 @@ import { LocationType } from "@/interfaces/location";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Loader2 } from "lucide-react";
 import { getLocationTypes } from "@/services/locationType";
+import { ErrorResponse } from "@/types/error";
 
 const StoreDialog = ({ open, onOpenChange, onSuccess, store }: StoreDialogProps) => {
     const { toast } = useToast();
@@ -159,10 +160,11 @@ const StoreDialog = ({ open, onOpenChange, onSuccess, store }: StoreDialogProps)
             }
             onSuccess?.();
         } catch (error) {
-            console.error("Lỗi khi lưu cửa hàng:", error);
+            const err = error as ErrorResponse;
+            console.error("Lỗi khi xử lý cửa hàng:", error);
             toast({
-                title: "Lỗi",
-                description: "Không thể lưu cửa hàng. Vui lòng thử lại.",
+                title: "Lỗi khi xử lý cửa hàng",
+                description: err.message,
                 variant: "destructive",
             });
         } finally {

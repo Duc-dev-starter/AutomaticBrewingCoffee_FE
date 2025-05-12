@@ -13,6 +13,7 @@ import { PlusCircle, Loader2, Edit } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { createWorkflow, updateWorkflow } from "@/services/workflow";
 import { WorkflowDialogProps } from "@/types/dialog";
+import { ErrorResponse } from "@/types/error";
 
 
 const initialFormData = {
@@ -92,10 +93,11 @@ const WorkflowDialog = ({ open, onOpenChange, onSuccess, workflow }: WorkflowDia
             onSuccess?.();
             onOpenChange(false);
         } catch (error) {
+            const err = error as ErrorResponse;
             console.error("Lỗi khi xử lý quy trình:", error);
             toast({
-                title: "Lỗi",
-                description: "Có lỗi xảy ra khi xử lý quy trình. Vui lòng thử lại sau.",
+                title: "Lỗi khi xử lý quy trình",
+                description: err.message,
                 variant: "destructive",
             });
         } finally {

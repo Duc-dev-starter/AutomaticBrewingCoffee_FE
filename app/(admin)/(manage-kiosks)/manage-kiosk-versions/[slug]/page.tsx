@@ -15,6 +15,7 @@ import { Loader2, Plus } from "lucide-react"
 import { toast } from "@/hooks/use-toast"
 import { KioskVersion, KioskVersionDeviceModelMappings } from "@/interfaces/kiosk"
 import { DeviceModel } from "@/interfaces/device"
+import { ErrorResponse } from "@/types/error"
 
 const KioskVersionDetailPage = () => {
     const { slug } = useParams()
@@ -46,13 +47,14 @@ const KioskVersionDetailPage = () => {
                 // Lấy danh sách device models
                 const deviceModelsData = await getDeviceModels()
                 setDeviceModels(deviceModelsData.items)
-            } catch (error) {
-                console.error("Error fetching data:", error)
+            } catch (error: unknown) {
+                const err = error as ErrorResponse;
+                console.error("Lỗi khi lấy danh sách kiosk version:", err);
                 toast({
-                    title: "Lỗi",
-                    description: "Không thể tải dữ liệu. Vui lòng thử lại sau.",
+                    title: "Lỗi khi lấy danh sách kiosk version",
+                    description: err.message,
                     variant: "destructive",
-                })
+                });
             } finally {
                 setLoading(false)
             }
@@ -71,7 +73,6 @@ const KioskVersionDetailPage = () => {
             return
         }
 
-        // Kiểm tra và đảm bảo slug là string
         if (typeof slug !== "string") {
             toast({
                 title: "Lỗi",
@@ -84,13 +85,12 @@ const KioskVersionDetailPage = () => {
         try {
             setAddingDevice(true)
 
-            // Kiểm tra xem device model đã tồn tại trong mappings chưa
             const existingMappingIndex = mappings.findIndex(
                 (mapping) => mapping.deviceModel?.deviceModelId === selectedDeviceModelId,
             )
 
             if (existingMappingIndex !== -1) {
-                // Nếu đã tồn tại, cập nhật số lượng
+                // Cập nhật số lượng nếu mapping đã tồn tại
                 const updatedMappings = [...mappings]
                 const newQuantity = updatedMappings[existingMappingIndex].quantity + quantity
 
@@ -101,7 +101,6 @@ const KioskVersionDetailPage = () => {
                 }
 
                 await createDeviceModelInKioskVersion(payload)
-
                 updatedMappings[existingMappingIndex].quantity = newQuantity
                 setMappings(updatedMappings)
 
@@ -110,7 +109,7 @@ const KioskVersionDetailPage = () => {
                     description: "Đã cập nhật số lượng thiết bị.",
                 })
             } else {
-                // Nếu chưa tồn tại, thêm mới
+                // Thêm mới mapping
                 const payload = {
                     kioskVersionId: slug,
                     deviceModelId: selectedDeviceModelId,
@@ -120,7 +119,24 @@ const KioskVersionDetailPage = () => {
                 await createDeviceModelInKioskVersion(payload)
 
                 const selectedModel = deviceModels.find((model) => model.deviceModelId === selectedDeviceModelId)
-                setMappings([...mappings, { deviceModel: selectedModel, quantity }])
+
+                if (selectedModel && kioskVersion) {
+                    const newMapping: KioskVersionDeviceModelMappings = {
+                        kioskVersionId: slug,
+                        deviceModelId: selectedDeviceModelId,
+                        kioskVersion: kioskVersion,
+                        deviceModel: selectedModel,
+                        quantity,
+                    }
+                    setMappings([...mappings, newMapping])
+                } else {
+                    toast({
+                        title: "Lỗi",
+                        description: "Không tìm thấy DeviceModel hoặc KioskVersion.",
+                        variant: "destructive",
+                    })
+                    return
+                }
 
                 toast({
                     title: "Thành công",
@@ -128,16 +144,15 @@ const KioskVersionDetailPage = () => {
                 })
             }
 
-            // Reset form
             setSelectedDeviceModelId("")
-            setQuantity(1)
-        } catch (error) {
-            console.error("Lỗi khi thêm DeviceModel:", error)
+        } catch (error: unknown) {
+            const err = error as ErrorResponse;
+            console.error("Lỗi khi thêm device vào kiosk:", err);
             toast({
-                title: "Lỗi",
-                description: "Không thể thêm thiết bị. Vui lòng thử lại sau.",
+                title: "Lỗi khi thêm device vào kiosk",
+                description: err.message,
                 variant: "destructive",
-            })
+            });
         } finally {
             setAddingDevice(false)
         }

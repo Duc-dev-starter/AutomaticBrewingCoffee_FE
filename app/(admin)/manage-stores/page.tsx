@@ -96,11 +96,12 @@ const ManageStores = () => {
             setStores(response.items);
             setTotalItems(response.total);
             setTotalPages(response.totalPages);
-        } catch (err) {
-            console.error(err);
+        } catch (error: unknown) {
+            const err = error as ErrorResponse
+            console.error("Lỗi khi lấy danh sách cửa hàng:", err);
             toast({
-                title: "Lỗi",
-                description: "Không thể tải danh sách cửa hàng.",
+                title: "Lỗi khi lấy danh sách cửa hàng",
+                description: err.message,
                 variant: "destructive",
             });
         } finally {

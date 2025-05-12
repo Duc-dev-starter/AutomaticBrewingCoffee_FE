@@ -12,6 +12,7 @@ import { EOrderType, EPaymentGateway } from "@/enum/order";
 import { createOrder } from "@/services/order";
 import { orderSchema } from "@/schema/order";
 import { OrderDialogProps } from "@/types/dialog";
+import { ErrorResponse } from "@/types/error";
 
 
 // Initial form data
@@ -75,9 +76,11 @@ const OrderDialog = ({ open, onOpenChange, onSuccess }: OrderDialogProps) => {
             onSuccess?.();
             onOpenChange(false);
         } catch (error) {
+            const err = error as ErrorResponse;
+            console.error("Lỗi khi tạo order:", error);
             toast({
-                title: "Lỗi",
-                description: "Không thể tạo đơn hàng.",
+                title: "Lỗi khi xử lý order",
+                description: err.message,
                 variant: "destructive",
             });
         } finally {

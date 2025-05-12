@@ -23,7 +23,7 @@ import { Device } from "@/interfaces/device"
 const KioskDetailPage = () => {
     const { slug } = useParams()
     const router = useRouter()
-    const [kiosk, setKiosk] = useState<Kiosk>(null)
+    const [kiosk, setKiosk] = useState<Kiosk | null>(null)
     const [loading, setLoading] = useState(true)
     const [availableDevices, setAvailableDevices] = useState<Device[]>([])
     const [selectedDeviceId, setSelectedDeviceId] = useState("")
@@ -34,11 +34,17 @@ const KioskDetailPage = () => {
             try {
                 setLoading(true)
                 // Fetch kiosk details
-                if (slug) {
-                    const kioskData = await getKiosk(slug);
-                    console.log(kioskData);
-                    setKiosk(kioskData.response)
+                if (typeof slug !== "string") {
+                    toast({
+                        title: "Lỗi",
+                        description: "Slug không hợp lệ.",
+                        variant: "destructive",
+                    });
+                    return;
                 }
+                const kioskData = await getKiosk(slug);
+                console.log(kioskData);
+                setKiosk(kioskData.response)
 
                 // Fetch available devices (not assigned to any kiosk)
                 const devicesData = await getDevices()
@@ -70,12 +76,24 @@ const KioskDetailPage = () => {
 
         try {
             setAddingDevice(true)
+
+
+            if (typeof slug !== "string") {
+                toast({
+                    title: "Lỗi",
+                    description: "Slug không hợp lệ.",
+                    variant: "destructive",
+                });
+                return;
+            }
+
             const payload = {
                 kioskId: slug,
                 deviceId: selectedDeviceId,
             }
 
-            await addDeviceInKiosk(payload)
+            await addDeviceInKiosk(payload);
+
 
             // Refresh kiosk data to show the new device
             const updatedKioskData = await (await getKiosk(slug)).response

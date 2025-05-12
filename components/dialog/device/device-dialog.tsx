@@ -15,6 +15,7 @@ import { createDevice, updateDevice, getDeviceModels } from "@/services/device";
 import { DeviceDialogProps } from "@/types/dialog";
 import { DeviceModel } from "@/interfaces/device"; // Giả sử DeviceModel interface tồn tại
 import InfiniteScroll from "react-infinite-scroll-component";
+import { ErrorResponse } from "@/types/error";
 
 const initialFormData = {
     deviceModelId: "",
@@ -44,11 +45,12 @@ const DeviceDialog = ({ open, onOpenChange, onSuccess, device }: DeviceDialogPro
             if (response.items.length < 10) {
                 setHasMoreDeviceModels(false);
             }
-        } catch (error) {
-            console.error("Lỗi khi tải danh sách mẫu thiết bị:", error);
+        } catch (error: unknown) {
+            const err = error as ErrorResponse;
+            console.error("Lỗi khi lấy danh sách mẫu thiết bị:", err);
             toast({
-                title: "Lỗi",
-                description: "Không tải được danh sách mẫu thiết bị.",
+                title: "Lỗi khi lấy danh sách mẫu thiết bị",
+                description: err.message,
                 variant: "destructive",
             });
         }
@@ -136,10 +138,11 @@ const DeviceDialog = ({ open, onOpenChange, onSuccess, device }: DeviceDialogPro
             onSuccess?.();
             onOpenChange(false);
         } catch (error) {
+            const err = error as ErrorResponse;
             console.error("Lỗi khi xử lý thiết bị:", error);
             toast({
-                title: "Lỗi",
-                description: "Có lỗi xảy ra khi xử lý thiết bị. Vui lòng thử lại sau.",
+                title: "Có lỗi xảy ra khi xử lý thiết bị",
+                description: err.message,
                 variant: "destructive",
             });
         } finally {

@@ -27,6 +27,7 @@ import { columns } from "@/components/manage-menus-detail/columns"
 import AddProductToMenuDialog from "@/components/dialog/menu/add-product-to-menu"
 import { EBaseStatusViMap } from "@/enum/base"
 import { SearchInput } from "@/components/common/search-input"
+import { ErrorResponse } from "@/types/error"
 
 export type MenuDetailType = Menu & {
     menuProductMappings: MenuProductMapping[]
@@ -58,9 +59,9 @@ const MenuDetail = () => {
         actions: true,
     });
 
-    const existingProductIds = menu
+    const existingProductIds = (menu
         ? menu.menuProductMappings.map((mapping) => mapping.product?.productId).filter(Boolean)
-        : [];
+        : []) as string[];
 
     const hasActiveFilters =
         statusFilter !== "" ||
@@ -78,11 +79,12 @@ const MenuDetail = () => {
             const response = await getMenu(slug);
             setMenu(response.response);
             setTotalItems(response.response.menuProductMappings.length);
-        } catch (error) {
-            console.error("Lỗi khi tải dữ liệu menu:", error);
+        } catch (error: unknown) {
+            const err = error as ErrorResponse;
+            console.error("Lỗi khi lấy danh sách menu:", err);
             toast({
-                title: "Lỗi",
-                description: "Không thể tải dữ liệu menu.",
+                title: "Lỗi khi lấy danh sách menu",
+                description: err.message,
                 variant: "destructive",
             });
         } finally {
@@ -161,11 +163,12 @@ const MenuDetail = () => {
             await removeProductFromMenu(menu!.menuId, selectedMapping.product.productId);
             toast({ title: "Thành công", description: "Đã xóa sản phẩm khỏi menu." });
             fetchMenu();
-        } catch (error) {
-            console.error("Lỗi khi xóa sản phẩm:", error);
+        } catch (error: unknown) {
+            const err = error as ErrorResponse;
+            console.error("Lỗi khi xóa sản phẩm:", err);
             toast({
-                title: "Lỗi",
-                description: "Không thể xóa sản phẩm.",
+                title: "Lỗi khi xóa sản phẩm",
+                description: err.message,
                 variant: "destructive",
             });
         } finally {

@@ -33,6 +33,7 @@ import { columns } from "@/components/manage-menus/columns";
 import MenuDialog from "@/components/dialog/menu/menu-dialog";
 import MenuDetailDialog from "@/components/dialog/menu/menu-detail-dialog";
 import { useRouter } from "next/navigation";
+import { ErrorResponse } from "@/types/error";
 
 const ManageMenus = () => {
     const { toast } = useToast();
@@ -110,11 +111,12 @@ const ManageMenus = () => {
             setMenus(response.items);
             setTotalItems(response.total);
             setTotalPages(response.totalPages);
-        } catch (err) {
-            console.error(err);
+        } catch (error: unknown) {
+            const err = error as ErrorResponse;
+            console.error("Lỗi khi lấy danh sách menu:", err);
             toast({
-                title: "Lỗi",
-                description: "Không thể tải danh sách menu.",
+                title: "Lỗi khi lấy danh sách menu",
+                description: err.message,
                 variant: "destructive",
             });
         } finally {
@@ -157,11 +159,12 @@ const ManageMenus = () => {
                 description: `Menu "${menuToDelete.name}" đã được xóa.`,
             });
             fetchMenus();
-        } catch (error) {
-            console.error("Lỗi khi xóa menu:", error);
+        } catch (error: unknown) {
+            const err = error as ErrorResponse;
+            console.error("Lỗi khi xóa menu:", err);
             toast({
-                title: "Lỗi",
-                description: "Không thể xóa menu. Vui lòng thử lại.",
+                title: "Lỗi khi xóa menu",
+                description: err.message,
                 variant: "destructive",
             });
         } finally {

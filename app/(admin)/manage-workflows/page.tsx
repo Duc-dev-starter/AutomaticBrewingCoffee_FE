@@ -33,6 +33,7 @@ import { useToast } from "@/hooks/use-toast";
 import { FilterBadges } from "@/components/manage-workflows/filter-badges";
 import { useRouter } from "next/navigation";
 import { WorkflowDetailDialog, WorkflowDialog } from "@/components/dialog/workflow";
+import { ErrorResponse } from "@/types/error";
 
 const ManageWorkflows = () => {
     const { toast } = useToast();
@@ -147,11 +148,12 @@ const ManageWorkflows = () => {
                 description: `Quy trình "${workflowToDelete.name}" đã được xóa.`,
             });
             fetchWorkflows();
-        } catch (error) {
-            console.error("Lỗi khi xóa quy trình:", error);
+        } catch (error: unknown) {
+            const err = error as ErrorResponse;
+            console.error("Lỗi khi xóa quy trình:", err);
             toast({
-                title: "Lỗi",
-                description: "Không thể xóa quy trình. Vui lòng thử lại.",
+                title: "Lỗi khi xóa quy trình",
+                description: err.message,
                 variant: "destructive",
             });
         } finally {

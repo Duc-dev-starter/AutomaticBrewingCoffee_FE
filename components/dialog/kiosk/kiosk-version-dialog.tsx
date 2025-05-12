@@ -14,6 +14,7 @@ import { KioskType } from "@/interfaces/kiosk";
 import InfiniteScroll from "react-infinite-scroll-component";
 import { EBaseStatus, EBaseStatusViMap } from "@/enum/base";
 import { KioskDialogProps } from "@/types/dialog";
+import { ErrorResponse } from "@/types/error";
 
 // Dữ liệu khởi tạo cho form
 const initialFormData = {
@@ -45,10 +46,11 @@ const KioskVersionDialog = ({ open, onOpenChange, onSuccess, kioskVersion }: Kio
                 setHasMore(false);
             }
         } catch (error) {
-            console.error("Error fetching kiosk types:", error);
+            const err = error as ErrorResponse;
+            console.error("Lỗi khi lấy danh sách phiên bản kiosk:", error);
             toast({
-                title: "Lỗi",
-                description: "Không tải được các loại kiosk.",
+                title: "Lỗi khi lấy danh sách phiên bản kiosk",
+                description: err.message,
                 variant: "destructive",
             });
         }
@@ -135,10 +137,11 @@ const KioskVersionDialog = ({ open, onOpenChange, onSuccess, kioskVersion }: Kio
             onSuccess?.();
             onOpenChange(false);
         } catch (error) {
-            console.error("Error processing kiosk version:", error);
+            const err = error as ErrorResponse;
+            console.error("Lỗi khi xử lý kiosk:", error);
             toast({
-                title: "Lỗi",
-                description: "Đã xảy ra lỗi trong khi xử lý phiên bản kiosk. Vui lòng thử lại sau.",
+                title: "Lỗi khi xử lý phiên bản kiosk",
+                description: err.message,
                 variant: "destructive",
             });
         } finally {

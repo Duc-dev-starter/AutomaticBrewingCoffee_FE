@@ -25,6 +25,7 @@ import type { KioskVersion } from "@/interfaces/kiosk"
 import type { Store } from "@/interfaces/store"
 import { X, Cpu } from "lucide-react"
 import InfiniteScroll from "react-infinite-scroll-component"
+import { ErrorResponse } from "@/types/error"
 
 const initialFormData = {
     kioskVersionId: "",
@@ -66,12 +67,13 @@ const KioskDialog = ({ open, onOpenChange, onSuccess, kiosk }: KioskDialogProps)
                 setDevicePage(1)
                 setHasMoreDevices(deviceRes.items.length === 10)
             } catch (error) {
-                console.error("Lỗi khi tải dữ liệu:", error)
+                const err = error as ErrorResponse;
+                console.error("Lỗi khi lấy danh sách kiosk:", error);
                 toast({
-                    title: "Lỗi",
-                    description: "Không thể tải danh sách phiên bản kiosk, cửa hàng hoặc thiết bị.",
+                    title: "Lỗi khi lấy danh sách kiosk",
+                    description: err.message,
                     variant: "destructive",
-                })
+                });
             } finally {
                 setFetching(false)
             }
@@ -132,12 +134,13 @@ const KioskDialog = ({ open, onOpenChange, onSuccess, kiosk }: KioskDialogProps)
                 setHasMoreDevices(false)
             }
         } catch (error) {
-            console.error("Lỗi khi tải thêm thiết bị:", error)
+            const err = error as ErrorResponse;
+            console.error("Lỗi khi lấy danh sách thiết bị:", error);
             toast({
-                title: "Lỗi",
-                description: "Không thể tải thêm danh sách thiết bị.",
+                title: "Lỗi khi lấy danh sách thiết bị",
+                description: err.message,
                 variant: "destructive",
-            })
+            });
         } finally {
             setFetching(false)
         }
@@ -158,12 +161,13 @@ const KioskDialog = ({ open, onOpenChange, onSuccess, kiosk }: KioskDialogProps)
             setDevices(deviceRes.items)
             setHasMoreDevices(deviceRes.items.length === 10)
         } catch (error) {
-            console.error("Lỗi khi tìm kiếm thiết bị:", error)
+            const err = error as ErrorResponse;
+            console.error("Lỗi khi không tìm thấy thiết bị:", error);
             toast({
-                title: "Lỗi",
-                description: "Không thể tìm kiếm thiết bị.",
+                title: "Có lỗi xảy ra không tìm thấy thiết bị",
+                description: err.message,
                 variant: "destructive",
-            })
+            });
         } finally {
             setFetching(false)
         }
@@ -217,12 +221,13 @@ const KioskDialog = ({ open, onOpenChange, onSuccess, kiosk }: KioskDialogProps)
             onSuccess?.()
             onOpenChange(false)
         } catch (error) {
-            console.error("Lỗi:", error)
+            const err = error as ErrorResponse;
+            console.error("Lỗi khi xử lý kiosk:", error);
             toast({
-                title: "Lỗi",
-                description: kiosk ? "Không thể cập nhật kiosk." : "Không thể tạo kiosk.",
+                title: "Lỗi khi xử lý kiosk",
+                description: err.message,
                 variant: "destructive",
-            })
+            });
         } finally {
             setLoading(false)
         }

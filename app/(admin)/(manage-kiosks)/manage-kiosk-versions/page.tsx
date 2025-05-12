@@ -152,11 +152,12 @@ const ManageKioskVersions = () => {
                 description: `Phiên bản kiosk đã được xóa.`,
             });
             fetchKioskVersions();
-        } catch (error) {
-            console.error("Lỗi khi xóa phiên bản kiosk:", error);
+        } catch (error: unknown) {
+            const err = error as ErrorResponse;
+            console.error("Lỗi khi xóa kiosk version:", err);
             toast({
-                title: "Lỗi",
-                description: "Không thể xóa phiên bản kiosk. Vui lòng thử lại.",
+                title: "Lỗi khi thêm xóa kiosk version",
+                description: err.message,
                 variant: "destructive",
             });
         } finally {

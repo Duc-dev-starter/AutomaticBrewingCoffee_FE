@@ -13,6 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import { DeviceDialogProps } from "@/types/dialog";
 import { createDeviceType, updateDeviceType } from "@/services/device";
 import { EBaseStatus, EBaseStatusViMap } from "@/enum/base";
+import { ErrorResponse } from "@/types/error";
 
 const initialFormData = {
     name: "",
@@ -90,10 +91,11 @@ const DeviceTypeDialog = ({ open, onOpenChange, onSuccess, deviceType }: DeviceD
             onSuccess?.();
             onOpenChange(false);
         } catch (error) {
+            const err = error as ErrorResponse;
             console.error("Lỗi khi xử lý loại thiết bị:", error);
             toast({
-                title: "Lỗi",
-                description: "Có lỗi xảy ra khi xử lý loại thiết bị. Vui lòng thử lại sau.",
+                title: "Có lỗi xảy ra khi xử lý loại thiết bị",
+                description: err.message,
                 variant: "destructive",
             });
         } finally {

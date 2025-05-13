@@ -21,12 +21,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Pagination, ConfirmDeleteDialog, ExportButton, RefreshButton } from "@/components/common"
 import type { Menu, MenuProductMapping } from "@/interfaces/menu"
 import { useToast } from "@/hooks/use-toast"
-import { getMenu, removeProductFromMenu } from "@/services/menu"
+import { getMenu, removeProductFromMenu, reorderMenuProducts } from "@/services/menu"
 import { columns } from "@/components/manage-menus-detail/columns"
 import AddProductToMenuDialog from "@/components/dialog/menu/add-product-to-menu"
 import { EBaseStatusViMap } from "@/enum/base"
 import { SearchInput } from "@/components/common/search-input"
 import { ErrorResponse } from "@/types/error"
+import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd'
 
 export type MenuDetailType = Menu & {
     menuProductMappings: MenuProductMapping[]
@@ -41,11 +42,9 @@ const MenuDetail = () => {
     const [filteredMappings, setFilteredMappings] = useState<MenuProductMapping[]>([]);
     const [loading, setLoading] = useState(true);
     const [searchValue, setSearchValue] = useState("");
-
     const [statusFilter, setStatusFilter] = useState<string>("");
     const [productTypeFilter, setProductTypeFilter] = useState<string>("");
     const [productSizeFilter, setProductSizeFilter] = useState<string>("");
-
     const [currentPage, setCurrentPage] = useState(1);
     const [pageSize, setPageSize] = useState(5);
     const [totalPages, setTotalPages] = useState(1);
@@ -118,7 +117,6 @@ const MenuDetail = () => {
             filtered = filtered.filter((mapping) => mapping.product?.size === productSizeFilter);
         }
 
-        // Sắp xếp theo displayOrder tăng dần
         filtered.sort((a, b) => (a.displayOrder ?? 0) - (b.displayOrder ?? 0));
 
         const total = Math.ceil(filtered.length / pageSize);
@@ -181,6 +179,59 @@ const MenuDetail = () => {
         setDeleteProductDialogOpen(true);
     };
 
+    const handleDragEnd = async (result: any) => {
+        if (!result.destination || !menu) return;
+
+        const items = Array.from(filteredMappings);
+        const [reorderedItem] = items.splice(result.source.index, 1);
+        items.splice(result.destination.index, 0, reorderedItem);
+
+        setFilteredMappings(items);
+
+        const dragProductId = reorderedItem.product?.productId;
+        let targetProductId: string | null = null;
+        let insertAfter: boolean = false;
+
+        if (result.destination.index === 0) {
+            // Thả ở đầu danh sách
+            // @ts-ignore
+            targetProductId = items[1]?.product?.productId; // Sản phẩm thứ hai (nếu có)
+            insertAfter = false; // Chèn trước sản phẩm đầu tiên
+        } else if (result.destination.index === items.length - 1) {
+            // Thả ở cuối danh sách
+            // @ts-ignore
+            targetProductId = items[items.length - 2]?.product?.productId; // Sản phẩm áp cuối
+            insertAfter = true; // Chèn sau sản phẩm cuối cùng
+        } else {
+            // Thả ở giữa danh sách
+            const prevItem = items[result.destination.index - 1];
+            // @ts-ignore
+            targetProductId = prevItem.product?.productId; // Chọn sản phẩm trước đó làm mục tiêu
+            insertAfter = true; // Chèn sau sản phẩm trước đó
+        }
+
+        if (targetProductId && dragProductId) {
+            try {
+                await reorderMenuProducts(menu.menuId, {
+                    dragProductId,
+                    targetProductId,
+                    insertAfter,
+                });
+                toast({ title: "Thành công", description: "Đã cập nhật thứ tự sản phẩm." });
+                fetchMenu(); // Tải lại dữ liệu từ server để đồng bộ
+            } catch (error: unknown) {
+                const err = error as ErrorResponse;
+                console.error("Lỗi khi cập nhật thứ tự:", err);
+                toast({
+                    title: "Lỗi khi cập nhật thứ tự",
+                    description: err.message,
+                    variant: "destructive",
+                });
+                setFilteredMappings(menu.menuProductMappings); // Hoàn nguyên nếu lỗi
+            }
+        }
+    };
+
     const toggleLoading = () => {
         fetchMenu();
     };
@@ -197,12 +248,10 @@ const MenuDetail = () => {
             <div className="container mx-auto py-6 px-4">
                 <div className="mb-8">
                     <Skeleton className="h-10 w-64 mb-6" />
-
                     <div className="w-full">
                         <div className="mb-6">
                             <Skeleton className="h-10 w-full mb-6" />
                         </div>
-
                         <div className="space-y-6">
                             <Card>
                                 <CardContent className="pt-6">
@@ -231,7 +280,6 @@ const MenuDetail = () => {
                         </div>
                     </div>
                 </div>
-
                 <div>
                     <div className="flex justify-between items-center mb-6">
                         <div>
@@ -243,7 +291,6 @@ const MenuDetail = () => {
                             <Skeleton className="h-10 w-32" />
                         </div>
                     </div>
-
                     <div className="flex flex-col sm:flex-row items-center py-4 gap-4">
                         <Skeleton className="h-10 w-72" />
                         <div className="flex items-center gap-2 ml-auto">
@@ -252,7 +299,6 @@ const MenuDetail = () => {
                             <Skeleton className="h-10 w-24" />
                         </div>
                     </div>
-
                     <Card>
                         <CardContent className="p-0">
                             <Table>
@@ -289,7 +335,6 @@ const MenuDetail = () => {
                             </Table>
                         </CardContent>
                     </Card>
-
                     <div className="mt-4">
                         <Skeleton className="h-10 w-full" />
                     </div>
@@ -313,7 +358,6 @@ const MenuDetail = () => {
         <div className="container mx-auto py-6 px-4">
             <div className="mb-8">
                 <h1 className="text-3xl font-bold mb-6">Chi tiết menu {menu.name}</h1>
-
                 <Tabs defaultValue="info" className="w-full">
                     <TabsList className="mb-6">
                         <TabsTrigger value="info" className="flex items-center">
@@ -325,7 +369,6 @@ const MenuDetail = () => {
                             Cửa Hàng Áp Dụng
                         </TabsTrigger>
                     </TabsList>
-
                     <TabsContent value="info" className="space-y-6">
                         <Card>
                             <CardContent className="pt-6">
@@ -379,7 +422,6 @@ const MenuDetail = () => {
                             </CardContent>
                         </Card>
                     </TabsContent>
-
                     <TabsContent value="stores">
                         <Card>
                             <CardContent className="pt-6">
@@ -389,7 +431,6 @@ const MenuDetail = () => {
                     </TabsContent>
                 </Tabs>
             </div>
-
             <div>
                 <div className="flex justify-between items-center mb-6">
                     <div>
@@ -401,7 +442,6 @@ const MenuDetail = () => {
                         <RefreshButton loading={loading} toggleLoading={toggleLoading} />
                     </div>
                 </div>
-
                 <div className="flex flex-col sm:flex-row items-center py-4 gap-4">
                     <div className="relative w-full sm:w-72">
                         <SearchInput
@@ -415,7 +455,6 @@ const MenuDetail = () => {
                             className="border-gray-200 dark:border-gray-700"
                         />
                     </div>
-
                     <div className="flex items-center gap-2 ml-auto">
                         <Select value={statusFilter} onValueChange={handleStatusFilterChange}>
                             <SelectTrigger className="w-[180px]">
@@ -427,7 +466,6 @@ const MenuDetail = () => {
                                 <SelectItem value="Inactive">Không hoạt động</SelectItem>
                             </SelectContent>
                         </Select>
-
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button variant="outline">
@@ -435,7 +473,7 @@ const MenuDetail = () => {
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                                {columns({ onDelete: handleDeleteClick }).map(
+                                {columns({ onDelete: handleDeleteClick, onOrderChange: () => { } }).map(
                                     (column) =>
                                         column.enableHiding && (
                                             <DropdownMenuCheckboxItem
@@ -454,106 +492,107 @@ const MenuDetail = () => {
                                 )}
                             </DropdownMenuContent>
                         </DropdownMenu>
-
                         <Button onClick={() => setAddProductDialogOpen(true)}>
                             <PlusCircle className="mr-2 h-4 w-4" />
                             Thêm
                         </Button>
                     </div>
                 </div>
-
                 <Card>
                     <CardContent className="p-0">
-                        <Table>
-                            <TableHeader>
-                                <TableRow>
-                                    {columns({ onDelete: handleDeleteClick })
-                                        .filter((column) => columnVisibility[column.id as keyof typeof columnVisibility])
-                                        .map((column) => (
-                                            <TableHead
-                                                key={column.id}
-                                                className={
-                                                    column.id === "price" || column.id === "actions"
-                                                        ? "text-center"
-                                                        : "text-center"
-                                                }
-                                            >
+                        <DragDropContext onDragEnd={handleDragEnd}>
+                            <Table>
+                                <TableHeader>
+                                    <TableRow>
+                                        {columns({ onDelete: handleDeleteClick, onOrderChange: () => { } }).filter(
+                                            (column) => columnVisibility[column.id as keyof typeof columnVisibility]
+                                        ).map((column) => (
+                                            <TableHead key={column.id} className="text-center">
                                                 {column.header as string}
                                             </TableHead>
                                         ))}
-                                </TableRow>
-                            </TableHeader>
-                            <TableBody>
-                                {loading ? (
-                                    Array.from({ length: pageSize }).map((_, index) => (
-                                        <TableRow key={`skeleton-${index}`} className="animate-pulse">
-                                            {columns({ onDelete: handleDeleteClick })
-                                                .filter((column) => columnVisibility[column.id as keyof typeof columnVisibility])
-                                                .map((column) => (
-                                                    <TableCell
-                                                        key={`${column.id}-skeleton-${index}`}
-                                                        className={
-                                                            column.id === "price" || column.id === "actions"
-                                                                ? "text-right"
-                                                                : "text-center" // Căn giữa tất cả các cột khác
-                                                        }
-                                                    >
-                                                        {column.id === "image" ? (
-                                                            <Skeleton className="h-10 w-10 rounded-md mx-auto" />
-                                                        ) : column.id === "name" ? (
-                                                            <Skeleton className="h-5 w-40 mx-auto" />
-                                                        ) : column.id === "price" ? (
-                                                            <Skeleton className="h-5 w-20 ml-auto" />
-                                                        ) : column.id === "order" ? (
-                                                            <Skeleton className="h-8 w-16 mx-auto rounded" />
-                                                        ) : (
-                                                            <Skeleton className="h-8 w-8 rounded-full ml-auto" />
-                                                        )}
-                                                    </TableCell>
-                                                ))}
-                                        </TableRow>
-                                    ))
-                                ) : filteredMappings.length > 0 ? (
-                                    filteredMappings.map((mapping) => (
-                                        <TableRow key={mapping.product?.productId || mapping.productId}>
-                                            {columns({ onDelete: handleDeleteClick })
-                                                .filter((column) => columnVisibility[column.id as keyof typeof columnVisibility])
-                                                .map((column) => (
-                                                    <TableCell
-                                                        key={`${column.id}-${mapping.product?.productId || mapping.productId}`}
-                                                        className={
-                                                            column.id === "price" || column.id === "actions"
-                                                                ? "text-center"
-                                                                : "text-center" // Căn giữa tất cả các cột khác
-                                                        }
-                                                    >
-                                                        {column.cell && typeof column.cell === "function"
-                                                            ? column.cell({ row: { original: mapping } } as any)
-                                                            : null}
-                                                    </TableCell>
-                                                ))}
-                                        </TableRow>
-                                    ))
-                                ) : (
-                                    <TableRow>
-                                        <TableCell
-                                            colSpan={Object.values(columnVisibility).filter(Boolean).length}
-                                            className="h-24 text-center"
-                                        >
-                                            <div className="flex flex-col items-center justify-center text-center">
-                                                <p className="text-lg font-medium">Không tìm thấy sản phẩm</p>
-                                                <p className="text-sm text-muted-foreground">
-                                                    Thử thay đổi bộ lọc hoặc tìm kiếm với từ khóa khác
-                                                </p>
-                                            </div>
-                                        </TableCell>
                                     </TableRow>
-                                )}
-                            </TableBody>
-                        </Table>
+                                </TableHeader>
+                                <Droppable droppableId="products">
+                                    {(provided) => (
+                                        <TableBody {...provided.droppableProps} ref={provided.innerRef}>
+                                            {loading ? (
+                                                Array.from({ length: pageSize }).map((_, index) => (
+                                                    <TableRow key={`skeleton-${index}`} className="animate-pulse">
+                                                        {columns({ onDelete: handleDeleteClick, onOrderChange: () => { } })
+                                                            .filter((column) => columnVisibility[column.id as keyof typeof columnVisibility])
+                                                            .map((column) => (
+                                                                <TableCell
+                                                                    key={`${column.id}-skeleton-${index}`}
+                                                                    className="text-center"
+                                                                >
+                                                                    {column.id === "image" ? (
+                                                                        <Skeleton className="h-10 w-10 rounded-md mx-auto" />
+                                                                    ) : column.id === "name" ? (
+                                                                        <Skeleton className="h-5 w-40 mx-auto" />
+                                                                    ) : column.id === "price" ? (
+                                                                        <Skeleton className="h-5 w-20 mx-auto" />
+                                                                    ) : column.id === "order" ? (
+                                                                        <Skeleton className="h-8 w-16 mx-auto rounded" />
+                                                                    ) : (
+                                                                        <Skeleton className="h-8 w-8 rounded-full mx-auto" />
+                                                                    )}
+                                                                </TableCell>
+                                                            ))}
+                                                    </TableRow>
+                                                ))
+                                            ) : filteredMappings.length > 0 ? (
+                                                filteredMappings.map((mapping, index) => (
+                                                    <Draggable
+                                                        key={mapping.product?.productId || mapping.productId}
+                                                        draggableId={mapping.product?.productId || mapping.productId || index.toString()}
+                                                        index={index}
+                                                    >
+                                                        {(provided) => (
+                                                            <TableRow
+                                                                ref={provided.innerRef}
+                                                                {...provided.draggableProps}
+                                                                {...provided.dragHandleProps}
+                                                            >
+                                                                {columns({ onDelete: handleDeleteClick, onOrderChange: () => { } })
+                                                                    .filter((column) => columnVisibility[column.id as keyof typeof columnVisibility])
+                                                                    .map((column) => (
+                                                                        <TableCell
+                                                                            key={`${column.id}-${mapping.product?.productId || mapping.productId}`}
+                                                                            className="text-center"
+                                                                        >
+                                                                            {column.cell && typeof column.cell === "function"
+                                                                                ? column.cell({ row: { original: mapping } } as any)
+                                                                                : null}
+                                                                        </TableCell>
+                                                                    ))}
+                                                            </TableRow>
+                                                        )}
+                                                    </Draggable>
+                                                ))
+                                            ) : (
+                                                <TableRow>
+                                                    <TableCell
+                                                        colSpan={Object.values(columnVisibility).filter(Boolean).length}
+                                                        className="h-24 text-center"
+                                                    >
+                                                        <div className="flex flex-col items-center justify-center text-center">
+                                                            <p className="text-lg font-medium">Không tìm thấy sản phẩm</p>
+                                                            <p className="text-sm text-muted-foreground">
+                                                                Thử thay đổi bộ lọc hoặc tìm kiếm với từ khóa khác
+                                                            </p>
+                                                        </div>
+                                                    </TableCell>
+                                                </TableRow>
+                                            )}
+                                            {provided.placeholder}
+                                        </TableBody>
+                                    )}
+                                </Droppable>
+                            </Table>
+                        </DragDropContext>
                     </CardContent>
                 </Card>
-
                 <Pagination
                     loading={loading}
                     pageSize={pageSize}
@@ -564,7 +603,6 @@ const MenuDetail = () => {
                     totalPages={totalPages}
                 />
             </div>
-
             <AddProductToMenuDialog
                 open={addProductDialogOpen}
                 onOpenChange={setAddProductDialogOpen}
@@ -572,7 +610,6 @@ const MenuDetail = () => {
                 menuId={menu.menuId}
                 existingProductIds={existingProductIds}
             />
-
             <ConfirmDeleteDialog
                 open={deleteProductDialogOpen}
                 onOpenChange={setDeleteProductDialogOpen}

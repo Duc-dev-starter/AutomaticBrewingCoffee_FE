@@ -35,3 +35,8 @@ export const refreshToken = async () => {
         throw error;
     }
 };
+
+export const createAccount = async (payload: { email: string; password: string, fullName: string, roleName: string, referenceId: string }): Promise<ApiResponse> => {
+    const response = await BaseService.post<ApiResponse>({ url: Api.CREATE_ACCOUNT, payload });
+    return response;
+};

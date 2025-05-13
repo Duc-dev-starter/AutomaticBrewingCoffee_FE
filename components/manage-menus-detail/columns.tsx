@@ -34,9 +34,9 @@ export const columns = ({
         },
         {
             id: "price",
-            header: "Giá (VNĐ)",
+            header: "Giá (VND)",
             cell: ({ row }) => (
-                <div className="text-right">
+                <div className="text-center">
                     {row.original.product?.price?.toLocaleString() || "0"}
                 </div>
             ),
@@ -47,16 +47,7 @@ export const columns = ({
             header: "Thứ tự",
             cell: ({ row }) => (
                 <div className="text-center">
-                    <input
-                        type="number"
-                        className="w-16 px-2 py-1 border rounded text-center"
-                        value={row.original.displayOrder ?? ""}
-                        onChange={(e) => {
-                            const newOrder = Number(e.target.value);
-                            row.original.displayOrder = newOrder;
-                            onOrderChange({ [row.original.product.productId]: newOrder });
-                        }}
-                    />
+                    {row.original.displayOrder ?? ""}
                 </div>
             ),
             enableHiding: true,

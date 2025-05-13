@@ -1,12 +1,14 @@
 import { ColumnDef } from "@tanstack/react-table";
-import { MenuProductMapping } from "@/interfaces/menu"; // Import MenuProductMapping thay vì ProductInMenu
+import { MenuProductMapping } from "@/interfaces/menu";
 import { Button } from "@/components/ui/button";
 import { Trash2 } from "lucide-react";
 
 export const columns = ({
     onDelete,
+    onOrderChange,
 }: {
     onDelete: (mapping: MenuProductMapping) => void;
+    onOrderChange: (changes: { [key: string]: number }) => void;
 }): ColumnDef<MenuProductMapping>[] => [
         {
             id: "image",
@@ -15,7 +17,7 @@ export const columns = ({
                 <img
                     src={row.original.product?.imageUrl || "/placeholder.svg"}
                     alt={row.original.product?.name || "Không có tên"}
-                    className="h-10 w-10 rounded-md object-cover"
+                    className="h-10 w-10 rounded-md object-cover mx-auto"
                 />
             ),
             enableHiding: true,
@@ -52,6 +54,7 @@ export const columns = ({
                         onChange={(e) => {
                             const newOrder = Number(e.target.value);
                             row.original.displayOrder = newOrder;
+                            onOrderChange({ [row.original.product.productId]: newOrder });
                         }}
                     />
                 </div>
@@ -62,7 +65,7 @@ export const columns = ({
             id: "actions",
             header: "Thao tác",
             cell: ({ row }) => (
-                <div className="text-right">
+                <div className="flex justify-center">
                     <Button
                         variant="ghost"
                         size="sm"

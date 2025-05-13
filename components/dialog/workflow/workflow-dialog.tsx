@@ -14,7 +14,9 @@ import { useToast } from "@/hooks/use-toast";
 import { createWorkflow, updateWorkflow } from "@/services/workflow";
 import { WorkflowDialogProps } from "@/types/dialog";
 import { ErrorResponse } from "@/types/error";
-
+import { getProducts } from "@/services/product"; // Import service để lấy sản phẩm
+import { Product } from "@/interfaces/product"; // Interface cho sản phẩm
+import InfiniteScroll from "react-infinite-scroll-component"; // Thêm InfiniteScroll
 
 const initialFormData = {
     name: "",
@@ -27,8 +29,40 @@ const WorkflowDialog = ({ open, onOpenChange, onSuccess, workflow }: WorkflowDia
     const { toast } = useToast();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [formData, setFormData] = useState(initialFormData);
+    const [products, setProducts] = useState<Product[]>([]); // State cho danh sách sản phẩm
+    const [page, setPage] = useState(1); // Quản lý trang hiện tại
+    const [hasMore, setHasMore] = useState(true); // Kiểm tra còn dữ liệu để tải thêm không
 
-    // Populate form data when editing
+    // Hàm fetch danh sách sản phẩm từ API
+    const fetchProducts = async (pageNumber: number) => {
+        try {
+            const response = await getProducts({ page: pageNumber, size: 10 });
+            if (pageNumber === 1) {
+                setProducts(response.items); // Nếu là trang đầu, thay thế danh sách
+            } else {
+                setProducts((prev) => [...prev, ...response.items]); // Thêm vào danh sách hiện có
+            }
+            if (response.items.length < 10) {
+                setHasMore(false); // Nếu ít hơn 10 sản phẩm, không còn dữ liệu để tải
+            }
+        } catch (error) {
+            console.error("Error fetching products:", error);
+            toast({
+                title: "Lỗi",
+                description: "Không tải được danh sách sản phẩm.",
+                variant: "destructive",
+            });
+        }
+    };
+
+    // Fetch sản phẩm khi dialog mở
+    useEffect(() => {
+        if (open) {
+            fetchProducts(1); // Lấy trang đầu tiên
+        }
+    }, [open]);
+
+    // Điền dữ liệu form khi chỉnh sửa workflow
     useEffect(() => {
         if (workflow) {
             setFormData({
@@ -37,16 +71,22 @@ const WorkflowDialog = ({ open, onOpenChange, onSuccess, workflow }: WorkflowDia
                 type: workflow.type,
                 productId: workflow.productId,
             });
+        } else {
+            setFormData(initialFormData);
         }
-    }, [workflow]);
+    }, [workflow, open]);
 
-    // Reset form data when dialog closes
+    // Reset form và state khi dialog đóng
     useEffect(() => {
         if (!open) {
             setFormData(initialFormData);
+            setProducts([]);
+            setPage(1);
+            setHasMore(true);
         }
     }, [open]);
 
+    // Xử lý thay đổi giá trị trong form
     const handleChange = (field: string, value: string) => {
         setFormData((prev) => ({
             ...prev,
@@ -54,6 +94,7 @@ const WorkflowDialog = ({ open, onOpenChange, onSuccess, workflow }: WorkflowDia
         }));
     };
 
+    // Xử lý submit form
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
 
@@ -66,10 +107,10 @@ const WorkflowDialog = ({ open, onOpenChange, onSuccess, workflow }: WorkflowDia
             return;
         }
 
-        if (!formData.productId.trim()) {
+        if (!formData.productId) {
             toast({
                 title: "Lỗi",
-                description: "Vui lòng nhập mã sản phẩm",
+                description: "Vui lòng chọn sản phẩm",
                 variant: "destructive",
             });
             return;
@@ -103,6 +144,13 @@ const WorkflowDialog = ({ open, onOpenChange, onSuccess, workflow }: WorkflowDia
         } finally {
             setIsSubmitting(false);
         }
+    };
+
+    // Tải thêm sản phẩm khi cuộn
+    const loadMoreProducts = async () => {
+        const nextPage = page + 1;
+        await fetchProducts(nextPage);
+        setPage(nextPage);
     };
 
     const isUpdate = !!workflow;
@@ -143,16 +191,33 @@ const WorkflowDialog = ({ open, onOpenChange, onSuccess, workflow }: WorkflowDia
 
                         <div className="space-y-2">
                             <Label htmlFor="productId" className="required">
-                                Mã sản phẩm
+                                Sản phẩm
                             </Label>
-                            <Input
-                                id="productId"
-                                placeholder="Nhập mã sản phẩm"
+                            <Select
                                 value={formData.productId}
-                                onChange={(e) => handleChange("productId", e.target.value)}
+                                onValueChange={(value) => handleChange("productId", value)}
                                 disabled={isSubmitting}
-                                required
-                            />
+                            >
+                                <SelectTrigger id="productId">
+                                    <SelectValue placeholder="Chọn sản phẩm" />
+                                </SelectTrigger>
+                                <SelectContent className="max-h-[300px] overflow-y-auto">
+                                    <InfiniteScroll
+                                        dataLength={products.length}
+                                        next={loadMoreProducts}
+                                        hasMore={hasMore}
+                                        loader={<div className="p-2 text-center text-sm">Đang tải thêm...</div>}
+                                        scrollableTarget="select-content"
+                                        style={{ overflow: "hidden" }}
+                                    >
+                                        {products.map((product) => (
+                                            <SelectItem key={product.productId} value={product.productId}>
+                                                {product.name}
+                                            </SelectItem>
+                                        ))}
+                                    </InfiniteScroll>
+                                </SelectContent>
+                            </Select>
                         </div>
 
                         <div className="space-y-2">

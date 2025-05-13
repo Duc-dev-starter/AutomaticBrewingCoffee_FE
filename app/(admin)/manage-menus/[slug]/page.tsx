@@ -19,7 +19,6 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Pagination, ConfirmDeleteDialog, ExportButton, RefreshButton } from "@/components/common"
-import type { Product } from "@/interfaces/product"
 import type { Menu, MenuProductMapping } from "@/interfaces/menu"
 import { useToast } from "@/hooks/use-toast"
 import { getMenu, removeProductFromMenu } from "@/services/menu"
@@ -475,7 +474,7 @@ const MenuDetail = () => {
                                                 key={column.id}
                                                 className={
                                                     column.id === "price" || column.id === "actions"
-                                                        ? "text-right"
+                                                        ? "text-center"
                                                         : "text-center"
                                                 }
                                             >
@@ -524,7 +523,7 @@ const MenuDetail = () => {
                                                         key={`${column.id}-${mapping.product?.productId || mapping.productId}`}
                                                         className={
                                                             column.id === "price" || column.id === "actions"
-                                                                ? "text-right"
+                                                                ? "text-center"
                                                                 : "text-center" // Căn giữa tất cả các cột khác
                                                         }
                                                     >

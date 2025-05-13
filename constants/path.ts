@@ -23,5 +23,6 @@ export const Path = {
     MANAGE_DEVICE_MODELS: "/manage-device-models",
     MANAGE_KIOSK_VERSIONS: "/manage-kiosk-versions",
     MANAGE_KIOSK_TYPES: "/manage-kiosk-types",
+    CREATE_ACCOUNT: "/create-account"
 };
 

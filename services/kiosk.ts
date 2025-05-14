@@ -3,6 +3,7 @@ import { PagingParams, PagingResponse } from "@/types/paging";
 import { Api } from "@/constants/api";
 import { Kiosk, KioskType, KioskVersion } from "@/interfaces/kiosk";
 import { SupportProduct } from "@/interfaces/product";
+import { Device } from "@/interfaces/device";
 
 export const getKiosks = async (params: PagingParams = {}): Promise<PagingResponse<Kiosk>> => {
     return BaseService.getPaging<Kiosk>({
@@ -65,6 +66,14 @@ export const getKioskVersions = async (params: PagingParams = {}): Promise<Pagin
     });
 };
 
+export const getValidDevicesInKiosk = async (kioskVersionId: string, params: PagingParams = {}): Promise<PagingResponse<Device>> => {
+    return BaseService.getPaging<Device>({
+        url: `${Api.KIOSKS_VERSIONS}/${kioskVersionId}/valid-devices`,
+        payload: params,
+    });
+};
+
+
 export const getKioskVersion = async (id: string) => {
     const response = await BaseService.getById({ url: Api.KIOSKS_VERSIONS, id });
     return response;
@@ -104,5 +113,10 @@ export const createDeviceModelInKioskVersion = async (payload: { kioskVersionId:
 
 export const addDeviceInKiosk = async (payload: { kioskId: string, deviceId: string }) => {
     const response = await BaseService.post({ url: `${Api.KIOSKS}/devices`, payload });
+    return response;
+}
+
+export const disponseDeviceInKiosk = async (kioskDeviceId: string, payload: Partial<KioskVersion>) => {
+    const response = await BaseService.post({ url: `${Api.KIOSKS}/devices/${kioskDeviceId}/dispose`, payload });
     return response;
 }

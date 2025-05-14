@@ -10,11 +10,9 @@ import { useToast } from "@/hooks/use-toast"
 import type { Device } from "@/interfaces/device"
 import { EBaseStatus } from "@/enum/base"
 import { createKiosk, updateKiosk } from "@/services/kiosk"
-import { getDevices } from "@/services/device"
 import { getStores } from "@/services/store"
 import { getKioskVersions } from "@/services/kiosk"
 import { format } from "date-fns"
-import { EDeviceStatus } from "@/enum/device"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { CalendarIcon } from "lucide-react"
 import { Calendar } from "@/components/ui/calendar"
@@ -26,6 +24,7 @@ import type { Store } from "@/interfaces/store"
 import { X, Cpu } from "lucide-react"
 import InfiniteScroll from "react-infinite-scroll-component"
 import { ErrorResponse } from "@/types/error"
+import { getValidDevicesInKiosk } from "@/services/kiosk"
 
 const initialFormData = {
     kioskVersionId: "",
@@ -43,7 +42,7 @@ const KioskDialog = ({ open, onOpenChange, onSuccess, kiosk }: KioskDialogProps)
     const [formData, setFormData] = useState(initialFormData)
     const [kioskVersions, setKioskVersions] = useState<KioskVersion[]>([])
     const [stores, setStores] = useState<Store[]>([])
-    const [devices, setDevices] = useState<Device[]>([])
+    const [validDevices, setValidDevices] = useState<Device[]>([])
     const [errors, setErrors] = useState<Record<string, string>>({})
     const [loading, setLoading] = useState(false)
     const [fetching, setFetching] = useState(false)
@@ -52,20 +51,17 @@ const KioskDialog = ({ open, onOpenChange, onSuccess, kiosk }: KioskDialogProps)
     const [hasMoreDevices, setHasMoreDevices] = useState(true)
     const [isDeviceDropdownOpen, setIsDeviceDropdownOpen] = useState(false)
 
+    // Fetch dữ liệu ban đầu
     useEffect(() => {
         const fetchData = async () => {
             setFetching(true)
             try {
-                const [kioskVersionRes, storeRes, deviceRes] = await Promise.all([
+                const [kioskVersionRes, storeRes] = await Promise.all([
                     getKioskVersions({ status: EBaseStatus.Active }),
                     getStores({ status: EBaseStatus.Active }),
-                    getDevices({ status: EDeviceStatus.Stock, page: 1, size: 10 }),
                 ])
                 setKioskVersions(kioskVersionRes.items)
                 setStores(storeRes.items)
-                setDevices(deviceRes.items)
-                setDevicePage(1)
-                setHasMoreDevices(deviceRes.items.length === 10)
             } catch (error) {
                 const err = error as ErrorResponse;
                 console.error("Lỗi khi lấy danh sách kiosk:", error);
@@ -84,104 +80,74 @@ const KioskDialog = ({ open, onOpenChange, onSuccess, kiosk }: KioskDialogProps)
                 setFormData(initialFormData)
                 setErrors({})
             }
-            setIsDeviceDropdownOpen(false) // Đóng dropdown khi mở dialog
+            setIsDeviceDropdownOpen(false)
         }
     }, [open, toast, kiosk])
 
+    // Fetch thiết bị hợp lệ khi kioskVersionId thay đổi
     useEffect(() => {
-        if (kiosk) {
-            setFormData({
-                kioskVersionId: kiosk.kioskVersionId || "",
-                storeId: kiosk.storeId || "",
-                deviceIds: kiosk.devices?.map((d) => d.deviceId) || [],
-                location: kiosk.location || "",
-                status: kiosk.status || EBaseStatus.Active,
-                installedDate: kiosk.installedDate ? format(new Date(kiosk.installedDate), "yyyy-MM-dd") : "",
-                position: kiosk.position || "",
-                warrantyTime: kiosk.warrantyTime ? format(new Date(kiosk.warrantyTime), "yyyy-MM-dd") : "",
-            })
-            setErrors({})
+        if (formData.kioskVersionId) {
+            const fetchValidDevices = async () => {
+                setFetching(true);
+                try {
+                    const response = await getValidDevicesInKiosk(formData.kioskVersionId, { page: 1, size: 10 });
+                    setValidDevices(response.items);
+                    setHasMoreDevices(response.items.length === 10);
+                    setDevicePage(1);
+                } catch (error) {
+                    const err = error as ErrorResponse;
+                    console.error("Lỗi khi lấy danh sách thiết bị hợp lệ:", error);
+                    toast({
+                        title: "Lỗi khi lấy danh sách thiết bị hợp lệ",
+                        description: err.message,
+                        variant: "destructive",
+                    });
+                } finally {
+                    setFetching(false);
+                }
+            };
+            fetchValidDevices();
+        } else {
+            setValidDevices([]);
+            setHasMoreDevices(true);
         }
-    }, [kiosk])
+    }, [formData.kioskVersionId, toast])
 
-    useEffect(() => {
-        if (!open) {
-            setFormData(initialFormData)
-            setErrors({})
-            setIsDeviceDropdownOpen(false) // Đóng dropdown khi đóng dialog
-        }
-    }, [open])
-
+    // Load thêm thiết bị hợp lệ
     const loadMoreDevices = async () => {
-        if (fetching || !hasMoreDevices) return
+        if (fetching || !hasMoreDevices || !formData.kioskVersionId) return;
 
-        setFetching(true)
+        setFetching(true);
         try {
-            const nextPage = devicePage + 1
-            const deviceRes = await getDevices({
-                status: EDeviceStatus.Stock,
+            const nextPage = devicePage + 1;
+            const response = await getValidDevicesInKiosk(formData.kioskVersionId, {
                 page: nextPage,
                 size: 10,
                 filterBy: deviceSearchQuery ? "name" : undefined,
                 filterQuery: deviceSearchQuery || undefined,
-            })
+            });
 
-            if (deviceRes.items.length > 0) {
-                setDevices((prev) => [...prev, ...deviceRes.items])
-                setDevicePage(nextPage)
-                setHasMoreDevices(deviceRes.items.length === 10)
+            if (response.items.length > 0) {
+                setValidDevices((prev) => [...prev, ...response.items]);
+                setDevicePage(nextPage);
+                setHasMoreDevices(response.items.length === 10);
             } else {
-                setHasMoreDevices(false)
+                setHasMoreDevices(false);
             }
         } catch (error) {
             const err = error as ErrorResponse;
-            console.error("Lỗi khi lấy danh sách thiết bị:", error);
+            console.error("Lỗi khi tải thêm thiết bị hợp lệ:", error);
             toast({
-                title: "Lỗi khi lấy danh sách thiết bị",
+                title: "Lỗi khi tải thêm thiết bị hợp lệ",
                 description: err.message,
                 variant: "destructive",
             });
         } finally {
-            setFetching(false)
+            setFetching(false);
         }
-    }
+    };
 
-    const handleDeviceSearch = async (query: string) => {
-        setDeviceSearchQuery(query)
-        setFetching(true)
-        try {
-            setDevicePage(1)
-            const deviceRes = await getDevices({
-                status: EDeviceStatus.Stock,
-                page: 1,
-                size: 10,
-                filterBy: query ? "name" : undefined,
-                filterQuery: query || undefined,
-            })
-            setDevices(deviceRes.items)
-            setHasMoreDevices(deviceRes.items.length === 10)
-        } catch (error) {
-            const err = error as ErrorResponse;
-            console.error("Lỗi khi không tìm thấy thiết bị:", error);
-            toast({
-                title: "Có lỗi xảy ra không tìm thấy thiết bị",
-                description: err.message,
-                variant: "destructive",
-            });
-        } finally {
-            setFetching(false)
-        }
-    }
-
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            if (open && deviceSearchQuery) {
-                handleDeviceSearch(deviceSearchQuery)
-            }
-        }, 300)
-        return () => clearTimeout(timer)
-    }, [deviceSearchQuery, open])
-
+    // Xử lý submit form
     const handleSubmit = async () => {
         const validationResult = kioskSchema.safeParse(formData)
         if (!validationResult.success) {
@@ -291,7 +257,7 @@ const KioskDialog = ({ open, onOpenChange, onSuccess, kiosk }: KioskDialogProps)
                                         value={deviceSearchQuery}
                                         onChange={(e) => setDeviceSearchQuery(e.target.value)}
                                         onFocus={() => setIsDeviceDropdownOpen(true)}
-                                        disabled={loading || fetching}
+                                        disabled={loading || fetching || !formData.kioskVersionId}
                                     />
                                     {deviceSearchQuery && (
                                         <Button
@@ -310,16 +276,16 @@ const KioskDialog = ({ open, onOpenChange, onSuccess, kiosk }: KioskDialogProps)
                                         className="absolute z-10 w-full mt-1 bg-popover rounded-md border shadow-md max-h-[200px] overflow-y-auto"
                                         id="device-search-results"
                                     >
-                                        {devices.length > 0 ? (
+                                        {validDevices.length > 0 ? (
                                             <InfiniteScroll
-                                                dataLength={devices.length}
+                                                dataLength={validDevices.length}
                                                 next={loadMoreDevices}
                                                 hasMore={hasMoreDevices}
                                                 loader={<div className="p-2 text-center text-sm">Đang tải thêm...</div>}
                                                 scrollableTarget="device-search-results"
                                             >
                                                 <div className="p-1">
-                                                    {devices.map((d) => (
+                                                    {validDevices.map((d) => (
                                                         <button
                                                             key={d.deviceId}
                                                             className={`w-full text-left px-3 py-2 hover:bg-accent hover:text-accent-foreground rounded-sm flex items-center justify-between ${formData.deviceIds.includes(d.deviceId) ? "bg-accent/50" : ""
@@ -329,7 +295,7 @@ const KioskDialog = ({ open, onOpenChange, onSuccess, kiosk }: KioskDialogProps)
                                                                     setFormData({
                                                                         ...formData,
                                                                         deviceIds: [...formData.deviceIds, d.deviceId],
-                                                                    })
+                                                                    });
                                                                 }
                                                             }}
                                                             disabled={formData.deviceIds.includes(d.deviceId)}
@@ -365,7 +331,7 @@ const KioskDialog = ({ open, onOpenChange, onSuccess, kiosk }: KioskDialogProps)
                                             </InfiniteScroll>
                                         ) : (
                                             <div className="p-3 text-center text-sm text-muted-foreground">
-                                                {deviceSearchQuery ? "Không tìm thấy thiết bị" : "Không có thiết bị nào"}
+                                                {formData.kioskVersionId ? "Không có thiết bị hợp lệ" : "Vui lòng chọn phiên bản kiosk"}
                                             </div>
                                         )}
                                     </div>
@@ -376,7 +342,7 @@ const KioskDialog = ({ open, onOpenChange, onSuccess, kiosk }: KioskDialogProps)
                                     <div className="text-sm font-medium">Thiết bị đã chọn ({formData.deviceIds.length})</div>
                                     <ul className="space-y-2">
                                         {formData.deviceIds.map((deviceId) => {
-                                            const device = devices.find((d) => d.deviceId === deviceId)
+                                            const device = validDevices.find((d) => d.deviceId === deviceId);
                                             return (
                                                 <li key={deviceId} className="flex justify-between items-center p-2 bg-muted/50 rounded-md">
                                                     <div className="flex items-center gap-2">
@@ -399,7 +365,7 @@ const KioskDialog = ({ open, onOpenChange, onSuccess, kiosk }: KioskDialogProps)
                                                         <X className="h-4 w-4" />
                                                     </Button>
                                                 </li>
-                                            )
+                                            );
                                         })}
                                     </ul>
                                 </div>

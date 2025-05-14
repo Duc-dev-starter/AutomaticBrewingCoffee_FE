@@ -20,3 +20,10 @@ export interface Product {
 export interface ProductInMenu extends Product {
     menuProductMappings: MenuProductMapping[];
 }
+
+
+export interface SupportProduct {
+    kioskVersionId: string
+    productId: string
+    product: Product
+}

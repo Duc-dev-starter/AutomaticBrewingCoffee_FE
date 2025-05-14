@@ -2,6 +2,7 @@ import { BaseService } from "./base"
 import { PagingParams, PagingResponse } from "@/types/paging";
 import { Api } from "@/constants/api";
 import { Kiosk, KioskType, KioskVersion } from "@/interfaces/kiosk";
+import { SupportProduct } from "@/interfaces/product";
 
 export const getKiosks = async (params: PagingParams = {}): Promise<PagingResponse<Kiosk>> => {
     return BaseService.getPaging<Kiosk>({
@@ -88,6 +89,13 @@ export const kioskSupportProducts = async (payload: { kioskVersionId: string, pr
     const response = await BaseService.post({ url: `${Api.KIOSKS_VERSIONS}/support-products`, payload })
     return response;
 }
+
+export const getSupportProducts = async (params: PagingParams = {}, id: string): Promise<PagingResponse<SupportProduct>> => {
+    return BaseService.getPaging<SupportProduct>({
+        url: `${Api.KIOSKS_VERSIONS}/${id}/support-products`,
+        payload: params,
+    });
+};
 
 export const createDeviceModelInKioskVersion = async (payload: { kioskVersionId: string, deviceModelId: string, quantity: number }) => {
     const response = await BaseService.post({ url: `${Api.KIOSKS_VERSIONS}/device-models`, payload });

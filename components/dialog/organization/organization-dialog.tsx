@@ -8,18 +8,14 @@ import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { EBaseStatus } from "@/enum/base"
+import { EBaseStatus, EBaseStatusViMap } from "@/enum/base"
 import { PlusCircle, Loader2, Edit, Upload, X } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { createOrganization, updateOrganization } from "@/services/organization"
 import type { OrganizationDialogProps } from "@/types/dialog"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { ErrorResponse } from "@/types/error"
-
-const statusMap = {
-    [EBaseStatus.Active]: "Hoạt động",
-    [EBaseStatus.Inactive]: "Ngừng hoạt động",
-}
+import { organizationSchema } from "@/schema/organization"
 
 const initialFormData = {
     name: "",
@@ -32,7 +28,8 @@ const initialFormData = {
 
 const OrganizationDialog = ({ open, onOpenChange, onSuccess, organization }: OrganizationDialogProps) => {
     const { toast } = useToast()
-    const [isSubmitting, setIsSubmitting] = useState(false)
+    const [errors, setErrors] = useState<Record<string, any>>({});
+    const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState(initialFormData)
     const [logoFile, setLogoFile] = useState<File | null>(null)
     const [logoPreview, setLogoPreview] = useState<string | null>(null)
@@ -110,19 +107,20 @@ const OrganizationDialog = ({ open, onOpenChange, onSuccess, organization }: Org
     }
 
     const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault()
+        e.preventDefault();
+        e.stopPropagation();
 
-        if (!formData.name.trim()) {
-            toast({
-                title: "Lỗi",
-                description: "Vui lòng nhập tên tổ chức",
-                variant: "destructive",
-            })
-            return
+        const validationResult = organizationSchema.safeParse(formData);
+        if (!validationResult.success) {
+            const { fieldErrors } = validationResult.error.flatten();
+            setErrors(fieldErrors);
+            return;
         }
 
+        setErrors({});
+        setLoading(true);
+
         try {
-            setIsSubmitting(true)
 
             let payload: {
                 name: string
@@ -180,7 +178,7 @@ const OrganizationDialog = ({ open, onOpenChange, onSuccess, organization }: Org
                 variant: "destructive",
             });
         } finally {
-            setIsSubmitting(false)
+            setLoading(false)
         }
     }
 
@@ -217,14 +215,14 @@ const OrganizationDialog = ({ open, onOpenChange, onSuccess, organization }: Org
                                 </Avatar>
                                 <div className="flex flex-col gap-2">
                                     <div className="flex gap-2">
-                                        <Button type="button" variant="outline" size="sm" className="relative" disabled={isSubmitting}>
+                                        <Button type="button" variant="outline" size="sm" className="relative" disabled={loading}>
                                             <input
                                                 id="logo"
                                                 type="file"
                                                 accept="image/*"
                                                 className="absolute inset-0 opacity-0 cursor-pointer"
                                                 onChange={handleLogoChange}
-                                                disabled={isSubmitting}
+                                                disabled={loading}
                                             />
                                             <Upload className="h-4 w-4 mr-1" />
                                             Tải lên
@@ -235,12 +233,13 @@ const OrganizationDialog = ({ open, onOpenChange, onSuccess, organization }: Org
                                                 variant="outline"
                                                 size="sm"
                                                 onClick={handleRemoveLogo}
-                                                disabled={isSubmitting}
+                                                disabled={loading}
                                             >
                                                 <X className="h-4 w-4 mr-1" />
                                                 Xóa
                                             </Button>
                                         )}
+                                        {errors.logoBase64 && <p className="text-red-500 text-sm">{errors.logoBase64}</p>}
                                     </div>
                                     <p className="text-xs text-muted-foreground">Hỗ trợ JPG, PNG hoặc GIF. Tối đa 2MB.</p>
                                 </div>
@@ -257,9 +256,9 @@ const OrganizationDialog = ({ open, onOpenChange, onSuccess, organization }: Org
                                     placeholder="Nhập tên tổ chức"
                                     value={formData.name}
                                     onChange={(e) => handleChange("name", e.target.value)}
-                                    disabled={isSubmitting}
-                                    required
+                                    disabled={loading}
                                 />
+                                {errors.name && <p className="text-red-500 text-sm">{errors.name}</p>}
                             </div>
                             <div className="space-y-2">
                                 <Label htmlFor="taxId">Mã số thuế</Label>
@@ -268,8 +267,9 @@ const OrganizationDialog = ({ open, onOpenChange, onSuccess, organization }: Org
                                     placeholder="Nhập mã số thuế"
                                     value={formData.taxId}
                                     onChange={(e) => handleChange("taxId", e.target.value)}
-                                    disabled={isSubmitting}
+                                    disabled={loading}
                                 />
+                                {errors.taxId && <p className="text-red-500 text-sm">{errors.taxId}</p>}
                             </div>
                         </div>
 
@@ -282,8 +282,9 @@ const OrganizationDialog = ({ open, onOpenChange, onSuccess, organization }: Org
                                     placeholder="Nhập email liên hệ"
                                     value={formData.contactEmail}
                                     onChange={(e) => handleChange("contactEmail", e.target.value)}
-                                    disabled={isSubmitting}
+                                    disabled={loading}
                                 />
+                                {errors.contactEmail && <p className="text-red-500 text-sm">{errors.contactEmail}</p>}
                             </div>
 
                             <div className="space-y-2">
@@ -293,8 +294,9 @@ const OrganizationDialog = ({ open, onOpenChange, onSuccess, organization }: Org
                                     placeholder="Nhập số điện thoại"
                                     value={formData.contactPhone}
                                     onChange={(e) => handleChange("contactPhone", e.target.value)}
-                                    disabled={isSubmitting}
+                                    disabled={loading}
                                 />
+                                {errors.contactPhone && <p className="text-red-500 text-sm">{errors.contactPhone}</p>}
                             </div>
                         </div>
 
@@ -305,7 +307,7 @@ const OrganizationDialog = ({ open, onOpenChange, onSuccess, organization }: Org
                             <Select
                                 value={formData.status}
                                 onValueChange={(value) => handleChange("status", value)}
-                                disabled={isSubmitting}
+                                disabled={loading}
                             >
                                 <SelectTrigger id="status">
                                     <SelectValue placeholder="Chọn trạng thái" />
@@ -313,11 +315,12 @@ const OrganizationDialog = ({ open, onOpenChange, onSuccess, organization }: Org
                                 <SelectContent>
                                     {Object.values(EBaseStatus).map((status) => (
                                         <SelectItem key={status} value={status}>
-                                            {statusMap[status]}
+                                            {EBaseStatusViMap[status]}
                                         </SelectItem>
                                     ))}
                                 </SelectContent>
                             </Select>
+                            {errors.status && <p className="text-red-500 text-sm">{errors.status}</p>}
                         </div>
 
                         <div className="space-y-2">
@@ -327,18 +330,18 @@ const OrganizationDialog = ({ open, onOpenChange, onSuccess, organization }: Org
                                 placeholder="Nhập mô tả tổ chức"
                                 value={formData.description}
                                 onChange={(e) => handleChange("description", e.target.value)}
-                                disabled={isSubmitting}
+                                disabled={loading}
                                 className="min-h-[100px]"
                             />
                         </div>
                     </div>
 
                     <DialogFooter>
-                        <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
+                        <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
                             Hủy
                         </Button>
-                        <Button type="submit" disabled={isSubmitting}>
-                            {isSubmitting ? (
+                        <Button type="submit" disabled={loading}>
+                            {loading ? (
                                 <>
                                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                                     Đang xử lý...

@@ -16,6 +16,7 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { Loader2 } from "lucide-react";
 import { getLocationTypes } from "@/services/locationType";
 import { ErrorResponse } from "@/types/error";
+import { storeSchema } from "@/schema/stores";
 
 const StoreDialog = ({ open, onOpenChange, onSuccess, store }: StoreDialogProps) => {
     const { toast } = useToast();
@@ -28,6 +29,7 @@ const StoreDialog = ({ open, onOpenChange, onSuccess, store }: StoreDialogProps)
         locationTypeId: "",
         organizationId: "",
     });
+    const [errors, setErrors] = useState<Record<string, any>>({});
     const [loading, setLoading] = useState(false);
     const [organizations, setOrganizations] = useState<Organization[]>([]);
     const [locationTypes, setLocationTypes] = useState<LocationType[]>([]);
@@ -142,17 +144,37 @@ const StoreDialog = ({ open, onOpenChange, onSuccess, store }: StoreDialogProps)
         }
     }, [store]);
 
-    const handleSubmit = async () => {
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        e.stopPropagation();
+
+        const validationResult = storeSchema.safeParse(formData);
+        if (!validationResult.success) {
+            const { fieldErrors } = validationResult.error.flatten();
+            setErrors(fieldErrors);
+            return;
+        }
+
+        setErrors({});
+        setLoading(true);
         try {
-            setLoading(true);
+            const data = {
+                name: formData.name,
+                description: formData.description || undefined,
+                status: formData.status,
+                contactPhone: formData.contactPhone,
+                organizationId: formData.organizationId,
+                locationTypeId: formData.locationTypeId,
+                locationAddress: formData.locationAddress
+            };
             if (store) {
-                await updateStore(store.storeId, formData);
+                await updateStore(store.storeId, data);
                 toast({
                     title: "Thành công",
                     description: "Cửa hàng đã được cập nhật.",
                 });
             } else {
-                await createStore(formData);
+                await createStore(data);
                 toast({
                     title: "Thành công",
                     description: "Cửa hàng đã được tạo mới.",
@@ -178,15 +200,16 @@ const StoreDialog = ({ open, onOpenChange, onSuccess, store }: StoreDialogProps)
                 <DialogHeader>
                     <DialogTitle>{store ? "Chỉnh sửa cửa hàng" : "Thêm cửa hàng mới"}</DialogTitle>
                 </DialogHeader>
-                <div className="grid gap-4 py-4">
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="grid gap-2">
+                <form onSubmit={handleSubmit} className="space-y-6 py-4">
+                    <div className="space-y-4">
+                        <div className="space-y-2">
                             <Label htmlFor="name">Tên cửa hàng</Label>
                             <Input
                                 id="name"
                                 value={formData.name}
                                 onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                             />
+                            {errors.name && <p className="text-red-500 text-sm">{errors.name}</p>}
                         </div>
                         <div className="grid gap-2">
                             <Label htmlFor="contactPhone">Số điện thoại</Label>
@@ -195,6 +218,7 @@ const StoreDialog = ({ open, onOpenChange, onSuccess, store }: StoreDialogProps)
                                 value={formData.contactPhone}
                                 onChange={(e) => setFormData({ ...formData, contactPhone: e.target.value })}
                             />
+                            {errors.contactPhone && <p className="text-red-500 text-sm">{errors.contactPhone}</p>}
                         </div>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
@@ -205,6 +229,7 @@ const StoreDialog = ({ open, onOpenChange, onSuccess, store }: StoreDialogProps)
                                 value={formData.locationAddress}
                                 onChange={(e) => setFormData({ ...formData, locationAddress: e.target.value })}
                             />
+                            {errors.locationAddress && <p className="text-red-500 text-sm">{errors.locationAddress}</p>}
                         </div>
                         <div className="grid gap-2">
                             <Label htmlFor="status">Trạng thái</Label>
@@ -220,6 +245,7 @@ const StoreDialog = ({ open, onOpenChange, onSuccess, store }: StoreDialogProps)
                                     <SelectItem value={EBaseStatus.Inactive}>Không hoạt động</SelectItem>
                                 </SelectContent>
                             </Select>
+                            {errors.status && <p className="text-red-500 text-sm">{errors.status}</p>}
                         </div>
                     </div>
                     <div className="grid grid-cols-2 gap-4">
@@ -251,6 +277,7 @@ const StoreDialog = ({ open, onOpenChange, onSuccess, store }: StoreDialogProps)
                                     </ScrollArea>
                                 </SelectContent>
                             </Select>
+                            {errors.organizationId && <p className="text-red-500 text-sm">{errors.organizationId}</p>}
                         </div>
                         <div className="grid gap-2">
                             <Label htmlFor="locationTypeId">Loại địa điểm</Label>
@@ -280,6 +307,7 @@ const StoreDialog = ({ open, onOpenChange, onSuccess, store }: StoreDialogProps)
                                     </ScrollArea>
                                 </SelectContent>
                             </Select>
+                            {errors.locationTypeId && <p className="text-red-500 text-sm">{errors.locationTypeId}</p>}
                         </div>
                     </div>
                     <div className="grid gap-2">
@@ -290,7 +318,7 @@ const StoreDialog = ({ open, onOpenChange, onSuccess, store }: StoreDialogProps)
                             onChange={(e) => setFormData({ ...formData, description: e.target.value })}
                         />
                     </div>
-                </div>
+                </form>
                 <DialogFooter>
                     <Button variant="outline" onClick={() => onOpenChange(false)}>
                         Hủy

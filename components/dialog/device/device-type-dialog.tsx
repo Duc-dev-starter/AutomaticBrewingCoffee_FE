@@ -14,6 +14,7 @@ import { DeviceDialogProps } from "@/types/dialog";
 import { createDeviceType, updateDeviceType } from "@/services/device";
 import { EBaseStatus, EBaseStatusViMap } from "@/enum/base";
 import { ErrorResponse } from "@/types/error";
+import { deviceTypeSchema } from "@/schema/device";
 
 const initialFormData = {
     name: "",
@@ -23,8 +24,9 @@ const initialFormData = {
 
 const DeviceTypeDialog = ({ open, onOpenChange, onSuccess, deviceType }: DeviceDialogProps) => {
     const { toast } = useToast();
-    const [isSubmitting, setIsSubmitting] = useState(false);
     const [formData, setFormData] = useState(initialFormData);
+    const [errors, setErrors] = useState<Record<string, any>>({});
+    const [loading, setLoading] = useState(false);
 
     // Populate form data when editing
     useEffect(() => {
@@ -53,36 +55,31 @@ const DeviceTypeDialog = ({ open, onOpenChange, onSuccess, deviceType }: DeviceD
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        e.stopPropagation();
 
-        if (!formData.name.trim()) {
-            toast({
-                title: "Lỗi",
-                description: "Vui lòng nhập tên loại thiết bị",
-                variant: "destructive",
-            });
+        const validationResult = deviceTypeSchema.safeParse(formData);
+        if (!validationResult.success) {
+            const { fieldErrors } = validationResult.error.flatten();
+            setErrors(fieldErrors);
             return;
         }
 
-        if (!formData.status) {
-            toast({
-                title: "Lỗi",
-                description: "Vui lòng chọn trạng thái",
-                variant: "destructive",
-            });
-            return;
-        }
-
+        setErrors({});
+        setLoading(true);
         try {
-            setIsSubmitting(true);
-            const payload = { ...formData };
+            const data = {
+                name: formData.name,
+                description: formData.description || undefined,
+                status: formData.status,
+            };
             if (deviceType) {
-                await updateDeviceType(deviceType.deviceTypeId, payload);
+                await updateDeviceType(deviceType.deviceTypeId, data);
                 toast({
                     title: "Thành công",
                     description: "Cập nhật loại thiết bị thành công",
                 });
             } else {
-                await createDeviceType(payload);
+                await createDeviceType(data);
                 toast({
                     title: "Thành công",
                     description: "Thêm loại thiết bị mới thành công",
@@ -99,7 +96,7 @@ const DeviceTypeDialog = ({ open, onOpenChange, onSuccess, deviceType }: DeviceD
                 variant: "destructive",
             });
         } finally {
-            setIsSubmitting(false);
+            setLoading(false);
         }
     };
 
@@ -134,9 +131,9 @@ const DeviceTypeDialog = ({ open, onOpenChange, onSuccess, deviceType }: DeviceD
                                 placeholder="Nhập tên loại thiết bị"
                                 value={formData.name}
                                 onChange={(e) => handleChange("name", e.target.value)}
-                                disabled={isSubmitting}
-                                required
+                                disabled={loading}
                             />
+                            {errors.name && <p className="text-red-500 text-sm">{errors.name}</p>}
                         </div>
 
                         <div className="space-y-2">
@@ -146,7 +143,7 @@ const DeviceTypeDialog = ({ open, onOpenChange, onSuccess, deviceType }: DeviceD
                             <Select
                                 value={formData.status}
                                 onValueChange={(value) => handleChange("status", value)}
-                                disabled={isSubmitting}
+                                disabled={loading}
                             >
                                 <SelectTrigger>
                                     <SelectValue placeholder="Chọn trạng thái" />
@@ -159,6 +156,7 @@ const DeviceTypeDialog = ({ open, onOpenChange, onSuccess, deviceType }: DeviceD
                                     ))}
                                 </SelectContent>
                             </Select>
+                            {errors.status && <p className="text-red-500 text-sm">{errors.status}</p>}
                         </div>
 
                         <div className="space-y-2">
@@ -168,18 +166,18 @@ const DeviceTypeDialog = ({ open, onOpenChange, onSuccess, deviceType }: DeviceD
                                 placeholder="Nhập mô tả loại thiết bị"
                                 value={formData.description}
                                 onChange={(e) => handleChange("description", e.target.value)}
-                                disabled={isSubmitting}
+                                disabled={loading}
                                 className="min-h-[100px]"
                             />
                         </div>
                     </div>
 
                     <DialogFooter>
-                        <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
+                        <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
                             Hủy
                         </Button>
-                        <Button type="submit" disabled={isSubmitting}>
-                            {isSubmitting ? (
+                        <Button type="submit" disabled={loading}>
+                            {loading ? (
                                 <>
                                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                                     Đang xử lý...

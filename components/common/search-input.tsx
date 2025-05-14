@@ -1,7 +1,6 @@
 "use client"
 
 import type React from "react"
-
 import { useState, useRef } from "react"
 import { Search, X } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -43,17 +42,17 @@ export const SearchInput: React.FC<SearchInputProps> = ({
     return (
         <div
             className={cn(
-                "group relative flex h-10 items-center overflow-hidden rounded-full transition-all duration-300",
+                "group relative flex h-10 items-center overflow-hidden rounded-full border transition-all duration-300",
                 isFocused
                     ? "border-[#68e0df] bg-white shadow-[0_0_0_2px_rgba(104,224,223,0.3)] dark:bg-[#1a1a1a]"
-                    : "border border-gray-200 bg-white/80 hover:border-[#a5edec] dark:border-gray-700 dark:bg-[#1a1a1a]/80 dark:hover:border-[#295959]",
+                    : "border-[#a5edec] bg-white/80 hover:border-[#68e0df] dark:border-[#295959] dark:bg-[#1a1a1a]/80 dark:hover:border-[#68e0df]",
                 className,
             )}
         >
             <div
                 className={cn(
                     "flex h-full items-center justify-center pl-3 text-gray-400 transition-colors duration-200",
-                    isFocused ? "text-[#68e0df]" : "group-hover:text-[#a5edec] dark:group-hover:text-[#68e0df]",
+                    isFocused ? "text-[#68e0df]" : "group-hover:text-[#68e0df] dark:group-hover:text-[#68e0df]",
                 )}
             >
                 {loading ? (

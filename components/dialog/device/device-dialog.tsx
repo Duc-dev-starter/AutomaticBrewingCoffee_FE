@@ -16,6 +16,7 @@ import { DeviceDialogProps } from "@/types/dialog";
 import { DeviceModel } from "@/interfaces/device"; // Giả sử DeviceModel interface tồn tại
 import InfiniteScroll from "react-infinite-scroll-component";
 import { ErrorResponse } from "@/types/error";
+import { deviceSchema } from "@/schema/device";
 
 const initialFormData = {
     deviceModelId: "",
@@ -27,9 +28,9 @@ const initialFormData = {
 
 const DeviceDialog = ({ open, onOpenChange, onSuccess, device }: DeviceDialogProps) => {
     const { toast } = useToast();
-    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [errors, setErrors] = useState<Record<string, any>>({});
+    const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState(initialFormData);
-
     const [deviceModels, setDeviceModels] = useState<DeviceModel[]>([]);
     const [pageDeviceModels, setPageDeviceModels] = useState(1);
     const [hasMoreDeviceModels, setHasMoreDeviceModels] = useState(true);
@@ -91,45 +92,34 @@ const DeviceDialog = ({ open, onOpenChange, onSuccess, device }: DeviceDialogPro
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        e.stopPropagation();
 
-        if (!formData.deviceModelId) {
-            toast({
-                title: "Lỗi",
-                description: "Vui lòng chọn mẫu thiết bị.",
-                variant: "destructive",
-            });
+        const validationResult = deviceSchema.safeParse(formData);
+        if (!validationResult.success) {
+            const { fieldErrors } = validationResult.error.flatten();
+            setErrors(fieldErrors);
             return;
         }
 
-        if (!formData.serialNumber.trim()) {
-            toast({
-                title: "Lỗi",
-                description: "Vui lòng nhập số serial.",
-                variant: "destructive",
-            });
-            return;
-        }
-
-        if (!formData.name.trim()) {
-            toast({
-                title: "Lỗi",
-                description: "Vui lòng nhập tên thiết bị.",
-                variant: "destructive",
-            });
-            return;
-        }
-
+        setErrors({});
+        setLoading(true);
 
         try {
-            setIsSubmitting(true);
+            const data = {
+                name: formData.name,
+                description: formData.description || undefined,
+                status: formData.status,
+                serialNumber: formData.serialNumber,
+                deviceModelId: formData.deviceModelId
+            };
             if (device) {
-                await updateDevice(device.deviceId, formData);
+                await updateDevice(device.deviceId, data);
                 toast({
                     title: "Thành công",
                     description: "Cập nhật thiết bị thành công.",
                 });
             } else {
-                await createDevice(formData);
+                await createDevice(data);
                 toast({
                     title: "Thành công",
                     description: "Thêm thiết bị mới thành công.",
@@ -146,7 +136,7 @@ const DeviceDialog = ({ open, onOpenChange, onSuccess, device }: DeviceDialogPro
                 variant: "destructive",
             });
         } finally {
-            setIsSubmitting(false);
+            setLoading(false);
         }
     };
 
@@ -185,7 +175,7 @@ const DeviceDialog = ({ open, onOpenChange, onSuccess, device }: DeviceDialogPro
                             <Select
                                 value={formData.deviceModelId}
                                 onValueChange={(value) => handleChange("deviceModelId", value)}
-                                disabled={isSubmitting}
+                                disabled={loading}
                             >
                                 <SelectTrigger id="deviceModelId">
                                     <SelectValue placeholder="Chọn mẫu thiết bị" />
@@ -210,6 +200,7 @@ const DeviceDialog = ({ open, onOpenChange, onSuccess, device }: DeviceDialogPro
                                     </InfiniteScroll>
                                 </SelectContent>
                             </Select>
+                            {errors.deviceModelId && <p className="text-red-500 text-sm">{errors.deviceModelId}</p>}
                         </div>
 
                         <div className="space-y-2">
@@ -221,9 +212,9 @@ const DeviceDialog = ({ open, onOpenChange, onSuccess, device }: DeviceDialogPro
                                 placeholder="Nhập số serial"
                                 value={formData.serialNumber}
                                 onChange={(e) => handleChange("serialNumber", e.target.value)}
-                                disabled={isSubmitting}
-                                required
+                                disabled={loading}
                             />
+                            {errors.serialNumber && <p className="text-red-500 text-sm">{errors.serialNumber}</p>}
                         </div>
 
                         <div className="space-y-2">
@@ -235,9 +226,9 @@ const DeviceDialog = ({ open, onOpenChange, onSuccess, device }: DeviceDialogPro
                                 placeholder="Nhập tên thiết bị"
                                 value={formData.name}
                                 onChange={(e) => handleChange("name", e.target.value)}
-                                disabled={isSubmitting}
-                                required
+                                disabled={loading}
                             />
+                            {errors.name && <p className="text-red-500 text-sm">{errors.name}</p>}
                         </div>
 
                         <div className="space-y-2">
@@ -247,7 +238,7 @@ const DeviceDialog = ({ open, onOpenChange, onSuccess, device }: DeviceDialogPro
                             <Select
                                 value={formData.status}
                                 onValueChange={(value) => handleChange("status", value)}
-                                disabled={isSubmitting}
+                                disabled={loading}
                             >
                                 <SelectTrigger id="status">
                                     <SelectValue placeholder="Chọn trạng thái" />
@@ -260,6 +251,7 @@ const DeviceDialog = ({ open, onOpenChange, onSuccess, device }: DeviceDialogPro
                                     ))}
                                 </SelectContent>
                             </Select>
+                            {errors.status && <p className="text-red-500 text-sm">{errors.status}</p>}
                         </div>
 
                         <div className="space-y-2">
@@ -269,18 +261,18 @@ const DeviceDialog = ({ open, onOpenChange, onSuccess, device }: DeviceDialogPro
                                 placeholder="Nhập mô tả thiết bị"
                                 value={formData.description}
                                 onChange={(e) => handleChange("description", e.target.value)}
-                                disabled={isSubmitting}
+                                disabled={loading}
                                 className="min-h-[100px]"
                             />
                         </div>
                     </div>
 
                     <DialogFooter>
-                        <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
+                        <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
                             Hủy
                         </Button>
-                        <Button type="submit" disabled={isSubmitting}>
-                            {isSubmitting ? (
+                        <Button type="submit" disabled={loading}>
+                            {loading ? (
                                 <>
                                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                                     Đang xử lý...

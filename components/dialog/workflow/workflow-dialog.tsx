@@ -8,42 +8,56 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { EWorkflowType, EWorkflowTypeViMap } from "@/enum/workflow";
+import { EWorkflowStepType, EWorkflowType, EWorkflowTypeViMap } from "@/enum/workflow";
+import { EBaseStatus, EBaseStatusViMap } from "@/enum/base";
 import { PlusCircle, Loader2, Edit } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { createWorkflow, updateWorkflow } from "@/services/workflow";
 import { WorkflowDialogProps } from "@/types/dialog";
 import { ErrorResponse } from "@/types/error";
-import { getProducts } from "@/services/product"; // Import service để lấy sản phẩm
-import { Product } from "@/interfaces/product"; // Interface cho sản phẩm
-import InfiniteScroll from "react-infinite-scroll-component"; // Thêm InfiniteScroll
+import { getProducts } from "@/services/product";
+import { Product } from "@/interfaces/product";
+import InfiniteScroll from "react-infinite-scroll-component";
+import { workflowSchema } from "@/schema/workflow";
 
+// Khởi tạo formData với tất cả các trường cần thiết theo schema
 const initialFormData = {
     name: "",
     description: "",
     type: EWorkflowType.Activity,
     productId: "",
+    steps: [
+        {
+            name: "",
+            type: EWorkflowStepType.AlertCancellationCommand,
+            deviceId: "",
+            maxRetries: 0,
+            callbackWorkflowId: "",
+            parameters: "",
+        },
+    ],
 };
 
 const WorkflowDialog = ({ open, onOpenChange, onSuccess, workflow }: WorkflowDialogProps) => {
     const { toast } = useToast();
-    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [errors, setErrors] = useState<Record<string, any>>({});
+    const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState(initialFormData);
-    const [products, setProducts] = useState<Product[]>([]); // State cho danh sách sản phẩm
-    const [page, setPage] = useState(1); // Quản lý trang hiện tại
-    const [hasMore, setHasMore] = useState(true); // Kiểm tra còn dữ liệu để tải thêm không
+    const [products, setProducts] = useState<Product[]>([]);
+    const [page, setPage] = useState(1);
+    const [hasMore, setHasMore] = useState(true);
 
     // Hàm fetch danh sách sản phẩm từ API
     const fetchProducts = async (pageNumber: number) => {
         try {
             const response = await getProducts({ page: pageNumber, size: 10 });
             if (pageNumber === 1) {
-                setProducts(response.items); // Nếu là trang đầu, thay thế danh sách
+                setProducts(response.items);
             } else {
-                setProducts((prev) => [...prev, ...response.items]); // Thêm vào danh sách hiện có
+                setProducts((prev) => [...prev, ...response.items]);
             }
             if (response.items.length < 10) {
-                setHasMore(false); // Nếu ít hơn 10 sản phẩm, không còn dữ liệu để tải
+                setHasMore(false);
             }
         } catch (error) {
             console.error("Error fetching products:", error);
@@ -55,28 +69,28 @@ const WorkflowDialog = ({ open, onOpenChange, onSuccess, workflow }: WorkflowDia
         }
     };
 
-    // Fetch sản phẩm khi dialog mở
     useEffect(() => {
         if (open) {
-            fetchProducts(1); // Lấy trang đầu tiên
+            fetchProducts(1);
         }
     }, [open]);
 
-    // Điền dữ liệu form khi chỉnh sửa workflow
+    // Điền dữ liệu khi chỉnh sửa workflow
     useEffect(() => {
         if (workflow) {
             setFormData({
                 name: workflow.name,
-                description: workflow.description,
+                description: workflow.description ?? "",
                 type: workflow.type,
                 productId: workflow.productId,
+                steps: workflow.steps ?? initialFormData.steps,
             });
         } else {
             setFormData(initialFormData);
         }
     }, [workflow, open]);
 
-    // Reset form và state khi dialog đóng
+    // Reset form khi đóng dialog
     useEffect(() => {
         if (!open) {
             setFormData(initialFormData);
@@ -97,35 +111,37 @@ const WorkflowDialog = ({ open, onOpenChange, onSuccess, workflow }: WorkflowDia
     // Xử lý submit form
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        e.stopPropagation();
 
-        if (!formData.name.trim()) {
-            toast({
-                title: "Lỗi",
-                description: "Vui lòng nhập tên quy trình",
-                variant: "destructive",
-            });
+        // Validate dữ liệu theo schema
+        const validationResult = workflowSchema.safeParse(formData);
+        if (!validationResult.success) {
+            const { fieldErrors } = validationResult.error.flatten();
+            console.log("Validation errors:", fieldErrors);
+            setErrors(fieldErrors);
             return;
         }
 
-        if (!formData.productId) {
-            toast({
-                title: "Lỗi",
-                description: "Vui lòng chọn sản phẩm",
-                variant: "destructive",
-            });
-            return;
-        }
-
+        setErrors({});
+        setLoading(true);
         try {
-            setIsSubmitting(true);
+            // Xây dựng đối tượng data khớp với workflowSchema
+            const data = {
+                name: formData.name,
+                description: formData.description || undefined,
+                type: formData.type,
+                productId: formData.productId,
+                steps: formData.steps,
+            };
+
             if (workflow) {
-                await updateWorkflow(workflow.workflowId, formData);
+                await updateWorkflow(workflow.workflowId, data);
                 toast({
                     title: "Thành công",
                     description: "Cập nhật quy trình thành công",
                 });
             } else {
-                await createWorkflow(formData);
+                await createWorkflow(data);
                 toast({
                     title: "Thành công",
                     description: "Thêm quy trình mới thành công",
@@ -142,11 +158,11 @@ const WorkflowDialog = ({ open, onOpenChange, onSuccess, workflow }: WorkflowDia
                 variant: "destructive",
             });
         } finally {
-            setIsSubmitting(false);
+            setLoading(false);
         }
     };
 
-    // Tải thêm sản phẩm khi cuộn
+    // Tải thêm sản phẩm
     const loadMoreProducts = async () => {
         const nextPage = page + 1;
         await fetchProducts(nextPage);
@@ -184,9 +200,9 @@ const WorkflowDialog = ({ open, onOpenChange, onSuccess, workflow }: WorkflowDia
                                 placeholder="Nhập tên quy trình"
                                 value={formData.name}
                                 onChange={(e) => handleChange("name", e.target.value)}
-                                disabled={isSubmitting}
-                                required
+                                disabled={loading}
                             />
+                            {errors.name && <p className="text-red-500 text-sm">{errors.name}</p>}
                         </div>
 
                         <div className="space-y-2">
@@ -196,7 +212,7 @@ const WorkflowDialog = ({ open, onOpenChange, onSuccess, workflow }: WorkflowDia
                             <Select
                                 value={formData.productId}
                                 onValueChange={(value) => handleChange("productId", value)}
-                                disabled={isSubmitting}
+                                disabled={loading}
                             >
                                 <SelectTrigger id="productId">
                                     <SelectValue placeholder="Chọn sản phẩm" />
@@ -218,6 +234,7 @@ const WorkflowDialog = ({ open, onOpenChange, onSuccess, workflow }: WorkflowDia
                                     </InfiniteScroll>
                                 </SelectContent>
                             </Select>
+                            {errors.productId && <p className="text-red-500 text-sm">{errors.productId}</p>}
                         </div>
 
                         <div className="space-y-2">
@@ -227,7 +244,7 @@ const WorkflowDialog = ({ open, onOpenChange, onSuccess, workflow }: WorkflowDia
                             <Select
                                 value={formData.type}
                                 onValueChange={(value) => handleChange("type", value)}
-                                disabled={isSubmitting}
+                                disabled={loading}
                             >
                                 <SelectTrigger id="type">
                                     <SelectValue placeholder="Chọn loại quy trình" />
@@ -240,7 +257,9 @@ const WorkflowDialog = ({ open, onOpenChange, onSuccess, workflow }: WorkflowDia
                                     ))}
                                 </SelectContent>
                             </Select>
+                            {errors.type && <p className="text-red-500 text-sm">{errors.type}</p>}
                         </div>
+
 
                         <div className="space-y-2">
                             <Label htmlFor="description">Mô tả</Label>
@@ -249,18 +268,19 @@ const WorkflowDialog = ({ open, onOpenChange, onSuccess, workflow }: WorkflowDia
                                 placeholder="Nhập mô tả quy trình"
                                 value={formData.description}
                                 onChange={(e) => handleChange("description", e.target.value)}
-                                disabled={isSubmitting}
+                                disabled={loading}
                                 className="min-h-[100px]"
                             />
+                            {errors.description && <p className="text-red-500 text-sm">{errors.description}</p>}
                         </div>
                     </div>
 
                     <DialogFooter>
-                        <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
+                        <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
                             Hủy
                         </Button>
-                        <Button type="submit" disabled={isSubmitting}>
-                            {isSubmitting ? (
+                        <Button type="submit" disabled={loading}>
+                            {loading ? (
                                 <>
                                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                                     Đang xử lý...

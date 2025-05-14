@@ -12,6 +12,7 @@ import { useToast } from "@/hooks/use-toast";
 import { LocationTypeDialogProps } from "@/types/dialog";
 import { createLocationType, updateLocationType } from "@/services/locationType";
 import { ErrorResponse } from "@/types/error";
+import { locationSchema } from "@/schema/location";
 
 const initialFormData = {
     name: "",
@@ -20,7 +21,8 @@ const initialFormData = {
 
 const LocationTypeDialog = ({ open, onOpenChange, onSuccess, locationType }: LocationTypeDialogProps) => {
     const { toast } = useToast();
-    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [errors, setErrors] = useState<Record<string, any>>({});
+    const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState(initialFormData);
 
     // Populate form data when editing
@@ -49,26 +51,31 @@ const LocationTypeDialog = ({ open, onOpenChange, onSuccess, locationType }: Loc
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        e.stopPropagation();
 
-        if (!formData.name.trim()) {
-            toast({
-                title: "Lỗi",
-                description: "Vui lòng nhập tên location",
-                variant: "destructive",
-            });
+        const validationResult = locationSchema.safeParse(formData);
+        if (!validationResult.success) {
+            const { fieldErrors } = validationResult.error.flatten();
+            setErrors(fieldErrors);
             return;
         }
 
+        setErrors({});
+        setLoading(true);
+
         try {
-            setIsSubmitting(true);
+            const data = {
+                name: formData.name,
+                description: formData.description || undefined,
+            };
             if (locationType) {
-                await updateLocationType(locationType.locationTypeId, formData);
+                await updateLocationType(locationType.locationTypeId, data);
                 toast({
                     title: "Thành công",
                     description: "Cập nhật location thành công",
                 });
             } else {
-                await createLocationType(formData);
+                await createLocationType(data);
                 toast({
                     title: "Thành công",
                     description: "Thêm location mới thành công",
@@ -85,7 +92,7 @@ const LocationTypeDialog = ({ open, onOpenChange, onSuccess, locationType }: Loc
                 variant: "destructive",
             });
         } finally {
-            setIsSubmitting(false);
+            setLoading(false);
         }
     };
 
@@ -120,9 +127,9 @@ const LocationTypeDialog = ({ open, onOpenChange, onSuccess, locationType }: Loc
                                 placeholder="Nhập tên location"
                                 value={formData.name}
                                 onChange={(e) => handleChange("name", e.target.value)}
-                                disabled={isSubmitting}
-                                required
+                                disabled={loading}
                             />
+                            {errors.name && <p className="text-red-500 text-sm">{errors.name}</p>}
                         </div>
 
 
@@ -133,18 +140,18 @@ const LocationTypeDialog = ({ open, onOpenChange, onSuccess, locationType }: Loc
                                 placeholder="Nhập mô tả location"
                                 value={formData.description}
                                 onChange={(e) => handleChange("description", e.target.value)}
-                                disabled={isSubmitting}
+                                disabled={loading}
                                 className="min-h-[100px]"
                             />
                         </div>
                     </div>
 
                     <DialogFooter>
-                        <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
+                        <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
                             Hủy
                         </Button>
-                        <Button type="submit" disabled={isSubmitting}>
-                            {isSubmitting ? (
+                        <Button type="submit" disabled={loading}>
+                            {loading ? (
                                 <>
                                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                                     Đang xử lý...

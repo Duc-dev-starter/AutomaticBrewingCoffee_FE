@@ -16,6 +16,7 @@ import { getKiosks } from "@/services/kiosk";
 import InfiniteScroll from "react-infinite-scroll-component";
 import { MenuDialogProps } from "@/types/dialog";
 import { ErrorResponse } from "@/types/error";
+import { menuSchema } from "@/schema/menu";
 
 const initialFormData = {
     kioskId: "",
@@ -26,12 +27,13 @@ const initialFormData = {
 
 const MenuDialog = ({ open, onOpenChange, onSuccess, menu }: MenuDialogProps) => {
     const { toast } = useToast();
-    const [isSubmitting, setIsSubmitting] = useState(false);
     const [formData, setFormData] = useState(initialFormData);
     const [kiosks, setKiosks] = useState<Kiosk[]>([]);
     const [page, setPage] = useState(1);
     const [hasMore, setHasMore] = useState(true);
     const [noKiosks, setNoKiosks] = useState(false);
+    const [errors, setErrors] = useState<Record<string, any>>({});
+    const [loading, setLoading] = useState(false);
 
     const fetchKiosks = async (pageNumber: number) => {
         try {
@@ -93,26 +95,33 @@ const MenuDialog = ({ open, onOpenChange, onSuccess, menu }: MenuDialogProps) =>
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        e.stopPropagation();
 
-        if (!formData.name.trim() || !formData.kioskId) {
-            toast({
-                title: "Lỗi",
-                description: "Vui lòng nhập đầy đủ thông tin bắt buộc (Tên menu và Kiosk)",
-                variant: "destructive",
-            });
+        const validationResult = menuSchema.safeParse(formData);
+        if (!validationResult.success) {
+            const { fieldErrors } = validationResult.error.flatten();
+            setErrors(fieldErrors);
             return;
         }
 
+        setErrors({});
+        setLoading(true);
+
         try {
-            setIsSubmitting(true);
+            const data = {
+                name: formData.name,
+                description: formData.description || undefined,
+                kioskId: formData.kioskId || undefined,
+                status: formData.status,
+            };
             if (menu) {
-                await updateMenu(menu.menuId, formData);
+                await updateMenu(menu.menuId, data);
                 toast({
                     title: "Thành công",
                     description: "Cập nhật menu thành công",
                 });
             } else {
-                await createMenu(formData);
+                await createMenu(data);
                 toast({
                     title: "Thành công",
                     description: "Thêm menu mới thành công",
@@ -129,7 +138,7 @@ const MenuDialog = ({ open, onOpenChange, onSuccess, menu }: MenuDialogProps) =>
                 variant: "destructive",
             });
         } finally {
-            setIsSubmitting(false);
+            setLoading(false);
         }
     };
 
@@ -169,7 +178,7 @@ const MenuDialog = ({ open, onOpenChange, onSuccess, menu }: MenuDialogProps) =>
                             <Select
                                 value={formData.kioskId}
                                 onValueChange={(value) => handleChange("kioskId", value)}
-                                disabled={isSubmitting || noKiosks}
+                                disabled={loading || noKiosks}
                             >
                                 <SelectTrigger id="kioskId">
                                     <SelectValue placeholder={noKiosks ? "Không có kiosk" : "Chọn kiosk"} />
@@ -197,6 +206,7 @@ const MenuDialog = ({ open, onOpenChange, onSuccess, menu }: MenuDialogProps) =>
                                     )}
                                 </SelectContent>
                             </Select>
+                            {errors.kioskId && <p className="text-red-500 text-sm">{errors.kioskId}</p>}
                         </div>
 
                         <div className="space-y-2">
@@ -208,9 +218,9 @@ const MenuDialog = ({ open, onOpenChange, onSuccess, menu }: MenuDialogProps) =>
                                 placeholder="Nhập tên menu"
                                 value={formData.name}
                                 onChange={(e) => handleChange("name", e.target.value)}
-                                disabled={isSubmitting}
-                                required
+                                disabled={loading}
                             />
+                            {errors.name && <p className="text-red-500 text-sm">{errors.name}</p>}
                         </div>
 
                         <div className="space-y-2">
@@ -220,7 +230,7 @@ const MenuDialog = ({ open, onOpenChange, onSuccess, menu }: MenuDialogProps) =>
                             <Select
                                 value={formData.status}
                                 onValueChange={(value) => handleChange("status", value)}
-                                disabled={isSubmitting}
+                                disabled={loading}
                             >
                                 <SelectTrigger id="status">
                                     <SelectValue placeholder="Chọn trạng thái" />
@@ -233,6 +243,7 @@ const MenuDialog = ({ open, onOpenChange, onSuccess, menu }: MenuDialogProps) =>
                                     ))}
                                 </SelectContent>
                             </Select>
+                            {errors.status && <p className="text-red-500 text-sm">{errors.status}</p>}
                         </div>
 
                         <div className="space-y-2">
@@ -242,18 +253,18 @@ const MenuDialog = ({ open, onOpenChange, onSuccess, menu }: MenuDialogProps) =>
                                 placeholder="Nhập mô tả menu"
                                 value={formData.description}
                                 onChange={(e) => handleChange("description", e.target.value)}
-                                disabled={isSubmitting}
+                                disabled={loading}
                                 className="min-h-[100px]"
                             />
                         </div>
                     </div>
 
                     <DialogFooter>
-                        <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
+                        <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
                             Hủy
                         </Button>
-                        <Button type="submit" disabled={isSubmitting}>
-                            {isSubmitting ? (
+                        <Button type="submit" disabled={loading}>
+                            {loading ? (
                                 <>
                                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                                     Đang xử lý...

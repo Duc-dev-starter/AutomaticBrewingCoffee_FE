@@ -15,6 +15,7 @@ import { DeviceType } from "@/interfaces/device";
 import InfiniteScroll from "react-infinite-scroll-component";
 import { EBaseStatus, EBaseStatusViMap } from "@/enum/base";
 import { ErrorResponse } from "@/types/error";
+import { deviceModelSchema } from "@/schema/device";
 
 const initialFormData = {
     modelName: "",
@@ -25,7 +26,8 @@ const initialFormData = {
 
 const DeviceModelDialog = ({ open, onOpenChange, onSuccess, deviceModel }: DeviceDialogProps) => {
     const { toast } = useToast();
-    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [errors, setErrors] = useState<Record<string, any>>({});
+    const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState(initialFormData);
     const [deviceTypes, setDeviceTypes] = useState<DeviceType[]>([]);
     const [page, setPage] = useState(1);
@@ -89,39 +91,35 @@ const DeviceModelDialog = ({ open, onOpenChange, onSuccess, deviceModel }: Devic
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        e.stopPropagation();
 
-        if (!formData.modelName.trim()) {
-            toast({
-                title: "Lỗi",
-                description: "Vui lòng nhập tên kiểu thiết bị.",
-                variant: "destructive",
-            });
+        const validationResult = deviceModelSchema.safeParse(formData);
+        if (!validationResult.success) {
+            const { fieldErrors } = validationResult.error.flatten();
+            setErrors(fieldErrors);
             return;
         }
 
-        if (!formData.deviceTypeId) {
-            toast({
-                title: "Lỗi",
-                description: "Vui lòng nhập loại thiết bị.",
-                variant: "destructive",
-            });
-            return;
-        }
-
+        setErrors({});
+        setLoading(true);
         try {
-            setIsSubmitting(true);
-            const payload = { ...formData };
+            const data = {
+                modelName: formData.modelName,
+                status: formData.status,
+                manufacturer: formData.manufacturer,
+                deviceTypeId: formData.deviceTypeId
+            };
             if (deviceModel) {
-                await updateDeviceModel(deviceModel.deviceModelId, payload);
+                await updateDeviceModel(deviceModel.deviceModelId, data);
                 toast({
                     title: "Thành công",
-                    description: "Cập nhật mẫu thiết bị thành công.",
+                    description: `Cập nhật mẫu thiết bị ${data.modelName} thành công.`,
                 });
             } else {
-                await createDeviceModel(payload);
+                await createDeviceModel(data);
                 toast({
                     title: "Thành công",
-                    description: "Thêm mẫu thiết bị thành công.",
+                    description: `Thêm mẫu thiết bị ${data.modelName} thành công.`,
                 });
             }
             onSuccess?.();
@@ -135,7 +133,7 @@ const DeviceModelDialog = ({ open, onOpenChange, onSuccess, deviceModel }: Devic
                 variant: "destructive",
             });
         } finally {
-            setIsSubmitting(false);
+            setLoading(false);
         }
     };
 
@@ -176,9 +174,10 @@ const DeviceModelDialog = ({ open, onOpenChange, onSuccess, deviceModel }: Devic
                                 placeholder="Nhập tên mẫu thiết bị"
                                 value={formData.modelName}
                                 onChange={(e) => handleChange("modelName", e.target.value)}
-                                disabled={isSubmitting}
+                                disabled={loading}
                                 required
                             />
+                            {errors.modelName && <p className="text-red-500 text-sm">{errors.modelName}</p>}
                         </div>
 
                         <div className="space-y-2">
@@ -188,8 +187,9 @@ const DeviceModelDialog = ({ open, onOpenChange, onSuccess, deviceModel }: Devic
                                 placeholder="Nhập nhà sản xuất"
                                 value={formData.manufacturer}
                                 onChange={(e) => handleChange("manufacturer", e.target.value)}
-                                disabled={isSubmitting}
+                                disabled={loading}
                             />
+                            {errors.manufacturer && <p className="text-red-500 text-sm">{errors.manufacturer}</p>}
                         </div>
 
                         <div className="space-y-2">
@@ -199,7 +199,7 @@ const DeviceModelDialog = ({ open, onOpenChange, onSuccess, deviceModel }: Devic
                             <Select
                                 value={formData.deviceTypeId}
                                 onValueChange={(value) => handleChange("deviceTypeId", value)}
-                                disabled={isSubmitting}
+                                disabled={loading}
                             >
                                 <SelectTrigger id="deviceTypeId">
                                     <SelectValue placeholder="Select device type" />
@@ -221,6 +221,7 @@ const DeviceModelDialog = ({ open, onOpenChange, onSuccess, deviceModel }: Devic
                                     </InfiniteScroll>
                                 </SelectContent>
                             </Select>
+                            {errors.deviceTypeId && <p className="text-red-500 text-sm">{errors.deviceTypeId}</p>}
                         </div>
 
                         <div className="space-y-2">
@@ -230,7 +231,7 @@ const DeviceModelDialog = ({ open, onOpenChange, onSuccess, deviceModel }: Devic
                             <Select
                                 value={formData.status}
                                 onValueChange={(value) => handleChange("status", value)}
-                                disabled={isSubmitting}
+                                disabled={loading}
                             >
                                 <SelectTrigger>
                                     <SelectValue placeholder="Chọn trạng thái" />
@@ -243,16 +244,18 @@ const DeviceModelDialog = ({ open, onOpenChange, onSuccess, deviceModel }: Devic
                                     ))}
                                 </SelectContent>
                             </Select>
+                            {errors.status && <p className="text-red-500 text-sm">{errors.status}</p>}
+
                         </div>
 
                     </div>
 
                     <DialogFooter>
-                        <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
+                        <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
                             Hủy
                         </Button>
-                        <Button type="submit" disabled={isSubmitting}>
-                            {isSubmitting ? (
+                        <Button type="submit" disabled={loading}>
+                            {loading ? (
                                 <>
                                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                                     Đang xử lý...

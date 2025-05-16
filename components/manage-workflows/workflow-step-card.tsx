@@ -111,7 +111,7 @@ export function WorkflowStepCard({ step, index }: WorkflowStepCardProps) {
                         <Cpu className="h-4 w-4 mr-2 text-[#68e0df]" />
                         <span className="text-sm font-medium text-gray-700 dark:text-gray-300">Thiết bị:</span>
                         <span className="ml-2 text-sm text-gray-600 dark:text-gray-400">
-                            {step.device ? `${step.device.name} (WF-${step.deviceId.substring(0, 8)})` : step.deviceId || "Không có"}
+                            {step.device ? `${step.device.name} (WF-${step.deviceTypeId.substring(0, 8)})` : step.deviceTypeId || "Không có"}
                         </span>
                     </div>
 

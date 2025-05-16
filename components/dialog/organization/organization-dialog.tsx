@@ -23,6 +23,7 @@ const initialFormData = {
     contactPhone: "",
     contactEmail: "",
     taxId: "",
+    logoBase64: "",
     status: EBaseStatus.Active,
 }
 
@@ -43,16 +44,16 @@ const OrganizationDialog = ({ open, onOpenChange, onSuccess, organization }: Org
                 contactEmail: organization.contactEmail || "",
                 taxId: organization.taxId || "",
                 status: organization.status,
-            })
-            setLogoPreview(organization.logoUrl || null)
-            setLogoFile(null)
+                logoBase64: "",
+            });
+            setLogoPreview(organization.logoUrl || null);
+            setLogoFile(null);
         } else {
-            setFormData(initialFormData)
-            setLogoPreview(null)
-            setLogoFile(null)
+            setFormData(initialFormData);
+            setLogoPreview(null);
+            setLogoFile(null);
         }
-    }, [organization, open])
-
+    }, [organization, open]);
     const handleChange = (field: string, value: string) => {
         setFormData((prev) => ({
             ...prev,
@@ -105,7 +106,6 @@ const OrganizationDialog = ({ open, onOpenChange, onSuccess, organization }: Org
             reader.readAsDataURL(file)
         })
     }
-
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         e.stopPropagation();
@@ -121,28 +121,27 @@ const OrganizationDialog = ({ open, onOpenChange, onSuccess, organization }: Org
         setLoading(true);
 
         try {
-
             let payload: {
-                name: string
-                description: string
-                contactPhone: string
-                contactEmail: string
-                logoBase64?: string
-                taxId: string
-                status: EBaseStatus
-            }
+                name: string;
+                description: string;
+                contactPhone: string;
+                contactEmail: string;
+                logoBase64?: string; // Đảm bảo logoBase64 là tùy chọn
+                taxId: string;
+                status: EBaseStatus;
+            };
 
             if (logoFile) {
-                const logoBase64 = await fileToBase64(logoFile)
+                const logoBase64 = await fileToBase64(logoFile);
                 payload = {
                     name: formData.name,
                     description: formData.description,
                     contactPhone: formData.contactPhone,
                     contactEmail: formData.contactEmail,
-                    logoBase64,
+                    logoBase64, // Chỉ gửi khi có logo mới
                     taxId: formData.taxId,
                     status: formData.status,
-                }
+                };
             } else {
                 payload = {
                     name: formData.name,
@@ -151,36 +150,37 @@ const OrganizationDialog = ({ open, onOpenChange, onSuccess, organization }: Org
                     contactEmail: formData.contactEmail,
                     taxId: formData.taxId,
                     status: formData.status,
-                }
+                    // Không gửi logoBase64 nếu không có logo mới
+                };
             }
 
             if (organization) {
-                await updateOrganization(organization.organizationId, payload)
+                await updateOrganization(organization.organizationId, payload);
                 toast({
                     title: "Thành công",
                     description: "Cập nhật tổ chức thành công",
-                })
+                });
             } else {
-                await createOrganization(payload)
+                await createOrganization(payload);
                 toast({
                     title: "Thành công",
                     description: "Thêm tổ chức mới thành công",
-                })
+                });
             }
-            onSuccess?.()
-            onOpenChange(false)
+            onSuccess?.();
+            onOpenChange(false);
         } catch (error) {
             const err = error as ErrorResponse;
-            console.error("Lỗi khi xử lý tổ chứcchức:", error);
+            console.error("Lỗi khi xử lý tổ chức:", error);
             toast({
-                title: "Lỗi khi xử lý tổ chứcchức",
+                title: "Lỗi khi xử lý tổ chức",
                 description: err.message,
                 variant: "destructive",
             });
         } finally {
-            setLoading(false)
+            setLoading(false);
         }
-    }
+    };
 
     const isUpdate = !!organization
 

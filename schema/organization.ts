@@ -7,6 +7,6 @@ export const organizationSchema = z.object({
     description: z.string().optional(),
     contactPhone: z.string().min(1, "Số điện thoại không được để trống."),
     contactEmail: z.string().min(1, "Email không được để trống."),
-    logoBase64: z.string().min(1, "Logo không được để trống."),
+    logoBase64: z.string().optional(),
     taxId: z.string().min(1, "Mã số thuế không được để trống."),
 });

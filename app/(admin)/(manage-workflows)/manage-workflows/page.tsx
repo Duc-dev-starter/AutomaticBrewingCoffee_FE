@@ -163,8 +163,7 @@ const ManageWorkflows = () => {
     };
 
     const handleAdd = () => {
-        setSelectedWorkflow(undefined);
-        setDialogOpen(true);
+        router.push("/create-workflow");
     };
 
     const clearAllFilters = () => {

@@ -32,7 +32,7 @@ import { multiSelectFilter } from "@/utils/table";
 import { useToast } from "@/hooks/use-toast";
 import { FilterBadges } from "@/components/manage-workflows/filter-badges";
 import { useRouter } from "next/navigation";
-import { WorkflowDetailDialog, WorkflowDialog } from "@/components/dialog/workflow";
+import { WorkflowDetailDialog } from "@/components/dialog/workflow";
 import { ErrorResponse } from "@/types/error";
 
 const ManageWorkflows = () => {
@@ -53,8 +53,6 @@ const ManageWorkflows = () => {
     const [statusFilter, setStatusFilter] = useState<string>("");
 
 
-    const [dialogOpen, setDialogOpen] = useState(false);
-    const [selectedWorkflow, setSelectedWorkflow] = useState<Workflow | undefined>(undefined);
     const [detailDialogOpen, setDetailDialogOpen] = useState(false);
     const [detailWorkflow, setDetailWorkflow] = useState<Workflow | null>(null);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -118,15 +116,9 @@ const ManageWorkflows = () => {
         fetchWorkflows();
     }, [fetchWorkflows]);
 
-    const handleSuccess = () => {
-        fetchWorkflows();
-        setDialogOpen(false);
-        setSelectedWorkflow(undefined);
-    };
 
     const handleEdit = (workflow: Workflow) => {
-        setSelectedWorkflow(workflow);
-        setDialogOpen(true);
+        router.push("/create-workflow");
     };
 
     const handleViewDetails = (workflow: Workflow) => {
@@ -356,12 +348,6 @@ const ManageWorkflows = () => {
                     totalPages={totalPages}
                 />
             </div>
-            <WorkflowDialog
-                open={dialogOpen}
-                onOpenChange={setDialogOpen}
-                onSuccess={handleSuccess}
-                workflow={selectedWorkflow}
-            />
             <WorkflowDetailDialog
                 open={detailDialogOpen}
                 onOpenChange={(open) => {

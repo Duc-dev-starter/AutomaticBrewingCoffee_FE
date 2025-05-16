@@ -51,7 +51,7 @@ export function middleware(req: NextRequest) {
 
     if (!accessToken || !refreshToken) {
         if (!isPublicPath) {
-            return NextResponse.redirect(new URL(Path.LOGIN, req.url));
+            // return NextResponse.redirect(new URL(Path.LOGIN, req.url));
         }
     }
 

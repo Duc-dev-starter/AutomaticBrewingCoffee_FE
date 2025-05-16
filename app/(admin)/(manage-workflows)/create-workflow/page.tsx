@@ -15,14 +15,12 @@ import {
     Trash2,
     ChevronDown,
     ChevronUp,
-    Save,
-    ArrowLeft,
     Info,
     AlertTriangle,
     Settings,
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
-import { createWorkflow, updateWorkflow } from "@/services/workflow"
+import { createWorkflow } from "@/services/workflow"
 import { getProducts } from "@/services/product"
 import { getDeviceTypes } from "@/services/device"
 import { getWorkflows } from "@/services/workflow"
@@ -36,6 +34,7 @@ import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { EWorkflowStepType, EWorkflowStepTypeViMap, EWorkflowType, EWorkflowTypeViMap } from "@/enum/workflow"
 import { useRouter } from "next/navigation"
+import { workflowSchema } from "@/schema/workflow"
 
 // Initial form data
 const initialFormData = {
@@ -55,9 +54,9 @@ const initialFormData = {
     ],
 }
 
-const CreateWorkflow = ({ workflow }: { workflow?: Workflow }) => {
+const CreateWorkflow = () => {
     const { toast } = useToast()
-    const router = useRouter();
+    const router = useRouter()
     const [errors, setErrors] = useState<Record<string, any>>({})
     const [loading, setLoading] = useState(false)
     const [formData, setFormData] = useState(initialFormData)
@@ -158,21 +157,6 @@ const CreateWorkflow = ({ workflow }: { workflow?: Workflow }) => {
         fetchWorkflows(1)
     }, [])
 
-    // Fill form data when editing workflow
-    useEffect(() => {
-        if (workflow) {
-            setFormData({
-                name: workflow.name,
-                description: workflow.description ?? "",
-                type: workflow.type,
-                productId: workflow.productId,
-                steps: workflow.steps ?? initialFormData.steps,
-            })
-        } else {
-            setFormData(initialFormData)
-        }
-    }, [workflow])
-
     // Handle form field changes
     const handleChange = (field: string, value: string) => {
         setFormData((prev) => ({
@@ -180,7 +164,6 @@ const CreateWorkflow = ({ workflow }: { workflow?: Workflow }) => {
             [field]: value,
         }))
 
-        // Clear error for this field if it exists
         if (errors[field]) {
             setErrors((prev) => {
                 const newErrors = { ...prev }
@@ -198,7 +181,6 @@ const CreateWorkflow = ({ workflow }: { workflow?: Workflow }) => {
             return { ...prev, steps: newSteps }
         })
 
-        // Clear error for this step field if it exists
         if (errors.steps?.[index]?.[field]) {
             setErrors((prev) => {
                 const newErrors = { ...prev }
@@ -232,7 +214,6 @@ const CreateWorkflow = ({ workflow }: { workflow?: Workflow }) => {
                 },
             ],
         }))
-        // Expand the newly added step
         setExpandedStep(formData.steps.length)
     }
 
@@ -240,7 +221,6 @@ const CreateWorkflow = ({ workflow }: { workflow?: Workflow }) => {
     const removeStep = (index: number) => {
         setFormData((prev) => {
             const newSteps = prev.steps.filter((_, i) => i !== index)
-            // Rename steps to maintain sequential numbering
             return {
                 ...prev,
                 steps: newSteps.map((step, i) => ({
@@ -260,7 +240,6 @@ const CreateWorkflow = ({ workflow }: { workflow?: Workflow }) => {
             const temp = newSteps[index]
             newSteps[index] = newSteps[index - 1]
             newSteps[index - 1] = temp
-            // Rename steps to maintain sequential numbering
             return {
                 ...prev,
                 steps: newSteps.map((step, i) => ({
@@ -280,7 +259,6 @@ const CreateWorkflow = ({ workflow }: { workflow?: Workflow }) => {
             const temp = newSteps[index]
             newSteps[index] = newSteps[index + 1]
             newSteps[index + 1] = temp
-            // Rename steps to maintain sequential numbering
             return {
                 ...prev,
                 steps: newSteps.map((step, i) => ({
@@ -297,22 +275,11 @@ const CreateWorkflow = ({ workflow }: { workflow?: Workflow }) => {
         e.preventDefault()
         e.stopPropagation()
 
-        // Simple validation (replace with your actual validation logic)
-        const newErrors: Record<string, any> = {}
-        if (!formData.name) newErrors.name = "Tên quy trình là bắt buộc"
-        if (!formData.productId) newErrors.productId = "Sản phẩm là bắt buộc"
-        if (!formData.type) newErrors.type = "Loại quy trình là bắt buộc"
-
-        formData.steps.forEach((step, index) => {
-            if (!step.name) {
-                if (!newErrors.steps) newErrors.steps = {}
-                if (!newErrors.steps[index]) newErrors.steps[index] = {}
-                newErrors.steps[index].name = "Tên bước là bắt buộc"
-            }
-        })
-
-        if (Object.keys(newErrors).length > 0) {
+        const result = workflowSchema.safeParse(formData)
+        if (!result.success) {
+            const newErrors = result.error.flatten().fieldErrors
             setErrors(newErrors)
+            console.log(newErrors)
             toast({
                 title: "Lỗi xác thực",
                 description: "Vui lòng kiểm tra lại thông tin đã nhập",
@@ -332,22 +299,13 @@ const CreateWorkflow = ({ workflow }: { workflow?: Workflow }) => {
                 steps: formData.steps,
             } as Partial<Workflow>
 
-            if (workflow) {
-                await updateWorkflow(workflow.workflowId, data)
-                toast({
-                    title: "Thành công",
-                    description: "Cập nhật quy trình thành công",
-                })
-            } else {
-                await createWorkflow(data)
-                toast({
-                    title: "Thành công",
-                    description: "Thêm quy trình mới thành công",
-                })
-                // Reset form after successful creation
-                setFormData(initialFormData)
-                setExpandedStep(0)
-            }
+            await createWorkflow(data)
+            toast({
+                title: "Thành công",
+                description: "Thêm quy trình mới thành công",
+            })
+            setFormData(initialFormData)
+            setExpandedStep(0)
         } catch (error) {
             const err = error as ErrorResponse
             console.error("Lỗi khi xử lý quy trình:", error)
@@ -368,20 +326,28 @@ const CreateWorkflow = ({ workflow }: { workflow?: Workflow }) => {
         setPage(nextPage)
     }
 
-    const isUpdate = !!workflow
-
     return (
         <div className="container mx-auto p-6 space-y-8">
-            <div className="flex items-center">
-                <Button variant="outline" size="icon" className="mr-4" onClick={() => router.back()}>
-                    <ArrowLeft className="h-4 w-4" />
-                </Button>
+            <div className="flex items-center justify-between">
                 <h1 className="text-2xl font-bold flex items-center">
                     <Info className="mr-2 h-5 w-5" />
-                    Tạo quy trình
+                    Tạo quy trình mới
                 </h1>
+                <Button type="submit" disabled={loading} className="bg-blue-500 hover:bg-blue-600" onClick={handleSubmit}>
+                    {loading ? (
+                        <>
+                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                            Đang xử lý...
+                        </>
+                    ) : (
+                        <>
+                            <PlusCircle className="mr-2 h-4 w-4" />
+                            Tạo quy trình
+                        </>
+                    )}
+                </Button>
             </div>
-            <form onSubmit={handleSubmit}>
+            <form>
                 <div className="flex flex-col md:flex-row gap-6">
                     {/* Left column - Workflow information (35%) */}
                     <div className="w-full md:w-[35%] space-y-6">
@@ -407,7 +373,7 @@ const CreateWorkflow = ({ workflow }: { workflow?: Workflow }) => {
                                     {errors.name && (
                                         <p className="text-red-500 text-sm flex items-center">
                                             <AlertTriangle className="h-3 w-3 mr-1" />
-                                            {errors.name}
+                                            {errors.name[0]}
                                         </p>
                                     )}
                                 </div>
@@ -438,7 +404,7 @@ const CreateWorkflow = ({ workflow }: { workflow?: Workflow }) => {
                                     {errors.type && (
                                         <p className="text-red-500 text-sm flex items-center">
                                             <AlertTriangle className="h-3 w-3 mr-1" />
-                                            {errors.type}
+                                            {errors.type[0]}
                                         </p>
                                     )}
                                 </div>
@@ -481,7 +447,7 @@ const CreateWorkflow = ({ workflow }: { workflow?: Workflow }) => {
                                     {errors.productId && (
                                         <p className="text-red-500 text-sm flex items-center">
                                             <AlertTriangle className="h-3 w-3 mr-1" />
-                                            {errors.productId}
+                                            {errors.productId[0]}
                                         </p>
                                     )}
                                 </div>
@@ -566,8 +532,8 @@ const CreateWorkflow = ({ workflow }: { workflow?: Workflow }) => {
                                                         <div className="flex items-center space-x-1 mr-4">
                                                             <div
                                                                 onClick={(e) => {
-                                                                    e.stopPropagation();
-                                                                    moveStepUp(index);
+                                                                    e.stopPropagation()
+                                                                    moveStepUp(index)
                                                                 }}
                                                                 className={`h-7 w-7 rounded-full flex items-center justify-center ${loading || index === 0 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100'}`}
                                                             >
@@ -575,8 +541,8 @@ const CreateWorkflow = ({ workflow }: { workflow?: Workflow }) => {
                                                             </div>
                                                             <div
                                                                 onClick={(e) => {
-                                                                    e.stopPropagation();
-                                                                    moveStepDown(index);
+                                                                    e.stopPropagation()
+                                                                    moveStepDown(index)
                                                                 }}
                                                                 className={`h-7 w-7 rounded-full flex items-center justify-center ${loading || index === formData.steps.length - 1 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100'}`}
                                                             >
@@ -584,8 +550,8 @@ const CreateWorkflow = ({ workflow }: { workflow?: Workflow }) => {
                                                             </div>
                                                             <div
                                                                 onClick={(e) => {
-                                                                    e.stopPropagation();
-                                                                    removeStep(index);
+                                                                    e.stopPropagation()
+                                                                    removeStep(index)
                                                                 }}
                                                                 className={`h-7 w-7 rounded-full flex items-center justify-center ${loading ? 'opacity-50 cursor-not-allowed' : 'text-red-500 hover:text-red-700 hover:bg-red-50'}`}
                                                             >
@@ -596,6 +562,20 @@ const CreateWorkflow = ({ workflow }: { workflow?: Workflow }) => {
                                                 </AccordionTrigger>
                                                 <AccordionContent className="px-4 pb-4 pt-2">
                                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                        <div className="space-y-2">
+                                                            <Label htmlFor={`step-name-${index}`}>Tên bước</Label>
+                                                            <Input
+                                                                id={`step-name-${index}`}
+                                                                value={step.name}
+                                                                onChange={(e) => handleStepChange(index, "name", e.target.value)}
+                                                                disabled={loading}
+                                                                className={errors.steps?.[index]?.name ? "border-red-500" : ""}
+                                                            />
+                                                            {errors.steps?.[index]?.name && (
+                                                                <p className="text-red-500 text-sm">{errors.steps[index].name[0]}</p>
+                                                            )}
+                                                        </div>
+
                                                         <div className="space-y-2">
                                                             <Label htmlFor={`step-type-${index}`}>Loại bước</Label>
                                                             <Select
@@ -615,7 +595,7 @@ const CreateWorkflow = ({ workflow }: { workflow?: Workflow }) => {
                                                                 </SelectContent>
                                                             </Select>
                                                             {errors.steps?.[index]?.type && (
-                                                                <p className="text-red-500 text-sm">{errors.steps[index].type}</p>
+                                                                <p className="text-red-500 text-sm">{errors.steps[index].type[0]}</p>
                                                             )}
                                                         </div>
 
@@ -627,9 +607,10 @@ const CreateWorkflow = ({ workflow }: { workflow?: Workflow }) => {
                                                                 value={step.maxRetries}
                                                                 onChange={(e) => handleStepChange(index, "maxRetries", Number.parseInt(e.target.value))}
                                                                 disabled={loading}
+                                                                className={errors.steps?.[index]?.maxRetries ? "border-red-500" : ""}
                                                             />
                                                             {errors.steps?.[index]?.maxRetries && (
-                                                                <p className="text-red-500 text-sm">{errors.steps[index].maxRetries}</p>
+                                                                <p className="text-red-500 text-sm">{errors.steps[index].maxRetries[0]}</p>
                                                             )}
                                                         </div>
 
@@ -660,7 +641,7 @@ const CreateWorkflow = ({ workflow }: { workflow?: Workflow }) => {
                                                                 </SelectContent>
                                                             </Select>
                                                             {errors.steps?.[index]?.deviceTypeId && (
-                                                                <p className="text-red-500 text-sm">{errors.steps[index].deviceTypeId}</p>
+                                                                <p className="text-red-500 text-sm">{errors.steps[index].deviceTypeId[0]}</p>
                                                             )}
                                                         </div>
 
@@ -691,7 +672,7 @@ const CreateWorkflow = ({ workflow }: { workflow?: Workflow }) => {
                                                                 </SelectContent>
                                                             </Select>
                                                             {errors.steps?.[index]?.callbackWorkflowId && (
-                                                                <p className="text-red-500 text-sm">{errors.steps[index].callbackWorkflowId}</p>
+                                                                <p className="text-red-500 text-sm">{errors.steps[index].callbackWorkflowId[0]}</p>
                                                             )}
                                                         </div>
 
@@ -706,7 +687,7 @@ const CreateWorkflow = ({ workflow }: { workflow?: Workflow }) => {
                                                                 className="min-h-[80px]"
                                                             />
                                                             {errors.steps?.[index]?.parameters && (
-                                                                <p className="text-red-500 text-sm">{errors.steps[index].parameters}</p>
+                                                                <p className="text-red-500 text-sm">{errors.steps[index].parameters[0]}</p>
                                                             )}
                                                         </div>
                                                     </div>
@@ -718,32 +699,6 @@ const CreateWorkflow = ({ workflow }: { workflow?: Workflow }) => {
                             </CardContent>
                         </Card>
                     </div>
-                </div>
-
-                {/* Action Buttons */}
-                <div className="flex justify-end space-x-4 mt-6">
-                    <Button type="button" variant="outline" onClick={() => window.history.back()} disabled={loading}>
-                        <ArrowLeft className="mr-2 h-4 w-4" />
-                        Hủy
-                    </Button>
-                    <Button type="submit" disabled={loading} className="bg-blue-500 hover:bg-blue-600">
-                        {loading ? (
-                            <>
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                Đang xử lý...
-                            </>
-                        ) : isUpdate ? (
-                            <>
-                                <Save className="mr-2 h-4 w-4" />
-                                Cập nhật quy trình
-                            </>
-                        ) : (
-                            <>
-                                <PlusCircle className="mr-2 h-4 w-4" />
-                                Thêm quy trình
-                            </>
-                        )}
-                    </Button>
                 </div>
             </form>
         </div>

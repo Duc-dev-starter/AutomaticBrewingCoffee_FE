@@ -26,6 +26,7 @@ const AddProductToMenuDialog = ({ open, onOpenChange, onSuccess, menuId, existin
     const [selectedProductId, setSelectedProductId] = useState<string>("");
     const [selectedProduct, setSelectedProduct] = useState<Product | null>(null);
     const [selectedStatus, setSelectedStatus] = useState<EBaseStatus>(EBaseStatus.Active);
+    const [sellingPrice, setSellingPrice] = useState<number | undefined>();
     const [loading, setLoading] = useState(false);
 
     useEffect(() => {
@@ -75,6 +76,7 @@ const AddProductToMenuDialog = ({ open, onOpenChange, onSuccess, menuId, existin
                 menuId,
                 productId: selectedProductId,
                 status: selectedStatus,
+                ...(sellingPrice !== undefined ? { sellingPrice } : {}),
             });
             toast({
                 title: "Thành công",
@@ -148,6 +150,7 @@ const AddProductToMenuDialog = ({ open, onOpenChange, onSuccess, menuId, existin
                         </div>
                     )}
 
+
                     <div className="grid gap-2">
                         <Label htmlFor="status">Trạng thái</Label>
                         <Select value={selectedStatus} onValueChange={(value) => setSelectedStatus(value as EBaseStatus)}>
@@ -160,6 +163,22 @@ const AddProductToMenuDialog = ({ open, onOpenChange, onSuccess, menuId, existin
                             </SelectContent>
                         </Select>
                     </div>
+
+                    <div className="grid gap-2">
+                        <Label htmlFor="sellingPrice">Giá bán (có thể để trống)</Label>
+                        <input
+                            type="number"
+                            id="sellingPrice"
+                            value={sellingPrice ?? ""}
+                            onChange={(e) => {
+                                const value = e.target.value;
+                                setSellingPrice(value ? parseFloat(value) : undefined);
+                            }}
+                            placeholder="Nhập giá bán nếu muốn"
+                            className="input input-bordered w-full rounded-md px-3 py-2 border border-input text-sm"
+                        />
+                    </div>
+
                 </div>
                 <DialogFooter>
                     <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>

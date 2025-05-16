@@ -37,7 +37,7 @@ const MenuDialog = ({ open, onOpenChange, onSuccess, menu }: MenuDialogProps) =>
 
     const fetchKiosks = async (pageNumber: number) => {
         try {
-            const response = await getKiosks({ page: pageNumber, size: 10 });
+            const response = await getKiosks({ page: pageNumber, size: 10, hasMenu: false });
             if (response.items.length === 0 && pageNumber === 1) {
                 setNoKiosks(true);
                 setHasMore(false);

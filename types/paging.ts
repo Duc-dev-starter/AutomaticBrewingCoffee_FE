@@ -13,6 +13,7 @@ export interface PagingParams {
     type?: string;
     productType?: string;
     productSize?: string;
+    hasMenu?: boolean;
 }
 
 export interface PagingResponse<T> {

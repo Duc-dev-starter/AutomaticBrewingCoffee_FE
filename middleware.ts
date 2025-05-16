@@ -30,7 +30,8 @@ const allowedPaths = [
     Path.MANAGE_DEVICE_MODELS,
     Path.MANAGE_KIOSK_VERSIONS,
     Path.MANAGE_KIOSK_TYPES,
-    Path.CREATE_ACCOUNT
+    Path.CREATE_ACCOUNT,
+    Path.CREATE_WORKFLOW
 ];
 
 const dynamicPathPrefixes = [

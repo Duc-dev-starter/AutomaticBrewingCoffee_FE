@@ -4,7 +4,7 @@ import { Product } from "./product";
 export interface WorkflowStep {
     name: string;
     type: EWorkflowStepType;
-    deviceId: string;
+    deviceTypeId: string;
     maxRetries: number;
     callbackWorkflowId: string;
     parameters: string;

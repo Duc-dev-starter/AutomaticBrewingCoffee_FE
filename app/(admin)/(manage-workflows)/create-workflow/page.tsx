@@ -55,7 +55,7 @@ const initialFormData = {
     ],
 }
 
-const CreateWorkflow = ({ workflow }: { workflow?: any }) => {
+const CreateWorkflow = ({ workflow }: { workflow: Workflow }) => {
     const { toast } = useToast()
     const router = useRouter();
     const [errors, setErrors] = useState<Record<string, any>>({})

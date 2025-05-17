@@ -8,6 +8,7 @@ export interface WorkflowStep {
     maxRetries: number;
     callbackWorkflowId: string;
     parameters: string;
+    sequence: number;
 }
 
 export interface Workflow {

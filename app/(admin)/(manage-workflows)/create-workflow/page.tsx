@@ -33,10 +33,8 @@ import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/comp
 import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { EWorkflowStepType, EWorkflowStepTypeViMap, EWorkflowType, EWorkflowTypeViMap } from "@/enum/workflow"
-import { useRouter } from "next/navigation"
 import { workflowSchema } from "@/schema/workflow"
 
-// Initial form data
 const initialFormData = {
     name: "",
     description: "",
@@ -48,6 +46,7 @@ const initialFormData = {
             type: EWorkflowStepType.AlertCancellationCommand,
             deviceTypeId: "",
             maxRetries: 0,
+            sequence: 0,
             callbackWorkflowId: "",
             parameters: "",
         },
@@ -56,7 +55,6 @@ const initialFormData = {
 
 const CreateWorkflow = () => {
     const { toast } = useToast()
-    const router = useRouter()
     const [errors, setErrors] = useState<Record<string, any>>({})
     const [loading, setLoading] = useState(false)
     const [formData, setFormData] = useState(initialFormData)
@@ -198,26 +196,30 @@ const CreateWorkflow = () => {
         }
     }
 
-    // Add a new step
+    // Add a new step with sequence
     const addStep = () => {
-        setFormData((prev) => ({
-            ...prev,
-            steps: [
-                ...prev.steps,
-                {
-                    name: `Bước ${prev.steps.length + 1}`,
-                    type: EWorkflowStepType.AlertCancellationCommand,
-                    deviceTypeId: "",
-                    maxRetries: 0,
-                    callbackWorkflowId: "",
-                    parameters: "",
-                },
-            ],
-        }))
+        setFormData((prev) => {
+            const newSequence = prev.steps.length + 1
+            return {
+                ...prev,
+                steps: [
+                    ...prev.steps,
+                    {
+                        name: `Bước ${newSequence}`,
+                        type: EWorkflowStepType.AlertCancellationCommand,
+                        deviceTypeId: "",
+                        maxRetries: 0,
+                        sequence: newSequence, // Gán sequence tự động
+                        callbackWorkflowId: "",
+                        parameters: "",
+                    },
+                ],
+            }
+        })
         setExpandedStep(formData.steps.length)
     }
 
-    // Remove a step
+    // Remove a step and update sequences
     const removeStep = (index: number) => {
         setFormData((prev) => {
             const newSteps = prev.steps.filter((_, i) => i !== index)
@@ -226,13 +228,14 @@ const CreateWorkflow = () => {
                 steps: newSteps.map((step, i) => ({
                     ...step,
                     name: `Bước ${i + 1}`,
+                    sequence: i + 1, // Cập nhật sequence
                 })),
             }
         })
         setExpandedStep(null)
     }
 
-    // Move step up
+    // Move step up and update sequences
     const moveStepUp = (index: number) => {
         if (index === 0) return
         setFormData((prev) => {
@@ -245,13 +248,14 @@ const CreateWorkflow = () => {
                 steps: newSteps.map((step, i) => ({
                     ...step,
                     name: `Bước ${i + 1}`,
+                    sequence: i + 1, // Cập nhật sequence
                 })),
             }
         })
         setExpandedStep(index - 1)
     }
 
-    // Move step down
+    // Move step down and update sequences
     const moveStepDown = (index: number) => {
         if (index === formData.steps.length - 1) return
         setFormData((prev) => {
@@ -264,6 +268,7 @@ const CreateWorkflow = () => {
                 steps: newSteps.map((step, i) => ({
                     ...step,
                     name: `Bước ${i + 1}`,
+                    sequence: i + 1, // Cập nhật sequence
                 })),
             }
         })
@@ -520,7 +525,7 @@ const CreateWorkflow = () => {
                                                     <div className="flex items-center justify-between w-full">
                                                         <div className="flex items-center">
                                                             <Badge variant="outline" className="mr-3 bg-blue-50 text-blue-700 border-blue-200">
-                                                                {index + 1}
+                                                                {step.sequence}
                                                             </Badge>
                                                             <span className="font-medium">{step.name}</span>
                                                             {step.type && (
@@ -562,6 +567,21 @@ const CreateWorkflow = () => {
                                                 </AccordionTrigger>
                                                 <AccordionContent className="px-4 pb-4 pt-2">
                                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                        <div className="space-y-2">
+                                                            <Label htmlFor={`step-sequence-${index}`}>Thứ tự</Label>
+                                                            <Input
+                                                                id={`step-sequence-${index}`}
+                                                                type="number"
+                                                                value={step.sequence}
+                                                                onChange={(e) => handleStepChange(index, "sequence", Number.parseInt(e.target.value))}
+                                                                disabled={loading}
+                                                                className={errors.steps?.[index]?.sequence ? "border-red-500" : ""}
+                                                            />
+                                                            {errors.steps?.[index]?.sequence && (
+                                                                <p className="text-red-500 text-sm">{errors.steps[index].sequence[0]}</p>
+                                                            )}
+                                                        </div>
+
                                                         <div className="space-y-2">
                                                             <Label htmlFor={`step-name-${index}`}>Tên bước</Label>
                                                             <Input

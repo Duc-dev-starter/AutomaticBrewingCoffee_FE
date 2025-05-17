@@ -32,7 +32,6 @@ import { multiSelectFilter } from "@/utils/table";
 import { useToast } from "@/hooks/use-toast";
 import { FilterBadges } from "@/components/manage-workflows/filter-badges";
 import { useRouter } from "next/navigation";
-import { WorkflowDetailDialog } from "@/components/dialog/workflow";
 import { ErrorResponse } from "@/types/error";
 
 const ManageWorkflows = () => {
@@ -51,10 +50,6 @@ const ManageWorkflows = () => {
     const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
     const [rowSelection, setRowSelection] = useState({});
     const [statusFilter, setStatusFilter] = useState<string>("");
-
-
-    const [detailDialogOpen, setDetailDialogOpen] = useState(false);
-    const [detailWorkflow, setDetailWorkflow] = useState<Workflow | null>(null);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [workflowToDelete, setWorkflowToDelete] = useState<Workflow | null>(null);
 
@@ -118,12 +113,11 @@ const ManageWorkflows = () => {
 
 
     const handleEdit = (workflow: Workflow) => {
-        router.push("/create-workflow");
+        router.push(`/create-workflow/${workflow.workflowId}`);
     };
 
     const handleViewDetails = (workflow: Workflow) => {
-        setDetailWorkflow(workflow);
-        setDetailDialogOpen(true);
+        router.push(`/manage-workflows/${workflow.workflowId}`);
     };
 
     const handleDelete = (workflow: Workflow) => {
@@ -348,14 +342,6 @@ const ManageWorkflows = () => {
                     totalPages={totalPages}
                 />
             </div>
-            <WorkflowDetailDialog
-                open={detailDialogOpen}
-                onOpenChange={(open) => {
-                    setDetailDialogOpen(open);
-                    if (!open) setDetailWorkflow(null);
-                }}
-                workflow={detailWorkflow}
-            />
             <ConfirmDeleteDialog
                 open={deleteDialogOpen}
                 onOpenChange={setDeleteDialogOpen}

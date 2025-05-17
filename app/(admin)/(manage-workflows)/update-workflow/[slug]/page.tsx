@@ -2,6 +2,7 @@
 
 import type React from "react"
 import { useState, useEffect } from "react"
+import { useParams } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -20,7 +21,7 @@ import {
     Settings,
 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
-import { createWorkflow } from "@/services/workflow"
+import { getWorkflow, updateWorkflow } from "@/services/workflow"
 import { getProducts } from "@/services/product"
 import { getDeviceTypes } from "@/services/device"
 import { getWorkflows } from "@/services/workflow"
@@ -35,29 +36,13 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { EWorkflowStepType, EWorkflowStepTypeViMap, EWorkflowType, EWorkflowTypeViMap } from "@/enum/workflow"
 import { workflowSchema } from "@/schema/workflow"
 
-const initialFormData = {
-    name: "",
-    description: "",
-    type: EWorkflowType.Activity,
-    productId: "",
-    steps: [
-        {
-            name: "Bước 1",
-            type: EWorkflowStepType.AlertCancellationCommand,
-            deviceTypeId: "",
-            maxRetries: 0,
-            sequence: 1,
-            callbackWorkflowId: "",
-            parameters: "",
-        },
-    ],
-}
-
-const CreateWorkflow = () => {
+const UpdateWorkflow = () => {
     const { toast } = useToast()
+    const params = useParams()
+    const slug = params.slug as string
     const [errors, setErrors] = useState<Record<string, any>>({})
     const [loading, setLoading] = useState(false)
-    const [formData, setFormData] = useState(initialFormData)
+    const [formData, setFormData] = useState<Workflow | null>(null)
     const [products, setProducts] = useState<Product[]>([])
     const [deviceTypes, setDeviceTypes] = useState<DeviceType[]>([])
     const [workflows, setWorkflows] = useState<Workflow[]>([])
@@ -71,6 +56,24 @@ const CreateWorkflow = () => {
     const [loadingProducts, setLoadingProducts] = useState(true)
     const [loadingDeviceTypes, setLoadingDeviceTypes] = useState(false)
     const [loadingWorkflows, setLoadingWorkflows] = useState(false)
+
+    // Fetch workflow by slug
+    useEffect(() => {
+        const fetchWorkflow = async () => {
+            try {
+                const workflow = await getWorkflow(slug)
+                setFormData(workflow.response)
+            } catch (error) {
+                console.error("Error fetching workflow:", error)
+                toast({
+                    title: "Lỗi",
+                    description: "Không tải được dữ liệu quy trình.",
+                    variant: "destructive",
+                })
+            }
+        }
+        fetchWorkflow()
+    }, [slug, toast])
 
     // Fetch products
     const fetchProducts = async (pageNumber: number) => {
@@ -157,10 +160,15 @@ const CreateWorkflow = () => {
 
     // Handle form field changes
     const handleChange = (field: string, value: string) => {
-        setFormData((prev) => ({
-            ...prev,
-            [field]: value,
-        }))
+        if (formData) {
+            setFormData((prev: Workflow | null) => {
+                if (!prev) return null
+                return {
+                    ...prev,
+                    [field]: value,
+                }
+            })
+        }
 
         if (errors[field]) {
             setErrors((prev) => {
@@ -173,11 +181,14 @@ const CreateWorkflow = () => {
 
     // Handle step field changes
     const handleStepChange = (index: number, field: string, value: string | number) => {
-        setFormData((prev) => {
-            const newSteps = [...prev.steps]
-            newSteps[index] = { ...newSteps[index], [field]: value }
-            return { ...prev, steps: newSteps }
-        })
+        if (formData) {
+            setFormData((prev: Workflow | null) => {
+                if (!prev) return null
+                const newSteps = [...prev.steps]
+                newSteps[index] = { ...newSteps[index], [field]: value }
+                return { ...prev, steps: newSteps }
+            })
+        }
 
         if (errors.steps?.[index]?.[field]) {
             setErrors((prev) => {
@@ -198,47 +209,51 @@ const CreateWorkflow = () => {
 
     // Add a new step with sequence
     const addStep = () => {
-        setFormData((prev) => {
-            const newSequence = prev.steps.length + 1
-            return {
-                ...prev,
-                steps: [
-                    ...prev.steps,
-                    {
-                        name: `Bước ${newSequence}`,
-                        type: EWorkflowStepType.AlertCancellationCommand,
-                        deviceTypeId: "",
-                        maxRetries: 0,
-                        sequence: newSequence, // Gán sequence tự động
-                        callbackWorkflowId: "",
-                        parameters: "",
-                    },
-                ],
-            }
-        })
-        setExpandedStep(formData.steps.length)
+        if (formData) {
+            setFormData((prev: Workflow | null) => {
+                if (!prev) return null
+                const newSequence = prev.steps.length + 1
+                const newStep = {
+                    name: `Bước ${newSequence}`,
+                    type: EWorkflowStepType.AlertCancellationCommand,
+                    deviceTypeId: "",
+                    maxRetries: 0,
+                    sequence: newSequence,
+                    callbackWorkflowId: "",
+                    parameters: "",
+                }
+                return {
+                    ...prev,
+                    steps: [...prev.steps, newStep],
+                }
+            })
+            setExpandedStep(formData.steps.length)
+        }
     }
 
     // Remove a step and update sequences
     const removeStep = (index: number) => {
-        setFormData((prev) => {
-            const newSteps = prev.steps.filter((_, i) => i !== index)
-            return {
-                ...prev,
-                steps: newSteps.map((step, i) => ({
-                    ...step,
-                    name: `Bước ${i + 1}`,
-                    sequence: i + 1, // Cập nhật sequence
-                })),
-            }
-        })
-        setExpandedStep(null)
+        if (formData) {
+            setFormData((prev: Workflow | null) => {
+                if (!prev) return null
+                const newSteps = prev.steps
+                    .filter((_, i) => i !== index)
+                    .map((step, i) => ({
+                        ...step,
+                        name: `Bước ${i + 1}`,
+                        sequence: i + 1,
+                    }))
+                return { ...prev, steps: newSteps }
+            })
+            setExpandedStep(null)
+        }
     }
 
     // Move step up and update sequences
     const moveStepUp = (index: number) => {
-        if (index === 0) return
-        setFormData((prev) => {
+        if (index === 0 || !formData) return
+        setFormData((prev: Workflow | null) => {
+            if (!prev) return null
             const newSteps = [...prev.steps]
             const temp = newSteps[index]
             newSteps[index] = newSteps[index - 1]
@@ -248,7 +263,7 @@ const CreateWorkflow = () => {
                 steps: newSteps.map((step, i) => ({
                     ...step,
                     name: `Bước ${i + 1}`,
-                    sequence: i + 1, // Cập nhật sequence
+                    sequence: i + 1,
                 })),
             }
         })
@@ -257,8 +272,9 @@ const CreateWorkflow = () => {
 
     // Move step down and update sequences
     const moveStepDown = (index: number) => {
-        if (index === formData.steps.length - 1) return
-        setFormData((prev) => {
+        if (!formData || index === formData.steps.length - 1) return
+        setFormData((prev: Workflow | null) => {
+            if (!prev) return null
             const newSteps = [...prev.steps]
             const temp = newSteps[index]
             newSteps[index] = newSteps[index + 1]
@@ -268,7 +284,7 @@ const CreateWorkflow = () => {
                 steps: newSteps.map((step, i) => ({
                     ...step,
                     name: `Bước ${i + 1}`,
-                    sequence: i + 1, // Cập nhật sequence
+                    sequence: i + 1,
                 })),
             }
         })
@@ -279,6 +295,8 @@ const CreateWorkflow = () => {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         e.stopPropagation()
+
+        if (!formData) return
 
         const result = workflowSchema.safeParse(formData)
         if (!result.success) {
@@ -304,18 +322,16 @@ const CreateWorkflow = () => {
                 steps: formData.steps,
             } as Partial<Workflow>
 
-            await createWorkflow(data)
+            await updateWorkflow(slug, data)
             toast({
                 title: "Thành công",
-                description: "Thêm quy trình mới thành công",
+                description: "Cập nhật quy trình thành công",
             })
-            setFormData(initialFormData)
-            setExpandedStep(0)
         } catch (error) {
             const err = error as ErrorResponse
-            console.error("Lỗi khi xử lý quy trình:", error)
+            console.error("Lỗi khi cập nhật quy trình:", error)
             toast({
-                title: "Lỗi khi xử lý quy trình",
+                title: "Lỗi khi cập nhật quy trình",
                 description: err.message,
                 variant: "destructive",
             })
@@ -331,12 +347,16 @@ const CreateWorkflow = () => {
         setPage(nextPage)
     }
 
+    if (!formData) {
+        return <div>Đang tải...</div>
+    }
+
     return (
         <div className="container mx-auto p-6 space-y-8">
             <div className="flex items-center justify-between">
                 <h1 className="text-2xl font-bold flex items-center">
                     <Info className="mr-2 h-5 w-5" />
-                    Tạo quy trình mới
+                    Cập nhật quy trình
                 </h1>
                 <Button type="submit" disabled={loading} className="bg-blue-500 hover:bg-blue-600" onClick={handleSubmit}>
                     {loading ? (
@@ -347,7 +367,7 @@ const CreateWorkflow = () => {
                     ) : (
                         <>
                             <PlusCircle className="mr-2 h-4 w-4" />
-                            Tạo quy trình
+                            Cập nhật quy trình
                         </>
                     )}
                 </Button>
@@ -725,4 +745,4 @@ const CreateWorkflow = () => {
     )
 }
 
-export default CreateWorkflow
+export default UpdateWorkflow

@@ -25,5 +25,6 @@ export const Path = {
     MANAGE_KIOSK_TYPES: "/manage-kiosk-types",
     CREATE_ACCOUNT: "/create-account",
     CREATE_WORKFLOW: "/create-workflow",
+    UPDATE_WORKFLOW: "/update-workflow",
 };
 

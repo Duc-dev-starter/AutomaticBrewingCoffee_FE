@@ -31,14 +31,16 @@ const allowedPaths = [
     Path.MANAGE_KIOSK_VERSIONS,
     Path.MANAGE_KIOSK_TYPES,
     Path.CREATE_ACCOUNT,
-    Path.CREATE_WORKFLOW
+    Path.CREATE_WORKFLOW,
+    Path.UPDATE_WORKFLOW
 ];
 
 const dynamicPathPrefixes = [
     Path.MANAGE_MENUS,
     Path.MANAGE_WORKFLOWS,
     Path.MANAGE_KIOSK_VERSIONS,
-    Path.MANAGE_KIOSKS
+    Path.MANAGE_KIOSKS,
+    Path.UPDATE_WORKFLOW
 ];
 
 export function middleware(req: NextRequest) {

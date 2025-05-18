@@ -16,6 +16,15 @@ export interface Kiosk {
     warrantyTime: string;
     storeId: string;
     store: Store;
+    kioskDevices: KioskDevice[];
+}
+
+export interface KioskDevice {
+    device: Device;
+    deviceId: string;
+    kioskDeviceMappingId: string;
+    kioskId: string;
+    status: EBaseStatus
 }
 
 export interface KioskType {

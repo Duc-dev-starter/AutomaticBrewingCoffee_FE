@@ -116,19 +116,14 @@ export const addDeviceInKiosk = async (payload: { kioskId: string, deviceId: str
     return response;
 }
 
-export const disponseDeviceInKiosk = async (kioskDeviceId: string, payload: Partial<KioskVersion>) => {
-    const response = await BaseService.post({ url: `${Api.KIOSKS}/devices/${kioskDeviceId}/dispose`, payload });
+export const replaceDeviceByKioskId = async (kioskDeviceId: string, payload: { deviceReplaceId: string }) => {
+    console.log(kioskDeviceId)
+    const response = await BaseService.put({ url: `${Api.KIOSKS}${Api.DEVICES}/${kioskDeviceId}/replace`, payload })
     return response;
 }
-
 
 export const syncKiosk = async (kioskId: string) => {
     const response = await BaseService.post({ url: `/syncs/sync-kiosk?kioskId=${kioskId}` });
     return response;
 }
 
-
-export const replaceDeviceByKioskId = async (kioskDeviceId: string, payload: { deviceReplaceId: string }) => {
-    const response = await BaseService.put({ url: `${Api.KIOSKS}${Api.DEVICES}/${kioskDeviceId}/replace`, payload })
-    return response;
-}

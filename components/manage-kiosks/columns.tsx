@@ -55,7 +55,7 @@ export const columns = ({
             id: "devices",
             header: "Thiết bị",
             cell: ({ row }) => {
-                const devices = row.original.devices || [];
+                const devices = row.original.kioskDevices || [];
                 return (
                     <div className="text-center">
                         {devices.length > 0 ? `${devices.length} thiết bị` : "Không có thiết bị"}

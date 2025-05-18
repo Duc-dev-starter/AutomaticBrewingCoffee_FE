@@ -85,3 +85,11 @@ export const deleteDeviceModel = async (id: string) => {
     const response = await BaseService.delete({ url: `${Api.DEVICE_MODELS}/${id}` })
     return response;
 }
+
+
+export const getDevicesToReplace = async (deviceId: string, params: PagingParams = {}): Promise<PagingResponse<Device>> => {
+    return BaseService.getPaging<Device>({
+        url: `${Api.DEVICES}/${deviceId}/replace`,
+        payload: params,
+    });
+};

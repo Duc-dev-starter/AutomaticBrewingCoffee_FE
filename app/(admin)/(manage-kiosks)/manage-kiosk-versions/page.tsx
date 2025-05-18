@@ -54,8 +54,6 @@ const ManageKioskVersions = () => {
 
     const [dialogOpen, setDialogOpen] = useState(false);
     const [selectedKioskVersion, setSelectedKioskVersion] = useState<KioskVersion | undefined>(undefined);
-    const [detailDialogOpen, setDetailDialogOpen] = useState(false);
-    const [detailKioskVersion, setDetailKioskVersion] = useState<KioskVersion | null>(null);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [kioskVersionToDelete, setKioskVersionToDelete] = useState<KioskVersion | null>(null);
 

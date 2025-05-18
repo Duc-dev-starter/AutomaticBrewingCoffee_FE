@@ -7,117 +7,132 @@ import { EBaseStatusViMap } from "@/enum/base"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Separator } from "@/components/ui/separator"
-import { Calendar, Clock, FileText, Info, Package, Store, Tag, Plus, ArrowLeft } from "lucide-react"
+import {
+    Calendar,
+    Clock,
+    FileText,
+    Info,
+    Package,
+    Store,
+    Tag,
+    ArrowLeft,
+    Trash2,
+    RefreshCw,
+    Loader2,
+} from "lucide-react"
 import clsx from "clsx"
 import { getBaseStatusColor } from "@/utils/color"
-import { getKiosk, addDeviceInKiosk } from "@/services/kiosk"
-import { getDevices } from "@/services/device"
+import { getKiosk } from "@/services/kiosk"
+import { replaceDeviceByKioskId } from "@/services/kiosk"
 import { Button } from "@/components/ui/button"
+import { useToast } from "@/hooks/use-toast"
+import type { Kiosk } from "@/interfaces/kiosk"
+import { RefreshButton } from "@/components/common"
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogFooter,
+    DialogHeader,
+    DialogTitle,
+} from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { toast } from "@/hooks/use-toast"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
-import { Loader2 } from "lucide-react"
-import { Kiosk } from "@/interfaces/kiosk"
+import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
+import { MoreHorizontal } from "lucide-react"
 import { Device } from "@/interfaces/device"
+import { getDevicesToReplace } from "@/services/device"
 
 const KioskDetailPage = () => {
     const { slug } = useParams()
     const router = useRouter()
+    const { toast } = useToast()
     const [kiosk, setKiosk] = useState<Kiosk | null>(null)
     const [loading, setLoading] = useState(true)
-    const [availableDevices, setAvailableDevices] = useState<Device[]>([])
-    const [selectedDeviceId, setSelectedDeviceId] = useState("")
-    const [addingDevice, setAddingDevice] = useState(false)
 
-    useEffect(() => {
-        const fetchData = async () => {
-            try {
-                setLoading(true)
-                // Fetch kiosk details
-                if (typeof slug !== "string") {
-                    toast({
-                        title: "Lỗi",
-                        description: "Slug không hợp lệ.",
-                        variant: "destructive",
-                    });
-                    return;
-                }
-                const kioskData = await getKiosk(slug);
-                console.log(kioskData);
-                setKiosk(kioskData.response)
+    const [isReplaceDialogOpen, setIsReplaceDialogOpen] = useState(false)
+    const [selectedKioskDevice, setSelectedKioskDevice] = useState<any>(null)
+    const [replacementDevices, setReplacementDevices] = useState<Device[]>([])
+    const [selectedReplacementDeviceId, setSelectedReplacementDeviceId] = useState("")
+    const [loadingReplacements, setLoadingReplacements] = useState(false)
+    const [processingAction, setProcessingAction] = useState(false)
 
-                // Fetch available devices (not assigned to any kiosk)
-                const devicesData = await getDevices()
-                setAvailableDevices(devicesData.items || [])
-            } catch (error) {
-                console.error("Error fetching data:", error)
-                toast({
-                    title: "Lỗi",
-                    description: "Không thể tải dữ liệu. Vui lòng thử lại sau.",
-                    variant: "destructive",
-                })
-            } finally {
-                setLoading(false)
-            }
-        }
-
-        fetchData()
-    }, [slug])
-
-    const handleAddDevice = async () => {
-        if (!selectedDeviceId) {
-            toast({
-                title: "Lỗi",
-                description: "Vui lòng chọn thiết bị để thêm vào kiosk.",
-                variant: "destructive",
-            })
-            return
-        }
-
+    const fetchKioskData = async () => {
         try {
-            setAddingDevice(true)
-
-
+            setLoading(true)
             if (typeof slug !== "string") {
                 toast({
                     title: "Lỗi",
                     description: "Slug không hợp lệ.",
                     variant: "destructive",
-                });
-                return;
+                })
+                return
             }
-
-            const payload = {
-                kioskId: slug,
-                deviceId: selectedDeviceId,
-            }
-
-            await addDeviceInKiosk(payload);
-
-
-            // Refresh kiosk data to show the new device
-            const updatedKioskData = await (await getKiosk(slug)).response
-            setKiosk(updatedKioskData)
-
-            // Remove the added device from available devices
-            setAvailableDevices(availableDevices.filter((device) => device.deviceId !== selectedDeviceId))
-
-            // Reset selection
-            setSelectedDeviceId("")
-
-            toast({
-                title: "Thành công",
-                description: "Đã thêm thiết bị vào kiosk.",
-            })
+            const kioskData = await getKiosk(slug)
+            setKiosk(kioskData.response)
         } catch (error) {
-            console.error("Lỗi khi thêm thiết bị:", error)
+            console.error("Error fetching data:", error)
             toast({
                 title: "Lỗi",
-                description: "Không thể thêm thiết bị. Vui lòng thử lại sau.",
+                description: "Không thể tải dữ liệu. Vui lòng thử lại sau.",
                 variant: "destructive",
             })
         } finally {
-            setAddingDevice(false)
+            setLoading(false)
+        }
+    }
+
+    useEffect(() => {
+        fetchKioskData()
+    }, [slug])
+
+    const openReplaceDialog = async (kioskDevice: any) => {
+        setSelectedKioskDevice(kioskDevice)
+        setIsReplaceDialogOpen(true)
+
+        try {
+            setLoadingReplacements(true)
+            const response = await getDevicesToReplace(kioskDevice.deviceId)
+            setReplacementDevices(response.items || [])
+        } catch (error) {
+            console.error("Error fetching replacement devices:", error)
+            toast({
+                title: "Lỗi",
+                description: "Không thể tải danh sách thiết bị thay thế.",
+                variant: "destructive",
+            })
+        } finally {
+            setLoadingReplacements(false)
+        }
+    }
+
+    const handleReplaceDevice = async () => {
+        if (!selectedKioskDevice || !selectedReplacementDeviceId) return
+
+        try {
+            setProcessingAction(true)
+            await replaceDeviceByKioskId(selectedKioskDevice.kioskDeviceMappingId, {
+                deviceReplaceId: selectedReplacementDeviceId,
+            })
+
+            toast({
+                title: "Thành công",
+                description: "Thiết bị đã được thay thế thành công.",
+            })
+
+            // Refresh data
+            await fetchKioskData()
+        } catch (error) {
+            console.error("Error replacing device:", error)
+            toast({
+                title: "Lỗi",
+                description: "Không thể thay thế thiết bị. Vui lòng thử lại sau.",
+                variant: "destructive",
+            })
+        } finally {
+            setProcessingAction(false)
+            setIsReplaceDialogOpen(false)
+            setSelectedKioskDevice(null)
+            setSelectedReplacementDeviceId("")
         }
     }
 
@@ -143,32 +158,33 @@ const KioskDetailPage = () => {
     }
 
     return (
-        <div className="container mx-auto p-6 space-y-6">
-            <div className="flex items-center justify-between">
-                <div className="flex items-center">
-                    <Button variant="outline" size="icon" className="mr-4" onClick={() => router.back()}>
-                        <ArrowLeft className="h-4 w-4" />
-                    </Button>
-                    <h1 className="text-2xl font-bold flex items-center">
-                        <Info className="mr-2 h-5 w-5" />
-                        Chi tiết Kiosk
-                    </h1>
+        <div className="w-full">
+            <div className="flex flex-col space-y-4 p-4 sm:p-6">
+                <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
+                    <div className="flex items-center">
+                        <Button variant="outline" size="icon" className="mr-4" onClick={() => router.back()}>
+                            <ArrowLeft className="h-4 w-4" />
+                        </Button>
+                        <div>
+                            <h2 className="text-2xl font-bold tracking-tight flex items-center">
+                                <Info className="mr-2 h-5 w-5" />
+                                Chi tiết Kiosk
+                            </h2>
+                            <div className="flex items-center text-sm text-muted-foreground mt-1">
+                                <FileText className="mr-1 h-4 w-4" />
+                                Mã kiosk: <span className="font-medium ml-1">{kiosk.kioskId}</span>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-2">
+                        <Badge className={clsx("px-3 py-1", getBaseStatusColor(kiosk.status))}>
+                            {EBaseStatusViMap[kiosk.status]}
+                        </Badge>
+                        <RefreshButton loading={loading} toggleLoading={fetchKioskData} />
+                    </div>
                 </div>
-                <Badge className={clsx("px-3 py-1", getBaseStatusColor(kiosk.status))}>{EBaseStatusViMap[kiosk.status]}</Badge>
-            </div>
 
-            <div className="flex items-center text-sm text-muted-foreground">
-                <FileText className="mr-1 h-4 w-4" />
-                Mã kiosk: <span className="font-medium ml-1">{kiosk.kioskId}</span>
-            </div>
-
-            <Tabs defaultValue="details" className="w-full">
-                <TabsList className="grid w-full grid-cols-2">
-                    <TabsTrigger value="details">Thông tin chi tiết</TabsTrigger>
-                    <TabsTrigger value="devices">Thiết bị ({kiosk.devices?.length || 0})</TabsTrigger>
-                </TabsList>
-
-                <TabsContent value="details" className="space-y-6 mt-6">
+                <div className="space-y-6 mt-4">
                     <Card>
                         <CardHeader>
                             <CardTitle className="text-lg flex items-center">
@@ -258,82 +274,44 @@ const KioskDetailPage = () => {
                             </div>
                         </CardContent>
                     </Card>
-                </TabsContent>
-
-                <TabsContent value="devices" className="space-y-6 mt-6">
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="text-lg flex items-center">
-                                <Plus className="mr-2 h-5 w-5" />
-                                Thêm thiết bị
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent>
-                            <div className="flex flex-col md:flex-row gap-4">
-                                <div className="flex-1">
-                                    <Select value={selectedDeviceId} onValueChange={setSelectedDeviceId}>
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Chọn thiết bị" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {availableDevices.length > 0 ? (
-                                                availableDevices.map((device) => (
-                                                    <SelectItem key={device.deviceId} value={device.deviceId}>
-                                                        {device.name} - {device.serialNumber}
-                                                    </SelectItem>
-                                                ))
-                                            ) : (
-                                                <SelectItem value="no-devices" disabled>
-                                                    Không có thiết bị khả dụng
-                                                </SelectItem>
-                                            )}
-                                        </SelectContent>
-                                    </Select>
-                                </div>
-
-                                <Button
-                                    onClick={handleAddDevice}
-                                    disabled={!selectedDeviceId || addingDevice}
-                                    className="md:w-auto w-full"
-                                >
-                                    {addingDevice ? (
-                                        <>
-                                            <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                            Đang thêm...
-                                        </>
-                                    ) : (
-                                        <>
-                                            <Plus className="mr-2 h-4 w-4" />
-                                            Thêm thiết bị
-                                        </>
-                                    )}
-                                </Button>
-                            </div>
-                        </CardContent>
-                    </Card>
 
                     <Card>
                         <CardHeader>
                             <CardTitle className="text-lg flex items-center">
                                 <Package className="mr-2 h-5 w-5" />
-                                Danh sách thiết bị ({kiosk.devices?.length || 0})
+                                Danh sách thiết bị ({kiosk.kioskDevices?.length || 0})
                             </CardTitle>
                         </CardHeader>
                         <CardContent>
                             <div className="space-y-4">
-                                {kiosk.devices && kiosk.devices.length > 0 ? (
-                                    kiosk.devices.map((device) => (
-                                        <div key={device.deviceId} className="border rounded-md p-4">
+                                {kiosk.kioskDevices && kiosk.kioskDevices.length > 0 ? (
+                                    kiosk.kioskDevices.map((kioskDevice) => (
+                                        <div key={kioskDevice.kioskDeviceMappingId} className="border rounded-md p-4">
                                             <div className="flex justify-between items-start">
                                                 <div className="flex-1">
-                                                    <h4 className="font-medium">{device.name}</h4>
+                                                    <h4 className="font-medium">{kioskDevice.device.name}</h4>
                                                     <p className="text-sm text-muted-foreground line-clamp-2">
-                                                        {device.description || "Không có mô tả"}
+                                                        {kioskDevice.device.description || "Không có mô tả"}
                                                     </p>
                                                 </div>
-                                                <Badge className={clsx("ml-2", getBaseStatusColor(device.status))}>
-                                                    {EBaseStatusViMap[device.status] || device.status}
-                                                </Badge>
+                                                <div className="flex items-center gap-2">
+                                                    <Badge className={clsx("ml-2", getBaseStatusColor(kioskDevice.device.status))}>
+                                                        {EBaseStatusViMap[kioskDevice.device.status] || kioskDevice.device.status}
+                                                    </Badge>
+                                                    <DropdownMenu>
+                                                        <DropdownMenuTrigger asChild>
+                                                            <Button variant="ghost" size="icon">
+                                                                <MoreHorizontal className="h-4 w-4" />
+                                                            </Button>
+                                                        </DropdownMenuTrigger>
+                                                        <DropdownMenuContent align="end">
+                                                            <DropdownMenuItem onClick={() => openReplaceDialog(kioskDevice)}>
+                                                                <RefreshCw className="mr-2 h-4 w-4" />
+                                                                Thay thế thiết bị
+                                                            </DropdownMenuItem>
+                                                        </DropdownMenuContent>
+                                                    </DropdownMenu>
+                                                </div>
                                             </div>
 
                                             <Separator className="my-3" />
@@ -344,7 +322,7 @@ const KioskDetailPage = () => {
                                                         <Tag className="h-3 w-3 mr-1 text-muted-foreground" />
                                                         <span className="text-muted-foreground">Mã thiết bị:</span>
                                                     </div>
-                                                    <div className="font-medium text-sm">{device.deviceId}</div>
+                                                    <div className="font-medium text-sm">{kioskDevice.device.deviceId}</div>
                                                 </div>
 
                                                 <div className="flex justify-between items-center">
@@ -352,7 +330,7 @@ const KioskDetailPage = () => {
                                                         <Tag className="h-3 w-3 mr-1 text-muted-foreground" />
                                                         <span className="text-muted-foreground">Serial Number:</span>
                                                     </div>
-                                                    <div className="font-medium text-sm">{device.serialNumber || "N/A"}</div>
+                                                    <div className="font-medium text-sm">{kioskDevice.device.serialNumber || "N/A"}</div>
                                                 </div>
 
                                                 <div className="flex justify-between items-center">
@@ -361,7 +339,9 @@ const KioskDetailPage = () => {
                                                         <span className="text-muted-foreground">Ngày tạo:</span>
                                                     </div>
                                                     <div className="font-medium text-sm">
-                                                        {device.createdDate ? format(new Date(device.createdDate), "dd/MM/yyyy") : "N/A"}
+                                                        {kioskDevice.device.createdDate
+                                                            ? format(new Date(kioskDevice.device.createdDate), "dd/MM/yyyy")
+                                                            : "N/A"}
                                                     </div>
                                                 </div>
 
@@ -371,7 +351,9 @@ const KioskDetailPage = () => {
                                                         <span className="text-muted-foreground">Ngày cập nhật:</span>
                                                     </div>
                                                     <div className="font-medium text-sm">
-                                                        {device.updatedDate ? format(new Date(device.updatedDate), "dd/MM/yyyy") : "Chưa cập nhật"}
+                                                        {kioskDevice.device.updatedDate
+                                                            ? format(new Date(kioskDevice.device.updatedDate), "dd/MM/yyyy")
+                                                            : "Chưa cập nhật"}
                                                     </div>
                                                 </div>
                                             </div>
@@ -381,14 +363,78 @@ const KioskDetailPage = () => {
                                     <div className="text-center py-8 text-muted-foreground">
                                         <Package className="h-12 w-12 mx-auto mb-3 opacity-20" />
                                         <p>Không có thiết bị nào được thêm vào kiosk này</p>
-                                        <p className="text-sm mt-1">Hãy thêm thiết bị bằng form phía trên</p>
                                     </div>
                                 )}
                             </div>
                         </CardContent>
                     </Card>
-                </TabsContent>
-            </Tabs>
+                </div>
+            </div>
+
+            {/* Replace Device Dialog */}
+            <Dialog open={isReplaceDialogOpen} onOpenChange={setIsReplaceDialogOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Thay thế thiết bị</DialogTitle>
+                        <DialogDescription>
+                            Chọn thiết bị mới để thay thế cho "{selectedKioskDevice?.device.name}".
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    <div className="py-4">
+                        <Select value={selectedReplacementDeviceId} onValueChange={setSelectedReplacementDeviceId}>
+                            <SelectTrigger>
+                                <SelectValue placeholder="Chọn thiết bị thay thế" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {loadingReplacements ? (
+                                    <div className="flex items-center justify-center p-2">
+                                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                                        <span>Đang tải...</span>
+                                    </div>
+                                ) : replacementDevices.length > 0 ? (
+                                    replacementDevices.map((device) => (
+                                        <SelectItem key={device.deviceId} value={device.deviceId}>
+                                            {device.name} - {device.serialNumber}
+                                        </SelectItem>
+                                    ))
+                                ) : (
+                                    <SelectItem value="no-devices" disabled>
+                                        Không có thiết bị khả dụng để thay thế
+                                    </SelectItem>
+                                )}
+                            </SelectContent>
+                        </Select>
+                    </div>
+
+                    <DialogFooter>
+                        <Button
+                            variant="outline"
+                            onClick={() => {
+                                setIsReplaceDialogOpen(false)
+                                setSelectedKioskDevice(null)
+                                setSelectedReplacementDeviceId("")
+                            }}
+                            disabled={processingAction}
+                        >
+                            Hủy
+                        </Button>
+                        <Button onClick={handleReplaceDevice} disabled={!selectedReplacementDeviceId || processingAction}>
+                            {processingAction ? (
+                                <>
+                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                    Đang xử lý...
+                                </>
+                            ) : (
+                                <>
+                                    <RefreshCw className="mr-2 h-4 w-4" />
+                                    Thay thế
+                                </>
+                            )}
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
         </div>
     )
 }

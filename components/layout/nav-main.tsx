@@ -75,11 +75,11 @@ const menuSections: MenuSection[] = [
     {
         title: "Quản lý sản xuất",
         items: [
-            {
-                title: "Quản lý công thức",
-                url: Path.MANAGE_RECIPES,
-                icon: ClipboardList,
-            },
+            // {
+            //     title: "Quản lý công thức",
+            //     url: Path.MANAGE_RECIPES,
+            //     icon: ClipboardList,
+            // },
             {
                 title: "Quản lý quy trình",
                 url: Path.MANAGE_WORKFLOWS,
@@ -137,11 +137,11 @@ const menuSections: MenuSection[] = [
     {
         title: "Quản lý kinh doanh",
         items: [
-            {
-                title: "Quản lý chi phí",
-                url: Path.MANAGE_COSTS,
-                icon: DollarSign,
-            },
+            // {
+            //     title: "Quản lý chi phí",
+            //     url: Path.MANAGE_COSTS,
+            //     icon: DollarSign,
+            // },
             {
                 title: "Quản lý tổ chức",
                 url: Path.MANAGE_ORGANIZATIONS,

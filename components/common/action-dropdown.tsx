@@ -8,6 +8,8 @@ type ActionDropdownProps<T> = {
     onViewDetails?: (item: T) => void;
     onEdit?: (item: T) => void;
     onDelete?: (item: T) => void;
+    onSync?: (item: T) => void;
+    onWebhook?: (item: T) => void;
 }
 
 export function ActionDropdown<T>({
@@ -16,6 +18,8 @@ export function ActionDropdown<T>({
     onViewDetails,
     onEdit,
     onDelete,
+    onSync,
+    onWebhook,
 }: ActionDropdownProps<T>) {
     return (
         <div className="flex justify-center">
@@ -31,6 +35,16 @@ export function ActionDropdown<T>({
                     {onCopy && (
                         <DropdownMenuItem onClick={() => onCopy(item)}>
                             Sao chép
+                        </DropdownMenuItem>
+                    )}
+                    {onSync && (
+                        <DropdownMenuItem onClick={() => onSync(item)}>
+                            Đồng bộ
+                        </DropdownMenuItem>
+                    )}
+                    {onWebhook && (
+                        <DropdownMenuItem onClick={() => onWebhook(item)}>
+                            Liên kết web
                         </DropdownMenuItem>
                     )}
                     <DropdownMenuSeparator />

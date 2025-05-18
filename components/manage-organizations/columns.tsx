@@ -6,7 +6,6 @@ import { type EBaseStatus, EBaseStatusViMap } from "@/enum/base"
 import { ActionDropdown } from "@/components/common"
 import type { Organization } from "@/interfaces/organization"
 import { getBaseStatusColor } from "@/utils/color"
-import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 
 // Cột cho bảng tổ chức
 export const columns = ({
@@ -57,12 +56,6 @@ export const columns = ({
                 const organization = row.original
                 return (
                     <div className="flex items-center justify-center gap-2">
-                        <Avatar className="h-8 w-8 rounded-md">
-                            <AvatarImage src={organization.logoUrl || "/placeholder.svg"} alt={organization.name} />
-                            <AvatarFallback className="rounded-md bg-primary text-primary-foreground text-xs">
-                                {organization.name.charAt(0).toUpperCase()}
-                            </AvatarFallback>
-                        </Avatar>
                         <span>{organization.name}</span>
                     </div>
                 )

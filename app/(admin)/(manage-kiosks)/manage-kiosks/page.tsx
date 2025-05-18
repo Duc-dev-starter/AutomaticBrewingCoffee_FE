@@ -24,8 +24,8 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { PlusCircle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import useDebounce from "@/hooks/use-debounce";
-import { ConfirmDeleteDialog, BaseStatusFilter, ExportButton, NoResultsRow, PageSizeSelector, Pagination, RefreshButton, SearchInput } from "@/components/common";
-import { getKiosks, deleteKiosk } from "@/services/kiosk";
+import { ConfirmDeleteDialog, BaseStatusFilter, ExportButton, NoResultsRow, Pagination, RefreshButton, SearchInput } from "@/components/common";
+import { getKiosks, deleteKiosk, syncKiosk } from "@/services/kiosk";
 import { Kiosk } from "@/interfaces/kiosk";
 import { multiSelectFilter } from "@/utils/table";
 import { useToast } from "@/hooks/use-toast";
@@ -33,41 +33,44 @@ import { columns } from "@/components/manage-kiosks/columns";
 import { KioskDetailDialog, KioskDialog } from "@/components/dialog/kiosk";
 import { BaseFilterBadges } from "@/components/common/base-filter-badges";
 import { useRouter } from "next/navigation";
+import WebhookDialog from "@/components/dialog/webhook/webhook-dialog";
+import { ErrorResponse } from "@/types/error";
 
 const ManageKiosks = () => {
     const router = useRouter();
     const { toast } = useToast();
-    const [loading, setLoading] = useState(true);
-    const [pageSize, setPageSize] = useState(10);
-    const [currentPage, setCurrentPage] = useState(1);
+    const [loading, setLoading] = useState<boolean>(true);
+    const [pageSize, setPageSize] = useState<number>(10);
+    const [currentPage, setCurrentPage] = useState<number>(1);
     const [kiosks, setKiosks] = useState<Kiosk[]>([]);
-    const [totalItems, setTotalItems] = useState(0);
-    const [totalPages, setTotalPages] = useState(1);
+    const [totalItems, setTotalItems] = useState<number>(0);
+    const [totalPages, setTotalPages] = useState<number>(1);
 
     const [statusFilter, setStatusFilter] = useState<string>("");
-    const [searchValue, setSearchValue] = useState("");
+    const [searchValue, setSearchValue] = useState<string>("");
     const debouncedSearchValue = useDebounce(searchValue, 500);
 
     const [sorting, setSorting] = useState<SortingState>([{ id: "createdDate", desc: true }]);
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
     const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
-    const [rowSelection, setRowSelection] = useState({});
+    const [rowSelection, setRowSelection] = useState<any>({});
 
-    const [dialogOpen, setDialogOpen] = useState(false);
+    const [dialogOpen, setDialogOpen] = useState<boolean>(false);
     const [selectedKiosk, setSelectedKiosk] = useState<Kiosk | undefined>(undefined);
     const [detailDialogOpen, setDetailDialogOpen] = useState(false);
     const [detailKiosk, setDetailKiosk] = useState<Kiosk | null>(null);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [kioskToDelete, setKioskToDelete] = useState<Kiosk | null>(null);
+    const [webhookDialogOpen, setWebhookDialogOpen] = useState<boolean>(false);
+    const [selectedKioskId, setSelectedKioskId] = useState<string | null>(null);
 
-    const isInitialMount = useRef(true);
+    const isInitialMount = useRef<boolean>(true);
 
     const hasActiveFilters = statusFilter !== "" || searchValue !== "";
 
-    // Đồng bộ cả searchValue và statusFilter với columnFilters
     useEffect(() => {
         if (isInitialMount.current) {
-            return; // Bỏ qua lần đầu khi mount
+            return;
         }
         table.getColumn("location")?.setFilterValue(debouncedSearchValue || undefined);
         table.getColumn("status")?.setFilterValue(statusFilter || undefined);
@@ -111,13 +114,12 @@ const ManageKiosks = () => {
         }
     }, [currentPage, pageSize, columnFilters, sorting, toast]);
 
-    // Gọi fetchKiosks khi mount và khi có thay đổi
     useEffect(() => {
         if (isInitialMount.current) {
-            fetchKiosks(); // Gọi lần đầu khi mount
+            fetchKiosks();
             isInitialMount.current = false;
         } else {
-            fetchKiosks(); // Gọi khi có thay đổi thực sự
+            fetchKiosks();
         }
     }, [fetchKiosks]);
 
@@ -168,6 +170,30 @@ const ManageKiosks = () => {
         setDialogOpen(true);
     };
 
+    const handleSync = async (kiosk: Kiosk) => {
+        try {
+            const response = await syncKiosk(kiosk.kioskId);
+            toast({
+                title: "Thành công",
+                description: response.message,
+            });
+        } catch (error) {
+            const err = error as ErrorResponse;
+            console.error("Lỗi khi xóa loại kiosk:", err);
+            toast({
+                title: "Lỗi khi xóa loại kiosk",
+                description: err.message,
+                variant: "destructive",
+            }
+            )
+        }
+    };
+
+    const handleWebhook = (kiosk: Kiosk) => {
+        setSelectedKioskId(kiosk.kioskId);
+        setWebhookDialogOpen(true);
+    };
+
     const clearAllFilters = () => {
         setStatusFilter("");
         setSearchValue("");
@@ -180,6 +206,8 @@ const ManageKiosks = () => {
             onViewDetails: handleViewDetails,
             onEdit: handleEdit,
             onDelete: handleDelete,
+            onSync: handleSync,
+            onWebhook: handleWebhook,
         }),
         onSortingChange: setSorting,
         onColumnFiltersChange: setColumnFilters,
@@ -259,8 +287,8 @@ const ManageKiosks = () => {
                                             {{
                                                 kioskId: "Mã kiosk",
                                                 location: "Địa chỉ",
-                                                franchise: "Franchise",
-                                                deviceName: "Thiết bị",
+                                                store: "Cửa hàng",
+                                                devices: "Thiết bị",
                                                 status: "Trạng thái",
                                                 installedDate: "Ngày lắp đặt",
                                                 createdDate: "Ngày tạo",
@@ -316,24 +344,22 @@ const ManageKiosks = () => {
                             {loading ? (
                                 Array.from({ length: pageSize }).map((_, index) => (
                                     <TableRow key={`skeleton-${index}`} className="animate-pulse">
-                                        {columns({ onViewDetails: () => { }, onEdit: () => { }, onDelete: () => { } }).map((column, cellIndex) => (
+                                        {columns({ onViewDetails: () => { }, onEdit: () => { }, onDelete: () => { }, onSync: () => { }, onWebhook: () => { } }).map((column, cellIndex) => (
                                             <TableCell key={`skeleton-cell-${cellIndex}`}>
                                                 {column.id === "kioskId" ? (
                                                     <Skeleton className="h-5 w-24 mx-auto" />
-                                                ) : column.id === "franchise" ? (
-                                                    <Skeleton className="h-5 w-32 mx-auto" />
-                                                ) : column.id === "deviceName" ? (
-                                                    <Skeleton className="h-5 w-40 mx-auto" />
                                                 ) : column.id === "location" ? (
                                                     <div className="flex items-center gap-2 justify-center">
                                                         <Skeleton className="h-4 w-4 rounded-full" />
                                                         <Skeleton className="h-5 w-40" />
                                                     </div>
+                                                ) : column.id === "store" ? (
+                                                    <Skeleton className="h-5 w-32 mx-auto" />
+                                                ) : column.id === "devices" ? (
+                                                    <Skeleton className="h-5 w-20 mx-auto" />
                                                 ) : column.id === "status" ? (
                                                     <Skeleton className="h-6 w-24 rounded-full mx-auto" />
                                                 ) : column.id === "installedDate" ? (
-                                                    <Skeleton className="h-5 w-28 mx-auto" />
-                                                ) : column.id === "createdDate" || column.id === "updatedDate" ? (
                                                     <div className="flex items-center gap-2 justify-center">
                                                         <Skeleton className="h-4 w-4 rounded-full" />
                                                         <Skeleton className="h-5 w-24" />
@@ -360,7 +386,7 @@ const ManageKiosks = () => {
                                     </TableRow>
                                 ))
                             ) : (
-                                <NoResultsRow columns={columns({ onViewDetails: () => { }, onEdit: () => { }, onDelete: () => { } })} />
+                                <NoResultsRow columns={columns({ onViewDetails: () => { }, onEdit: () => { }, onDelete: () => { }, onSync: () => { }, onWebhook: () => { } })} />
                             )}
                         </TableBody>
                     </Table>
@@ -395,6 +421,11 @@ const ManageKiosks = () => {
                 description={`Bạn có chắc chắn muốn xóa kiosk tại "${kioskToDelete?.location}"? Hành động này không thể hoàn tác.`}
                 onConfirm={confirmDelete}
                 onCancel={() => setKioskToDelete(null)}
+            />
+            <WebhookDialog
+                open={webhookDialogOpen}
+                onOpenChange={setWebhookDialogOpen}
+                kioskId={selectedKioskId || ""}
             />
         </div>
     );

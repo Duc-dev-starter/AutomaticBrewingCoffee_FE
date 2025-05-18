@@ -120,3 +120,15 @@ export const disponseDeviceInKiosk = async (kioskDeviceId: string, payload: Part
     const response = await BaseService.post({ url: `${Api.KIOSKS}/devices/${kioskDeviceId}/dispose`, payload });
     return response;
 }
+
+
+export const syncKiosk = async (kioskId: string) => {
+    const response = await BaseService.post({ url: `/syncs/sync-kiosk?kioskId=${kioskId}` });
+    return response;
+}
+
+
+export const replaceDeviceByKioskId = async (kioskDeviceId: string, payload: { deviceReplaceId: string }) => {
+    const response = await BaseService.put({ url: `${Api.KIOSKS}${Api.DEVICES}/${kioskDeviceId}/replace`, payload })
+    return response;
+}

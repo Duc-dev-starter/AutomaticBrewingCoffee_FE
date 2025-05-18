@@ -11,10 +11,14 @@ export const columns = ({
     onViewDetails,
     onEdit,
     onDelete,
+    onSync,
+    onWebhook
 }: {
     onViewDetails: (kiosk: Kiosk) => void;
     onEdit: (kiosk: Kiosk) => void;
     onDelete: (kiosk: Kiosk) => void;
+    onSync: (kiosk: Kiosk) => void;
+    onWebhook: (kiosk: Kiosk) => void;
 }): ColumnDef<Kiosk>[] => [
         {
             id: "kioskId",
@@ -39,7 +43,7 @@ export const columns = ({
         },
         {
             id: "store",
-            header: "Tên chi nhánh",
+            header: "Tên cửa hàng",
             cell: ({ row }) => (
                 <div className="text-center">
                     {row.original.store?.name || "Không có"}
@@ -109,6 +113,8 @@ export const columns = ({
                     onViewDetails={(item) => onViewDetails(item)}
                     onEdit={(item) => onEdit(item)}
                     onDelete={(item) => onDelete(item)}
+                    onSync={(item) => onSync(item)}
+                    onWebhook={(item) => onWebhook(item)}
                 />
             ),
             enableSorting: false,

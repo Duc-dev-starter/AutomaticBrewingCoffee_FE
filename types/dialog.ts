@@ -53,3 +53,7 @@ export type OrganizationDialogProps = BaseDialogProps & {
 export type StoreDialogProps = BaseDialogProps & {
     store?: Store | null;
 }
+
+export type WebhookDialogProps = BaseDialogProps & {
+    kioskId: string;
+}

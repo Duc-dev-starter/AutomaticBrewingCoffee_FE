@@ -21,7 +21,6 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { PlusCircle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import useDebounce from "@/hooks/use-debounce";
 import { ExportButton, NoResultsRow, Pagination, RefreshButton, SearchInput } from "@/components/common";
@@ -29,7 +28,7 @@ import { multiSelectFilter } from "@/utils/table";
 import type { Order } from "@/interfaces/order";
 import { getOrders } from "@/services/order";
 import { useToast } from "@/hooks/use-toast";
-import { OrderDetailDialog, OrderDialog } from "@/components/dialog/order";
+import { OrderDetailDialog } from "@/components/dialog/order";
 import { columns, FilterBadges, OrderFilter } from "@/components/manage-orders";
 import { ErrorResponse } from "@/types/error";
 
@@ -48,11 +47,7 @@ const ManageOrders = () => {
     const [rowSelection, setRowSelection] = useState({});
 
     const [detailDialogOpen, setDetailDialogOpen] = useState(false);
-    const [editDialogOpen, setEditDialogOpen] = useState(false);
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
-
-    const [orderTypeFilter, setOrderTypeFilter] = useState<string>("");
-    const [paymentGatewayFilter, setPaymentGatewayFilter] = useState<string>("");
     const [statusFilter, setStatusFilter] = useState<string>("");
 
     const [searchValue, setSearchValue] = useState("");
@@ -73,7 +68,6 @@ const ManageOrders = () => {
     }, [debouncedSearchValue]);
 
     const fetchOrders = useCallback(async () => {
-        console.log("Fetching orders..."); // Để kiểm tra số lần gọi
         try {
             setLoading(true);
 
@@ -83,9 +77,6 @@ const ManageOrders = () => {
 
             const sortBy = sorting.length > 0 ? sorting[0]?.id : undefined;
             const isAsc = sorting.length > 0 ? !sorting[0]?.desc : undefined;
-
-            const orderTypeFilterValue = orderTypeFilter || undefined;
-            const paymentGatewayFilterValue = paymentGatewayFilter || undefined;
             const statusFilterValue = statusFilter || undefined;
 
             const response = await getOrders({
@@ -95,8 +86,6 @@ const ManageOrders = () => {
                 size: pageSize,
                 sortBy,
                 isAsc,
-                orderType: orderTypeFilterValue,
-                paymentGateway: paymentGatewayFilterValue,
                 status: statusFilterValue,
             });
 
@@ -114,7 +103,7 @@ const ManageOrders = () => {
         } finally {
             setLoading(false);
         }
-    }, [currentPage, pageSize, columnFilters, sorting, toast, orderTypeFilter, paymentGatewayFilter, statusFilter]);
+    }, [currentPage, pageSize, columnFilters, sorting, toast, statusFilter]);
 
     // Gọi fetchOrders khi mount và khi có thay đổi
     useEffect(() => {
@@ -161,15 +150,12 @@ const ManageOrders = () => {
     }, [pageSize, table]);
 
     const clearAllFilters = () => {
-        setOrderTypeFilter("");
-        setPaymentGatewayFilter("");
         setStatusFilter("");
         setSearchValue("");
         table.resetColumnFilters();
     };
 
-    const hasActiveFilters =
-        orderTypeFilter !== "" || paymentGatewayFilter !== "" || statusFilter !== "" || searchValue !== "";
+    const hasActiveFilters = statusFilter !== "" || searchValue !== "";
 
     return (
         <div className="w-full">
@@ -197,10 +183,6 @@ const ManageOrders = () => {
 
                     <div className="flex items-center gap-2 ml-auto">
                         <OrderFilter
-                            orderTypeFilter={orderTypeFilter}
-                            setOrderTypeFilter={setOrderTypeFilter}
-                            paymentGatewayFilter={paymentGatewayFilter}
-                            setPaymentGatewayFilter={setPaymentGatewayFilter}
                             statusFilter={statusFilter}
                             setStatusFilter={setStatusFilter}
                             clearAllFilters={clearAllFilters}
@@ -241,20 +223,12 @@ const ManageOrders = () => {
                                     ))}
                             </DropdownMenuContent>
                         </DropdownMenu>
-                        <Button onClick={() => setEditDialogOpen(true)}>
-                            <PlusCircle className="mr-2 h-4 w-4" />
-                            Thêm
-                        </Button>
                     </div>
                 </div>
 
                 <FilterBadges
                     searchValue={searchValue}
                     setSearchValue={setSearchValue}
-                    orderTypeFilter={orderTypeFilter}
-                    setOrderTypeFilter={setOrderTypeFilter}
-                    paymentGatewayFilter={paymentGatewayFilter}
-                    setPaymentGatewayFilter={setPaymentGatewayFilter}
                     statusFilter={statusFilter}
                     setStatusFilter={setStatusFilter}
                     hasActiveFilters={hasActiveFilters}
@@ -347,14 +321,6 @@ const ManageOrders = () => {
                     setDetailDialogOpen(open);
                     if (!open) setSelectedOrder(null);
                 }}
-            />
-            <OrderDialog
-                open={editDialogOpen}
-                onOpenChange={(open) => {
-                    setEditDialogOpen(open);
-                    if (!open) setSelectedOrder(null);
-                }}
-                onSuccess={fetchOrders}
             />
         </div>
     );

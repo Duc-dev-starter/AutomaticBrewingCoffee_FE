@@ -15,10 +15,7 @@ export type ProductFilterProps = FilterProps & {
 
 
 export type OrderFilterProps = FilterProps & {
-    orderTypeFilter: string
-    setOrderTypeFilter: (value: string) => void
-    paymentGatewayFilter: string
-    setPaymentGatewayFilter: (value: string) => void
+
 }
 
 
@@ -38,8 +35,5 @@ export type ProductFilterBadgesProps = FilterBadgesProps & {
 }
 
 export type OrderFilterBadgesProps = FilterBadgesProps & {
-    orderTypeFilter: string
-    setOrderTypeFilter: (value: string) => void
-    paymentGatewayFilter: string
-    setPaymentGatewayFilter: (value: string) => void
+
 }

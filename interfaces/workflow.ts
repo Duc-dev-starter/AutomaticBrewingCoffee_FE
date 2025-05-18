@@ -13,7 +13,7 @@ export interface WorkflowStep {
 
 export interface Workflow {
     workflowId: string;
-    productId: string;
+    productId: string | null;
     product: Product;
     name: string;
     description: string;

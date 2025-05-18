@@ -1,6 +1,5 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
-import type { Order } from "@/interfaces/order"
-import { EOrderStatusViMap, EOrderTypeViMap, EPaymentGateway, EPaymentGatewayViMap } from "@/enum/order"
+import { EOrderStatusViMap, EOrderTypeViMap, EPaymentGateway } from "@/enum/order"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
 import { Card, CardContent } from "@/components/ui/card"

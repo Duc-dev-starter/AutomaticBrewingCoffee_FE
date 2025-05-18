@@ -14,7 +14,7 @@ const stepSchema = z.object({
 
 export const workflowSchema = z.object({
     name: z.string().min(1, "Tên quy trình không được để trống."),
-    productId: z.string().min(1, "Vui lòng chọn sản phẩm."),
+    productId: z.string().optional().nullable(),
     description: z.string().optional().nullable(),
     type: z.nativeEnum(EWorkflowType, {
         errorMap: () => ({ message: "Loại quy trình không hợp lệ." }),

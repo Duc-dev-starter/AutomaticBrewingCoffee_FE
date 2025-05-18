@@ -113,7 +113,7 @@ const ManageWorkflows = () => {
 
 
     const handleEdit = (workflow: Workflow) => {
-        router.push(`/create-workflow/${workflow.workflowId}`);
+        router.push(`/update-workflow/${workflow.workflowId}`);
     };
 
     const handleViewDetails = (workflow: Workflow) => {

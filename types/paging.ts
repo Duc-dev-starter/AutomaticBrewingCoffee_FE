@@ -7,8 +7,6 @@ export interface PagingParams {
     sortBy?: string;
     isAsc?: boolean;
     status?: string;
-    orderType?: string;
-    paymentGateway?: string;
     productId?: string;
     type?: string;
     productType?: string;

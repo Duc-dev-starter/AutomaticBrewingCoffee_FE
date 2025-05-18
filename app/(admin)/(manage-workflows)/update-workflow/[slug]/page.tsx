@@ -41,21 +41,21 @@ const UpdateWorkflow = () => {
     const params = useParams()
     const slug = params.slug as string
     const [errors, setErrors] = useState<Record<string, any>>({})
-    const [loading, setLoading] = useState(false)
+    const [loading, setLoading] = useState<boolean>(false)
     const [formData, setFormData] = useState<Workflow | null>(null)
     const [products, setProducts] = useState<Product[]>([])
     const [deviceTypes, setDeviceTypes] = useState<DeviceType[]>([])
     const [workflows, setWorkflows] = useState<Workflow[]>([])
-    const [page, setPage] = useState(1)
-    const [deviceTypePage, setDeviceTypePage] = useState(1)
-    const [workflowPage, setWorkflowPage] = useState(1)
-    const [hasMore, setHasMore] = useState(true)
-    const [hasMoreDeviceTypes, setHasMoreDeviceTypes] = useState(true)
-    const [hasMoreWorkflows, setHasMoreWorkflows] = useState(true)
+    const [page, setPage] = useState<number>(1)
+    const [deviceTypePage, setDeviceTypePage] = useState<number>(1)
+    const [workflowPage, setWorkflowPage] = useState<number>(1)
+    const [hasMore, setHasMore] = useState<boolean>(true)
+    const [hasMoreDeviceTypes, setHasMoreDeviceTypes] = useState<boolean>(true)
+    const [hasMoreWorkflows, setHasMoreWorkflows] = useState<boolean>(true)
     const [expandedStep, setExpandedStep] = useState<number | null>(0)
-    const [loadingProducts, setLoadingProducts] = useState(true)
-    const [loadingDeviceTypes, setLoadingDeviceTypes] = useState(false)
-    const [loadingWorkflows, setLoadingWorkflows] = useState(false)
+    const [loadingProducts, setLoadingProducts] = useState<boolean>(true)
+    const [loadingDeviceTypes, setLoadingDeviceTypes] = useState<boolean>(false)
+    const [loadingWorkflows, setLoadingWorkflows] = useState<boolean>(false)
 
     // Fetch workflow by slug
     useEffect(() => {
@@ -440,7 +440,7 @@ const UpdateWorkflow = () => {
                                         <span className="text-red-500 ml-1">*</span>
                                     </Label>
                                     <Select
-                                        value={formData.productId}
+                                        value={formData.productId || ""}
                                         onValueChange={(value) => handleChange("productId", value)}
                                         disabled={loading}
                                     >
@@ -593,7 +593,7 @@ const UpdateWorkflow = () => {
                                                                 id={`step-sequence-${index}`}
                                                                 type="number"
                                                                 value={step.sequence}
-                                                                onChange={(e) => handleStepChange(index, "sequence", Number.parseInt(e.target.value))}
+                                                                readOnly={true}
                                                                 disabled={loading}
                                                                 className={errors.steps?.[index]?.sequence ? "border-red-500" : ""}
                                                             />

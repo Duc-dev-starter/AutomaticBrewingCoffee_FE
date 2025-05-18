@@ -14,19 +14,11 @@ import { Button } from "@/components/ui/button"
 import {
     EOrderStatus,
     EOrderStatusViMap,
-    EOrderType,
-    EOrderTypeViMap,
-    EPaymentGateway,
-    EPaymentGatewayViMap,
 } from "@/enum/order"
 import { OrderFilterProps } from "@/types/filter"
 
 
 export const OrderFilter = ({
-    orderTypeFilter,
-    setOrderTypeFilter,
-    paymentGatewayFilter,
-    setPaymentGatewayFilter,
     statusFilter,
     setStatusFilter,
     clearAllFilters,
@@ -45,34 +37,7 @@ export const OrderFilter = ({
                     <ChevronDownIcon className="ml-2 h-4 w-4" />
                 </Button>
             </DropdownMenuTrigger>
-            <DropdownMenuContent align="end" className="w-56">
-                {/* Bộ lọc loại đơn hàng */}
-                <DropdownMenuLabel>Lọc theo loại đơn hàng</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuRadioGroup value={orderTypeFilter} onValueChange={setOrderTypeFilter}>
-                    {Object.values(EOrderType).map((type) => (
-                        <DropdownMenuRadioItem key={type} value={type}>
-                            {EOrderTypeViMap[type]}
-                        </DropdownMenuRadioItem>
-                    ))}
-                    {orderTypeFilter && <DropdownMenuRadioItem value="">Xóa bộ lọc loại đơn hàng</DropdownMenuRadioItem>}
-                </DropdownMenuRadioGroup>
-
-                {/* Bộ lọc phương thức thanh toán */}
-                <DropdownMenuSeparator />
-                <DropdownMenuLabel>Lọc theo phương thức thanh toán</DropdownMenuLabel>
-                <DropdownMenuSeparator />
-                <DropdownMenuRadioGroup value={paymentGatewayFilter} onValueChange={setPaymentGatewayFilter}>
-                    {Object.values(EPaymentGateway).map((gateway) => (
-                        <DropdownMenuRadioItem key={gateway} value={gateway}>
-                            {EPaymentGatewayViMap[gateway]}
-                        </DropdownMenuRadioItem>
-                    ))}
-                    {paymentGatewayFilter && (
-                        <DropdownMenuRadioItem value="">Xóa bộ lọc phương thức thanh toán</DropdownMenuRadioItem>
-                    )}
-                </DropdownMenuRadioGroup>
-
+            <DropdownMenuContent align="end" className="w-56 hide-scrollbar">
                 {/* Bộ lọc trạng thái */}
                 <DropdownMenuSeparator />
                 <DropdownMenuLabel>Lọc theo trạng thái</DropdownMenuLabel>

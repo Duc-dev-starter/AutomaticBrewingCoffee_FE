@@ -14,8 +14,3 @@ export const getOrder = async (id: string) => {
     const response = await BaseService.getById({ url: Api.ORDERS, id });
     return response;
 }
-
-export const createOrder = async (payload: Partial<Order>) => {
-    const response = await BaseService.post({ url: Api.ORDERS, payload });
-    return response;
-}

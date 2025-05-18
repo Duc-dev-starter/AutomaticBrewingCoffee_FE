@@ -34,12 +34,14 @@ import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { EWorkflowStepType, EWorkflowStepTypeViMap, EWorkflowType, EWorkflowTypeViMap } from "@/enum/workflow"
 import { workflowSchema } from "@/schema/workflow"
+import { useRouter } from "next/navigation"
+import { Path } from "@/constants/path"
 
 const initialFormData = {
     name: "",
     description: "",
     type: EWorkflowType.Activity,
-    productId: "",
+    productId: null,
     steps: [
         {
             name: "Bước 1",
@@ -54,6 +56,7 @@ const initialFormData = {
 }
 
 const CreateWorkflow = () => {
+    const router = useRouter();
     const { toast } = useToast()
     const [errors, setErrors] = useState<Record<string, any>>({})
     const [loading, setLoading] = useState(false)
@@ -311,6 +314,7 @@ const CreateWorkflow = () => {
             })
             setFormData(initialFormData)
             setExpandedStep(0)
+            router.push(Path.MANAGE_WORKFLOWS)
         } catch (error) {
             const err = error as ErrorResponse
             console.error("Lỗi khi xử lý quy trình:", error)
@@ -420,7 +424,7 @@ const CreateWorkflow = () => {
                                         <span className="text-red-500 ml-1">*</span>
                                     </Label>
                                     <Select
-                                        value={formData.productId}
+                                        value={formData.productId || ""}
                                         onValueChange={(value) => handleChange("productId", value)}
                                         disabled={loading}
                                     >
@@ -573,7 +577,7 @@ const CreateWorkflow = () => {
                                                                 id={`step-sequence-${index}`}
                                                                 type="number"
                                                                 value={step.sequence}
-                                                                onChange={(e) => handleStepChange(index, "sequence", Number.parseInt(e.target.value))}
+                                                                readOnly={true}
                                                                 disabled={loading}
                                                                 className={errors.steps?.[index]?.sequence ? "border-red-500" : ""}
                                                             />

@@ -59,14 +59,14 @@ const CreateWorkflow = () => {
     const router = useRouter();
     const { toast } = useToast()
     const [errors, setErrors] = useState<Record<string, any>>({})
-    const [loading, setLoading] = useState(false)
+    const [loading, setLoading] = useState<boolean>(false)
     const [formData, setFormData] = useState(initialFormData)
     const [products, setProducts] = useState<Product[]>([])
     const [deviceTypes, setDeviceTypes] = useState<DeviceType[]>([])
     const [workflows, setWorkflows] = useState<Workflow[]>([])
-    const [page, setPage] = useState(1)
-    const [deviceTypePage, setDeviceTypePage] = useState(1)
-    const [workflowPage, setWorkflowPage] = useState(1)
+    const [page, setPage] = useState<number>(1)
+    const [deviceTypePage, setDeviceTypePage] = useState<number>(1)
+    const [workflowPage, setWorkflowPage] = useState<number>(1)
     const [hasMore, setHasMore] = useState(true)
     const [hasMoreDeviceTypes, setHasMoreDeviceTypes] = useState(true)
     const [hasMoreWorkflows, setHasMoreWorkflows] = useState(true)
@@ -421,7 +421,6 @@ const CreateWorkflow = () => {
                                 <div className="space-y-2">
                                     <Label htmlFor="productId" className="flex items-center">
                                         Sản phẩm
-                                        <span className="text-red-500 ml-1">*</span>
                                     </Label>
                                     <Select
                                         value={formData.productId || ""}

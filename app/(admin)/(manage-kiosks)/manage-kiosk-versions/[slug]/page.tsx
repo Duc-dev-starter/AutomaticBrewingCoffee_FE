@@ -28,14 +28,14 @@ const KioskVersionDetailPage = () => {
     const [kioskVersion, setKioskVersion] = useState<KioskVersion | null>(null)
     const [deviceModels, setDeviceModels] = useState<DeviceModel[]>([])
     const [products, setProducts] = useState<Product[]>([])
-    const [selectedDeviceModelId, setSelectedDeviceModelId] = useState("")
-    const [selectedProductId, setSelectedProductId] = useState("")
-    const [quantity, setQuantity] = useState(1)
+    const [selectedDeviceModelId, setSelectedDeviceModelId] = useState<string>("")
+    const [selectedProductId, setSelectedProductId] = useState<string>("")
+    const [quantity, setQuantity] = useState<number>(1)
     const [mappings, setMappings] = useState<KioskVersionDeviceModelMappings[]>([])
     const [supportProducts, setSupportProducts] = useState<SupportProduct[]>([])
-    const [loading, setLoading] = useState(true)
-    const [addingDevice, setAddingDevice] = useState(false)
-    const [addingProduct, setAddingProduct] = useState(false)
+    const [loading, setLoading] = useState<boolean>(true)
+    const [addingDevice, setAddingDevice] = useState<boolean>(false)
+    const [addingProduct, setAddingProduct] = useState<boolean>(false)
 
     useEffect(() => {
         const fetchData = async () => {

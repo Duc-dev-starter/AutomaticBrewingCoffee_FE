@@ -5,7 +5,7 @@ import Cookies from "js-cookie"
 import { refreshToken } from "@/services/auth";
 
 export const axiosInstance = axios.create({
-    baseURL: "https://localhost:7554/api/v1",
+    baseURL: "https://localhost:30475/api/v1",
     headers: {
         'Content-Type': 'application/json',
     },

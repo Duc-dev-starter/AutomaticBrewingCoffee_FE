@@ -53,6 +53,12 @@ const WorkflowDetail = () => {
         router.back()
     }
 
+    const handleEdit = () => {
+        console.log('tesst');
+
+        router.push(`/update-workflow/${workflow?.workflowId}`)
+    }
+
     return (
         <div className="flex flex-col min-h-screen">
             <main className="flex-1 p-6 bg-gradient-to-r from-[#e1f9f9] to-white dark:from-[#1a3333] dark:to-[#121212]">
@@ -82,7 +88,7 @@ const WorkflowDetail = () => {
                                             </div>
                                         </div>
                                         <div className="flex gap-2">
-                                            <Button variant="outline" size="sm" className="border-[#68e0df] text-[#3f8786] hover:bg-[#e1f9f9]">
+                                            <Button onClick={handleEdit} variant="outline" size="sm" className="border-[#68e0df] text-[#3f8786] hover:bg-[#e1f9f9]">
                                                 <Edit className="h-4 w-4 mr-2" />
                                                 Chỉnh sửa
                                             </Button>

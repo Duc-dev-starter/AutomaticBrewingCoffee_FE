@@ -58,18 +58,13 @@ export const columns = ({
         },
         {
             id: "steps",
-            header: "Bước",
-            cell: ({ row }) => (
-                <div className="text-center">
-                    <Link
-                        href={`/manage-workflows/${row.original.workflowId}`}
-                        className="text-blue-600 hover:underline"
-                        onClick={() => onViewSteps(row.original)}
-                    >
-                        Xem bước
-                    </Link>
-                </div>
-            ),
+            header: "Số bước",
+            cell: ({ row }) => {
+                const stepsCount = row.original.steps?.length || 0;
+                return (
+                    <div className="text-center">{stepsCount || 0}</div>
+                );
+            },
             enableSorting: false,
         },
         {

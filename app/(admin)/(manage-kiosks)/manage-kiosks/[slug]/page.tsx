@@ -16,9 +16,12 @@ import {
     Store,
     Tag,
     ArrowLeft,
-    Trash2,
     RefreshCw,
     Loader2,
+    Eye,
+    EyeOff,
+    Copy,
+    Link,
 } from "lucide-react"
 import clsx from "clsx"
 import { getBaseStatusColor } from "@/utils/color"
@@ -39,7 +42,7 @@ import {
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { MoreHorizontal } from "lucide-react"
-import { Device } from "@/interfaces/device"
+import type { Device } from "@/interfaces/device"
 import { getDevicesToReplace } from "@/services/device"
 
 const KioskDetailPage = () => {
@@ -47,14 +50,15 @@ const KioskDetailPage = () => {
     const router = useRouter()
     const { toast } = useToast()
     const [kiosk, setKiosk] = useState<Kiosk | null>(null)
-    const [loading, setLoading] = useState(true)
+    const [loading, setLoading] = useState<boolean>(true)
+    const [showApiKey, setShowApiKey] = useState<boolean>(false)
 
-    const [isReplaceDialogOpen, setIsReplaceDialogOpen] = useState(false)
+    const [isReplaceDialogOpen, setIsReplaceDialogOpen] = useState<boolean>(false)
     const [selectedKioskDevice, setSelectedKioskDevice] = useState<any>(null)
     const [replacementDevices, setReplacementDevices] = useState<Device[]>([])
-    const [selectedReplacementDeviceId, setSelectedReplacementDeviceId] = useState("")
-    const [loadingReplacements, setLoadingReplacements] = useState(false)
-    const [processingAction, setProcessingAction] = useState(false)
+    const [selectedReplacementDeviceId, setSelectedReplacementDeviceId] = useState<string>("")
+    const [loadingReplacements, setLoadingReplacements] = useState<boolean>(false)
+    const [processingAction, setProcessingAction] = useState<boolean>(false)
 
     const fetchKioskData = async () => {
         try {
@@ -189,91 +193,194 @@ const KioskDetailPage = () => {
                         <CardHeader>
                             <CardTitle className="text-lg flex items-center">
                                 <Store className="mr-2 h-5 w-5" />
-                                Thông tin cơ bản
+                                Thông tin Kiosk
                             </CardTitle>
                         </CardHeader>
-                        <CardContent className="grid md:grid-cols-2 gap-6">
-                            <div className="space-y-4">
-                                <div>
-                                    <h3 className="text-sm font-medium text-muted-foreground">Vị trí</h3>
-                                    <p className="font-medium">{kiosk.position || "Không có"}</p>
-                                </div>
+                        <CardContent>
+                            <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+                                <div className="space-y-4">
+                                    <div>
+                                        <h3 className="text-sm font-medium text-muted-foreground">Vị trí</h3>
+                                        <p className="font-medium">{kiosk.position || "Không có"}</p>
+                                    </div>
 
-                                <div>
-                                    <h3 className="text-sm font-medium text-muted-foreground">Địa chỉ</h3>
-                                    <p className="font-medium">{kiosk.location || "Không có"}</p>
-                                </div>
+                                    <div>
+                                        <h3 className="text-sm font-medium text-muted-foreground">Địa chỉ</h3>
+                                        <p className="font-medium">{kiosk.location || "Không có"}</p>
+                                    </div>
 
-                                <div>
-                                    <h3 className="text-sm font-medium text-muted-foreground">Ngày lắp đặt</h3>
-                                    <div className="flex items-center">
-                                        <Calendar className="h-4 w-4 mr-1 text-muted-foreground" />
-                                        <p className="font-medium">
-                                            {kiosk.installedDate ? format(new Date(kiosk.installedDate), "dd/MM/yyyy") : "Không có"}
-                                        </p>
+                                    <div>
+                                        <h3 className="text-sm font-medium text-muted-foreground">Chi nhánh</h3>
+                                        <p className="font-medium">{kiosk.store?.name || "Không có"}</p>
+                                    </div>
+
+                                    <div>
+                                        <h3 className="text-sm font-medium text-muted-foreground">Địa chỉ chi nhánh</h3>
+                                        <p className="font-medium">{kiosk.store?.locationAddress || "Không có"}</p>
                                     </div>
                                 </div>
 
-                                <div>
-                                    <h3 className="text-sm font-medium text-muted-foreground">Thời hạn bảo hành</h3>
-                                    <div className="flex items-center">
-                                        <Calendar className="h-4 w-4 mr-1 text-muted-foreground" />
+                                <div className="space-y-4">
+                                    <div>
+                                        <h3 className="text-sm font-medium text-muted-foreground">Số điện thoại liên hệ</h3>
+                                        <p className="font-medium">{kiosk.store?.contactPhone || "Không có"}</p>
+                                    </div>
+
+                                    <div>
+                                        <h3 className="text-sm font-medium text-muted-foreground">Phiên bản Kiosk</h3>
                                         <p className="font-medium">
-                                            {kiosk.warrantyTime ? format(new Date(kiosk.warrantyTime), "dd/MM/yyyy") : "Không có"}
+                                            {kiosk.kioskVersion?.versionTitle || "Không có"} ({kiosk.kioskVersion?.versionNumber || "N/A"})
                                         </p>
                                     </div>
-                                </div>
-                            </div>
 
-                            <div className="space-y-4">
-                                <div>
-                                    <h3 className="text-sm font-medium text-muted-foreground">Chi nhánh</h3>
-                                    <p className="font-medium">{kiosk.store?.name || "Không có"}</p>
+                                    <div>
+                                        <h3 className="text-sm font-medium text-muted-foreground">Ngày tạo</h3>
+                                        <div className="flex items-center">
+                                            <Clock className="h-4 w-4 mr-1 text-muted-foreground" />
+                                            <p className="font-medium">
+                                                {kiosk.createdDate ? format(new Date(kiosk.createdDate), "dd/MM/yyyy HH:mm") : "Không có"}
+                                            </p>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <h3 className="text-sm font-medium text-muted-foreground">Ngày cập nhật</h3>
+                                        <div className="flex items-center">
+                                            <Clock className="h-4 w-4 mr-1 text-muted-foreground" />
+                                            <p className="font-medium">
+                                                {kiosk.updatedDate ? format(new Date(kiosk.updatedDate), "dd/MM/yyyy HH:mm") : "Chưa cập nhật"}
+                                            </p>
+                                        </div>
+                                    </div>
                                 </div>
 
-                                <div>
-                                    <h3 className="text-sm font-medium text-muted-foreground">Địa chỉ chi nhánh</h3>
-                                    <p className="font-medium">{kiosk.store?.locationAddress || "Không có"}</p>
-                                </div>
+                                <div className="space-y-4">
+                                    <div>
+                                        <h3 className="text-sm font-medium text-muted-foreground">Ngày lắp đặt</h3>
+                                        <div className="flex items-center">
+                                            <Calendar className="h-4 w-4 mr-1 text-muted-foreground" />
+                                            <p className="font-medium">
+                                                {kiosk.installedDate ? format(new Date(kiosk.installedDate), "dd/MM/yyyy") : "Không có"}
+                                            </p>
+                                        </div>
+                                    </div>
 
-                                <div>
-                                    <h3 className="text-sm font-medium text-muted-foreground">Số điện thoại liên hệ</h3>
-                                    <p className="font-medium">{kiosk.store?.contactPhone || "Không có"}</p>
-                                </div>
+                                    <div>
+                                        <h3 className="text-sm font-medium text-muted-foreground">Thời hạn bảo hành</h3>
+                                        <div className="flex items-center">
+                                            <Calendar className="h-4 w-4 mr-1 text-muted-foreground" />
+                                            <p className="font-medium">
+                                                {kiosk.warrantyTime ? format(new Date(kiosk.warrantyTime), "dd/MM/yyyy") : "Không có"}
+                                            </p>
+                                        </div>
+                                    </div>
 
-                                <div>
-                                    <h3 className="text-sm font-medium text-muted-foreground">Phiên bản Kiosk</h3>
-                                    <p className="font-medium">
-                                        {kiosk.kioskVersion?.versionTitle || "Không có"} ({kiosk.kioskVersion?.versionNumber || "N/A"})
-                                    </p>
+                                    <div>
+                                        <h3 className="text-sm font-medium text-muted-foreground">Trạng thái</h3>
+                                        <div className="flex items-center">
+                                            <Badge className={clsx("mt-1", getBaseStatusColor(kiosk.status))}>
+                                                {EBaseStatusViMap[kiosk.status]}
+                                            </Badge>
+                                        </div>
+                                    </div>
                                 </div>
                             </div>
                         </CardContent>
                     </Card>
 
-                    <Card>
-                        <CardHeader>
-                            <CardTitle className="text-lg flex items-center">
-                                <Clock className="mr-2 h-5 w-5" />
-                                Thông tin thời gian
-                            </CardTitle>
-                        </CardHeader>
-                        <CardContent className="grid md:grid-cols-2 gap-6">
-                            <div>
-                                <h3 className="text-sm font-medium text-muted-foreground">Ngày tạo</h3>
-                                <p className="font-medium">
-                                    {kiosk.createdDate ? format(new Date(kiosk.createdDate), "dd/MM/yyyy HH:mm") : "Không có"}
-                                </p>
-                            </div>
+                    {
+                        kiosk.apiKey ? <Card>
+                            <CardHeader>
+                                <CardTitle className="text-lg flex items-center">
+                                    <FileText className="mr-2 h-5 w-5" />
+                                    API Key
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="flex items-center space-x-2">
+                                    <div className="relative flex-1">
+                                        <input
+                                            type={showApiKey ? "text" : "password"}
+                                            value={kiosk.apiKey || ""}
+                                            readOnly
+                                            className="w-full px-3 py-2 border rounded-md bg-muted/30"
+                                        />
+                                        <button
+                                            type="button"
+                                            onClick={() => setShowApiKey(!showApiKey)}
+                                            className="absolute right-2 top-1/2 transform -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                                        >
+                                            {showApiKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                        </button>
+                                    </div>
+                                    <Button
+                                        variant="outline"
+                                        size="icon"
+                                        onClick={() => {
+                                            if (kiosk.apiKey) {
+                                                navigator.clipboard.writeText(kiosk.apiKey)
+                                                toast({
+                                                    title: "Thành công",
+                                                    description: "Đã sao chép API Key vào clipboard",
+                                                })
+                                            }
+                                        }}
+                                    >
+                                        <Copy className="h-4 w-4" />
+                                    </Button>
+                                </div>
+                            </CardContent>
+                        </Card> : ''
+                    }
 
-                            <div>
-                                <h3 className="text-sm font-medium text-muted-foreground">Ngày cập nhật</h3>
-                                <p className="font-medium">
-                                    {kiosk.updatedDate ? format(new Date(kiosk.updatedDate), "dd/MM/yyyy HH:mm") : "Chưa cập nhật"}
-                                </p>
-                            </div>
-                        </CardContent>
-                    </Card>
+                    {
+                        kiosk.webhooks ?
+                            <Card>
+                                <CardHeader>
+                                    <CardTitle className="text-lg flex items-center">
+                                        <Link className="mr-2 h-5 w-5" />
+                                        Webhooks ({kiosk.webhooks?.length || 0})
+                                    </CardTitle>
+                                </CardHeader>
+                                <CardContent>
+                                    <div className="space-y-4">
+                                        {kiosk.webhooks && kiosk.webhooks.length > 0 ? (
+                                            kiosk.webhooks.map((webhook) => (
+                                                <div key={webhook.webhookId} className="border rounded-md p-4">
+                                                    <div className="flex justify-between items-start">
+                                                        <div className="flex-1">
+                                                            <h4 className="font-medium">{webhook.webhookType}</h4>
+                                                            <p className="text-sm text-muted-foreground break-all mt-1">{webhook.webhookUrl}</p>
+                                                        </div>
+                                                        <div className="flex items-center gap-2">
+                                                            <Button
+                                                                variant="outline"
+                                                                size="sm"
+                                                                onClick={() => {
+                                                                    navigator.clipboard.writeText(webhook.webhookUrl)
+                                                                    toast({
+                                                                        title: "Thành công",
+                                                                        description: "Đã sao chép URL vào clipboard",
+                                                                    })
+                                                                }}
+                                                            >
+                                                                <Copy className="h-4 w-4 mr-2" />
+                                                                Sao chép URL
+                                                            </Button>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            ))
+                                        ) : (
+                                            <div className="text-center py-8 text-muted-foreground">
+                                                <Link className="h-12 w-12 mx-auto mb-3 opacity-20" />
+                                                <p>Không có webhook nào được cấu hình cho kiosk này</p>
+                                            </div>
+                                        )}
+                                    </div>
+                                </CardContent>
+                            </Card> : ''
+                    }
 
                     <Card>
                         <CardHeader>

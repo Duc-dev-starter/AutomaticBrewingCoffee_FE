@@ -1,6 +1,7 @@
 import { EBaseStatus } from "@/enum/base";
-import { Device, DeviceModel } from "../interfaces/device"
+import { Device, DeviceModel } from "./device"
 import { Store } from "./store";
+import { Webhook } from "./webhook";
 
 export interface Kiosk {
     kioskId: string;
@@ -17,6 +18,8 @@ export interface Kiosk {
     storeId: string;
     store: Store;
     kioskDevices: KioskDevice[];
+    apiKey: string;
+    webhooks?: Webhook[];
 }
 
 export interface KioskDevice {

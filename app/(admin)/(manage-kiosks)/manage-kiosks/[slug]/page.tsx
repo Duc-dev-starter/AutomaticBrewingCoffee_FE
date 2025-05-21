@@ -6,7 +6,6 @@ import { format } from "date-fns"
 import { EBaseStatusViMap } from "@/enum/base"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
-import { Separator } from "@/components/ui/separator"
 import {
     Calendar,
     Clock,
@@ -14,7 +13,6 @@ import {
     Info,
     Package,
     Store,
-    Tag,
     ArrowLeft,
     RefreshCw,
     Loader2,
@@ -40,10 +38,9 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { MoreHorizontal } from "lucide-react"
 import type { Device } from "@/interfaces/device"
 import { getDevicesToReplace } from "@/services/device"
+import { DeviceStatusGroup } from "@/components/common/device-status-group"
 
 const KioskDetailPage = () => {
     const { slug } = useParams()
@@ -288,8 +285,8 @@ const KioskDetailPage = () => {
                         </CardContent>
                     </Card>
 
-                    {
-                        kiosk.apiKey ? <Card>
+                    {kiosk.apiKey ? (
+                        <Card>
                             <CardHeader>
                                 <CardTitle className="text-lg flex items-center">
                                     <FileText className="mr-2 h-5 w-5" />
@@ -330,57 +327,60 @@ const KioskDetailPage = () => {
                                     </Button>
                                 </div>
                             </CardContent>
-                        </Card> : ''
-                    }
+                        </Card>
+                    ) : (
+                        ""
+                    )}
 
-                    {
-                        kiosk.webhooks ?
-                            <Card>
-                                <CardHeader>
-                                    <CardTitle className="text-lg flex items-center">
-                                        <Link className="mr-2 h-5 w-5" />
-                                        Webhooks ({kiosk.webhooks?.length || 0})
-                                    </CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="space-y-4">
-                                        {kiosk.webhooks && kiosk.webhooks.length > 0 ? (
-                                            kiosk.webhooks.map((webhook) => (
-                                                <div key={webhook.webhookId} className="border rounded-md p-4">
-                                                    <div className="flex justify-between items-start">
-                                                        <div className="flex-1">
-                                                            <h4 className="font-medium">{webhook.webhookType}</h4>
-                                                            <p className="text-sm text-muted-foreground break-all mt-1">{webhook.webhookUrl}</p>
-                                                        </div>
-                                                        <div className="flex items-center gap-2">
-                                                            <Button
-                                                                variant="outline"
-                                                                size="sm"
-                                                                onClick={() => {
-                                                                    navigator.clipboard.writeText(webhook.webhookUrl)
-                                                                    toast({
-                                                                        title: "Thành công",
-                                                                        description: "Đã sao chép URL vào clipboard",
-                                                                    })
-                                                                }}
-                                                            >
-                                                                <Copy className="h-4 w-4 mr-2" />
-                                                                Sao chép URL
-                                                            </Button>
-                                                        </div>
+                    {kiosk.webhooks ? (
+                        <Card>
+                            <CardHeader>
+                                <CardTitle className="text-lg flex items-center">
+                                    <Link className="mr-2 h-5 w-5" />
+                                    Webhooks ({kiosk.webhooks?.length || 0})
+                                </CardTitle>
+                            </CardHeader>
+                            <CardContent>
+                                <div className="space-y-4">
+                                    {kiosk.webhooks && kiosk.webhooks.length > 0 ? (
+                                        kiosk.webhooks.map((webhook) => (
+                                            <div key={webhook.webhookId} className="border rounded-md p-4">
+                                                <div className="flex justify-between items-start">
+                                                    <div className="flex-1">
+                                                        <h4 className="font-medium">{webhook.webhookType}</h4>
+                                                        <p className="text-sm text-muted-foreground break-all mt-1">{webhook.webhookUrl}</p>
+                                                    </div>
+                                                    <div className="flex items-center gap-2">
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            onClick={() => {
+                                                                navigator.clipboard.writeText(webhook.webhookUrl)
+                                                                toast({
+                                                                    title: "Thành công",
+                                                                    description: "Đã sao chép URL vào clipboard",
+                                                                })
+                                                            }}
+                                                        >
+                                                            <Copy className="h-4 w-4 mr-2" />
+                                                            Sao chép URL
+                                                        </Button>
                                                     </div>
                                                 </div>
-                                            ))
-                                        ) : (
-                                            <div className="text-center py-8 text-muted-foreground">
-                                                <Link className="h-12 w-12 mx-auto mb-3 opacity-20" />
-                                                <p>Không có webhook nào được cấu hình cho kiosk này</p>
                                             </div>
-                                        )}
-                                    </div>
-                                </CardContent>
-                            </Card> : ''
-                    }
+                                        ))
+                                    ) : (
+                                        <div className="text-center py-8 text-muted-foreground">
+                                            <Link className="h-12 w-12 mx-auto mb-3 opacity-20" />
+                                            <p>Không có webhook nào được cấu hình cho kiosk này</p>
+                                        </div>
+                                    )}
+                                </div>
+                            </CardContent>
+                        </Card>
+                    ) : (
+                        ""
+                    )}
 
                     <Card>
                         <CardHeader>
@@ -390,89 +390,14 @@ const KioskDetailPage = () => {
                             </CardTitle>
                         </CardHeader>
                         <CardContent>
-                            <div className="space-y-4">
-                                {kiosk.kioskDevices && kiosk.kioskDevices.length > 0 ? (
-                                    kiosk.kioskDevices.map((kioskDevice) => (
-                                        <div key={kioskDevice.kioskDeviceMappingId} className="border rounded-md p-4">
-                                            <div className="flex justify-between items-start">
-                                                <div className="flex-1">
-                                                    <h4 className="font-medium">{kioskDevice.device.name}</h4>
-                                                    <p className="text-sm text-muted-foreground line-clamp-2">
-                                                        {kioskDevice.device.description || "Không có mô tả"}
-                                                    </p>
-                                                </div>
-                                                <div className="flex items-center gap-2">
-                                                    <Badge className={clsx("ml-2", getBaseStatusColor(kioskDevice.device.status))}>
-                                                        {EBaseStatusViMap[kioskDevice.device.status] || kioskDevice.device.status}
-                                                    </Badge>
-                                                    <DropdownMenu>
-                                                        <DropdownMenuTrigger asChild>
-                                                            <Button variant="ghost" size="icon">
-                                                                <MoreHorizontal className="h-4 w-4" />
-                                                            </Button>
-                                                        </DropdownMenuTrigger>
-                                                        <DropdownMenuContent align="end">
-                                                            <DropdownMenuItem onClick={() => openReplaceDialog(kioskDevice)}>
-                                                                <RefreshCw className="mr-2 h-4 w-4" />
-                                                                Thay thế thiết bị
-                                                            </DropdownMenuItem>
-                                                        </DropdownMenuContent>
-                                                    </DropdownMenu>
-                                                </div>
-                                            </div>
-
-                                            <Separator className="my-3" />
-
-                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-                                                <div className="flex justify-between items-center">
-                                                    <div className="flex items-center text-sm">
-                                                        <Tag className="h-3 w-3 mr-1 text-muted-foreground" />
-                                                        <span className="text-muted-foreground">Mã thiết bị:</span>
-                                                    </div>
-                                                    <div className="font-medium text-sm">{kioskDevice.device.deviceId}</div>
-                                                </div>
-
-                                                <div className="flex justify-between items-center">
-                                                    <div className="flex items-center text-sm">
-                                                        <Tag className="h-3 w-3 mr-1 text-muted-foreground" />
-                                                        <span className="text-muted-foreground">Serial Number:</span>
-                                                    </div>
-                                                    <div className="font-medium text-sm">{kioskDevice.device.serialNumber || "N/A"}</div>
-                                                </div>
-
-                                                <div className="flex justify-between items-center">
-                                                    <div className="flex items-center text-sm">
-                                                        <Calendar className="h-3 w-3 mr-1 text-muted-foreground" />
-                                                        <span className="text-muted-foreground">Ngày tạo:</span>
-                                                    </div>
-                                                    <div className="font-medium text-sm">
-                                                        {kioskDevice.device.createdDate
-                                                            ? format(new Date(kioskDevice.device.createdDate), "dd/MM/yyyy")
-                                                            : "N/A"}
-                                                    </div>
-                                                </div>
-
-                                                <div className="flex justify-between items-center">
-                                                    <div className="flex items-center text-sm">
-                                                        <Calendar className="h-3 w-3 mr-1 text-muted-foreground" />
-                                                        <span className="text-muted-foreground">Ngày cập nhật:</span>
-                                                    </div>
-                                                    <div className="font-medium text-sm">
-                                                        {kioskDevice.device.updatedDate
-                                                            ? format(new Date(kioskDevice.device.updatedDate), "dd/MM/yyyy")
-                                                            : "Chưa cập nhật"}
-                                                    </div>
-                                                </div>
-                                            </div>
-                                        </div>
-                                    ))
-                                ) : (
-                                    <div className="text-center py-8 text-muted-foreground">
-                                        <Package className="h-12 w-12 mx-auto mb-3 opacity-20" />
-                                        <p>Không có thiết bị nào được thêm vào kiosk này</p>
-                                    </div>
-                                )}
-                            </div>
+                            {kiosk.kioskDevices && kiosk.kioskDevices.length > 0 ? (
+                                <DeviceStatusGroup kioskDevices={kiosk.kioskDevices} openReplaceDialog={openReplaceDialog} />
+                            ) : (
+                                <div className="text-center py-8 text-muted-foreground">
+                                    <Package className="h-12 w-12 mx-auto mb-3 opacity-20" />
+                                    <p>Không có thiết bị nào được thêm vào kiosk này</p>
+                                </div>
+                            )}
                         </CardContent>
                     </Card>
                 </div>

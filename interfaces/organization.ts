@@ -2,6 +2,7 @@ import { EBaseStatus } from "@/enum/base";
 
 export interface Organization {
     organizationId: string,
+    organizationCode?: string,
     name: string,
     description: string,
     contactPhone: string,

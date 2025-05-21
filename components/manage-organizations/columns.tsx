@@ -25,6 +25,20 @@ export const columns = ({
             enableSorting: false,
         },
         {
+            id: "organizationCode",
+            header: "Code tổ chức",
+            cell: ({ row }) => {
+                return (
+                    <div className="font-medium text-center">
+                        {
+                            row.original.organizationCode ? <span>{row.original.organizationCode}</span> : <span className="text-muted-foreground">Không có</span>
+                        }
+                    </div>
+                )
+            },
+            enableSorting: false,
+        },
+        {
             id: "logo",
             header: "Logo",
             cell: ({ row }) => {

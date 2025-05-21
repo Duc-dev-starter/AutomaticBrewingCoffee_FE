@@ -79,7 +79,7 @@ export const getDeviceStatusColor = (status: EDeviceStatus) => {
         case EDeviceStatus.Stock:
             return "bg-green-500"
         case EDeviceStatus.Working:
-            return "bg-blue-500"
+            return "bg-primary-300"
         case EDeviceStatus.Maintain:
             return "bg-yellow-500"
         default:

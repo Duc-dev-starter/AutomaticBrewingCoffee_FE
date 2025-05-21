@@ -269,6 +269,7 @@ const ManageOrganizations = () => {
                                         >
                                             {{
                                                 organizationId: "Mã tổ chức",
+                                                organizationCode: "Code tổ chức",
                                                 logoUrl: "Logo",
                                                 name: "Tên tổ chức",
                                                 contactInfo: "Thông tin liên hệ",
@@ -325,6 +326,8 @@ const ManageOrganizations = () => {
                                             (column, cellIndex) => (
                                                 <TableCell key={`skeleton-cell-${cellIndex}`}>
                                                     {column.id === "organizationId" ? (
+                                                        <Skeleton className="h-5 w-24 mx-auto" />
+                                                    ) : column.id === "organizationCode" ? (
                                                         <Skeleton className="h-5 w-24 mx-auto" />
                                                     ) : column.id === "logoUrl" ? (
                                                         <div className="flex items-center gap-2 justify-center">

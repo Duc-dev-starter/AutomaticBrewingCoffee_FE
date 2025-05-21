@@ -1,6 +1,6 @@
 "use client"
 
-import { ChevronDownIcon, Filter } from "lucide-react"
+import { ChevronDownIcon, Filter, Check } from "lucide-react"
 import {
     DropdownMenu,
     DropdownMenuContent,
@@ -12,25 +12,33 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { Button } from "@/components/ui/button"
 import { EBaseStatus, EBaseStatusViMap } from "@/enum/base"
-import { FilterProps } from "@/types/filter"
+import type { FilterProps } from "@/types/filter"
+import { cn } from "@/lib/utils"
 
-export const BaseStatusFilter = ({
-    statusFilter,
-    setStatusFilter,
-    clearAllFilters,
-    hasActiveFilters,
-}: FilterProps) => {
-    const statuses = Object.values(EBaseStatus);
+// Status color mapping
+const statusColorMap = {
+    [EBaseStatus.Active]: "bg-primary",
+    [EBaseStatus.Inactive]: "bg-gray-400",
+}
+
+export const BaseStatusFilter = ({ statusFilter, setStatusFilter }: FilterProps) => {
+    const statuses = Object.values(EBaseStatus)
+    const totalStatuses = statuses.length
+    const activeCount = statusFilter ? 1 : 0
 
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
                 <Button variant="outline" className="ml-auto">
-                    <Filter className="mr-2 h-4 w-4" />
-                    Lọc
-                    {hasActiveFilters && (
-                        <span className="ml-1 text-xs bg-primary text-primary-foreground rounded-full px-1.5">!</span>
+                    {statusFilter ? (
+                        <span className={cn("w-2 h-2 rounded-full mr-2", statusColorMap[statusFilter as EBaseStatus])} />
+                    ) : (
+                        <Filter className="mr-2 h-4 w-4" />
                     )}
+                    Trạng thái <span className="ml-1 bg-gray-200 rounded-full px-2 pt-0.5 pb-1 text-xs">
+                        {activeCount}/{totalStatuses}
+                    </span>
+
                     <ChevronDownIcon className="ml-2 h-4 w-4" />
                 </Button>
             </DropdownMenuTrigger>
@@ -39,33 +47,45 @@ export const BaseStatusFilter = ({
                 <DropdownMenuSeparator />
                 <DropdownMenuRadioGroup value={statusFilter} onValueChange={setStatusFilter}>
                     {statuses.map((status) => (
-                        <DropdownMenuRadioItem key={status} value={status}>
-                            {EBaseStatusViMap[status as EBaseStatus]}
+                        <DropdownMenuRadioItem
+                            key={status}
+                            value={status}
+                            className={cn(
+                                "group relative flex items-center cursor-pointer",
+                                statusFilter === status && status === EBaseStatus.Active && "text-primary",
+                                "hover:bg-muted hover:text-primary",
+                                status === EBaseStatus.Active && "data-[state=checked]:text-primary"
+                            )}
+                        >
+                            <span className="text-black">{EBaseStatusViMap[status as EBaseStatus]}</span>
+                            {statusFilter === status && (
+                                <Check
+                                    className={cn(
+                                        "ml-auto h-4 w-4 text-muted-foreground"
+                                    )}
+                                />
+                            )}
                         </DropdownMenuRadioItem>
+
                     ))}
-                    {statusFilter && (
-                        <DropdownMenuRadioItem value="">
-                            Xóa bộ lọc trạng thái
-                        </DropdownMenuRadioItem>
-                    )}
                 </DropdownMenuRadioGroup>
 
-                {hasActiveFilters && (
+                {statusFilter && (
                     <>
                         <DropdownMenuSeparator />
                         <div className="px-2 py-1.5">
                             <Button
-                                variant="destructive"
+                                variant="outline"
                                 size="sm"
-                                className="w-full"
-                                onClick={clearAllFilters}
+                                className="w-full text-destructive hover:text-destructive hover:bg-destructive/10"
+                                onClick={() => setStatusFilter("")}
                             >
-                                Xóa tất cả bộ lọc
+                                Xóa bộ lọc
                             </Button>
                         </div>
                     </>
                 )}
             </DropdownMenuContent>
         </DropdownMenu>
-    );
-};
+    )
+}   

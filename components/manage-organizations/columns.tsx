@@ -1,11 +1,8 @@
-import { Badge } from "@/components/ui/badge"
 import { Mail, Phone, FileText } from "lucide-react"
 import type { ColumnDef } from "@tanstack/react-table"
-import clsx from "clsx"
 import { type EBaseStatus, EBaseStatusViMap } from "@/enum/base"
-import { ActionDropdown } from "@/components/common"
+import { ActionDropdown, BaseFilterBadgesTable } from "@/components/common"
 import type { Organization } from "@/interfaces/organization"
-import { getBaseStatusColor } from "@/utils/color"
 
 // Cột cho bảng tổ chức
 export const columns = ({
@@ -107,16 +104,7 @@ export const columns = ({
                 const status: EBaseStatus = row.original.status
                 const statusText = EBaseStatusViMap[status] ?? "Không rõ"
                 return (
-                    <div className="flex justify-center">
-                        <Badge
-                            className={clsx(
-                                "flex items-center justify-center !w-fit !px-2 !py-[2px] !rounded-full !text-white !text-xs",
-                                getBaseStatusColor(status),
-                            )}
-                        >
-                            {statusText}
-                        </Badge>
-                    </div>
+                    <BaseFilterBadgesTable status={status} statusText={statusText} />
                 )
             },
             enableSorting: false,

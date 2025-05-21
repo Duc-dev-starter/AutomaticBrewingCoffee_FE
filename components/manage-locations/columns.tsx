@@ -1,13 +1,9 @@
-import { Calendar, Cpu, MoreHorizontal, Power } from "lucide-react";
-import { Badge } from "../ui/badge";
-import { format } from "date-fns";
+import { Calendar, LocateIcon } from "lucide-react";
 import { type ColumnDef } from "@tanstack/react-table";
-import clsx from "clsx";
-import { EBaseStatus, EBaseStatusViMap } from "@/enum/base";
 import { ActionDropdown } from "../common";
-import { Menu } from "@/interfaces/menu";
 import { LocationType } from "@/interfaces/location";
 import { truncateText } from "@/utils/text";
+import { formatDate } from "@/utils/date";
 
 export const columns = ({
     onViewDetails,
@@ -34,7 +30,7 @@ export const columns = ({
             header: "Tên",
             cell: ({ row }) => (
                 <div className="flex items-center justify-center gap-2">
-                    <Cpu className="h-4 w-4 text-muted-foreground" />
+                    <LocateIcon className="h-4 w-4 text-muted-foreground" />
                     <span>{row.original.name}</span>
                 </div>
             ),
@@ -48,6 +44,48 @@ export const columns = ({
                 </div>
             ),
             enableSorting: false,
+        },
+        {
+            id: "createdDate",
+            accessorKey: "createdDate",
+            header: "Ngày tạo",
+            cell: ({ row }) => {
+                return (
+                    <div className="flex items-center justify-center">
+                        <Calendar className="h-4 w-4 mr-1 text-muted-foreground" />
+                        <span>{formatDate(row.original.createdDate)}</span>
+                    </div>
+                );
+            },
+        },
+        {
+            id: "updatedDate",
+            accessorKey: "updatedDate",
+            header: "Ngày cập nhật",
+            cell: ({ row }) => {
+                const updatedDate = row.original.updatedDate;
+
+                const renderCentered = (text: string) => (
+                    <div className="flex items-center justify-center text-muted-foreground">
+                        <span>{text}</span>
+                    </div>
+                );
+
+                if (!updatedDate) return renderCentered("Chưa cập nhật");
+
+                const date = new Date(updatedDate);
+
+                if (isNaN(date.getTime())) {
+                    return renderCentered("Ngày không hợp lệ");
+                }
+
+                return (
+                    <div className="flex items-center justify-center">
+                        <Calendar className="h-4 w-4 mr-1 text-muted-foreground" />
+                        <span>{formatDate(updatedDate)}</span>
+                    </div>
+                );
+            },
         },
         {
             id: "actions",

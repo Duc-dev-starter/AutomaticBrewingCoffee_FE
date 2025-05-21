@@ -3,12 +3,10 @@
 import {
     ColumnDef,
 } from "@tanstack/react-table";
-import { Cpu, Power, Calendar } from "lucide-react";
+import { Cpu, Calendar } from "lucide-react";
 import { DeviceModel } from "@/interfaces/device";
-import { ActionDropdown } from "@/components/common";
+import { ActionDropdown, BaseFilterBadgesTable } from "@/components/common";
 import { EBaseStatus, EBaseStatusViMap } from "@/enum/base";
-import { Badge } from "@/components/ui/badge";
-import clsx from "clsx";
 import { formatDate } from "@/utils/date";
 export const columns = ({
     onViewDetails,
@@ -64,20 +62,7 @@ export const columns = ({
                 const status: EBaseStatus = row.original.status;
                 const statusText = EBaseStatusViMap[status] ?? "Không rõ";
                 return (
-                    <div className="flex justify-center items-center w-full">
-                        <Badge
-                            className={clsx(
-                                "flex items-center justify-center !w-fit !px-2 !py-[2px] !rounded-full !text-white !text-xs",
-                                {
-                                    "bg-green-500": status === EBaseStatus.Active,
-                                    "bg-red-500": status === EBaseStatus.Inactive,
-                                }
-                            )}
-                        >
-                            <Power className="w-3 h-3 mr-1" />
-                            {statusText}
-                        </Badge>
-                    </div>
+                    <BaseFilterBadgesTable status={status} statusText={statusText} />
                 );
             },
             enableSorting: false,

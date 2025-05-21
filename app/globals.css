@@ -49,43 +49,6 @@
   }
 
 
-  /* Base styles for all radio items */
-  .status-radio-item {
-    display: flex;
-    align-items: center;
-    cursor: pointer;
-    color: var(--foreground);
-    font-weight: normal;
-  }
-
-  /* Override the checked state styling */
-  .status-radio-item[data-state="checked"] {
-    color: var(--foreground);
-    font-weight: normal;
-    background-color: transparent;
-  }
-
-  /* Active status specific styles */
-  .status-active[data-state="checked"] {
-    color: var(--foreground);
-  }
-
-  /* Inactive status specific styles */
-  .status-inactive[data-state="checked"] {
-    color: var(--foreground);
-  }
-
-  /* Hover styles */
-  .status-radio-item:hover {
-    background-color: var(--muted);
-    color: var(--foreground);
-  }
-
-  /* Hide the default radio indicator */
-  .status-radio-item::before {
-    display: none !important;
-  }
-
 
   :root {
     --background: 0 0% 100%;

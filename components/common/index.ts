@@ -7,6 +7,7 @@ import { SearchInput } from './search-input';
 import ConfirmDeleteDialog from './confirm-delete-alert';
 import { ActionDropdown } from './action-dropdown';
 import { Pagination } from './pagination';
+import BaseFilterBadgesTable from './base-filter-badges-table'
 
 export {
     BaseStatusFilter,
@@ -17,5 +18,6 @@ export {
     SearchInput,
     ConfirmDeleteDialog,
     ActionDropdown,
-    Pagination
+    Pagination,
+    BaseFilterBadgesTable
 }

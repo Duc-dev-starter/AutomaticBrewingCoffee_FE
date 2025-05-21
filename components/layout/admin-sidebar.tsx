@@ -26,13 +26,13 @@ export function AdminSidebar() {
 
     return (
         <Sidebar collapsible="icon" className="bg-white dark:bg-[#121212]">
-            <SidebarHeader className="py-4">
+            <SidebarHeader className="py-4 bg-primary-100" >
                 <Link
                     href={Path.DASHBOARD}
                     className={clsx(
                         "flex items-center px-4 transition-all",
                         "group-data-[collapsible=icon]:px-0",
-                        "group-data-[collapsible=icon]:justify-center"
+                        "group-data-[collapsible=icon]:justify-center",
                     )}
                 >
                     <div className="flex h-10 w-10 items-center justify-center rounded-md bg-[#68e0df] text-white">

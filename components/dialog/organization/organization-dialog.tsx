@@ -9,13 +9,14 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { EBaseStatus, EBaseStatusViMap } from "@/enum/base"
-import { PlusCircle, Loader2, Edit, Upload, X } from "lucide-react"
+import { PlusCircle, Loader2, Edit, Upload, X, LinkIcon, ImageIcon } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { createOrganization, updateOrganization } from "@/services/organization"
 import type { OrganizationDialogProps } from "@/types/dialog"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
-import { ErrorResponse } from "@/types/error"
+import type { ErrorResponse } from "@/types/error"
 import { organizationSchema } from "@/schema/organization"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 const initialFormData = {
     name: "",
@@ -24,16 +25,18 @@ const initialFormData = {
     contactEmail: "",
     taxId: "",
     logoBase64: "",
+    logoUrl: "",
     status: EBaseStatus.Active,
 }
 
 const OrganizationDialog = ({ open, onOpenChange, onSuccess, organization }: OrganizationDialogProps) => {
     const { toast } = useToast()
-    const [errors, setErrors] = useState<Record<string, any>>({});
-    const [loading, setLoading] = useState(false);
+    const [errors, setErrors] = useState<Record<string, any>>({})
+    const [loading, setLoading] = useState(false)
     const [formData, setFormData] = useState(initialFormData)
     const [logoFile, setLogoFile] = useState<File | null>(null)
     const [logoPreview, setLogoPreview] = useState<string | null>(null)
+    const [logoTab, setLogoTab] = useState<string>("upload")
 
     useEffect(() => {
         if (organization) {
@@ -45,15 +48,19 @@ const OrganizationDialog = ({ open, onOpenChange, onSuccess, organization }: Org
                 taxId: organization.taxId || "",
                 status: organization.status,
                 logoBase64: "",
-            });
-            setLogoPreview(organization.logoUrl || null);
-            setLogoFile(null);
+                logoUrl: organization.logoUrl || "",
+            })
+            setLogoPreview(organization.logoUrl || null)
+            setLogoFile(null)
+            setLogoTab(organization.logoUrl ? "url" : "upload")
         } else {
-            setFormData(initialFormData);
-            setLogoPreview(null);
-            setLogoFile(null);
+            setFormData(initialFormData)
+            setLogoPreview(null)
+            setLogoFile(null)
+            setLogoTab("upload")
         }
-    }, [organization, open]);
+    }, [organization, open])
+
     const handleChange = (field: string, value: string) => {
         setFormData((prev) => ({
             ...prev,
@@ -86,11 +93,60 @@ const OrganizationDialog = ({ open, onOpenChange, onSuccess, organization }: Org
         const previewUrl = URL.createObjectURL(file)
         setLogoPreview(previewUrl)
         setLogoFile(file)
+        // Clear logoUrl when uploading a file
+        setFormData((prev) => ({
+            ...prev,
+            logoUrl: "",
+        }))
+    }
+
+    const handleUrlChange = (url: string) => {
+        setFormData((prev) => ({
+            ...prev,
+            logoUrl: url,
+        }))
+        setLogoPreview(url)
+        // Clear file when using URL
+        setLogoFile(null)
     }
 
     const handleRemoveLogo = () => {
         setLogoPreview(null)
         setLogoFile(null)
+        setFormData((prev) => ({
+            ...prev,
+            logoBase64: "",
+            logoUrl: "",
+        }))
+    }
+
+    const handleTestLogo = () => {
+        if (!formData.logoUrl) {
+            toast({
+                title: "Lỗi",
+                description: "Vui lòng nhập URL hình ảnh",
+                variant: "destructive",
+            })
+            return
+        }
+
+        // Test if the URL is valid by loading the image
+        const img = new Image()
+        img.onload = () => {
+            setLogoPreview(formData.logoUrl)
+            toast({
+                title: "Thành công",
+                description: "URL hình ảnh hợp lệ",
+            })
+        }
+        img.onerror = () => {
+            toast({
+                title: "Lỗi",
+                description: "URL hình ảnh không hợp lệ hoặc không thể truy cập",
+                variant: "destructive",
+            })
+        }
+        img.src = formData.logoUrl
     }
 
     const fileToBase64 = (file: File): Promise<string> => {
@@ -98,89 +154,81 @@ const OrganizationDialog = ({ open, onOpenChange, onSuccess, organization }: Org
             const reader = new FileReader()
             reader.onload = () => {
                 const base64String = reader.result as string
-                // Remove the data:image/*;base64, prefix
-                const base64Data = base64String;
-                resolve(base64Data)
+                resolve(base64String)
             }
             reader.onerror = (error) => reject(error)
             reader.readAsDataURL(file)
         })
     }
-    const handleSubmit = async (e: React.FormEvent) => {
-        e.preventDefault();
-        e.stopPropagation();
 
-        const validationResult = organizationSchema.safeParse(formData);
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault()
+        e.stopPropagation()
+
+        const validationResult = organizationSchema.safeParse(formData)
         if (!validationResult.success) {
-            const { fieldErrors } = validationResult.error.flatten();
-            setErrors(fieldErrors);
-            return;
+            const { fieldErrors } = validationResult.error.flatten()
+            setErrors(fieldErrors)
+            return
         }
 
-        setErrors({});
-        setLoading(true);
+        setErrors({})
+        setLoading(true)
 
         try {
-            let payload: {
-                name: string;
-                description: string;
-                contactPhone: string;
-                contactEmail: string;
-                logoBase64?: string; // Đảm bảo logoBase64 là tùy chọn
-                taxId: string;
-                status: EBaseStatus;
-            };
+            const payload: {
+                name: string
+                description: string
+                contactPhone: string
+                contactEmail: string
+                logoBase64?: string
+                logoUrl?: string
+                taxId: string
+                status: EBaseStatus
+            } = {
+                name: formData.name,
+                description: formData.description,
+                contactPhone: formData.contactPhone,
+                contactEmail: formData.contactEmail,
+                taxId: formData.taxId,
+                status: formData.status,
+            }
 
-            if (logoFile) {
-                const logoBase64 = await fileToBase64(logoFile);
-                payload = {
-                    name: formData.name,
-                    description: formData.description,
-                    contactPhone: formData.contactPhone,
-                    contactEmail: formData.contactEmail,
-                    logoBase64, // Chỉ gửi khi có logo mới
-                    taxId: formData.taxId,
-                    status: formData.status,
-                };
-            } else {
-                payload = {
-                    name: formData.name,
-                    description: formData.description,
-                    contactPhone: formData.contactPhone,
-                    contactEmail: formData.contactEmail,
-                    taxId: formData.taxId,
-                    status: formData.status,
-                    // Không gửi logoBase64 nếu không có logo mới
-                };
+            // Handle logo based on the active tab
+            if (logoTab === "upload" && logoFile) {
+                const logoBase64 = await fileToBase64(logoFile)
+                payload.logoBase64 = logoBase64
+            } else if (logoTab === "url" && formData.logoUrl) {
+                payload.logoUrl = formData.logoUrl
             }
 
             if (organization) {
-                await updateOrganization(organization.organizationId, payload);
+                await updateOrganization(organization.organizationId, payload)
                 toast({
                     title: "Thành công",
                     description: "Cập nhật tổ chức thành công",
-                });
+                })
             } else {
-                await createOrganization(payload);
+                await createOrganization(payload)
                 toast({
                     title: "Thành công",
                     description: "Thêm tổ chức mới thành công",
-                });
+                })
             }
-            onSuccess?.();
-            onOpenChange(false);
+            onSuccess?.()
+            onOpenChange(false)
         } catch (error) {
-            const err = error as ErrorResponse;
-            console.error("Lỗi khi xử lý tổ chức:", error);
+            const err = error as ErrorResponse
+            console.error("Lỗi khi xử lý tổ chức:", error)
             toast({
                 title: "Lỗi khi xử lý tổ chức",
                 description: err.message,
                 variant: "destructive",
-            });
+            })
         } finally {
-            setLoading(false);
+            setLoading(false)
         }
-    };
+    }
 
     const isUpdate = !!organization
 
@@ -206,42 +254,83 @@ const OrganizationDialog = ({ open, onOpenChange, onSuccess, organization }: Org
                     <div className="space-y-4">
                         <div className="space-y-2">
                             <Label htmlFor="logo">Logo tổ chức</Label>
-                            <div className="flex items-center gap-4">
+                            <div className="flex items-start gap-4">
                                 <Avatar className="h-16 w-16 rounded-md border">
                                     <AvatarImage src={logoPreview || "/placeholder.svg"} alt="Logo Preview" />
                                     <AvatarFallback className="rounded-md bg-primary text-primary-foreground text-xl">
                                         {formData.name ? formData.name.charAt(0).toUpperCase() : "L"}
                                     </AvatarFallback>
                                 </Avatar>
-                                <div className="flex flex-col gap-2">
-                                    <div className="flex gap-2">
-                                        <Button type="button" variant="outline" size="sm" className="relative" disabled={loading}>
-                                            <input
-                                                id="logo"
-                                                type="file"
-                                                accept="image/*"
-                                                className="absolute inset-0 opacity-0 cursor-pointer"
-                                                onChange={handleLogoChange}
-                                                disabled={loading}
-                                            />
-                                            <Upload className="h-4 w-4 mr-1" />
-                                            Tải lên
-                                        </Button>
-                                        {logoPreview && (
-                                            <Button
-                                                type="button"
-                                                variant="outline"
-                                                size="sm"
-                                                onClick={handleRemoveLogo}
-                                                disabled={loading}
-                                            >
-                                                <X className="h-4 w-4 mr-1" />
-                                                Xóa
-                                            </Button>
-                                        )}
-                                        {errors.logoBase64 && <p className="text-red-500 text-sm">{errors.logoBase64}</p>}
-                                    </div>
-                                    <p className="text-xs text-muted-foreground">Hỗ trợ JPG, PNG hoặc GIF. Tối đa 2MB.</p>
+                                <div className="flex-1">
+                                    <Tabs value={logoTab} onValueChange={setLogoTab} className="w-full">
+                                        <TabsList className="grid grid-cols-2 mb-2">
+                                            <TabsTrigger value="upload" disabled={loading}>
+                                                <Upload className="h-4 w-4 mr-2" />
+                                                Tải lên
+                                            </TabsTrigger>
+                                            <TabsTrigger value="url" disabled={loading}>
+                                                <LinkIcon className="h-4 w-4 mr-2" />
+                                                URL
+                                            </TabsTrigger>
+                                        </TabsList>
+                                        <TabsContent value="upload" className="space-y-2">
+                                            <div className="flex gap-2">
+                                                <Button type="button" variant="outline" size="sm" className="relative" disabled={loading}>
+                                                    <input
+                                                        id="logo"
+                                                        type="file"
+                                                        accept="image/*"
+                                                        className="absolute inset-0 opacity-0 cursor-pointer"
+                                                        onChange={handleLogoChange}
+                                                        disabled={loading}
+                                                    />
+                                                    <Upload className="h-4 w-4 mr-1" />
+                                                    Chọn file
+                                                </Button>
+                                                {logoPreview && logoTab === "upload" && (
+                                                    <Button
+                                                        type="button"
+                                                        variant="outline"
+                                                        size="sm"
+                                                        onClick={handleRemoveLogo}
+                                                        disabled={loading}
+                                                    >
+                                                        <X className="h-4 w-4 mr-1" />
+                                                        Xóa
+                                                    </Button>
+                                                )}
+                                            </div>
+                                            <p className="text-xs text-muted-foreground">Hỗ trợ JPG, PNG hoặc GIF. Tối đa 2MB.</p>
+                                        </TabsContent>
+                                        <TabsContent value="url" className="space-y-2">
+                                            <div className="flex gap-2">
+                                                <Input
+                                                    placeholder="Nhập URL hình ảnh"
+                                                    value={formData.logoUrl}
+                                                    onChange={(e) => handleUrlChange(e.target.value)}
+                                                    disabled={loading}
+                                                    className="flex-1"
+                                                />
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={handleTestLogo}
+                                                    disabled={loading || !formData.logoUrl}
+                                                >
+                                                    <ImageIcon className="h-4 w-4 mr-1" />
+                                                    Kiểm tra
+                                                </Button>
+                                            </div>
+                                            {logoPreview && logoTab === "url" && (
+                                                <Button type="button" variant="outline" size="sm" onClick={handleRemoveLogo} disabled={loading}>
+                                                    <X className="h-4 w-4 mr-1" />
+                                                    Xóa
+                                                </Button>
+                                            )}
+                                            <p className="text-xs text-muted-foreground">Nhập URL hình ảnh từ internet.</p>
+                                        </TabsContent>
+                                    </Tabs>
                                 </div>
                             </div>
                         </div>
@@ -331,7 +420,7 @@ const OrganizationDialog = ({ open, onOpenChange, onSuccess, organization }: Org
                                 value={formData.description}
                                 onChange={(e) => handleChange("description", e.target.value)}
                                 disabled={loading}
-                                className="min-h-[100px]"
+                                className="min-h-[70px]"
                             />
                         </div>
                     </div>

@@ -1,20 +1,23 @@
-"use client";
+"use client"
 
-import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { useToast } from "@/hooks/use-toast";
-import { Product } from "@/interfaces/product";
-import { EProductStatus, EProductSize, EProductType } from "@/enum/product";
-import { createProduct, updateProduct, getProducts } from "@/services/product";
-import { productSchema } from "@/schema/product";
-import { ProductDialogProps } from "@/types/dialog";
-import { Upload, X } from "lucide-react";
-import { ErrorResponse } from "@/types/error";
+import type React from "react"
+
+import { useState, useEffect } from "react"
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { useToast } from "@/hooks/use-toast"
+import type { Product } from "@/interfaces/product"
+import { EProductStatus, EProductSize, EProductType } from "@/enum/product"
+import { createProduct, updateProduct, getProducts } from "@/services/product"
+import { productSchema } from "@/schema/product"
+import type { ProductDialogProps } from "@/types/dialog"
+import { Upload, X, LinkIcon, ImageIcon } from "lucide-react"
+import type { ErrorResponse } from "@/types/error"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 const initialFormData = {
     name: "",
@@ -25,40 +28,42 @@ const initialFormData = {
     status: EProductStatus.Selling,
     price: "",
     imageBase64: "",
+    imageUrl: "",
     isActive: true,
-};
+}
 
 const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialogProps) => {
-    const { toast } = useToast();
-    const [formData, setFormData] = useState(initialFormData);
-    const [errors, setErrors] = useState<Record<string, string>>({});
-    const [loading, setLoading] = useState(false);
-    const [fetching, setFetching] = useState(false);
-    const [products, setProducts] = useState<Product[]>([]);
-    const [imagePreview, setImagePreview] = useState<string | null>(null);
+    const { toast } = useToast()
+    const [formData, setFormData] = useState(initialFormData)
+    const [errors, setErrors] = useState<Record<string, string>>({})
+    const [loading, setLoading] = useState(false)
+    const [fetching, setFetching] = useState(false)
+    const [products, setProducts] = useState<Product[]>([])
+    const [imagePreview, setImagePreview] = useState<string | null>(null)
+    const [imageTab, setImageTab] = useState<string>("upload")
 
     // Fetch products for parentId selection
     useEffect(() => {
         const fetchProducts = async () => {
-            setFetching(true);
+            setFetching(true)
             try {
-                const response = await getProducts({ page: 1, size: 100 });
-                setProducts(response.items);
+                const response = await getProducts({ page: 1, size: 100 })
+                setProducts(response.items)
             } catch (error) {
-                console.error("Lỗi khi tải sản phẩm:", error);
+                console.error("Lỗi khi tải sản phẩm:", error)
                 toast({
                     title: "Lỗi",
                     description: "Không thể tải danh sách sản phẩm.",
                     variant: "destructive",
-                });
+                })
             } finally {
-                setFetching(false);
+                setFetching(false)
             }
-        };
-        if (open) {
-            fetchProducts();
         }
-    }, [open, toast]);
+        if (open) {
+            fetchProducts()
+        }
+    }, [open, toast])
 
     // Populate form data when editing
     useEffect(() => {
@@ -71,38 +76,42 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                 type: product.type,
                 status: product.status,
                 price: product.price.toString(),
-                imageBase64: "", // Reset imageBase64 for editing
+                imageBase64: "",
+                imageUrl: product.imageUrl || "",
                 isActive: product.isActive,
-            });
-            setImagePreview(product.imageUrl || null); // Use imageUrl for preview
-            setErrors({});
+            })
+            setImagePreview(product.imageUrl || null)
+            setImageTab(product.imageUrl ? "url" : "upload")
+            setErrors({})
         } else {
-            setFormData(initialFormData);
-            setImagePreview(null);
+            setFormData(initialFormData)
+            setImagePreview(null)
+            setImageTab("upload")
         }
-    }, [product]);
+    }, [product])
 
     // Reset form data and errors when dialog closes
     useEffect(() => {
         if (!open) {
-            setFormData(initialFormData);
-            setErrors({});
-            setProducts([]);
-            setImagePreview(null);
+            setFormData(initialFormData)
+            setErrors({})
+            setProducts([])
+            setImagePreview(null)
+            setImageTab("upload")
         }
-    }, [open]);
+    }, [open])
 
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0];
-        if (!file) return;
+        const file = e.target.files?.[0]
+        if (!file) return
 
         if (!file.type.startsWith("image/")) {
             toast({
                 title: "Lỗi",
                 description: "Vui lòng chọn file hình ảnh",
                 variant: "destructive",
-            });
-            return;
+            })
+            return
         }
 
         if (file.size > 2 * 1024 * 1024) {
@@ -110,42 +119,58 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                 title: "Lỗi",
                 description: "Kích thước file không được vượt quá 2MB",
                 variant: "destructive",
-            });
-            return;
+            })
+            return
         }
 
-        const reader = new FileReader();
+        const reader = new FileReader()
         reader.onload = () => {
-            const base64String = reader.result as string;
-            setFormData({ ...formData, imageBase64: base64String });
-            setImagePreview(base64String); // Preview new uploaded image
-        };
-        reader.readAsDataURL(file);
-    };
+            const base64String = reader.result as string
+            setFormData({ ...formData, imageBase64: base64String, imageUrl: "" })
+            setImagePreview(base64String)
+        }
+        reader.readAsDataURL(file)
+    }
+
+    const handleUrlChange = (url: string) => {
+        setFormData({ ...formData, imageUrl: url, imageBase64: "" })
+        setImagePreview(url)
+    }
 
     const handleRemoveImage = () => {
-        setFormData({ ...formData, imageBase64: "" });
-        setImagePreview(null); // Clear preview
-    };
+        setFormData({ ...formData, imageBase64: "", imageUrl: "" })
+        setImagePreview(null)
+    }
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
-        e.stopPropagation();
+        e.preventDefault()
+        e.stopPropagation()
 
-        const validationResult = productSchema.safeParse(formData);
-        if (!validationResult.success) {
-            console.error("Validation errors:", validationResult.error.errors);
-            const fieldErrors = validationResult.error.flatten().fieldErrors;
-            setErrors(
-                Object.fromEntries(
-                    Object.entries(fieldErrors).map(([key, messages]) => [key, messages ? messages[0] : ""])
-                )
-            );
-            return;
+        // Prepare data for validation
+        const validationData = {
+            name: formData.name,
+            description: formData.description,
+            parentId: formData.parentId,
+            size: formData.size,
+            type: formData.type,
+            status: formData.status,
+            price: formData.price,
+            imageUrl: formData.imageUrl || formData.imageBase64, // Use either URL or base64 for validation
+            isActive: formData.isActive,
         }
 
-        setErrors({});
-        setLoading(true);
+        const validationResult = productSchema.safeParse(validationData)
+        if (!validationResult.success) {
+            console.error("Validation errors:", validationResult.error.errors)
+            const fieldErrors = validationResult.error.flatten().fieldErrors
+            setErrors(
+                Object.fromEntries(Object.entries(fieldErrors).map(([key, messages]) => [key, messages ? messages[0] : ""])),
+            )
+            return
+        }
+
+        setErrors({})
+        setLoading(true)
         try {
             const data = {
                 name: formData.name,
@@ -155,42 +180,73 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                 type: formData.type,
                 status: formData.status,
                 price: Number(formData.price),
-                imageBase64: formData.imageBase64 || undefined, // Send imageBase64 if available
+                imageBase64: formData.imageBase64 || undefined,
+                imageUrl: formData.imageUrl || undefined,
                 isActive: formData.isActive,
-            };
+            }
+
             if (product) {
-                await updateProduct(product.productId, data);
+                await updateProduct(product.productId, data)
                 toast({
                     title: "Thành công",
                     description: `Sản phẩm "${formData.name}" đã được cập nhật.`,
-                });
+                })
             } else {
-                await createProduct(data);
+                await createProduct(data)
                 toast({
                     title: "Thành công",
                     description: `Sản phẩm "${formData.name}" đã được tạo.`,
-                });
+                })
             }
-            onSuccess?.();
-            onOpenChange(false);
+            onSuccess?.()
+            onOpenChange(false)
         } catch (error) {
-            const err = error as ErrorResponse;
-            console.error("Lỗi khi xử lý sản phẩm:", error);
+            const err = error as ErrorResponse
+            console.error("Lỗi khi xử lý sản phẩm:", error)
             toast({
                 title: "Lỗi khi xử lý sản phẩm",
                 description: err.message,
                 variant: "destructive",
-            });
+            })
         } finally {
-            setLoading(false);
+            setLoading(false)
         }
-    };
+    }
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLFormElement>) => {
         if (e.key === "Enter" && !e.shiftKey) {
-            e.stopPropagation();
+            e.stopPropagation()
         }
-    };
+    }
+
+    const handleTestImage = () => {
+        if (!formData.imageUrl) {
+            toast({
+                title: "Lỗi",
+                description: "Vui lòng nhập URL hình ảnh",
+                variant: "destructive",
+            })
+            return
+        }
+
+        // Test if the URL is valid by loading the image
+        const img = new Image()
+        img.onload = () => {
+            setImagePreview(formData.imageUrl)
+            toast({
+                title: "Thành công",
+                description: "URL hình ảnh hợp lệ",
+            })
+        }
+        img.onerror = () => {
+            toast({
+                title: "Lỗi",
+                description: "URL hình ảnh không hợp lệ hoặc không thể truy cập",
+                variant: "destructive",
+            })
+        }
+        img.src = formData.imageUrl
+    }
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -201,43 +257,92 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                 <form onSubmit={handleSubmit} onKeyDown={handleKeyDown}>
                     <div className="space-y-4 py-4">
                         <div className="space-y-2">
-                            <Label htmlFor="image">Hình ảnh sản phẩm</Label>
-                            <div className="flex items-center gap-4">
-                                <div className="w-24 h-24 border rounded-md overflow-hidden">
+                            <Label>Hình ảnh sản phẩm</Label>
+                            <div className="flex items-start gap-4">
+                                <div className="w-24 h-24 border rounded-md overflow-hidden flex-shrink-0">
                                     <img
                                         src={imagePreview || "/placeholder.svg"}
                                         alt="Product Image"
                                         className="w-full h-full object-cover"
                                     />
                                 </div>
-                                <div className="flex flex-col gap-2">
-                                    <div className="flex gap-2">
-                                        <Button type="button" variant="outline" size="sm" className="relative" disabled={loading}>
-                                            <input
-                                                id="image"
-                                                type="file"
-                                                accept="image/*"
-                                                className="absolute inset-0 opacity-0 cursor-pointer"
-                                                onChange={handleImageChange}
-                                                disabled={loading}
-                                            />
-                                            <Upload className="h-4 w-4 mr-1" />
-                                            Tải lên
-                                        </Button>
-                                        {imagePreview && (
-                                            <Button
-                                                type="button"
-                                                variant="outline"
-                                                size="sm"
-                                                onClick={handleRemoveImage}
-                                                disabled={loading}
-                                            >
-                                                <X className="h-4 w-4 mr-1" />
-                                                Xóa
-                                            </Button>
-                                        )}
-                                    </div>
-                                    <p className="text-xs text-muted-foreground">Hỗ trợ JPG, PNG. Tối đa 2MB.</p>
+                                <div className="flex-1">
+                                    <Tabs value={imageTab} onValueChange={setImageTab} className="w-full">
+                                        <TabsList className="grid grid-cols-2 mb-2">
+                                            <TabsTrigger value="upload" disabled={loading}>
+                                                <Upload className="h-4 w-4 mr-2" />
+                                                Tải lên
+                                            </TabsTrigger>
+                                            <TabsTrigger value="url" disabled={loading}>
+                                                <LinkIcon className="h-4 w-4 mr-2" />
+                                                URL
+                                            </TabsTrigger>
+                                        </TabsList>
+                                        <TabsContent value="upload" className="space-y-2">
+                                            <div className="flex gap-2">
+                                                <Button type="button" variant="outline" size="sm" className="relative" disabled={loading}>
+                                                    <input
+                                                        id="image"
+                                                        type="file"
+                                                        accept="image/*"
+                                                        className="absolute inset-0 opacity-0 cursor-pointer"
+                                                        onChange={handleImageChange}
+                                                        disabled={loading}
+                                                    />
+                                                    <Upload className="h-4 w-4 mr-1" />
+                                                    Chọn file
+                                                </Button>
+                                                {imagePreview && imageTab === "upload" && (
+                                                    <Button
+                                                        type="button"
+                                                        variant="outline"
+                                                        size="sm"
+                                                        onClick={handleRemoveImage}
+                                                        disabled={loading}
+                                                    >
+                                                        <X className="h-4 w-4 mr-1" />
+                                                        Xóa
+                                                    </Button>
+                                                )}
+                                            </div>
+                                            <p className="text-xs text-muted-foreground">Hỗ trợ JPG, PNG. Tối đa 2MB.</p>
+                                        </TabsContent>
+                                        <TabsContent value="url" className="space-y-2">
+                                            <div className="flex gap-2">
+                                                <Input
+                                                    placeholder="Nhập URL hình ảnh"
+                                                    value={formData.imageUrl}
+                                                    onChange={(e) => handleUrlChange(e.target.value)}
+                                                    disabled={loading}
+                                                    className="flex-1"
+                                                />
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={handleTestImage}
+                                                    disabled={loading || !formData.imageUrl}
+                                                >
+                                                    <ImageIcon className="h-4 w-4 mr-1" />
+                                                    Kiểm tra
+                                                </Button>
+                                            </div>
+                                            {imagePreview && imageTab === "url" && (
+                                                <Button
+                                                    type="button"
+                                                    variant="outline"
+                                                    size="sm"
+                                                    onClick={handleRemoveImage}
+                                                    disabled={loading}
+                                                >
+                                                    <X className="h-4 w-4 mr-1" />
+                                                    Xóa
+                                                </Button>
+                                            )}
+                                            <p className="text-xs text-muted-foreground">Nhập URL hình ảnh từ internet.</p>
+                                        </TabsContent>
+                                    </Tabs>
+                                    {errors.imageUrl && <p className="text-red-500 text-sm mt-1">{errors.imageUrl}</p>}
                                 </div>
                             </div>
                         </div>
@@ -335,9 +440,9 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                                     min="0"
                                     value={formData.price}
                                     onChange={(e) => {
-                                        const value = e.target.value;
+                                        const value = e.target.value
                                         if (value === "" || (/^\d+$/.test(value) && Number(value) >= 0)) {
-                                            setFormData({ ...formData, price: value });
+                                            setFormData({ ...formData, price: value })
                                         }
                                     }}
                                     placeholder="Nhập giá sản phẩm"
@@ -386,7 +491,7 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                 </form>
             </DialogContent>
         </Dialog>
-    );
-};
+    )
+}
 
-export default ProductDialog;
+export default ProductDialog

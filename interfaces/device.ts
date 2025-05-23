@@ -37,14 +37,15 @@ export interface DeviceModel {
 
 export interface DeviceFunction {
     name: string;
-    deviceFunctionId: string;
+    deviceFunctionId?: string;
     functionParameters: FunctionParameters[];
     status: EBaseStatus;
 }
 
 export interface FunctionParameters {
     name: string;
-    id: string;
+    deviceFunctionId?: string;
+    functionParameterId?: string;
     min: string | null;
     options: string[] | null;
     max: string | null,

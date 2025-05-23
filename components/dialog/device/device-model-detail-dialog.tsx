@@ -194,7 +194,7 @@ const DeviceModelDetailDialog = ({ deviceModel, open, onOpenChange }: DeviceDial
                                                                     variant="ghost"
                                                                     size="icon"
                                                                     className="h-5 w-5 ml-1"
-                                                                    onClick={() => copyToClipboard(func.deviceFunctionId, `func-${index}`)}
+                                                                    onClick={() => copyToClipboard(func.deviceFunctionId || "", `func-${index}`)}
                                                                 >
                                                                     {copiedText === `func-${index}` ? (
                                                                         <CheckCircle2 className="h-3 w-3 text-green-500" />

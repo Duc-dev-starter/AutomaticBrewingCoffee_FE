@@ -31,18 +31,17 @@ import { ConfirmDeleteDialog, ExportButton, NoResultsRow, Pagination, RefreshBut
 import { multiSelectFilter } from "@/utils/table";
 import { useToast } from "@/hooks/use-toast";
 import { DeviceDetailDialog, DeviceDialog } from "@/components/dialog/device";
-import { DeviceFilter } from "@/components/manage-devices/filter";
-import { FilterBadges } from "@/components/manage-devices/filter-badges";
 import { ErrorResponse } from "@/types/error";
+import { DeviceFilter, FilterBadges } from "@/components/manage-devices";
 
 const ManageDevices = () => {
     const { toast } = useToast();
-    const [loading, setLoading] = useState(true);
-    const [pageSize, setPageSize] = useState(10);
-    const [currentPage, setCurrentPage] = useState(1);
+    const [loading, setLoading] = useState<boolean>(true);
+    const [pageSize, setPageSize] = useState<number>(10);
+    const [currentPage, setCurrentPage] = useState<number>(1);
     const [devices, setDevices] = useState<Device[]>([]);
-    const [totalItems, setTotalItems] = useState(0);
-    const [totalPages, setTotalPages] = useState(1);
+    const [totalItems, setTotalItems] = useState<number>(0);
+    const [totalPages, setTotalPages] = useState<number>(1);
     const [statusFilter, setStatusFilter] = useState<string>("");
 
     const [sorting, setSorting] = useState<SortingState>([{ id: "createdDate", desc: true }]);
@@ -50,17 +49,17 @@ const ManageDevices = () => {
     const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
     const [rowSelection, setRowSelection] = useState({});
 
-    const [dialogOpen, setDialogOpen] = useState(false);
+    const [dialogOpen, setDialogOpen] = useState<boolean>(false);
     const [selectedDevice, setSelectedDevice] = useState<Device | undefined>(undefined);
-    const [detailDialogOpen, setDetailDialogOpen] = useState(false);
+    const [detailDialogOpen, setDetailDialogOpen] = useState<boolean>(false);
     const [detailDevice, setDetailDevice] = useState<Device | null>(null);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [deviceToDelete, setDeviceToDelete] = useState<Device | null>(null);
 
-    const [searchValue, setSearchValue] = useState("");
+    const [searchValue, setSearchValue] = useState<string>("");
     const debouncedSearchValue = useDebounce(searchValue, 500);
 
-    const isInitialMount = useRef(true);
+    const isInitialMount = useRef<boolean>(true);
 
     // Gộp đồng bộ tất cả bộ lọc trong một useEffect
     useEffect(() => {
@@ -71,6 +70,10 @@ const ManageDevices = () => {
         table.getColumn("name")?.setFilterValue(debouncedSearchValue || undefined);
         table.getColumn("status")?.setFilterValue(statusFilter || undefined);
     }, [debouncedSearchValue, statusFilter]);
+
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [columnFilters]);
 
     const fetchDevices = useCallback(async () => {
         try {

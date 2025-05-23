@@ -221,6 +221,11 @@ const ManageProducts = () => {
         table.setPageSize(pageSize);
     }, [pageSize, table]);
 
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [columnFilters]);
+
+
     return (
         <div className="w-full">
             <div className="flex flex-col space-y-4 p-4 sm:p-6">

@@ -217,9 +217,10 @@ const ManageMenus = () => {
         table.setPageSize(pageSize);
     }, [pageSize, table]);
 
-    const toggleLoading = () => {
-        fetchMenus();
-    };
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [columnFilters]);
+
 
     return (
         <div className="w-full">
@@ -231,7 +232,7 @@ const ManageMenus = () => {
                     </div>
                     <div className="flex items-center gap-2">
                         <ExportButton loading={loading} />
-                        <RefreshButton loading={loading} toggleLoading={toggleLoading} />
+                        <RefreshButton loading={loading} toggleLoading={fetchMenus} />
                     </div>
                 </div>
                 <div className="flex flex-col sm:flex-row items-center py-4 gap-4">

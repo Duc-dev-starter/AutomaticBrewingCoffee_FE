@@ -235,6 +235,7 @@ const KioskVersionDetailPage = () => {
         }
     }
 
+
     // Filter out products that are already added as support products
     const availableProducts = products.filter(
         (product) => !supportProducts.some((sp) => sp.productId === product.productId),

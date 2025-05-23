@@ -3,7 +3,7 @@
 import { X } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { EOrderStatusViMap, EOrderTypeViMap, EPaymentGatewayViMap } from "@/enum/order"
-import { OrderFilterBadgesProps } from "@/types/filter"
+import { FilterBadgesProps } from "@/types/filter"
 
 
 export const FilterBadges = ({
@@ -12,7 +12,7 @@ export const FilterBadges = ({
   statusFilter,
   setStatusFilter,
   hasActiveFilters,
-}: OrderFilterBadgesProps) => {
+}: FilterBadgesProps) => {
   if (!hasActiveFilters) return null
 
   return (

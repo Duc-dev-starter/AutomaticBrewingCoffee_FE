@@ -155,6 +155,10 @@ const ManageOrders = () => {
         table.resetColumnFilters();
     };
 
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [columnFilters]);
+
     const hasActiveFilters = statusFilter !== "" || searchValue !== "";
 
     return (

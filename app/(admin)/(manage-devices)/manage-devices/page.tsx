@@ -71,9 +71,7 @@ const ManageDevices = () => {
         table.getColumn("status")?.setFilterValue(statusFilter || undefined);
     }, [debouncedSearchValue, statusFilter]);
 
-    useEffect(() => {
-        setCurrentPage(1);
-    }, [columnFilters]);
+
 
     const fetchDevices = useCallback(async () => {
         try {
@@ -212,6 +210,10 @@ const ManageDevices = () => {
     useEffect(() => {
         table.setPageSize(pageSize);
     }, [pageSize, table]);
+
+    useEffect(() => {
+        setCurrentPage(1);
+    }, [columnFilters]);
 
     return (
         <div className="w-full">

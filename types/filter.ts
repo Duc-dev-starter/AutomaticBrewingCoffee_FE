@@ -14,10 +14,6 @@ export type ProductFilterProps = FilterProps & {
 }
 
 
-export type OrderFilterProps = FilterProps & {
-
-}
-
 
 export type FilterBadgesProps = {
     searchValue: string
@@ -32,8 +28,4 @@ export type ProductFilterBadgesProps = FilterBadgesProps & {
     setProductTypeFilter: (value: string) => void
     productSizeFilter: string
     setProductSizeFilter: (value: string) => void
-}
-
-export type OrderFilterBadgesProps = FilterBadgesProps & {
-
 }

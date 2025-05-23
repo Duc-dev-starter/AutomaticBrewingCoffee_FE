@@ -21,6 +21,18 @@ const statusColorMap = {
     [EBaseStatus.Inactive]: "bg-gray-400",
 }
 
+const statusStyleMap: Record<EBaseStatus, { dot: string; text: string }> = {
+    [EBaseStatus.Active]: {
+        dot: "bg-primary",
+        text: "text-primary",
+    },
+    [EBaseStatus.Inactive]: {
+        dot: "bg-gray-400",
+        text: "text-muted-foreground",
+    },
+}
+
+
 export const BaseStatusFilter = ({ statusFilter, setStatusFilter }: FilterProps) => {
     const statuses = Object.values(EBaseStatus)
     const totalStatuses = statuses.length
@@ -31,10 +43,16 @@ export const BaseStatusFilter = ({ statusFilter, setStatusFilter }: FilterProps)
             <DropdownMenuTrigger asChild>
                 <Button variant="outline" className="ml-auto">
                     {statusFilter ? (
-                        <span className={cn("w-2 h-2 rounded-full mr-2", statusColorMap[statusFilter as EBaseStatus])} />
+                        <span
+                            className={cn(
+                                "w-2 h-2 rounded-full mr-2",
+                                statusStyleMap[statusFilter as EBaseStatus]?.dot
+                            )}
+                        />
                     ) : (
                         <Filter className="mr-2 h-4 w-4" />
                     )}
+
                     Trạng thái <span className="ml-1 bg-gray-200 rounded-full px-2 pt-0.5 pb-1 text-xs">
                         {activeCount}/{totalStatuses}
                     </span>
@@ -52,7 +70,7 @@ export const BaseStatusFilter = ({ statusFilter, setStatusFilter }: FilterProps)
                             value={status}
                             className={cn(
                                 "group relative flex items-center cursor-pointer",
-                                statusFilter === status && status === EBaseStatus.Active && "text-primary",
+                                statusFilter === status && statusStyleMap[status]?.text,
                                 "hover:bg-muted hover:text-primary",
                                 status === EBaseStatus.Active && "data-[state=checked]:text-primary"
                             )}

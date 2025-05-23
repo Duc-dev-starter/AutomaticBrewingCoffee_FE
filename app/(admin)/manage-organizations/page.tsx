@@ -92,7 +92,6 @@ const ManageOrganizations = () => {
 
             const sortBy = sorting.length > 0 ? sorting[0]?.id : undefined
             const isAsc = sorting.length > 0 ? !sorting[0]?.desc : undefined
-
             const response = await getOrganizations({
                 filterBy,
                 filterQuery,

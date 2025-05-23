@@ -6,6 +6,7 @@ import clsx from "clsx";
 import { EDeviceStatus, EDeviceStatusViMap } from '@/enum/device';
 import { formatDate } from "@/utils/date";
 import { ActionDropdown } from "../common";
+import DeviceFilterBadgesTable from "./device-filter-badges-table";
 
 export const columns = ({
     onViewDetails,
@@ -43,14 +44,13 @@ export const columns = ({
             header: "Mã serial",
             cell: ({ row }) => (
                 <div className="flex items-center justify-center gap-2">
-                    <Cpu className="h-4 w-4 text-muted-foreground" />
                     <span>{row.original.serialNumber}</span>
                 </div>
             ),
         },
         {
             id: "deviceInfo",
-            header: "Thiết bị",
+            header: "Thông tin thiết bị",
             cell: ({ row }) => {
                 const modelName = row.original.deviceModel?.modelName || "N/A";
                 const deviceTypeName = row.original.deviceModel?.deviceType?.name || "N/A";
@@ -72,19 +72,7 @@ export const columns = ({
                 const statusText = EDeviceStatusViMap[status] ?? "Không rõ";
                 return (
                     <div className="flex justify-center items-center w-full">
-                        <Badge
-                            className={clsx(
-                                "flex items-center justify-center !w-fit !px-2 !py-[2px] !rounded-full !text-white !text-xs",
-                                {
-                                    "bg-green-500": status === EDeviceStatus.Stock,
-                                    "bg-blue-500": status === EDeviceStatus.Working,
-                                    "bg-yellow-500": status === EDeviceStatus.Maintain,
-                                }
-                            )}
-                        >
-                            <Power className="w-3 h-3 mr-1" />
-                            {statusText}
-                        </Badge>
+                        <DeviceFilterBadgesTable status={status} statusText={statusText} />
                     </div>
                 );
             },

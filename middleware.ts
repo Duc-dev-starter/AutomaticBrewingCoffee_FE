@@ -32,7 +32,8 @@ const allowedPaths = [
     Path.MANAGE_KIOSK_TYPES,
     Path.CREATE_ACCOUNT,
     Path.CREATE_WORKFLOW,
-    Path.UPDATE_WORKFLOW
+    Path.UPDATE_WORKFLOW,
+    '/test'
 ];
 
 const dynamicPathPrefixes = [

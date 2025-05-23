@@ -238,6 +238,7 @@ const ManageDevices = () => {
                             setStatusFilter={setStatusFilter}
                             clearAllFilters={clearAllFilters}
                             hasActiveFilters={hasActiveFilters}
+                            loading={loading}
                         />
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>

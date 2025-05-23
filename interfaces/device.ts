@@ -1,5 +1,5 @@
 import { EBaseStatus } from "@/enum/base";
-import { EDeviceStatus } from "@/enum/device";
+import { EDeviceStatus, EFunctionParameterType } from "@/enum/device";
 
 export interface Device {
     deviceId: string;
@@ -32,4 +32,23 @@ export interface DeviceModel {
     status: EBaseStatus;
     createdDate: string;
     updatedDate: string | null;
+    deviceFunctions: DeviceFunction[];
+}
+
+export interface DeviceFunction {
+    name: string;
+    deviceFunctionId: string;
+    functionParameters: FunctionParameters[];
+    status: EBaseStatus;
+}
+
+export interface FunctionParameters {
+    name: string;
+    id: string;
+    min: string | null;
+    options: string[] | null;
+    max: string | null,
+    description: string | null,
+    type: EFunctionParameterType,
+    default: string
 }

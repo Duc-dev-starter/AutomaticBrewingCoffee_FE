@@ -1,5 +1,5 @@
 import { EBaseStatus } from "@/enum/base";
-import { EDeviceStatus } from "@/enum/device";
+import { EDeviceStatus, EFunctionParameterType } from "@/enum/device";
 import { z } from "zod";
 
 export const deviceTypeSchema = z.object({
@@ -8,11 +8,29 @@ export const deviceTypeSchema = z.object({
     description: z.string().optional(),
 });
 
+
 export const deviceModelSchema = z.object({
-    modelName: z.string().min(1, "Tên mẫu thiết bị không được để trống."),
-    status: z.enum([EBaseStatus.Active, EBaseStatus.Inactive], { message: "Vui lòng chọn trạng thái cho mẫu thiết bị." }),
-    deviceTypeId: z.string().min(1, "Vui lòng chọn loại thiết bị."),
-    manufacturer: z.string().min(1, "Tên nhà sản xuất không được để trống ."),
+    modelName: z.string().min(1, "Tên mẫu thiết bị là bắt buộc"),
+    manufacturer: z.string().min(1, "Nhà sản xuất là bắt buộc"),
+    deviceTypeId: z.string().min(1, "Loại thiết bị là bắt buộc"),
+    status: z.nativeEnum(EBaseStatus),
+    deviceFunctions: z.array(
+        z.object({
+            name: z.string().min(1, "Tên chức năng là bắt buộc"),
+            status: z.nativeEnum(EBaseStatus),
+            functionParameters: z.array(
+                z.object({
+                    name: z.string().min(1, "Tên tham số là bắt buộc"),
+                    min: z.string().nullable().optional(),
+                    max: z.string().nullable().optional(),
+                    options: z.array(z.string()).nullable().optional(),
+                    description: z.string().nullable().optional(),
+                    type: z.nativeEnum(EFunctionParameterType),
+                    default: z.string().min(1, "Giá trị mặc định là bắt buộc"),
+                })
+            ).optional(),
+        })
+    ).optional(),
 });
 
 export const deviceSchema = z.object({

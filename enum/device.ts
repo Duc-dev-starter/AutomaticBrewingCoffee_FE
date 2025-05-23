@@ -4,6 +4,13 @@ export enum EDeviceStatus {
     Maintain = "Maintain"
 }
 
+export enum EFunctionParameterType {
+    Decimal = "Decimal",
+    Integer = "Integer",
+    Boolean = "Boolean",
+    Text = "Text"
+}
+
 
 export const EDeviceStatusViMap: Record<string, string> = {
     [EDeviceStatus.Stock]: "Đang chờ",

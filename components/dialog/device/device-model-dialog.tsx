@@ -168,6 +168,7 @@ const DeviceModelDialog = ({ open, onOpenChange, onSuccess, deviceModel }: Devic
                         <div className="space-y-2">
                             <Label htmlFor="modelName" className="required">
                                 Tên mẫu thiết bị
+                                <span className="text-red-500 ml-1">*</span>
                             </Label>
                             <Input
                                 id="modelName"
@@ -181,7 +182,10 @@ const DeviceModelDialog = ({ open, onOpenChange, onSuccess, deviceModel }: Devic
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="manufacturer">Nhà sản xuất</Label>
+                            <Label htmlFor="manufacturer">
+                                Nhà sản xuất
+                                <span className="text-red-500 ml-1">*</span>
+                            </Label>
                             <Input
                                 id="manufacturer"
                                 placeholder="Nhập nhà sản xuất"
@@ -195,6 +199,7 @@ const DeviceModelDialog = ({ open, onOpenChange, onSuccess, deviceModel }: Devic
                         <div className="space-y-2">
                             <Label htmlFor="deviceTypeId" className="required">
                                 Loại thiết bị
+                                <span className="text-red-500 ml-1">*</span>
                             </Label>
                             <Select
                                 value={formData.deviceTypeId}
@@ -202,14 +207,14 @@ const DeviceModelDialog = ({ open, onOpenChange, onSuccess, deviceModel }: Devic
                                 disabled={loading}
                             >
                                 <SelectTrigger id="deviceTypeId">
-                                    <SelectValue placeholder="Select device type" />
+                                    <SelectValue placeholder="Chọn loại thiết bị" />
                                 </SelectTrigger>
                                 <SelectContent className="max-h-[300px] overflow-y-auto">
                                     <InfiniteScroll
                                         dataLength={deviceTypes.length}
                                         next={loadMoreDeviceTypes}
                                         hasMore={hasMore}
-                                        loader={<div className="p-2 text-center text-sm">Loading more...</div>}
+                                        loader={<div className="p-2 text-center text-sm">Đang tải...</div>}
                                         scrollableTarget="select-content"
                                         style={{ overflow: "hidden" }}
                                     >

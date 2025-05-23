@@ -332,7 +332,7 @@ const KioskDetailPage = () => {
                         ""
                     )}
 
-                    {kiosk.webhooks ? (
+                    {kiosk.webhooks && kiosk.webhooks.length > 0 ? (
                         <Card>
                             <CardHeader>
                                 <CardTitle className="text-lg flex items-center">
@@ -342,7 +342,7 @@ const KioskDetailPage = () => {
                             </CardHeader>
                             <CardContent>
                                 <div className="space-y-4">
-                                    {kiosk.webhooks && kiosk.webhooks.length > 0 ? (
+                                    {
                                         kiosk.webhooks.map((webhook) => (
                                             <div key={webhook.webhookId} className="border rounded-md p-4">
                                                 <div className="flex justify-between items-start">
@@ -369,12 +369,7 @@ const KioskDetailPage = () => {
                                                 </div>
                                             </div>
                                         ))
-                                    ) : (
-                                        <div className="text-center py-8 text-muted-foreground">
-                                            <Link className="h-12 w-12 mx-auto mb-3 opacity-20" />
-                                            <p>Không có webhook nào được cấu hình cho kiosk này</p>
-                                        </div>
-                                    )}
+                                    }
                                 </div>
                             </CardContent>
                         </Card>

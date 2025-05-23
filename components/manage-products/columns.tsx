@@ -8,6 +8,7 @@ import { EProductStatus, EProductStatusViMap, EProductTypeViMap } from "@/enum/p
 import { formatCurrency } from "@/utils";
 import { ActionDropdown } from "../common";
 import { SizeBadge } from "./product-badge";
+import ProductFilterBadgesTable from "./product-filter-badges-table";
 
 // Cột cho bảng sản phẩm
 export const columns = ({
@@ -89,19 +90,7 @@ export const columns = ({
                 const status: EProductStatus = row.original.status;
                 const statusText = EProductStatusViMap[status] ?? "Không rõ";
                 return (
-                    <div className="flex justify-center">
-                        <Badge
-                            className={clsx(
-                                "mr-2 flex items-center justify-center !px-2 !py-[2px] !rounded-full !text-white !text-xs",
-                                {
-                                    "bg-green-500": status === EProductStatus.Selling,
-                                    "bg-red-500": status === EProductStatus.UnSelling,
-                                }
-                            )}
-                        >
-                            {statusText}
-                        </Badge>
-                    </div>
+                    <ProductFilterBadgesTable status={status} statusText={statusText} />
                 );
             },
             enableSorting: false,

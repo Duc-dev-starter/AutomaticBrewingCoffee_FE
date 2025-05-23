@@ -234,7 +234,7 @@ const OrganizationDialog = ({ open, onOpenChange, onSuccess, organization }: Org
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-[500px]">
+            <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto hide-scrollbar">
                 <DialogHeader>
                     <DialogTitle className="flex items-center">
                         {isUpdate ? (

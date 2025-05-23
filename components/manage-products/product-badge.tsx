@@ -20,20 +20,6 @@ export const SizeBadge = ({ size }: { size: EProductSize }) => {
 }
 
 
-// Status Badge (based on your existing code but extracted as a component)
-export const StatusBadge = ({ status }: { status: EProductStatus }) => {
-    return (
-        <Badge
-            className={clsx("flex items-center justify-center !px-3 !py-1 !rounded-full !text-white !text-xs", {
-                "bg-green-500 hover:bg-green-600": status === EProductStatus.Selling,
-                "bg-red-500 hover:bg-red-600": status === EProductStatus.UnSelling,
-            })}
-        >
-            {status}
-        </Badge>
-    )
-}
-
 // Creation Date Badge
 export const CreationDateBadge = ({ date }: { date: Date | string }) => {
     const createdDate = typeof date === "string" ? new Date(date) : date

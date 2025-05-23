@@ -29,11 +29,11 @@ const initialFormData = {
 const DeviceDialog = ({ open, onOpenChange, onSuccess, device }: DeviceDialogProps) => {
     const { toast } = useToast();
     const [errors, setErrors] = useState<Record<string, any>>({});
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState<boolean>(false);
     const [formData, setFormData] = useState(initialFormData);
     const [deviceModels, setDeviceModels] = useState<DeviceModel[]>([]);
-    const [pageDeviceModels, setPageDeviceModels] = useState(1);
-    const [hasMoreDeviceModels, setHasMoreDeviceModels] = useState(true);
+    const [pageDeviceModels, setPageDeviceModels] = useState<number>(1);
+    const [hasMoreDeviceModels, setHasMoreDeviceModels] = useState<boolean>(true);
 
     const fetchDeviceModels = async (pageNumber: number) => {
         try {
@@ -171,6 +171,7 @@ const DeviceDialog = ({ open, onOpenChange, onSuccess, device }: DeviceDialogPro
                         <div className="space-y-2">
                             <Label htmlFor="deviceModelId" className="required">
                                 Mẫu thiết bị
+                                <span className="text-red-500 ml-1">*</span>
                             </Label>
                             <Select
                                 value={formData.deviceModelId}
@@ -204,8 +205,9 @@ const DeviceDialog = ({ open, onOpenChange, onSuccess, device }: DeviceDialogPro
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="serialNumber" className="required">
+                            <Label htmlFor="serialNumber">
                                 Số Serial
+                                <span className="text-red-500 ml-1">*</span>
                             </Label>
                             <Input
                                 id="serialNumber"
@@ -218,8 +220,9 @@ const DeviceDialog = ({ open, onOpenChange, onSuccess, device }: DeviceDialogPro
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="name" className="required">
+                            <Label htmlFor="name">
                                 Tên thiết bị
+                                <span className="text-red-500 ml-1">*</span>
                             </Label>
                             <Input
                                 id="name"
@@ -232,8 +235,9 @@ const DeviceDialog = ({ open, onOpenChange, onSuccess, device }: DeviceDialogPro
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="status" className="required">
+                            <Label htmlFor="status">
                                 Trạng thái
+                                <span className="text-red-500 ml-1">*</span>
                             </Label>
                             <Select
                                 value={formData.status}

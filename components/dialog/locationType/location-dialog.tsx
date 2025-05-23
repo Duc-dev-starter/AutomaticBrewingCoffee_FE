@@ -121,6 +121,7 @@ const LocationTypeDialog = ({ open, onOpenChange, onSuccess, locationType }: Loc
                         <div className="space-y-2">
                             <Label htmlFor="name" className="required">
                                 Tên location
+                                <span className="text-red-500 ml-1">*</span>
                             </Label>
                             <Input
                                 id="name"
@@ -134,7 +135,10 @@ const LocationTypeDialog = ({ open, onOpenChange, onSuccess, locationType }: Loc
 
 
                         <div className="space-y-2">
-                            <Label htmlFor="description">Mô tả</Label>
+                            <Label htmlFor="description">
+                                Mô tả
+                                <span className="text-red-500 ml-1">*</span>
+                            </Label>
                             <Textarea
                                 id="description"
                                 placeholder="Nhập mô tả location"

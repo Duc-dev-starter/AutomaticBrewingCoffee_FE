@@ -14,17 +14,17 @@ import { getStores } from "@/services/store"
 import { getKioskVersions } from "@/services/kiosk"
 import { format } from "date-fns"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { CalendarIcon } from "lucide-react"
-import { Calendar } from "@/components/ui/calendar"
+import { CalendarIcon } from 'lucide-react'
 import { vi } from "date-fns/locale"
 import { kioskSchema } from "@/schema/kiosk"
 import type { KioskDialogProps } from "@/types/dialog"
 import type { KioskVersion } from "@/interfaces/kiosk"
 import type { Store } from "@/interfaces/store"
-import { X, Cpu } from "lucide-react"
+import { X, Cpu } from 'lucide-react'
 import InfiniteScroll from "react-infinite-scroll-component"
 import { ErrorResponse } from "@/types/error"
 import { getValidDevicesInKiosk } from "@/services/kiosk"
+import { EnhancedCalendar } from "@/components/common/enhanced-calendar"
 
 const initialFormData = {
     kioskVersionId: "",
@@ -199,6 +199,7 @@ const KioskDialog = ({ open, onOpenChange, onSuccess, kiosk }: KioskDialogProps)
         }
     }
 
+
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto hide-scrollbar">
@@ -207,7 +208,10 @@ const KioskDialog = ({ open, onOpenChange, onSuccess, kiosk }: KioskDialogProps)
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
                     <div className="grid gap-2 min-h-[4.5rem]">
-                        <Label htmlFor="kioskVersionId">Phiên bản kiosk</Label>
+                        <Label htmlFor="kioskVersionId">
+                            Phiên bản kiosk
+                            <span className="text-red-500 ml-1">*</span>
+                        </Label>
                         <Select
                             value={formData.kioskVersionId}
                             onValueChange={(value) => setFormData({ ...formData, kioskVersionId: value })}
@@ -227,7 +231,10 @@ const KioskDialog = ({ open, onOpenChange, onSuccess, kiosk }: KioskDialogProps)
                         {errors.kioskVersionId && <p className="text-red-500 text-sm">{errors.kioskVersionId}</p>}
                     </div>
                     <div className="grid gap-2 min-h-[4.5rem]">
-                        <Label htmlFor="storeId">Cửa hàng</Label>
+                        <Label htmlFor="storeId">
+                            Cửa hàng
+                            <span className="text-red-500 ml-1">*</span>
+                        </Label>
                         <Select
                             value={formData.storeId}
                             onValueChange={(value) => setFormData({ ...formData, storeId: value })}
@@ -247,7 +254,10 @@ const KioskDialog = ({ open, onOpenChange, onSuccess, kiosk }: KioskDialogProps)
                         {errors.storeId && <p className="text-red-500 text-sm">{errors.storeId}</p>}
                     </div>
                     <div className="grid gap-2 min-h-[4.5rem]">
-                        <Label htmlFor="deviceIds">Thiết bị</Label>
+                        <Label htmlFor="deviceIds">
+                            Thiết bị
+                            <span className="text-red-500 ml-1">*</span>
+                        </Label>
                         <div className="flex flex-col gap-2">
                             <div className="relative">
                                 <div className="flex items-center border rounded-md focus-within:ring-1 focus-within:ring-ring">
@@ -374,7 +384,10 @@ const KioskDialog = ({ open, onOpenChange, onSuccess, kiosk }: KioskDialogProps)
                         {errors.deviceIds && <p className="text-red-500 text-sm">{errors.deviceIds}</p>}
                     </div>
                     <div className="grid gap-2 min-h-[4.5rem]">
-                        <Label htmlFor="location">Địa chỉ</Label>
+                        <Label htmlFor="location">
+                            Địa chỉ
+                            <span className="text-red-500 ml-1">*</span>
+                        </Label>
                         <Input
                             id="location"
                             value={formData.location}
@@ -385,7 +398,10 @@ const KioskDialog = ({ open, onOpenChange, onSuccess, kiosk }: KioskDialogProps)
                         {errors.location && <p className="text-red-500 text-sm">{errors.location}</p>}
                     </div>
                     <div className="grid gap-2 min-h-[4.5rem]">
-                        <Label htmlFor="position">Vị trí</Label>
+                        <Label htmlFor="position">
+                            Vị trí
+                            <span className="text-red-500 ml-1">*</span>
+                        </Label>
                         <Input
                             id="position"
                             value={formData.position}
@@ -396,7 +412,10 @@ const KioskDialog = ({ open, onOpenChange, onSuccess, kiosk }: KioskDialogProps)
                         {errors.position && <p className="text-red-500 text-sm">{errors.position}</p>}
                     </div>
                     <div className="grid gap-2 min-h-[4.5rem]">
-                        <Label htmlFor="status">Trạng thái</Label>
+                        <Label htmlFor="status">
+                            Trạng thái
+                            <span className="text-red-500 ml-1">*</span>
+                        </Label>
                         <Select
                             value={formData.status}
                             onValueChange={(value) => setFormData({ ...formData, status: value as EBaseStatus })}
@@ -413,10 +432,17 @@ const KioskDialog = ({ open, onOpenChange, onSuccess, kiosk }: KioskDialogProps)
                         {errors.status && <p className="text-red-500 text-sm">{errors.status}</p>}
                     </div>
                     <div className="grid gap-2 min-h-[4.5rem]">
-                        <Label htmlFor="installedDate">Ngày lắp đặt</Label>
+                        <Label htmlFor="installedDate">
+                            Ngày lắp đặt
+                            <span className="text-red-500 ml-1">*</span>
+                        </Label>
                         <Popover>
                             <PopoverTrigger asChild>
-                                <Button variant="outline" className="w-full justify-start text-left font-normal" disabled={loading}>
+                                <Button
+                                    variant="outline"
+                                    className="w-full justify-start text-left font-normal"
+                                    disabled={loading}
+                                >
                                     <CalendarIcon className="mr-2 h-4 w-4 text-muted-foreground" />
                                     {formData.installedDate ? (
                                         format(new Date(formData.installedDate), "dd/MM/yyyy")
@@ -426,7 +452,7 @@ const KioskDialog = ({ open, onOpenChange, onSuccess, kiosk }: KioskDialogProps)
                                 </Button>
                             </PopoverTrigger>
                             <PopoverContent className="w-auto p-0" align="start">
-                                <Calendar
+                                <EnhancedCalendar
                                     mode="single"
                                     selected={formData.installedDate ? new Date(formData.installedDate) : undefined}
                                     onSelect={(date) =>
@@ -442,11 +468,19 @@ const KioskDialog = ({ open, onOpenChange, onSuccess, kiosk }: KioskDialogProps)
                         </Popover>
                         {errors.installedDate && <p className="text-red-500 text-sm">{errors.installedDate}</p>}
                     </div>
+
                     <div className="grid gap-2 min-h-[4.5rem]">
-                        <Label htmlFor="warrantyTime">Thời gian bảo hành</Label>
+                        <Label htmlFor="warrantyTime">
+                            Thời gian bảo hành
+                            <span className="text-red-500 ml-1">*</span>
+                        </Label>
                         <Popover>
                             <PopoverTrigger asChild>
-                                <Button variant="outline" className="w-full justify-start text-left font-normal" disabled={loading}>
+                                <Button
+                                    variant="outline"
+                                    className="w-full justify-start text-left font-normal"
+                                    disabled={loading || !formData.installedDate}
+                                >
                                     <CalendarIcon className="mr-2 h-4 w-4 text-muted-foreground" />
                                     {formData.warrantyTime ? (
                                         format(new Date(formData.warrantyTime), "dd/MM/yyyy")
@@ -456,7 +490,7 @@ const KioskDialog = ({ open, onOpenChange, onSuccess, kiosk }: KioskDialogProps)
                                 </Button>
                             </PopoverTrigger>
                             <PopoverContent className="w-auto p-0" align="start">
-                                <Calendar
+                                <EnhancedCalendar
                                     mode="single"
                                     selected={formData.warrantyTime ? new Date(formData.warrantyTime) : undefined}
                                     onSelect={(date) =>
@@ -467,6 +501,11 @@ const KioskDialog = ({ open, onOpenChange, onSuccess, kiosk }: KioskDialogProps)
                                     }
                                     locale={vi}
                                     initialFocus
+                                    disabled={(date) => {
+                                        if (!formData.installedDate) return true;
+                                        const installedDate = new Date(formData.installedDate);
+                                        return date < installedDate;
+                                    }}
                                 />
                             </PopoverContent>
                         </Popover>

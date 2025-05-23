@@ -55,7 +55,7 @@ const ManageLocationTypes = () => {
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [locationTypeToDelete, setLocationTypeToDelete] = useState<LocationType | null>(null);
 
-    const [searchValue, setSearchValue] = useState("");
+    const [searchValue, setSearchValue] = useState<string>("");
     const debouncedSearchValue = useDebounce(searchValue, 500);
 
     const isInitialMount = useRef(true);

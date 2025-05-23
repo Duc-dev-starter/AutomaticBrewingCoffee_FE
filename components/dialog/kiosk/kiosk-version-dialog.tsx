@@ -179,8 +179,9 @@ const KioskVersionDialog = ({ open, onOpenChange, onSuccess, kioskVersion }: Kio
                 <form onSubmit={handleSubmit} className="space-y-6 py-4">
                     <div className="space-y-4">
                         <div className="space-y-2">
-                            <Label htmlFor="versionTitle" className="required">
+                            <Label htmlFor="versionTitle">
                                 Tiêu đề phiên bản
+                                <span className="text-red-500 ml-1">*</span>
                             </Label>
                             <Input
                                 id="versionTitle"
@@ -188,12 +189,14 @@ const KioskVersionDialog = ({ open, onOpenChange, onSuccess, kioskVersion }: Kio
                                 value={formData.versionTitle}
                                 onChange={(e) => handleChange("versionTitle", e.target.value)}
                                 disabled={isSubmitting}
-                                required
                             />
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="description">Mô tả</Label>
+                            <Label htmlFor="description">
+                                Mô tả
+                                <span className="text-red-500 ml-1">*</span>
+                            </Label>
                             <Input
                                 id="description"
                                 placeholder="Nhập mô tả"
@@ -204,7 +207,10 @@ const KioskVersionDialog = ({ open, onOpenChange, onSuccess, kioskVersion }: Kio
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="versionNumber">Số phiên bản</Label>
+                            <Label htmlFor="versionNumber">
+                                Số phiên bản
+                                <span className="text-red-500 ml-1">*</span>
+                            </Label>
                             <Input
                                 id="versionNumber"
                                 placeholder="Nhập số phiên bản"
@@ -215,8 +221,9 @@ const KioskVersionDialog = ({ open, onOpenChange, onSuccess, kioskVersion }: Kio
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="kioskTypeId" className="required">
+                            <Label htmlFor="kioskTypeId">
                                 Loại kiosk
+                                <span className="text-red-500 ml-1">*</span>
                             </Label>
                             <Select
                                 value={formData.kioskTypeId}
@@ -246,8 +253,9 @@ const KioskVersionDialog = ({ open, onOpenChange, onSuccess, kioskVersion }: Kio
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="status" className="required">
+                            <Label htmlFor="status">
                                 Trạng thái
+                                <span className="text-red-500 ml-1">*</span>
                             </Label>
                             <Select
                                 value={formData.status}

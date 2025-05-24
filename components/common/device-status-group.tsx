@@ -9,15 +9,15 @@ import { EDeviceStatus, EDeviceStatusViMap } from "@/enum/device"
 import { getDeviceStatusColor } from "@/utils/color"
 import clsx from "clsx"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Calendar, MoreHorizontal, Package, RefreshCw, Tag } from "lucide-react"
+import { Calendar, Info, MoreHorizontal, Package, RefreshCw, Tag } from "lucide-react"
 import { KioskDevice } from "@/interfaces/kiosk"
 
 interface DeviceStatusGroupProps {
-    kioskDevices: any[]
-    openReplaceDialog: (kioskDevice: any) => void
+    kioskDevices: any[];
+    openReplaceDialog: (kioskDevice: any) => void;
+    openOnhubDialog: (kioskDevice: any) => void;
 }
-
-export const DeviceStatusGroup = ({ kioskDevices, openReplaceDialog }: DeviceStatusGroupProps) => {
+export const DeviceStatusGroup = ({ kioskDevices, openReplaceDialog, openOnhubDialog }: DeviceStatusGroupProps) => {
     // Group devices by status
     const groupedDevices = kioskDevices.reduce(
         (acc, device) => {
@@ -89,6 +89,10 @@ export const DeviceStatusGroup = ({ kioskDevices, openReplaceDialog }: DeviceSta
                                                     <DropdownMenuItem onClick={() => openReplaceDialog(kioskDevice)}>
                                                         <RefreshCw className="mr-2 h-4 w-4" />
                                                         Thay thế thiết bị
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem onClick={() => openOnhubDialog(kioskDevice)}>
+                                                        <Info className="mr-2 h-4 w-4" />
+                                                        Xem thông tin OnHub
                                                     </DropdownMenuItem>
                                                 </DropdownMenuContent>
                                             </DropdownMenu>

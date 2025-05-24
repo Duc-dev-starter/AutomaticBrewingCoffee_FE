@@ -42,6 +42,7 @@
     "embla-carousel-react": "^8.5.2",
     "input-otp": "^1.4.2",
     "js-cookie": "^3.0.5",
+    "jsoneditor": "^10.2.0",
     "jwt-decode": "^4.0.0",
     "lucide-react": "^0.483.0",
     "motion": "^12.6.3",
@@ -64,6 +65,7 @@
   "devDependencies": {
     "@types/file-saver": "^2.0.7",
     "@types/js-cookie": "^3.0.6",
+    "@types/jsoneditor": "^9.9.5",
     "@types/node": "^20",
     "@types/react": "^18",
     "@types/react-beautiful-dnd": "^13.1.8",

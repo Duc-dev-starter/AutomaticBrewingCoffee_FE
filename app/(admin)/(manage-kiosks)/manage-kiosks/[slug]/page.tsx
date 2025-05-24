@@ -23,11 +23,11 @@ import {
 } from "lucide-react"
 import clsx from "clsx"
 import { getBaseStatusColor } from "@/utils/color"
-import { getKiosk } from "@/services/kiosk"
+import { getKiosk, getOnhub } from "@/services/kiosk"
 import { replaceDeviceByKioskId } from "@/services/kiosk"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/hooks/use-toast"
-import type { Kiosk } from "@/interfaces/kiosk"
+import type { Kiosk, KioskDevice } from "@/interfaces/kiosk"
 import { RefreshButton } from "@/components/common"
 import {
     Dialog,
@@ -41,6 +41,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import type { Device } from "@/interfaces/device"
 import { getDevicesToReplace } from "@/services/device"
 import { DeviceStatusGroup } from "@/components/common/device-status-group"
+import { ErrorResponse } from "@/types/error"
 
 const KioskDetailPage = () => {
     const { slug } = useParams()
@@ -56,6 +57,10 @@ const KioskDetailPage = () => {
     const [selectedReplacementDeviceId, setSelectedReplacementDeviceId] = useState<string>("")
     const [loadingReplacements, setLoadingReplacements] = useState<boolean>(false)
     const [processingAction, setProcessingAction] = useState<boolean>(false)
+    const [isOnhubDialogOpen, setIsOnhubDialogOpen] = useState<boolean>(false);
+    const [selectedKioskDeviceForOnhub, setSelectedKioskDeviceForOnhub] = useState<any>(null);
+    const [onhubData, setOnhubData] = useState<any>(null);
+    const [loadingOnhub, setLoadingOnhub] = useState<boolean>(false);
 
     const fetchKioskData = async () => {
         try {
@@ -86,7 +91,33 @@ const KioskDetailPage = () => {
         fetchKioskData()
     }, [slug])
 
-    const openReplaceDialog = async (kioskDevice: any) => {
+    const fetchOnhubData = async (kioskDeviceId: string) => {
+        try {
+            setLoadingOnhub(true);
+            const response = await getOnhub(kioskDeviceId);
+            setOnhubData(response);
+        } catch (error) {
+            const err = error as ErrorResponse
+            console.error("Error fetching onhub data:", error);
+            // toast({
+            //     title: "Lỗi",
+            //     description: err.message,
+            //     variant: "destructive",
+            // });
+            setOnhubData(null);
+        } finally {
+            setLoadingOnhub(false);
+        }
+    };
+
+    const openOnhubDialog = (kioskDevice: KioskDevice) => {
+        setSelectedKioskDeviceForOnhub(kioskDevice);
+        setIsOnhubDialogOpen(true);
+        setOnhubData(null);
+        fetchOnhubData(kioskDevice.kioskDeviceMappingId);
+    };
+
+    const openReplaceDialog = async (kioskDevice: KioskDevice) => {
         setSelectedKioskDevice(kioskDevice)
         setIsReplaceDialogOpen(true)
 
@@ -386,7 +417,11 @@ const KioskDetailPage = () => {
                         </CardHeader>
                         <CardContent>
                             {kiosk.kioskDevices && kiosk.kioskDevices.length > 0 ? (
-                                <DeviceStatusGroup kioskDevices={kiosk.kioskDevices} openReplaceDialog={openReplaceDialog} />
+                                <DeviceStatusGroup
+                                    kioskDevices={kiosk.kioskDevices}
+                                    openReplaceDialog={openReplaceDialog}
+                                    openOnhubDialog={openOnhubDialog}
+                                />
                             ) : (
                                 <div className="text-center py-8 text-muted-foreground">
                                     <Package className="h-12 w-12 mx-auto mb-3 opacity-20" />
@@ -459,6 +494,61 @@ const KioskDetailPage = () => {
                                 </>
                             )}
                         </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+
+            <Dialog open={isOnhubDialogOpen} onOpenChange={setIsOnhubDialogOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Thông tin OnHub</DialogTitle>
+                        <DialogDescription>
+                            Thông tin kết nối của thiết bị "{selectedKioskDeviceForOnhub?.device.name}".
+                        </DialogDescription>
+                    </DialogHeader>
+
+                    {loadingOnhub ? (
+                        <div className="flex items-center justify-center p-4">
+                            <Loader2 className="h-8 w-8 animate-spin" />
+                        </div>
+                    ) : onhubData ? (
+                        <div className="space-y-4">
+                            <div>
+                                <h4 className="font-medium">Trạng thái</h4>
+                                <p>{onhubData.status}</p>
+                            </div>
+                            <div>
+                                <h4 className="font-medium">Thời gian cập nhật trạng thái</h4>
+                                <p>{format(new Date(onhubData.statusUpdatedTime), "dd/MM/yyyy HH:mm")}</p>
+                            </div>
+                            <div>
+                                <h4 className="font-medium">Trạng thái kết nối</h4>
+                                <p>{onhubData.connectionState}</p>
+                            </div>
+                            <div>
+                                <h4 className="font-medium">Thời gian cập nhật trạng thái kết nối</h4>
+                                <p>{format(new Date(onhubData.connectionStateUpdatedTime), "dd/MM/yyyy HH:mm")}</p>
+                            </div>
+                            <div>
+                                <h4 className="font-medium">Thời gian hoạt động cuối cùng</h4>
+                                <p>{format(new Date(onhubData.lastActivityTime), "dd/MM/yyyy HH:mm")}</p>
+                            </div>
+                            <div>
+                                <h4 className="font-medium">Số lượng tin nhắn từ cloud đến thiết bị</h4>
+                                <p>{onhubData.cloudToDeviceMessageCount}</p>
+                            </div>
+                            <div>
+                                <h4 className="font-medium">Chuỗi kết nối</h4>
+                                <p className="break-all">{onhubData.connectionString}</p>
+                            </div>
+                        </div>
+                    ) : (
+                        <p>Không có thông tin OnHub cho thiết bị này.</p>
+                    )}
+
+                    <DialogFooter>
+                        <Button onClick={() => setIsOnhubDialogOpen(false)}>Đóng</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>

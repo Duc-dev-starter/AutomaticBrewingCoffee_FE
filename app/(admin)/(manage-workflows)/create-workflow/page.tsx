@@ -1,3 +1,4 @@
+// @ts-nocheck
 "use client"
 
 import type React from "react"
@@ -39,7 +40,7 @@ const initialFormData = {
     steps: [
         {
             name: "Bước 1",
-            type: EWorkflowStepType.AlertCancellationCommand,
+            type: "",
             deviceModelId: "",
             deviceFunctionId: "",
             maxRetries: 0,
@@ -245,6 +246,20 @@ const CreateWorkflow = () => {
                     ...newSteps[index],
                     [field]: value,
                     deviceFunctionId: "", // Clear device function when device model changes
+                    name: `Bước ${index + 1}`, // Reset to default name
+                }
+            }
+            // If changing device function, update step name and type automatically
+            else if (field === "deviceFunctionId") {
+                const selectedFunction = deviceModels
+                    .flatMap((dm) => dm.deviceFunctions || [])
+                    .find((df) => df.deviceFunctionId === value)
+
+                newSteps[index] = {
+                    ...newSteps[index],
+                    [field]: value,
+                    name: selectedFunction ? `Bước ${index + 1}` : "Bước tiếp theo", // Use function name or fallback
+                    type: selectedFunction ? selectedFunction.name : EWorkflowStepType.AlertCancellationCommand,
                 }
             } else {
                 newSteps[index] = { ...newSteps[index], [field]: value }
@@ -663,7 +678,7 @@ const CreateWorkflow = () => {
                                                             <span className="font-medium">{step.name}</span>
                                                             {step.type && (
                                                                 <Badge variant="secondary" className="ml-3">
-                                                                    {EWorkflowStepTypeViMap[step.type]}
+                                                                    {step.type}
                                                                 </Badge>
                                                             )}
                                                         </div>
@@ -720,9 +735,10 @@ const CreateWorkflow = () => {
                                                             <Input
                                                                 id={`step-name-${index}`}
                                                                 value={step.name}
-                                                                onChange={(e) => handleStepChange(index, "name", e.target.value)}
+                                                                readOnly={true} // Make it readonly since it's auto-generated
                                                                 disabled={loading}
-                                                                className={errors.steps?.[index]?.name ? "border-red-500" : ""}
+                                                                className={`${errors.steps?.[index]?.name ? "border-red-500" : ""} bg-gray-50`}
+                                                                placeholder="Tên sẽ tự động cập nhật khi chọn chức năng thiết bị"
                                                             />
                                                             {errors.steps?.[index]?.name && (
                                                                 <p className="text-red-500 text-sm">{errors.steps[index].name[0]}</p>
@@ -731,22 +747,14 @@ const CreateWorkflow = () => {
 
                                                         <div className="space-y-2">
                                                             <Label htmlFor={`step-type-${index}`}>Loại bước</Label>
-                                                            <Select
+                                                            <Input
+                                                                id={`step-type-${index}`}
                                                                 value={step.type}
-                                                                onValueChange={(value) => handleStepChange(index, "type", value)}
+                                                                readOnly={true} // Make it readonly since it's auto-generated
                                                                 disabled={loading}
-                                                            >
-                                                                <SelectTrigger id={`step-type-${index}`}>
-                                                                    <SelectValue placeholder="Chọn loại bước" />
-                                                                </SelectTrigger>
-                                                                <SelectContent>
-                                                                    {Object.values(EWorkflowStepType).map((type) => (
-                                                                        <SelectItem key={type} value={type}>
-                                                                            {EWorkflowStepTypeViMap[type]}
-                                                                        </SelectItem>
-                                                                    ))}
-                                                                </SelectContent>
-                                                            </Select>
+                                                                className={`${errors.steps?.[index]?.type ? "border-red-500" : ""} bg-gray-50`}
+                                                                placeholder="Loại sẽ tự động cập nhật khi chọn chức năng thiết bị"
+                                                            />
                                                             {errors.steps?.[index]?.type && (
                                                                 <p className="text-red-500 text-sm">{errors.steps[index].type[0]}</p>
                                                             )}

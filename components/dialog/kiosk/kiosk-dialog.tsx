@@ -12,17 +12,17 @@ import { EBaseStatus } from "@/enum/base"
 import { createKiosk, updateKiosk } from "@/services/kiosk"
 import { getStores } from "@/services/store"
 import { getKioskVersions } from "@/services/kiosk"
-import { format } from "date-fns"
+import { format, isAfter, startOfDay } from "date-fns"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { CalendarIcon } from 'lucide-react'
+import { CalendarIcon } from "lucide-react"
 import { vi } from "date-fns/locale"
 import { kioskSchema } from "@/schema/kiosk"
 import type { KioskDialogProps } from "@/types/dialog"
 import type { KioskVersion } from "@/interfaces/kiosk"
 import type { Store } from "@/interfaces/store"
-import { X, Cpu } from 'lucide-react'
+import { X, Cpu } from "lucide-react"
 import InfiniteScroll from "react-infinite-scroll-component"
-import { ErrorResponse } from "@/types/error"
+import type { ErrorResponse } from "@/types/error"
 import { getValidDevicesInKiosk } from "@/services/kiosk"
 import { EnhancedCalendar } from "@/components/common/enhanced-calendar"
 
@@ -63,13 +63,13 @@ const KioskDialog = ({ open, onOpenChange, onSuccess, kiosk }: KioskDialogProps)
                 setKioskVersions(kioskVersionRes.items)
                 setStores(storeRes.items)
             } catch (error) {
-                const err = error as ErrorResponse;
-                console.error("Lỗi khi lấy danh sách kiosk:", error);
+                const err = error as ErrorResponse
+                console.error("Lỗi khi lấy danh sách kiosk:", error)
                 toast({
                     title: "Lỗi khi lấy danh sách kiosk",
                     description: err.message,
                     variant: "destructive",
-                });
+                })
             } finally {
                 setFetching(false)
             }
@@ -88,64 +88,64 @@ const KioskDialog = ({ open, onOpenChange, onSuccess, kiosk }: KioskDialogProps)
     useEffect(() => {
         if (formData.kioskVersionId) {
             const fetchValidDevices = async () => {
-                setFetching(true);
+                setFetching(true)
                 try {
-                    const response = await getValidDevicesInKiosk(formData.kioskVersionId, { page: 1, size: 10 });
-                    setValidDevices(response.items);
-                    setHasMoreDevices(response.items.length === 10);
-                    setDevicePage(1);
+                    const response = await getValidDevicesInKiosk(formData.kioskVersionId, { page: 1, size: 10 })
+                    setValidDevices(response.items)
+                    setHasMoreDevices(response.items.length === 10)
+                    setDevicePage(1)
                 } catch (error) {
-                    const err = error as ErrorResponse;
-                    console.error("Lỗi khi lấy danh sách thiết bị hợp lệ:", error);
+                    const err = error as ErrorResponse
+                    console.error("Lỗi khi lấy danh sách thiết bị hợp lệ:", error)
                     toast({
                         title: "Lỗi khi lấy danh sách thiết bị hợp lệ",
                         description: err.message,
                         variant: "destructive",
-                    });
+                    })
                 } finally {
-                    setFetching(false);
+                    setFetching(false)
                 }
-            };
-            fetchValidDevices();
+            }
+            fetchValidDevices()
         } else {
-            setValidDevices([]);
-            setHasMoreDevices(true);
+            setValidDevices([])
+            setHasMoreDevices(true)
         }
     }, [formData.kioskVersionId, toast])
 
     // Load thêm thiết bị hợp lệ
     const loadMoreDevices = async () => {
-        if (fetching || !hasMoreDevices || !formData.kioskVersionId) return;
+        if (fetching || !hasMoreDevices || !formData.kioskVersionId) return
 
-        setFetching(true);
+        setFetching(true)
         try {
-            const nextPage = devicePage + 1;
+            const nextPage = devicePage + 1
             const response = await getValidDevicesInKiosk(formData.kioskVersionId, {
                 page: nextPage,
                 size: 10,
                 filterBy: deviceSearchQuery ? "name" : undefined,
                 filterQuery: deviceSearchQuery || undefined,
-            });
+            })
 
             if (response.items.length > 0) {
-                setValidDevices((prev) => [...prev, ...response.items]);
-                setDevicePage(nextPage);
-                setHasMoreDevices(response.items.length === 10);
+                setValidDevices((prev) => [...prev, ...response.items])
+                setDevicePage(nextPage)
+                setHasMoreDevices(response.items.length === 10)
             } else {
-                setHasMoreDevices(false);
+                setHasMoreDevices(false)
             }
         } catch (error) {
-            const err = error as ErrorResponse;
-            console.error("Lỗi khi tải thêm thiết bị hợp lệ:", error);
+            const err = error as ErrorResponse
+            console.error("Lỗi khi tải thêm thiết bị hợp lệ:", error)
             toast({
                 title: "Lỗi khi tải thêm thiết bị hợp lệ",
                 description: err.message,
                 variant: "destructive",
-            });
+            })
         } finally {
-            setFetching(false);
+            setFetching(false)
         }
-    };
+    }
 
     // Xử lý submit form
     const handleSubmit = async () => {
@@ -187,18 +187,17 @@ const KioskDialog = ({ open, onOpenChange, onSuccess, kiosk }: KioskDialogProps)
             onSuccess?.()
             onOpenChange(false)
         } catch (error) {
-            const err = error as ErrorResponse;
-            console.error("Lỗi khi xử lý kiosk:", error);
+            const err = error as ErrorResponse
+            console.error("Lỗi khi xử lý kiosk:", error)
             toast({
                 title: "Lỗi khi xử lý kiosk",
                 description: err.message,
                 variant: "destructive",
-            });
+            })
         } finally {
             setLoading(false)
         }
     }
-
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -305,7 +304,7 @@ const KioskDialog = ({ open, onOpenChange, onSuccess, kiosk }: KioskDialogProps)
                                                                     setFormData({
                                                                         ...formData,
                                                                         deviceIds: [...formData.deviceIds, d.deviceId],
-                                                                    });
+                                                                    })
                                                                 }
                                                             }}
                                                             disabled={formData.deviceIds.includes(d.deviceId)}
@@ -315,9 +314,7 @@ const KioskDialog = ({ open, onOpenChange, onSuccess, kiosk }: KioskDialogProps)
                                                                 <div>
                                                                     <div className="font-medium">{d.name}</div>
                                                                     {d.serialNumber && (
-                                                                        <div className="text-xs text-muted-foreground">
-                                                                            SN: {d.serialNumber}
-                                                                        </div>
+                                                                        <div className="text-xs text-muted-foreground">SN: {d.serialNumber}</div>
                                                                     )}
                                                                 </div>
                                                             </div>
@@ -330,11 +327,7 @@ const KioskDialog = ({ open, onOpenChange, onSuccess, kiosk }: KioskDialogProps)
                                                     ))}
                                                 </div>
                                                 <div className="p-2">
-                                                    <Button
-                                                        variant="outline"
-                                                        className="w-full"
-                                                        onClick={() => setIsDeviceDropdownOpen(false)}
-                                                    >
+                                                    <Button variant="outline" className="w-full" onClick={() => setIsDeviceDropdownOpen(false)}>
                                                         Đóng
                                                     </Button>
                                                 </div>
@@ -352,7 +345,7 @@ const KioskDialog = ({ open, onOpenChange, onSuccess, kiosk }: KioskDialogProps)
                                     <div className="text-sm font-medium">Thiết bị đã chọn ({formData.deviceIds.length})</div>
                                     <ul className="space-y-2">
                                         {formData.deviceIds.map((deviceId) => {
-                                            const device = validDevices.find((d) => d.deviceId === deviceId);
+                                            const device = validDevices.find((d) => d.deviceId === deviceId)
                                             return (
                                                 <li key={deviceId} className="flex justify-between items-center p-2 bg-muted/50 rounded-md">
                                                     <div className="flex items-center gap-2">
@@ -375,7 +368,7 @@ const KioskDialog = ({ open, onOpenChange, onSuccess, kiosk }: KioskDialogProps)
                                                         <X className="h-4 w-4" />
                                                     </Button>
                                                 </li>
-                                            );
+                                            )
                                         })}
                                     </ul>
                                 </div>
@@ -431,23 +424,22 @@ const KioskDialog = ({ open, onOpenChange, onSuccess, kiosk }: KioskDialogProps)
                         </Select>
                         {errors.status && <p className="text-red-500 text-sm">{errors.status}</p>}
                     </div>
+
+                    {/* NGÀY LẮP ĐẶT - CHỈ CHO PHÉP CHỌN TỪ HÔM NAY TRỞ VỀ QUÁ KHỨ */}
                     <div className="grid gap-2 min-h-[4.5rem]">
                         <Label htmlFor="installedDate">
                             Ngày lắp đặt
                             <span className="text-red-500 ml-1">*</span>
+                            <span className="text-xs text-muted-foreground ml-2">(Từ hôm nay trở về quá khứ)</span>
                         </Label>
                         <Popover>
                             <PopoverTrigger asChild>
-                                <Button
-                                    variant="outline"
-                                    className="w-full justify-start text-left font-normal"
-                                    disabled={loading}
-                                >
+                                <Button variant="outline" className="w-full justify-start text-left font-normal" disabled={loading}>
                                     <CalendarIcon className="mr-2 h-4 w-4 text-muted-foreground" />
                                     {formData.installedDate ? (
                                         format(new Date(formData.installedDate), "dd/MM/yyyy")
                                     ) : (
-                                        <span>Chọn ngày</span>
+                                        <span>Chọn ngày lắp đặt</span>
                                     )}
                                 </Button>
                             </PopoverTrigger>
@@ -459,20 +451,29 @@ const KioskDialog = ({ open, onOpenChange, onSuccess, kiosk }: KioskDialogProps)
                                         setFormData({
                                             ...formData,
                                             installedDate: date ? format(date, "yyyy-MM-dd") : "",
+                                            // Reset warranty time khi thay đổi installation date
+                                            warrantyTime: "",
                                         })
                                     }
                                     locale={vi}
                                     initialFocus
+                                    disabled={(date) => {
+                                        // Chỉ cho phép chọn từ hôm nay trở về quá khứ
+                                        const today = startOfDay(new Date())
+                                        return isAfter(startOfDay(date), today)
+                                    }}
                                 />
                             </PopoverContent>
                         </Popover>
                         {errors.installedDate && <p className="text-red-500 text-sm">{errors.installedDate}</p>}
                     </div>
 
+                    {/* NGÀY BẢO HÀNH - CHỈ CHO PHÉP CHỌN TỪ NGÀY LẮP ĐẶT TRỞ VỀ TƯƠNG LAI */}
                     <div className="grid gap-2 min-h-[4.5rem]">
                         <Label htmlFor="warrantyTime">
                             Thời gian bảo hành
                             <span className="text-red-500 ml-1">*</span>
+                            <span className="text-xs text-muted-foreground ml-2">(Từ ngày lắp đặt trở về tương lai)</span>
                         </Label>
                         <Popover>
                             <PopoverTrigger asChild>
@@ -485,7 +486,7 @@ const KioskDialog = ({ open, onOpenChange, onSuccess, kiosk }: KioskDialogProps)
                                     {formData.warrantyTime ? (
                                         format(new Date(formData.warrantyTime), "dd/MM/yyyy")
                                     ) : (
-                                        <span>Chọn ngày</span>
+                                        <span>Chọn ngày bảo hành</span>
                                     )}
                                 </Button>
                             </PopoverTrigger>
@@ -502,9 +503,10 @@ const KioskDialog = ({ open, onOpenChange, onSuccess, kiosk }: KioskDialogProps)
                                     locale={vi}
                                     initialFocus
                                     disabled={(date) => {
-                                        if (!formData.installedDate) return true;
-                                        const installedDate = new Date(formData.installedDate);
-                                        return date < installedDate;
+                                        if (!formData.installedDate) return true
+                                        // Chỉ cho phép chọn từ ngày lắp đặt trở về tương lai
+                                        const installedDate = startOfDay(new Date(formData.installedDate))
+                                        return startOfDay(date) < installedDate
                                     }}
                                 />
                             </PopoverContent>

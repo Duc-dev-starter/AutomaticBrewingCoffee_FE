@@ -37,9 +37,12 @@ export function EnhancedCalendar({
         }
     }, [selected])
 
-    // Tạo danh sách năm (100 năm trước đến hiện tại)
+    // Kiểm tra có disabled function không
+    const hasDisabledFunction = typeof disabled === "function"
+
+    // Tạo danh sách năm (chỉ khi không có disabled function)
     const currentYear = new Date().getFullYear()
-    const years = Array.from({ length: 100 }, (_, i) => currentYear - 99 + i)
+    const years = Array.from({ length: 110 }, (_, i) => currentYear - 99 + i)
 
     // Tạo danh sách tháng
     const months = [
@@ -57,24 +60,82 @@ export function EnhancedCalendar({
         "Tháng 12",
     ]
 
+    // Kiểm tra tháng có hợp lệ không (có ít nhất 1 ngày không bị disabled)
+    const isMonthValid = (year: number, month: number) => {
+        if (!hasDisabledFunction) return true
+
+        const daysInMonth = new Date(year, month + 1, 0).getDate()
+        for (let day = 1; day <= daysInMonth; day++) {
+            const date = new Date(year, month, day)
+            if (!disabled(date)) {
+                return true
+            }
+        }
+        return false
+    }
+
+    // Kiểm tra năm có hợp lệ không
+    const isYearValid = (year: number) => {
+        if (!hasDisabledFunction) return true
+
+        for (let month = 0; month < 12; month++) {
+            if (isMonthValid(year, month)) {
+                return true
+            }
+        }
+        return false
+    }
+
+    // Kiểm tra có thể navigate đến tháng trước/sau không
+    const canNavigateToPrevMonth = () => {
+        if (!hasDisabledFunction) return true
+        const prevMonth = subMonths(currentDate, 1)
+        return isMonthValid(prevMonth.getFullYear(), prevMonth.getMonth())
+    }
+
+    const canNavigateToNextMonth = () => {
+        if (!hasDisabledFunction) return true
+        const nextMonth = addMonths(currentDate, 1)
+        return isMonthValid(nextMonth.getFullYear(), nextMonth.getMonth())
+    }
+
     // Xử lý khi thay đổi tháng
     const handleMonthChange = (monthIndex: number) => {
-        const newDate = new Date(currentDate)
-        newDate.setMonth(monthIndex)
-        setCurrentDate(newDate)
+        const year = currentDate.getFullYear()
+        if (isMonthValid(year, monthIndex)) {
+            const newDate = new Date(currentDate)
+            newDate.setMonth(monthIndex)
+            setCurrentDate(newDate)
+        }
     }
 
     // Xử lý khi thay đổi năm
     const handleYearChange = (year: number) => {
-        const newDate = new Date(currentDate)
-        newDate.setFullYear(year)
-        setCurrentDate(newDate)
+        if (isYearValid(year)) {
+            const newDate = new Date(currentDate)
+            newDate.setFullYear(year)
+            // Nếu tháng hiện tại không hợp lệ trong năm mới, chuyển về tháng hợp lệ đầu tiên
+            if (!isMonthValid(year, newDate.getMonth())) {
+                for (let month = 0; month < 12; month++) {
+                    if (isMonthValid(year, month)) {
+                        newDate.setMonth(month)
+                        break
+                    }
+                }
+            }
+            setCurrentDate(newDate)
+        }
     }
 
     // Xử lý khi chọn ngày
-    const handleDateSelect = (day: number) => {
-        const newDate = new Date(currentDate)
-        newDate.setDate(day)
+    const handleDateSelect = (dayObj: { day: number; month: number; year: number; isCurrentMonth: boolean }) => {
+        const newDate = new Date(dayObj.year, dayObj.month, dayObj.day)
+
+        // Cập nhật currentDate nếu chọn ngày từ tháng khác
+        if (!dayObj.isCurrentMonth) {
+            setCurrentDate(newDate)
+        }
+
         onSelect(newDate)
     }
 
@@ -83,12 +144,9 @@ export function EnhancedCalendar({
         const year = currentDate.getFullYear()
         const month = currentDate.getMonth()
 
-        // Ngày đầu tiên của tháng
         const firstDayOfMonth = new Date(year, month, 1).getDay()
-        // Số ngày trong tháng
         const daysInMonth = new Date(year, month + 1, 0).getDate()
 
-        // Ngày từ tháng trước để điền vào tuần đầu tiên
         const prevMonthDays = []
         const prevMonth = month === 0 ? 11 : month - 1
         const prevMonthYear = month === 0 ? year - 1 : year
@@ -103,7 +161,6 @@ export function EnhancedCalendar({
             })
         }
 
-        // Ngày trong tháng hiện tại
         const currentMonthDays = []
         for (let i = 1; i <= daysInMonth; i++) {
             currentMonthDays.push({
@@ -114,11 +171,10 @@ export function EnhancedCalendar({
             })
         }
 
-        // Ngày từ tháng sau để điền vào tuần cuối cùng
         const nextMonthDays = []
         const nextMonth = month === 11 ? 0 : month + 1
         const nextMonthYear = month === 11 ? year + 1 : year
-        const totalDaysToShow = 42 // 6 hàng x 7 ngày
+        const totalDaysToShow = 42
         const remainingDays = totalDaysToShow - prevMonthDays.length - currentMonthDays.length
 
         for (let i = 1; i <= remainingDays; i++) {
@@ -144,46 +200,51 @@ export function EnhancedCalendar({
 
     return (
         <div className={cn("p-3", className)}>
-            <div className="flex items-center justify-between mb-2">
-                <Select
-                    value={currentDate.getMonth().toString()}
-                    onValueChange={(value) => handleMonthChange(Number.parseInt(value))}
-                >
-                    <SelectTrigger className="w-[130px]">
-                        <SelectValue placeholder="Tháng" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {months.map((month, index) => (
-                            <SelectItem key={index} value={index.toString()}>
-                                {month}
-                            </SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
+            {/* Chỉ hiển thị dropdown khi không có disabled function */}
+            {!hasDisabledFunction && (
+                <div className="flex items-center justify-between mb-2">
+                    <Select
+                        value={currentDate.getMonth().toString()}
+                        onValueChange={(value) => handleMonthChange(Number.parseInt(value))}
+                    >
+                        <SelectTrigger className="w-[130px]">
+                            <SelectValue placeholder="Tháng" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {months.map((month, index) => (
+                                <SelectItem key={index} value={index.toString()}>
+                                    {month}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
 
-                <Select
-                    value={currentDate.getFullYear().toString()}
-                    onValueChange={(value) => handleYearChange(Number.parseInt(value))}
-                >
-                    <SelectTrigger className="w-[100px]">
-                        <SelectValue placeholder="Năm" />
-                    </SelectTrigger>
-                    <SelectContent>
-                        {years.map((year) => (
-                            <SelectItem key={year} value={year.toString()}>
-                                {year}
-                            </SelectItem>
-                        ))}
-                    </SelectContent>
-                </Select>
-            </div>
+                    <Select
+                        value={currentDate.getFullYear().toString()}
+                        onValueChange={(value) => handleYearChange(Number.parseInt(value))}
+                    >
+                        <SelectTrigger className="w-[100px]">
+                            <SelectValue placeholder="Năm" />
+                        </SelectTrigger>
+                        <SelectContent>
+                            {years.map((year) => (
+                                <SelectItem key={year} value={year.toString()}>
+                                    {year}
+                                </SelectItem>
+                            ))}
+                        </SelectContent>
+                    </Select>
+                </div>
+            )}
 
+            {/* Navigation với validation */}
             <div className="flex items-center justify-between mb-2">
                 <Button
                     variant="ghost"
                     size="icon"
                     onClick={() => setCurrentDate(subMonths(currentDate, 1))}
                     className="h-7 w-7"
+                    disabled={!canNavigateToPrevMonth()}
                 >
                     <span className="sr-only">Tháng trước</span>
                     &lt;
@@ -196,6 +257,7 @@ export function EnhancedCalendar({
                     size="icon"
                     onClick={() => setCurrentDate(addMonths(currentDate, 1))}
                     className="h-7 w-7"
+                    disabled={!canNavigateToNextMonth()}
                 >
                     <span className="sr-only">Tháng sau</span>
                     &gt;
@@ -235,7 +297,7 @@ export function EnhancedCalendar({
                                 isDisabled && "opacity-50 cursor-not-allowed",
                             )}
                             disabled={isDisabled}
-                            onClick={() => handleDateSelect(day.day)}
+                            onClick={() => handleDateSelect(day)}
                         >
                             {day.day}
                         </Button>

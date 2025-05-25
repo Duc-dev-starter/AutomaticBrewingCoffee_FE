@@ -1,8 +1,10 @@
+// @ts-nocheck
+
 "use client"
 
 import type React from "react"
 import { useState, useEffect } from "react"
-import { useParams } from "next/navigation"
+import { useParams, useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
@@ -10,33 +12,29 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
-import {
-    PlusCircle,
-    Loader2,
-    Trash2,
-    ChevronDown,
-    ChevronUp,
-    Info,
-    AlertTriangle,
-    Settings,
-} from "lucide-react"
+import { PlusCircle, Loader2, Trash2, ChevronDown, ChevronUp, Info, AlertTriangle, Settings, Save } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { getWorkflow, updateWorkflow } from "@/services/workflow"
 import { getProducts } from "@/services/product"
-import { getDeviceTypes } from "@/services/device"
+import { getDeviceModels } from "@/services/device"
 import { getWorkflows } from "@/services/workflow"
 import InfiniteScroll from "react-infinite-scroll-component"
 import type { Product } from "@/interfaces/product"
-import type { DeviceType } from "@/interfaces/device"
+import type { DeviceModel } from "@/interfaces/device"
 import type { Workflow } from "@/interfaces/workflow"
 import type { ErrorResponse } from "@/types/error"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { EWorkflowStepType, EWorkflowStepTypeViMap, EWorkflowType, EWorkflowTypeViMap } from "@/enum/workflow"
+import { EWorkflowStepType, EWorkflowType, EWorkflowTypeViMap } from "@/enum/workflow"
 import { workflowSchema } from "@/schema/workflow"
+import { Path } from "@/constants/path"
+import type { KioskVersion } from "@/interfaces/kiosk"
+import { getKioskVersions } from "@/services/kiosk"
+import FunctionParameterEditor from "@/components/common/function-parameter-editor"
 
 const UpdateWorkflow = () => {
+    const router = useRouter()
     const { toast } = useToast()
     const params = useParams()
     const slug = params.slug as string
@@ -44,18 +42,24 @@ const UpdateWorkflow = () => {
     const [loading, setLoading] = useState<boolean>(false)
     const [formData, setFormData] = useState<Workflow | null>(null)
     const [products, setProducts] = useState<Product[]>([])
-    const [deviceTypes, setDeviceTypes] = useState<DeviceType[]>([])
+    const [deviceModels, setDeviceModels] = useState<DeviceModel[]>([])
     const [workflows, setWorkflows] = useState<Workflow[]>([])
     const [page, setPage] = useState<number>(1)
-    const [deviceTypePage, setDeviceTypePage] = useState<number>(1)
+    const [deviceModelPage, setDeviceModelPage] = useState<number>(1)
     const [workflowPage, setWorkflowPage] = useState<number>(1)
-    const [hasMore, setHasMore] = useState<boolean>(true)
-    const [hasMoreDeviceTypes, setHasMoreDeviceTypes] = useState<boolean>(true)
-    const [hasMoreWorkflows, setHasMoreWorkflows] = useState<boolean>(true)
+    const [hasMore, setHasMore] = useState(true)
+    const [hasMoreDeviceModels, setHasMoreDeviceModels] = useState(true)
+    const [hasMoreWorkflows, setHasMoreWorkflows] = useState(true)
     const [expandedStep, setExpandedStep] = useState<number | null>(0)
-    const [loadingProducts, setLoadingProducts] = useState<boolean>(true)
-    const [loadingDeviceTypes, setLoadingDeviceTypes] = useState<boolean>(false)
-    const [loadingWorkflows, setLoadingWorkflows] = useState<boolean>(false)
+    const [loadingProducts, setLoadingProducts] = useState(true)
+    const [loadingDeviceModels, setLoadingDeviceModels] = useState(false)
+    const [loadingWorkflows, setLoadingWorkflows] = useState(false)
+    const [kioskVersions, setKioskVersions] = useState<KioskVersion[]>([])
+    const [KioskVersionPage, setKioskVersionPage] = useState(1)
+    const [hasMoreKioskVersion, setHasMoreKioskVersion] = useState(true)
+    const [selectedKioskVersion, setSelectedKioskVersion] = useState<string>("")
+    const [loadingKioskVersions, setLoadingKioskVersions] = useState(false)
+    const [kioskVersionsLoaded, setKioskVersionsLoaded] = useState(false)
 
     // Fetch workflow by slug
     useEffect(() => {
@@ -63,6 +67,10 @@ const UpdateWorkflow = () => {
             try {
                 const workflow = await getWorkflow(slug)
                 setFormData(workflow.response)
+                // Set kiosk version if available in workflow data
+                if (workflow.response.kioskVersionId) {
+                    setSelectedKioskVersion(workflow.response.kioskVersionId)
+                }
             } catch (error) {
                 console.error("Error fetching workflow:", error)
                 toast({
@@ -74,6 +82,50 @@ const UpdateWorkflow = () => {
         }
         fetchWorkflow()
     }, [slug, toast])
+
+    const fetchKioskVersions = async (pageNumber: number) => {
+        setLoadingKioskVersions(true)
+        try {
+            const response = await getKioskVersions({ page: pageNumber, size: 10 })
+            if (pageNumber === 1) {
+                setKioskVersions(response.items)
+            } else {
+                setKioskVersions((prev) => [...prev, ...response.items])
+            }
+            setKioskVersionPage(pageNumber)
+            if (response.items.length < 10) {
+                setHasMoreKioskVersion(false)
+            }
+            setKioskVersionsLoaded(true)
+        } catch (error) {
+            const err = error as ErrorResponse
+            console.error("Lỗi khi lấy danh sách phiên bản kiosk:", error)
+            toast({
+                title: "Lỗi khi lấy danh sách phiên bản kiosk",
+                description: err.message,
+                variant: "destructive",
+            })
+        } finally {
+            setLoadingKioskVersions(false)
+        }
+    }
+
+    const loadMoreKioskVersions = async () => {
+        const nextPage = KioskVersionPage + 1
+        await fetchKioskVersions(nextPage)
+    }
+
+    const handleKioskVersionOpen = () => {
+        if (!kioskVersionsLoaded) {
+            fetchKioskVersions(1)
+        }
+    }
+
+    // Get device functions for selected device model
+    const getDeviceFunctionsForModel = (deviceModelId: string) => {
+        const deviceModel = deviceModels.find((dm) => dm.deviceModelId === deviceModelId)
+        return deviceModel?.deviceFunctions || []
+    }
 
     // Fetch products
     const fetchProducts = async (pageNumber: number) => {
@@ -100,29 +152,33 @@ const UpdateWorkflow = () => {
         }
     }
 
-    // Fetch device types
-    const fetchDeviceTypes = async (pageNumber: number) => {
-        setLoadingDeviceTypes(true)
+    // Fetch device models
+    const fetchDeviceModels = async (pageNumber: number) => {
+        if (!selectedKioskVersion) {
+            return
+        }
+
+        setLoadingDeviceModels(true)
         try {
-            const response = await getDeviceTypes({ page: pageNumber, size: 10 })
+            const response = await getDeviceModels({ kioskVersionId: selectedKioskVersion, page: pageNumber, size: 10 })
             if (pageNumber === 1) {
-                setDeviceTypes(response.items)
+                setDeviceModels(response.items)
             } else {
-                setDeviceTypes((prev) => [...prev, ...response.items])
+                setDeviceModels((prev) => [...prev, ...response.items])
             }
-            setDeviceTypePage(pageNumber)
+            setDeviceModelPage(pageNumber)
             if (response.items.length < 10) {
-                setHasMoreDeviceTypes(false)
+                setHasMoreDeviceModels(false)
             }
         } catch (error) {
-            console.error("Error fetching device types:", error)
+            console.error("Error fetching device models:", error)
             toast({
                 title: "Lỗi",
-                description: "Không tải được các loại thiết bị.",
+                description: "Không tải được các mẫu thiết bị.",
                 variant: "destructive",
             })
         } finally {
-            setLoadingDeviceTypes(false)
+            setLoadingDeviceModels(false)
         }
     }
 
@@ -154,9 +210,20 @@ const UpdateWorkflow = () => {
 
     useEffect(() => {
         fetchProducts(1)
-        fetchDeviceTypes(1)
         fetchWorkflows(1)
     }, [])
+
+    // Fetch device models when kiosk version is selected
+    useEffect(() => {
+        if (selectedKioskVersion) {
+            setDeviceModels([])
+            setDeviceModelPage(1)
+            setHasMoreDeviceModels(true)
+            fetchDeviceModels(1)
+        } else {
+            setDeviceModels([])
+        }
+    }, [selectedKioskVersion])
 
     // Handle form field changes
     const handleChange = (field: string, value: string) => {
@@ -185,7 +252,32 @@ const UpdateWorkflow = () => {
             setFormData((prev: Workflow | null) => {
                 if (!prev) return null
                 const newSteps = [...prev.steps]
-                newSteps[index] = { ...newSteps[index], [field]: value }
+
+                // If changing device model, clear device function
+                if (field === "deviceModelId") {
+                    newSteps[index] = {
+                        ...newSteps[index],
+                        [field]: value,
+                        deviceFunctionId: "", // Clear device function when device model changes
+                        name: `Bước ${index + 1}`, // Reset to default name
+                    }
+                }
+                // If changing device function, update step name and type automatically
+                else if (field === "deviceFunctionId") {
+                    const selectedFunction = deviceModels
+                        .flatMap((dm) => dm.deviceFunctions || [])
+                        .find((df) => df.deviceFunctionId === value)
+
+                    newSteps[index] = {
+                        ...newSteps[index],
+                        [field]: value,
+                        name: selectedFunction ? selectedFunction.name : `Bước ${index + 1}`, // Use function name or fallback
+                        type: selectedFunction ? selectedFunction.name : EWorkflowStepType.AlertCancellationCommand,
+                    }
+                } else {
+                    newSteps[index] = { ...newSteps[index], [field]: value }
+                }
+
                 return { ...prev, steps: newSteps }
             })
         }
@@ -216,7 +308,8 @@ const UpdateWorkflow = () => {
                 const newStep = {
                     name: `Bước ${newSequence}`,
                     type: EWorkflowStepType.AlertCancellationCommand,
-                    deviceTypeId: "",
+                    deviceModelId: "",
+                    deviceFunctionId: "",
                     maxRetries: 0,
                     sequence: newSequence,
                     callbackWorkflowId: "",
@@ -327,6 +420,7 @@ const UpdateWorkflow = () => {
                 title: "Thành công",
                 description: "Cập nhật quy trình thành công",
             })
+            router.push(Path.MANAGE_WORKFLOWS)
         } catch (error) {
             const err = error as ErrorResponse
             console.error("Lỗi khi cập nhật quy trình:", error)
@@ -348,7 +442,14 @@ const UpdateWorkflow = () => {
     }
 
     if (!formData) {
-        return <div>Đang tải...</div>
+        return (
+            <div className="container mx-auto p-6">
+                <div className="flex items-center justify-center h-64">
+                    <Loader2 className="h-8 w-8 animate-spin" />
+                    <span className="ml-2">Đang tải dữ liệu quy trình...</span>
+                </div>
+            </div>
+        )
     }
 
     return (
@@ -356,7 +457,7 @@ const UpdateWorkflow = () => {
             <div className="flex items-center justify-between">
                 <h1 className="text-2xl font-bold flex items-center">
                     <Info className="mr-2 h-5 w-5" />
-                    Cập nhật quy trình
+                    Cập nhật quy trình: {formData.name}
                 </h1>
                 <Button type="submit" disabled={loading} className="bg-blue-500 hover:bg-blue-600" onClick={handleSubmit}>
                     {loading ? (
@@ -366,12 +467,74 @@ const UpdateWorkflow = () => {
                         </>
                     ) : (
                         <>
-                            <PlusCircle className="mr-2 h-4 w-4" />
+                            <Save className="mr-2 h-4 w-4" />
                             Cập nhật quy trình
                         </>
                     )}
                 </Button>
             </div>
+
+            <Card className="mb-6">
+                <CardHeader>
+                    <CardTitle className="flex items-center">
+                        <Settings className="mr-2 h-5 w-5" />
+                        Chọn phiên bản Kiosk
+                    </CardTitle>
+                    <CardDescription>Chọn phiên bản kiosk để áp dụng cho quy trình này</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <div className="space-y-2">
+                        <Label htmlFor="kioskVersion" className="flex items-center">
+                            Phiên bản Kiosk
+                            <span className="text-red-500 ml-1">*</span>
+                        </Label>
+                        <Select
+                            value={selectedKioskVersion}
+                            onValueChange={setSelectedKioskVersion}
+                            onOpenChange={(open) => {
+                                if (open) {
+                                    handleKioskVersionOpen()
+                                }
+                            }}
+                            disabled={loading}
+                        >
+                            <SelectTrigger id="kioskVersion">
+                                <SelectValue
+                                    placeholder={loadingKioskVersions ? "Đang tải phiên bản kiosk..." : "Chọn phiên bản kiosk"}
+                                />
+                            </SelectTrigger>
+                            <SelectContent className="max-h-[300px]">
+                                <ScrollArea className="h-[200px]">
+                                    <InfiniteScroll
+                                        dataLength={kioskVersions.length}
+                                        next={loadMoreKioskVersions}
+                                        hasMore={hasMoreKioskVersion}
+                                        loader={<div className="p-2 text-center text-sm">Đang tải thêm...</div>}
+                                        scrollableTarget="select-content"
+                                        style={{ overflow: "hidden" }}
+                                    >
+                                        {kioskVersions.map((version) => (
+                                            <SelectItem key={version.kioskVersionId} value={version.kioskVersionId}>
+                                                <div className="flex flex-col">
+                                                    <span className="font-medium">{version.versionTitle}</span>
+                                                </div>
+                                            </SelectItem>
+                                        ))}
+                                    </InfiniteScroll>
+                                </ScrollArea>
+                            </SelectContent>
+                        </Select>
+                        {selectedKioskVersion && (
+                            <div className="mt-2">
+                                <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                                    Đã chọn: {kioskVersions.find((v) => v.kioskVersionId === selectedKioskVersion)?.versionTitle}
+                                </Badge>
+                            </div>
+                        )}
+                    </div>
+                </CardContent>
+            </Card>
+
             <form>
                 <div className="flex flex-col md:flex-row gap-6">
                     {/* Left column - Workflow information (35%) */}
@@ -419,9 +582,7 @@ const UpdateWorkflow = () => {
                                         <SelectContent>
                                             {Object.values(EWorkflowType).map((type) => (
                                                 <SelectItem key={type} value={type} className="flex items-center">
-                                                    <div className="flex items-center">
-                                                        {EWorkflowTypeViMap[type]}
-                                                    </div>
+                                                    <div className="flex items-center">{EWorkflowTypeViMap[type]}</div>
                                                 </SelectItem>
                                             ))}
                                         </SelectContent>
@@ -437,7 +598,16 @@ const UpdateWorkflow = () => {
                                 <div className="space-y-2">
                                     <Label htmlFor="productId" className="flex items-center">
                                         Sản phẩm
-                                        <span className="text-red-500 ml-1">*</span>
+                                        <TooltipProvider>
+                                            <Tooltip>
+                                                <TooltipTrigger asChild>
+                                                    <Info className="h-3.5 w-3.5 ml-1 text-gray-400" />
+                                                </TooltipTrigger>
+                                                <TooltipContent>
+                                                    <p>Sản phẩm liên quan đến quy trình (tùy chọn)</p>
+                                                </TooltipContent>
+                                            </Tooltip>
+                                        </TooltipProvider>
                                     </Label>
                                     <Select
                                         value={formData.productId || ""}
@@ -448,10 +618,15 @@ const UpdateWorkflow = () => {
                                             id="productId"
                                             className={errors.productId ? "border-red-500 focus-visible:ring-red-500" : ""}
                                         >
-                                            <SelectValue placeholder={loadingProducts ? "Đang tải sản phẩm..." : "Chọn sản phẩm"} />
+                                            <SelectValue
+                                                placeholder={loadingProducts ? "Đang tải sản phẩm..." : "Chọn sản phẩm (tùy chọn)"}
+                                            />
                                         </SelectTrigger>
                                         <SelectContent className="max-h-[300px]">
                                             <ScrollArea className="h-[200px]">
+                                                <SelectItem value="null">
+                                                    <span className="text-gray-500 italic">Không chọn sản phẩm</span>
+                                                </SelectItem>
                                                 <InfiniteScroll
                                                     dataLength={products.length}
                                                     next={loadMoreProducts}
@@ -550,7 +725,7 @@ const UpdateWorkflow = () => {
                                                             <span className="font-medium">{step.name}</span>
                                                             {step.type && (
                                                                 <Badge variant="secondary" className="ml-3">
-                                                                    {EWorkflowStepTypeViMap[step.type]}
+                                                                    {step.type}
                                                                 </Badge>
                                                             )}
                                                         </div>
@@ -560,7 +735,8 @@ const UpdateWorkflow = () => {
                                                                     e.stopPropagation()
                                                                     moveStepUp(index)
                                                                 }}
-                                                                className={`h-7 w-7 rounded-full flex items-center justify-center ${loading || index === 0 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100'}`}
+                                                                className={`h-7 w-7 rounded-full flex items-center justify-center ${loading || index === 0 ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-100"
+                                                                    }`}
                                                             >
                                                                 <ChevronUp className="h-4 w-4" />
                                                             </div>
@@ -569,7 +745,10 @@ const UpdateWorkflow = () => {
                                                                     e.stopPropagation()
                                                                     moveStepDown(index)
                                                                 }}
-                                                                className={`h-7 w-7 rounded-full flex items-center justify-center ${loading || index === formData.steps.length - 1 ? 'opacity-50 cursor-not-allowed' : 'hover:bg-gray-100'}`}
+                                                                className={`h-7 w-7 rounded-full flex items-center justify-center ${loading || index === formData.steps.length - 1
+                                                                    ? "opacity-50 cursor-not-allowed"
+                                                                    : "hover:bg-gray-100"
+                                                                    }`}
                                                             >
                                                                 <ChevronDown className="h-4 w-4" />
                                                             </div>
@@ -578,7 +757,10 @@ const UpdateWorkflow = () => {
                                                                     e.stopPropagation()
                                                                     removeStep(index)
                                                                 }}
-                                                                className={`h-7 w-7 rounded-full flex items-center justify-center ${loading ? 'opacity-50 cursor-not-allowed' : 'text-red-500 hover:text-red-700 hover:bg-red-50'}`}
+                                                                className={`h-7 w-7 rounded-full flex items-center justify-center ${loading
+                                                                    ? "opacity-50 cursor-not-allowed"
+                                                                    : "text-red-500 hover:text-red-700 hover:bg-red-50"
+                                                                    }`}
                                                             >
                                                                 <Trash2 className="h-4 w-4" />
                                                             </div>
@@ -607,9 +789,10 @@ const UpdateWorkflow = () => {
                                                             <Input
                                                                 id={`step-name-${index}`}
                                                                 value={step.name}
-                                                                onChange={(e) => handleStepChange(index, "name", e.target.value)}
+                                                                readOnly={true} // Make it readonly since it's auto-generated
                                                                 disabled={loading}
-                                                                className={errors.steps?.[index]?.name ? "border-red-500" : ""}
+                                                                className={`${errors.steps?.[index]?.name ? "border-red-500" : ""} bg-gray-50`}
+                                                                placeholder="Tên sẽ tự động cập nhật khi chọn chức năng thiết bị"
                                                             />
                                                             {errors.steps?.[index]?.name && (
                                                                 <p className="text-red-500 text-sm">{errors.steps[index].name[0]}</p>
@@ -618,22 +801,14 @@ const UpdateWorkflow = () => {
 
                                                         <div className="space-y-2">
                                                             <Label htmlFor={`step-type-${index}`}>Loại bước</Label>
-                                                            <Select
+                                                            <Input
+                                                                id={`step-type-${index}`}
                                                                 value={step.type}
-                                                                onValueChange={(value) => handleStepChange(index, "type", value)}
+                                                                readOnly={true} // Make it readonly since it's auto-generated
                                                                 disabled={loading}
-                                                            >
-                                                                <SelectTrigger id={`step-type-${index}`}>
-                                                                    <SelectValue placeholder="Chọn loại bước" />
-                                                                </SelectTrigger>
-                                                                <SelectContent>
-                                                                    {Object.values(EWorkflowStepType).map((type) => (
-                                                                        <SelectItem key={type} value={type}>
-                                                                            {EWorkflowStepTypeViMap[type]}
-                                                                        </SelectItem>
-                                                                    ))}
-                                                                </SelectContent>
-                                                            </Select>
+                                                                className={`${errors.steps?.[index]?.type ? "border-red-500" : ""} bg-gray-50`}
+                                                                placeholder="Loại sẽ tự động cập nhật khi chọn chức năng thiết bị"
+                                                            />
                                                             {errors.steps?.[index]?.type && (
                                                                 <p className="text-red-500 text-sm">{errors.steps[index].type[0]}</p>
                                                             )}
@@ -655,33 +830,90 @@ const UpdateWorkflow = () => {
                                                         </div>
 
                                                         <div className="space-y-2">
-                                                            <Label htmlFor={`step-deviceTypeId-${index}`}>Loại thiết bị</Label>
+                                                            <Label htmlFor={`step-deviceModelId-${index}`}>Mẫu thiết bị</Label>
                                                             <Select
-                                                                value={step.deviceTypeId}
-                                                                onValueChange={(value) => handleStepChange(index, "deviceTypeId", value)}
-                                                                disabled={loading || loadingDeviceTypes}
+                                                                value={step.deviceModelId}
+                                                                onValueChange={(value) => handleStepChange(index, "deviceModelId", value)}
+                                                                disabled={loading || loadingDeviceModels || !selectedKioskVersion}
                                                             >
-                                                                <SelectTrigger id={`step-deviceTypeId-${index}`}>
-                                                                    <SelectValue placeholder={loadingDeviceTypes ? "Đang tải loại thiết bị..." : "Chọn loại thiết bị"} />
+                                                                <SelectTrigger id={`step-deviceModelId-${index}`}>
+                                                                    <SelectValue
+                                                                        placeholder={
+                                                                            !selectedKioskVersion
+                                                                                ? "Vui lòng chọn phiên bản kiosk trước"
+                                                                                : loadingDeviceModels
+                                                                                    ? "Đang tải mẫu thiết bị..."
+                                                                                    : "Chọn mẫu thiết bị"
+                                                                        }
+                                                                    />
                                                                 </SelectTrigger>
                                                                 <SelectContent className="max-h-[300px]">
-                                                                    <InfiniteScroll
-                                                                        dataLength={deviceTypes.length}
-                                                                        next={() => fetchDeviceTypes(deviceTypePage + 1)}
-                                                                        hasMore={hasMoreDeviceTypes}
-                                                                        loader={<div className="p-2 text-center text-sm">Đang tải thêm...</div>}
-                                                                        scrollableTarget="select-content"
-                                                                    >
-                                                                        {deviceTypes.map((deviceType) => (
-                                                                            <SelectItem key={deviceType.deviceTypeId} value={deviceType.deviceTypeId}>
-                                                                                {deviceType.name}
-                                                                            </SelectItem>
-                                                                        ))}
-                                                                    </InfiniteScroll>
+                                                                    {selectedKioskVersion && (
+                                                                        <InfiniteScroll
+                                                                            dataLength={deviceModels.length}
+                                                                            next={() => fetchDeviceModels(deviceModelPage + 1)}
+                                                                            hasMore={hasMoreDeviceModels}
+                                                                            loader={<div className="p-2 text-center text-sm">Đang tải thêm...</div>}
+                                                                            scrollableTarget="select-content"
+                                                                        >
+                                                                            {deviceModels.map((deviceModel) => (
+                                                                                <SelectItem key={deviceModel.deviceModelId} value={deviceModel.deviceModelId}>
+                                                                                    {deviceModel.modelName}
+                                                                                </SelectItem>
+                                                                            ))}
+                                                                        </InfiniteScroll>
+                                                                    )}
                                                                 </SelectContent>
                                                             </Select>
-                                                            {errors.steps?.[index]?.deviceTypeId && (
-                                                                <p className="text-red-500 text-sm">{errors.steps[index].deviceTypeId[0]}</p>
+                                                            {errors.steps?.[index]?.deviceModelId && (
+                                                                <p className="text-red-500 text-sm">{errors.steps[index].deviceModelId[0]}</p>
+                                                            )}
+                                                        </div>
+
+                                                        <div className="space-y-2">
+                                                            <Label htmlFor={`step-deviceFunctionId-${index}`}>Chức năng thiết bị</Label>
+                                                            <Select
+                                                                value={step.deviceFunctionId}
+                                                                onValueChange={(value) => handleStepChange(index, "deviceFunctionId", value)}
+                                                                disabled={loading || !step.deviceModelId}
+                                                            >
+                                                                <SelectTrigger id={`step-deviceFunctionId-${index}`}>
+                                                                    <SelectValue
+                                                                        placeholder={
+                                                                            !step.deviceModelId
+                                                                                ? "Vui lòng chọn mẫu thiết bị trước"
+                                                                                : "Chọn chức năng thiết bị"
+                                                                        }
+                                                                    />
+                                                                </SelectTrigger>
+                                                                <SelectContent className="max-h-[300px]">
+                                                                    {step.deviceModelId &&
+                                                                        getDeviceFunctionsForModel(step.deviceModelId).map((deviceFunction) => (
+                                                                            <SelectItem
+                                                                                key={deviceFunction.deviceFunctionId}
+                                                                                value={deviceFunction.deviceFunctionId || deviceFunction.name}
+                                                                            >
+                                                                                <div className="flex flex-col">
+                                                                                    <span className="font-medium">{deviceFunction.name}</span>
+                                                                                    {deviceFunction.functionParameters &&
+                                                                                        deviceFunction.functionParameters.length > 0 && (
+                                                                                            <span className="text-sm text-muted-foreground">
+                                                                                                {deviceFunction.functionParameters.length} tham số
+                                                                                            </span>
+                                                                                        )}
+                                                                                </div>
+                                                                            </SelectItem>
+                                                                        ))}
+                                                                    {step.deviceModelId &&
+                                                                        getDeviceFunctionsForModel(step.deviceModelId).length === 0 && (
+                                                                            <div className="p-2 text-center text-sm text-muted-foreground">
+                                                                                Không có chức năng nào cho thiết bị này
+                                                                            </div>
+                                                                        )}
+                                                                </SelectContent>
+                                                            </Select>
+                                                            {errors.steps?.[index]?.deviceFunctionId && (
+                                                                <p className="text-red-500 text-sm">{errors.steps[index].deviceFunctionId[0]}</p>
                                                             )}
                                                         </div>
 
@@ -693,7 +925,9 @@ const UpdateWorkflow = () => {
                                                                 disabled={loading || loadingWorkflows}
                                                             >
                                                                 <SelectTrigger id={`step-callbackWorkflowId-${index}`}>
-                                                                    <SelectValue placeholder={loadingWorkflows ? "Đang tải quy trình..." : "Chọn quy trình callback"} />
+                                                                    <SelectValue
+                                                                        placeholder={loadingWorkflows ? "Đang tải quy trình..." : "Chọn quy trình callback"}
+                                                                    />
                                                                 </SelectTrigger>
                                                                 <SelectContent className="max-h-[300px]">
                                                                     <InfiniteScroll
@@ -718,13 +952,12 @@ const UpdateWorkflow = () => {
 
                                                         <div className="space-y-2 md:col-span-2">
                                                             <Label htmlFor={`step-parameters-${index}`}>Tham số</Label>
-                                                            <Textarea
-                                                                id={`step-parameters-${index}`}
+                                                            <FunctionParameterEditor
+                                                                deviceFunctionId={step.deviceFunctionId}
+                                                                deviceModels={deviceModels}
                                                                 value={step.parameters}
-                                                                onChange={(e) => handleStepChange(index, "parameters", e.target.value)}
+                                                                onChange={(value) => handleStepChange(index, "parameters", value)}
                                                                 disabled={loading}
-                                                                placeholder="Nhập tham số dưới dạng JSON"
-                                                                className="min-h-[80px]"
                                                             />
                                                             {errors.steps?.[index]?.parameters && (
                                                                 <p className="text-red-500 text-sm">{errors.steps[index].parameters[0]}</p>

@@ -3,19 +3,17 @@
 import { useEffect, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { getWorkflow } from "@/services/workflow"
-import { Workflow } from "@/interfaces/workflow"
+import type { Workflow } from "@/interfaces/workflow"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { ArrowLeft, Clock, Edit, Trash2, WorkflowIcon } from 'lucide-react'
+import { ArrowLeft, Clock, Edit, Trash2, WorkflowIcon } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { EWorkflowTypeViMap } from "@/enum/workflow"
 import { Separator } from "@/components/ui/separator"
 import { useToast } from "@/hooks/use-toast"
 import { Skeleton } from "@/components/ui/skeleton"
 import { WorkflowStepCard } from "@/components/manage-workflows/workflow-step-card"
-
-import React from 'react'
-import { ErrorResponse } from "@/types/error"
+import type { ErrorResponse } from "@/types/error"
 
 const WorkflowDetail = () => {
     const { slug } = useParams()
@@ -29,16 +27,16 @@ const WorkflowDetail = () => {
             try {
                 setLoading(true)
                 const response = await getWorkflow(slug as string)
-                console.log(response);
+                console.log(response)
                 setWorkflow(response.response)
             } catch (error: unknown) {
-                const err = error as ErrorResponse;
-                console.error("Lỗi khi lấy thông tin quy trinh:", err);
+                const err = error as ErrorResponse
+                console.error("Lỗi khi lấy thông tin quy trinh:", err)
                 toast({
                     title: "Lỗi khi thông tin quy trình",
                     description: err.message,
                     variant: "destructive",
-                });
+                })
             } finally {
                 setLoading(false)
             }
@@ -54,7 +52,7 @@ const WorkflowDetail = () => {
     }
 
     const handleEdit = () => {
-        console.log('tesst');
+        console.log("tesst")
 
         router.push(`/update-workflow/${workflow?.workflowId}`)
     }
@@ -88,11 +86,20 @@ const WorkflowDetail = () => {
                                             </div>
                                         </div>
                                         <div className="flex gap-2">
-                                            <Button onClick={handleEdit} variant="outline" size="sm" className="border-[#68e0df] text-[#3f8786] hover:bg-[#e1f9f9]">
+                                            <Button
+                                                onClick={handleEdit}
+                                                variant="outline"
+                                                size="sm"
+                                                className="border-[#68e0df] text-[#3f8786] hover:bg-[#e1f9f9]"
+                                            >
                                                 <Edit className="h-4 w-4 mr-2" />
                                                 Chỉnh sửa
                                             </Button>
-                                            <Button variant="outline" size="sm" className="border-red-300 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20">
+                                            <Button
+                                                variant="outline"
+                                                size="sm"
+                                                className="border-red-300 text-red-500 hover:bg-red-50 dark:hover:bg-red-900/20"
+                                            >
                                                 <Trash2 className="h-4 w-4 mr-2" />
                                                 Xóa
                                             </Button>
@@ -107,8 +114,14 @@ const WorkflowDetail = () => {
                                                 <span className="text-sm font-medium">{workflow.name}</span>
                                             </div>
                                             <div className="flex gap-2">
-                                                <span className="text-sm font-medium text-gray-500 dark:text-gray-400">Mã sản phẩm:</span>
-                                                <span className="text-sm font-medium">{workflow.product.name}</span>
+                                                <span className="text-sm font-medium text-gray-500 dark:text-gray-400">Sản phẩm:</span>
+                                                <span className="text-sm font-medium">
+                                                    {workflow.product ? (
+                                                        workflow.product.name
+                                                    ) : (
+                                                        <span className="text-gray-400 italic">Không có sản phẩm</span>
+                                                    )}
+                                                </span>
                                             </div>
                                         </div>
                                         <div className="space-y-2">

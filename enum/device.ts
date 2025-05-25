@@ -5,7 +5,7 @@ export enum EDeviceStatus {
 }
 
 export enum EFunctionParameterType {
-    Decimal = "Decimal",
+    Double = "Double",
     Integer = "Integer",
     Boolean = "Boolean",
     Text = "Text"

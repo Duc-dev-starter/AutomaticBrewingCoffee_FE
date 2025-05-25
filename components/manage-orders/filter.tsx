@@ -15,7 +15,7 @@ import {
     EOrderStatus,
     EOrderStatusViMap,
 } from "@/enum/order"
-import { OrderFilterProps } from "@/types/filter"
+import { FilterProps } from "@/types/filter"
 
 
 export const OrderFilter = ({
@@ -24,7 +24,7 @@ export const OrderFilter = ({
     clearAllFilters,
     hasActiveFilters,
     loading,
-}: OrderFilterProps) => {
+}: FilterProps) => {
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>

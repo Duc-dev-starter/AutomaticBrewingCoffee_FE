@@ -1,0 +1,129 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <title>Chọn thiết bị theo phiên bản Kiosk</title>
+    <style>
+        body {
+            font-family: sans-serif;
+            max-width: 600px;
+            margin: 40px auto;
+        }
+
+        label {
+            display: block;
+            margin-top: 20px;
+            font-weight: bold;
+        }
+
+        select {
+            width: 100%;
+            padding: 8px;
+            font-size: 16px;
+            margin-top: 5px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <label for="kioskVersion">Kiosk Version</label>
+    <select id="kioskVersion">
+        <option value="">-- Chọn Kiosk Version --</option>
+    </select>
+
+    <label for="deviceModel">Device Model</label>
+    <select id="deviceModel" disabled>
+        <option value="">-- Chọn Device Model --</option>
+    </select>
+
+    <label for="deviceFunction">Device Function</label>
+    <select id="deviceFunction" disabled>
+        <option value="">-- Chọn Device Function --</option>
+    </select>
+
+    <label for="functionParameter">Function Parameter</label>
+    <select id="functionParameter" disabled>
+        <option value="">-- Chọn Function Parameter --</option>
+    </select>
+
+    <script>
+        // Dữ liệu giả lập
+        const data = {
+            kioskVersions: [
+                { id: 1, name: "Kiosk A" },
+                { id: 2, name: "Kiosk B" }
+            ],
+            deviceModels: {
+                1: [{ id: 10, name: "Model X" }, { id: 11, name: "Model Y" }],
+                2: [{ id: 12, name: "Model Z" }]
+            },
+            deviceFunctions: {
+                10: [{ id: 100, name: "Pump" }, { id: 101, name: "Heater" }],
+                11: [{ id: 102, name: "Cooler" }],
+                12: [{ id: 103, name: "Mixer" }]
+            },
+            functionParameters: {
+                100: [{ id: 1000, name: "Speed" }, { id: 1001, name: "Power" }],
+                101: [{ id: 1002, name: "Temperature" }],
+                102: [{ id: 1003, name: "Voltage" }],
+                103: [{ id: 1004, name: "Time" }]
+            }
+        };
+
+        // Các element select
+        const kioskVersionSelect = document.getElementById("kioskVersion");
+        const deviceModelSelect = document.getElementById("deviceModel");
+        const deviceFunctionSelect = document.getElementById("deviceFunction");
+        const functionParameterSelect = document.getElementById("functionParameter");
+
+        // Hàm tiện ích để render options
+        function renderOptions(selectElement, options, placeholder = "-- Chọn --") {
+            selectElement.innerHTML = `<option value="">${placeholder}</option>`;
+            options.forEach(opt => {
+                const option = document.createElement("option");
+                option.value = opt.id;
+                option.textContent = opt.name;
+                selectElement.appendChild(option);
+            });
+            selectElement.disabled = options.length === 0;
+        }
+
+        // Load KioskVersions khi trang tải
+        window.addEventListener("DOMContentLoaded", () => {
+            renderOptions(kioskVersionSelect, data.kioskVersions, "-- Chọn Kiosk Version --");
+        });
+
+        // Sự kiện thay đổi KioskVersion
+        kioskVersionSelect.addEventListener("change", () => {
+            const selectedId = kioskVersionSelect.value;
+            const models = data.deviceModels[selectedId] || [];
+            renderOptions(deviceModelSelect, models, "-- Chọn Device Model --");
+
+            // Reset các select phía dưới
+            renderOptions(deviceFunctionSelect, [], "-- Chọn Device Function --");
+            renderOptions(functionParameterSelect, [], "-- Chọn Function Parameter --");
+        });
+
+        // Sự kiện thay đổi DeviceModel
+        deviceModelSelect.addEventListener("change", () => {
+            const selectedId = deviceModelSelect.value;
+            const functions = data.deviceFunctions[selectedId] || [];
+            renderOptions(deviceFunctionSelect, functions, "-- Chọn Device Function --");
+
+            // Reset functionParameter
+            renderOptions(functionParameterSelect, [], "-- Chọn Function Parameter --");
+        });
+
+        // Sự kiện thay đổi DeviceFunction
+        deviceFunctionSelect.addEventListener("change", () => {
+            const selectedId = deviceFunctionSelect.value;
+            const parameters = data.functionParameters[selectedId] || [];
+            renderOptions(functionParameterSelect, parameters, "-- Chọn Function Parameter --");
+        });
+    </script>
+
+</body>
+
+</html>

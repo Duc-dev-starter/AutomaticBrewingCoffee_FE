@@ -3,8 +3,8 @@ import { Product } from "./product";
 
 export interface WorkflowStep {
     name: string;
-    type: EWorkflowStepType;
-    deviceTypeId: string;
+    type: string;
+    deviceModelId: string;
     maxRetries: number;
     callbackWorkflowId: string;
     parameters: string;

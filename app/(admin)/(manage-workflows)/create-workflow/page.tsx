@@ -9,93 +9,43 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Accordion, AccordionContent, AccordionItem, AccordionTrigger } from "@/components/ui/accordion"
-import {
-    PlusCircle,
-    Loader2,
-    Trash2,
-    ChevronDown,
-    ChevronUp,
-    Info,
-    AlertTriangle,
-    Settings,
-    Monitor,
-    Cpu,
-    Search,
-    X,
-    Zap,
-    ActivityIcon as Function,
-} from "lucide-react"
+import { PlusCircle, Loader2, Trash2, ChevronDown, ChevronUp, Info, AlertTriangle, Settings } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { createWorkflow } from "@/services/workflow"
 import { getProducts } from "@/services/product"
 import { getDeviceModels } from "@/services/device"
 import { getWorkflows } from "@/services/workflow"
-import { getKioskVersions } from "@/services/kiosk"
 import InfiniteScroll from "react-infinite-scroll-component"
 import type { Product } from "@/interfaces/product"
+import type { DeviceModel } from "@/interfaces/device"
 import type { Workflow } from "@/interfaces/workflow"
 import type { ErrorResponse } from "@/types/error"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { EWorkflowType, EWorkflowTypeViMap } from "@/enum/workflow"
+import { EWorkflowStepType, EWorkflowStepTypeViMap, EWorkflowType, EWorkflowTypeViMap } from "@/enum/workflow"
 import { workflowSchema } from "@/schema/workflow"
 import { useRouter } from "next/navigation"
 import { Path } from "@/constants/path"
-import { Checkbox } from "@/components/ui/checkbox"
-import JsonEditorComponent from "@/components/common/json-editor"
-import { DeviceType } from "@/interfaces/device"
-import { KioskVersion } from "@/interfaces/kiosk"
-import { PagingParams } from "@/types/paging"
-
-
-interface FunctionParameter {
-    functionParameterId: string
-    deviceFunctionId: string
-    name: string
-    type: string
-    min?: string
-    options?: string[]
-    max?: string
-    default?: string
-    description?: string
-}
-
-interface DeviceFunction {
-    deviceFunctionId: string
-    deviceModelId: string
-    name: string
-    functionParameters: FunctionParameter[]
-    status: string
-}
-
-
-interface DeviceModel {
-    deviceModelId: string
-    modelName: string
-    manufacturer: string
-    deviceTypeId: string
-    deviceType: DeviceType
-    status: string
-    createdDate: string
-    updatedDate: string
-    deviceFunctions: DeviceFunction[]
-}
+import type { KioskVersion } from "@/interfaces/kiosk"
+import { getKioskVersions } from "@/services/kiosk"
+import FunctionParameterEditor from "@/components/common/function-parameter-editor"
 
 const initialFormData = {
     name: "",
     description: "",
-    type: EWorkflowType.Activity, // Giữ nguyên enum từ mã nguồn
-    productId: "", // Chuyển từ null sang "" để nhất quán với JSON (chuỗi rỗng)
+    type: EWorkflowType.Activity,
+    productId: null,
     steps: [
         {
             name: "Bước 1",
-            type: "",
+            type: EWorkflowStepType.AlertCancellationCommand,
             deviceModelId: "",
+            deviceFunctionId: "",
             maxRetries: 0,
-            sequence: 1, // Giữ 1 để phù hợp với logic mã nguồn
+            sequence: 1,
             callbackWorkflowId: "",
-            parameters: "{}",
+            parameters: "",
         },
     ],
 }
@@ -107,45 +57,68 @@ const CreateWorkflow = () => {
     const [loading, setLoading] = useState<boolean>(false)
     const [formData, setFormData] = useState(initialFormData)
     const [products, setProducts] = useState<Product[]>([])
+    const [deviceModels, setDeviceModels] = useState<DeviceModel[]>([])
     const [workflows, setWorkflows] = useState<Workflow[]>([])
     const [page, setPage] = useState<number>(1)
+    const [deviceModelPage, setDeviceModelPage] = useState<number>(1)
     const [workflowPage, setWorkflowPage] = useState<number>(1)
     const [hasMore, setHasMore] = useState(true)
+    const [hasMoreDeviceModels, setHasMoreDeviceModels] = useState(true)
     const [hasMoreWorkflows, setHasMoreWorkflows] = useState(true)
     const [expandedStep, setExpandedStep] = useState<number | null>(0)
     const [loadingProducts, setLoadingProducts] = useState(true)
+    const [loadingDeviceModels, setLoadingDeviceModels] = useState(false)
     const [loadingWorkflows, setLoadingWorkflows] = useState(false)
-
-    // Kiosk Version states
     const [kioskVersions, setKioskVersions] = useState<KioskVersion[]>([])
-    const [kioskVersionSearchQueries, setKioskVersionSearchQueries] = useState<Record<number, string>>({})
-    const [kioskVersionPages, setKioskVersionPages] = useState<Record<number, number>>({})
-    const [hasMoreKioskVersions, setHasMoreKioskVersions] = useState<Record<number, boolean>>({})
-    const [isKioskVersionDropdownOpen, setIsKioskVersionDropdownOpen] = useState<Record<number, boolean>>({})
-    const [selectedKioskVersions, setSelectedKioskVersions] = useState<Record<number, KioskVersion | null>>({})
+    const [KioskVersionPage, setKioskVersionPage] = useState(1)
+    const [hasMoreKioskVersion, setHasMoreKioskVersion] = useState(true)
+    const [selectedKioskVersion, setSelectedKioskVersion] = useState<string>("")
+    const [loadingKioskVersions, setLoadingKioskVersions] = useState(false)
+    const [kioskVersionsLoaded, setKioskVersionsLoaded] = useState(false)
 
-    // Device Model states
-    const [deviceModels, setDeviceModels] = useState<Record<number, DeviceModel[]>>({})
-    const [deviceModelSearchQueries, setDeviceModelSearchQueries] = useState<Record<number, string>>({})
-    const [deviceModelPages, setDeviceModelPages] = useState<Record<number, number>>({})
-    const [hasMoreDeviceModels, setHasMoreDeviceModels] = useState<Record<number, boolean>>({})
-    const [isDeviceModelDropdownOpen, setIsDeviceModelDropdownOpen] = useState<Record<number, boolean>>({})
-    const [selectedDeviceModels, setSelectedDeviceModels] = useState<Record<number, DeviceModel | null>>({})
+    const fetchKioskVersions = async (pageNumber: number) => {
+        setLoadingKioskVersions(true)
+        try {
+            const response = await getKioskVersions({ page: pageNumber, size: 10 })
+            if (pageNumber === 1) {
+                setKioskVersions(response.items)
+            } else {
+                setKioskVersions((prev) => [...prev, ...response.items])
+            }
+            setKioskVersionPage(pageNumber)
+            if (response.items.length < 10) {
+                setHasMoreKioskVersion(false)
+            }
+            setKioskVersionsLoaded(true)
+        } catch (error) {
+            const err = error as ErrorResponse
+            console.error("Lỗi khi lấy danh sách phiên bản kiosk:", error)
+            toast({
+                title: "Lỗi khi lấy danh sách phiên bản kiosk",
+                description: err.message,
+                variant: "destructive",
+            })
+        } finally {
+            setLoadingKioskVersions(false)
+        }
+    }
 
-    // Device Function states
-    const [selectedDeviceFunctions, setSelectedDeviceFunctions] = useState<Record<number, DeviceFunction | null>>({})
+    const loadMoreKioskVersions = async () => {
+        const nextPage = KioskVersionPage + 1
+        await fetchKioskVersions(nextPage)
+    }
 
-    // Workflow step types (now as strings)
-    const workflowStepTypes = [
-        "AlertCancellationCommand",
-        "ProcessPayment",
-        "DispenseProduct",
-        "UpdateInventory",
-        "SendNotification",
-        "ValidateUser",
-        "LogActivity",
-        "Custom",
-    ]
+    const handleKioskVersionOpen = () => {
+        if (!kioskVersionsLoaded) {
+            fetchKioskVersions(1)
+        }
+    }
+
+    // Get device functions for selected device model
+    const getDeviceFunctionsForModel = (deviceModelId: string) => {
+        const deviceModel = deviceModels.find((dm) => dm.deviceModelId === deviceModelId)
+        return deviceModel?.deviceFunctions || []
+    }
 
     // Fetch products
     const fetchProducts = async (pageNumber: number) => {
@@ -169,6 +142,36 @@ const CreateWorkflow = () => {
             })
         } finally {
             setLoadingProducts(false)
+        }
+    }
+
+    // Fetch device types
+    const fetchDeviceModels = async (pageNumber: number) => {
+        if (!selectedKioskVersion) {
+            return
+        }
+
+        setLoadingDeviceModels(true)
+        try {
+            const response = await getDeviceModels({ page: pageNumber, size: 10 })
+            if (pageNumber === 1) {
+                setDeviceModels(response.items)
+            } else {
+                setDeviceModels((prev) => [...prev, ...response.items])
+            }
+            setDeviceModelPage(pageNumber)
+            if (response.items.length < 10) {
+                setHasMoreDeviceModels(false)
+            }
+        } catch (error) {
+            console.error("Error fetching device types:", error)
+            toast({
+                title: "Lỗi",
+                description: "Không tải được các loại thiết bị.",
+                variant: "destructive",
+            })
+        } finally {
+            setLoadingDeviceModels(false)
         }
     }
 
@@ -198,110 +201,22 @@ const CreateWorkflow = () => {
         }
     }
 
-    // Load kiosk versions for a specific step
-    const loadKioskVersions = async (stepIndex: number, page: number, searchQuery: string, reset = false) => {
-        try {
-            const params: PagingParams = {
-                page,
-                size: 10,
-                status: "Active",
-            }
-
-            if (searchQuery.trim()) {
-                params.filterBy = "versionTitle"
-                params.filterQuery = searchQuery.trim()
-            }
-
-            const response = await getKioskVersions(params)
-
-            if (reset || page === 1) {
-                setKioskVersions(response.items)
-            } else {
-                setKioskVersions((prev) => [...prev, ...response.items])
-            }
-
-            setKioskVersionPages((prev) => ({ ...prev, [stepIndex]: page }))
-            setHasMoreKioskVersions((prev) => ({ ...prev, [stepIndex]: response.items.length === 10 }))
-        } catch (error) {
-            console.error("Error fetching kiosk versions:", error)
-            toast({
-                title: "Lỗi",
-                description: "Không tải được danh sách phiên bản kiosk.",
-                variant: "destructive",
-            })
-        }
-    }
-
-    // Load device models for a specific step
-    const loadDeviceModels = async (stepIndex: number, page: number, searchQuery: string, reset = false) => {
-        const kioskVersionId = formData.steps[stepIndex]?.kioskVersionId
-        if (!kioskVersionId) return
-
-        try {
-            const params: PagingParams = {
-                page,
-                size: 10,
-                kioskVersionId,
-            }
-
-            if (searchQuery.trim()) {
-                params.filterBy = "modelName"
-                params.filterQuery = searchQuery.trim()
-            }
-
-            const response = await getDeviceModels(params)
-
-            if (reset || page === 1) {
-                setDeviceModels((prev) => ({ ...prev, [stepIndex]: response.items }))
-            } else {
-                setDeviceModels((prev) => ({
-                    ...prev,
-                    [stepIndex]: [...(prev[stepIndex] || []), ...response.items],
-                }))
-            }
-
-            setDeviceModelPages((prev) => ({ ...prev, [stepIndex]: page }))
-            setHasMoreDeviceModels((prev) => ({ ...prev, [stepIndex]: response.items.length === 10 }))
-        } catch (error) {
-            console.error("Error fetching device models:", error)
-            toast({
-                title: "Lỗi",
-                description: "Không tải được danh sách mẫu thiết bị.",
-                variant: "destructive",
-            })
-        }
-    }
-
     useEffect(() => {
         fetchProducts(1)
         fetchWorkflows(1)
     }, [])
 
-    // Handle kiosk version search
+    // Fetch device models when kiosk version is selected
     useEffect(() => {
-        Object.keys(kioskVersionSearchQueries).forEach((stepIndexStr) => {
-            const stepIndex = Number.parseInt(stepIndexStr)
-            if (isKioskVersionDropdownOpen[stepIndex]) {
-                const timeoutId = setTimeout(() => {
-                    loadKioskVersions(stepIndex, 1, kioskVersionSearchQueries[stepIndex] || "", true)
-                }, 300)
-                return () => clearTimeout(timeoutId)
-            }
-        })
-    }, [kioskVersionSearchQueries, isKioskVersionDropdownOpen])
-
-    // Handle device model search
-    useEffect(() => {
-        Object.keys(deviceModelSearchQueries).forEach((stepIndexStr) => {
-            const stepIndex = Number.parseInt(stepIndexStr)
-            if (isDeviceModelDropdownOpen[stepIndex] && formData.steps[stepIndex]?.kioskVersionId) {
-                const timeoutId = setTimeout(() => {
-                    loadDeviceModels(stepIndex, 1, deviceModelSearchQueries[stepIndex] || "", true)
-                }, 300)
-                return () => clearTimeout(timeoutId)
-            }
-        })
-    }, [deviceModelSearchQueries, isDeviceModelDropdownOpen])
+        if (selectedKioskVersion) {
+            setDeviceModels([])
+            setDeviceModelPage(1)
+            setHasMoreDeviceModels(true)
+            fetchDeviceModels(1)
+        } else {
+            setDeviceModels([])
+        }
+    }, [selectedKioskVersion])
 
     // Handle form field changes
     const handleChange = (field: string, value: string) => {
@@ -319,34 +234,20 @@ const CreateWorkflow = () => {
         }
     }
 
-    const handleStepChange = (index: number, field: string, value: string | number | string[]) => {
+    // Handle step field changes
+    const handleStepChange = (index: number, field: string, value: string | number) => {
         setFormData((prev) => {
             const newSteps = [...prev.steps]
-            newSteps[index] = { ...newSteps[index], [field]: value }
 
-            // Reset dependent fields when kiosk version changes
-            if (field === "kioskVersionId") {
-                newSteps[index].deviceModelId = ""
-                newSteps[index].deviceFunctionId = ""
-                newSteps[index].selectedFunctionParameters = []
-                newSteps[index].parameters = "{}"
-                setSelectedDeviceModels((prev) => ({ ...prev, [index]: null }))
-                setSelectedDeviceFunctions((prev) => ({ ...prev, [index]: null }))
-                setDeviceModels((prev) => ({ ...prev, [index]: [] }))
-            }
-
-            // Reset function fields when device model changes
+            // If changing device model, clear device function
             if (field === "deviceModelId") {
-                newSteps[index].deviceFunctionId = ""
-                newSteps[index].selectedFunctionParameters = []
-                newSteps[index].parameters = "{}"
-                setSelectedDeviceFunctions((prev) => ({ ...prev, [index]: null }))
-            }
-
-            // Reset parameters when device function changes
-            if (field === "deviceFunctionId") {
-                newSteps[index].selectedFunctionParameters = []
-                newSteps[index].parameters = "{}"
+                newSteps[index] = {
+                    ...newSteps[index],
+                    [field]: value,
+                    deviceFunctionId: "", // Clear device function when device model changes
+                }
+            } else {
+                newSteps[index] = { ...newSteps[index], [field]: value }
             }
 
             return { ...prev, steps: newSteps }
@@ -369,77 +270,6 @@ const CreateWorkflow = () => {
         }
     }
 
-    // Handle kiosk version selection
-    const handleKioskVersionSelect = (stepIndex: number, kioskVersion: KioskVersion) => {
-        setSelectedKioskVersions((prev) => ({ ...prev, [stepIndex]: kioskVersion }))
-        handleStepChange(stepIndex, "kioskVersionId", kioskVersion.kioskVersionId)
-        setIsKioskVersionDropdownOpen((prev) => ({ ...prev, [stepIndex]: false }))
-        setKioskVersionSearchQueries((prev) => ({ ...prev, [stepIndex]: "" }))
-
-        // Load device models for this step
-        loadDeviceModels(stepIndex, 1, "", true)
-    }
-
-    // Handle device model selection
-    const handleDeviceModelSelect = (stepIndex: number, deviceModel: DeviceModel) => {
-        setSelectedDeviceModels((prev) => ({ ...prev, [stepIndex]: deviceModel }))
-        handleStepChange(stepIndex, "deviceModelId", deviceModel.deviceModelId)
-        setIsDeviceModelDropdownOpen((prev) => ({ ...prev, [stepIndex]: false }))
-        setDeviceModelSearchQueries((prev) => ({ ...prev, [stepIndex]: "" }))
-    }
-
-    // Handle device function selection
-    const handleDeviceFunctionSelect = (stepIndex: number, deviceFunction: DeviceFunction) => {
-        setSelectedDeviceFunctions((prev) => ({ ...prev, [stepIndex]: deviceFunction }))
-        handleStepChange(stepIndex, "deviceFunctionId", deviceFunction.deviceFunctionId)
-    }
-
-    // Handle function parameter selection
-    const handleFunctionParameterToggle = (stepIndex: number, parameterId: string) => {
-        const currentStep = formData.steps[stepIndex]
-        const currentParams = currentStep.selectedFunctionParameters || []
-
-        let newParams: string[]
-        if (currentParams.includes(parameterId)) {
-            newParams = currentParams.filter((id) => id !== parameterId)
-        } else {
-            newParams = [...currentParams, parameterId]
-        }
-
-        handleStepChange(stepIndex, "selectedFunctionParameters", newParams)
-
-        // Update JSON parameters
-        updateJsonParameters(stepIndex, newParams)
-    }
-
-    // Update JSON parameters based on selected function parameters
-    const updateJsonParameters = (stepIndex: number, selectedParameterIds: string[]) => {
-        const deviceFunction = selectedDeviceFunctions[stepIndex]
-        if (!deviceFunction) return
-
-        const selectedParams = deviceFunction.functionParameters.filter((param) =>
-            selectedParameterIds.includes(param.functionParameterId),
-        )
-
-        const jsonObject: Record<string, any> = {}
-        selectedParams.forEach((param) => {
-            let defaultValue = param.default || ""
-
-            // Try to parse default value based on type
-            if (param.type === "number" || param.type === "integer") {
-                defaultValue = param.default ? Number(param.default) : 0
-            } else if (param.type === "boolean") {
-                defaultValue = param.default === "true"
-            } else if (param.type === "array" && param.options) {
-                defaultValue = param.options
-            }
-
-            jsonObject[param.name] = defaultValue
-        })
-
-        handleStepChange(stepIndex, "parameters", JSON.stringify(jsonObject, null, 2))
-    }
-
     // Add a new step with sequence
     const addStep = () => {
         setFormData((prev) => {
@@ -450,15 +280,13 @@ const CreateWorkflow = () => {
                     ...prev.steps,
                     {
                         name: `Bước ${newSequence}`,
-                        type: "",
-                        kioskVersionId: "",
+                        type: EWorkflowStepType.AlertCancellationCommand,
                         deviceModelId: "",
                         deviceFunctionId: "",
-                        selectedFunctionParameters: [],
                         maxRetries: 0,
                         sequence: newSequence,
                         callbackWorkflowId: "",
-                        parameters: "{}",
+                        parameters: "",
                     },
                 ],
             }
@@ -475,33 +303,10 @@ const CreateWorkflow = () => {
                 steps: newSteps.map((step, i) => ({
                     ...step,
                     name: `Bước ${i + 1}`,
-                    sequence: i + 1,
+                    sequence: i + 1, // Cập nhật sequence
                 })),
             }
         })
-
-        // Clean up step-specific states
-        setSelectedKioskVersions((prev) => {
-            const newState = { ...prev }
-            delete newState[index]
-            return newState
-        })
-        setSelectedDeviceModels((prev) => {
-            const newState = { ...prev }
-            delete newState[index]
-            return newState
-        })
-        setSelectedDeviceFunctions((prev) => {
-            const newState = { ...prev }
-            delete newState[index]
-            return newState
-        })
-        setDeviceModels((prev) => {
-            const newState = { ...prev }
-            delete newState[index]
-            return newState
-        })
-
         setExpandedStep(null)
     }
 
@@ -518,7 +323,7 @@ const CreateWorkflow = () => {
                 steps: newSteps.map((step, i) => ({
                     ...step,
                     name: `Bước ${i + 1}`,
-                    sequence: i + 1,
+                    sequence: i + 1, // Cập nhật sequence
                 })),
             }
         })
@@ -538,7 +343,7 @@ const CreateWorkflow = () => {
                 steps: newSteps.map((step, i) => ({
                     ...step,
                     name: `Bước ${i + 1}`,
-                    sequence: i + 1,
+                    sequence: i + 1, // Cập nhật sequence
                 })),
             }
         })
@@ -571,16 +376,7 @@ const CreateWorkflow = () => {
                 description: formData.description || undefined,
                 type: formData.type,
                 productId: formData.productId,
-                steps: formData.steps.map((step) => ({
-                    name: step.name,
-                    type: step.type,
-                    deviceModelId: step.deviceModelId,
-                    deviceFunctionId: step.deviceFunctionId,
-                    maxRetries: step.maxRetries,
-                    sequence: step.sequence,
-                    callbackWorkflowId: step.callbackWorkflowId,
-                    parameters: step.parameters,
-                })),
+                steps: formData.steps,
             } as Partial<Workflow>
 
             await createWorkflow(data)
@@ -632,6 +428,66 @@ const CreateWorkflow = () => {
                     )}
                 </Button>
             </div>
+            <Card className="mb-6">
+                <CardHeader>
+                    <CardTitle className="flex items-center">
+                        <Settings className="mr-2 h-5 w-5" />
+                        Chọn phiên bản Kiosk
+                    </CardTitle>
+                    <CardDescription>Chọn phiên bản kiosk để áp dụng cho quy trình này</CardDescription>
+                </CardHeader>
+                <CardContent>
+                    <div className="space-y-2">
+                        <Label htmlFor="kioskVersion" className="flex items-center">
+                            Phiên bản Kiosk
+                            <span className="text-red-500 ml-1">*</span>
+                        </Label>
+                        <Select
+                            value={selectedKioskVersion}
+                            onValueChange={setSelectedKioskVersion}
+                            onOpenChange={(open) => {
+                                if (open) {
+                                    handleKioskVersionOpen()
+                                }
+                            }}
+                            disabled={loading}
+                        >
+                            <SelectTrigger id="kioskVersion">
+                                <SelectValue
+                                    placeholder={loadingKioskVersions ? "Đang tải phiên bản kiosk..." : "Chọn phiên bản kiosk"}
+                                />
+                            </SelectTrigger>
+                            <SelectContent className="max-h-[300px]">
+                                <ScrollArea className="h-[200px]">
+                                    <InfiniteScroll
+                                        dataLength={kioskVersions.length}
+                                        next={loadMoreKioskVersions}
+                                        hasMore={hasMoreKioskVersion}
+                                        loader={<div className="p-2 text-center text-sm">Đang tải thêm...</div>}
+                                        scrollableTarget="select-content"
+                                        style={{ overflow: "hidden" }}
+                                    >
+                                        {kioskVersions.map((version) => (
+                                            <SelectItem key={version.kioskVersionId} value={version.kioskVersionId}>
+                                                <div className="flex flex-col">
+                                                    <span className="font-medium">{version.versionTitle}</span>
+                                                </div>
+                                            </SelectItem>
+                                        ))}
+                                    </InfiniteScroll>
+                                </ScrollArea>
+                            </SelectContent>
+                        </Select>
+                        {selectedKioskVersion && (
+                            <div className="mt-2">
+                                <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
+                                    Đã chọn: {kioskVersions.find((v) => v.kioskVersionId === selectedKioskVersion)?.versionTitle}
+                                </Badge>
+                            </div>
+                        )}
+                    </div>
+                </CardContent>
+            </Card>
             <form>
                 <div className="flex flex-col md:flex-row gap-6">
                     {/* Left column - Workflow information (35%) */}
@@ -807,7 +663,7 @@ const CreateWorkflow = () => {
                                                             <span className="font-medium">{step.name}</span>
                                                             {step.type && (
                                                                 <Badge variant="secondary" className="ml-3">
-                                                                    {step.type}
+                                                                    {EWorkflowStepTypeViMap[step.type]}
                                                                 </Badge>
                                                             )}
                                                         </div>
@@ -843,469 +699,203 @@ const CreateWorkflow = () => {
                                                     </div>
                                                 </AccordionTrigger>
                                                 <AccordionContent className="px-4 pb-4 pt-2">
-                                                    <div className="space-y-6">
-                                                        {/* Basic step info */}
-                                                        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-                                                            <div className="space-y-2">
-                                                                <Label htmlFor={`step-sequence-${index}`}>Thứ tự</Label>
-                                                                <Input
-                                                                    id={`step-sequence-${index}`}
-                                                                    type="number"
-                                                                    value={step.sequence}
-                                                                    readOnly={true}
-                                                                    disabled={loading}
-                                                                    className={errors.steps?.[index]?.sequence ? "border-red-500" : ""}
-                                                                />
-                                                                {errors.steps?.[index]?.sequence && (
-                                                                    <p className="text-red-500 text-sm">{errors.steps[index].sequence[0]}</p>
-                                                                )}
-                                                            </div>
-
-                                                            <div className="space-y-2">
-                                                                <Label htmlFor={`step-name-${index}`}>Tên bước</Label>
-                                                                <Input
-                                                                    id={`step-name-${index}`}
-                                                                    value={step.name}
-                                                                    onChange={(e) => handleStepChange(index, "name", e.target.value)}
-                                                                    disabled={loading}
-                                                                    className={errors.steps?.[index]?.name ? "border-red-500" : ""}
-                                                                />
-                                                                {errors.steps?.[index]?.name && (
-                                                                    <p className="text-red-500 text-sm">{errors.steps[index].name[0]}</p>
-                                                                )}
-                                                            </div>
-
-                                                            <div className="space-y-2">
-                                                                <Label htmlFor={`step-type-${index}`}>Loại bước</Label>
-                                                                <Select
-                                                                    value={step.type}
-                                                                    onValueChange={(value) => handleStepChange(index, "type", value)}
-                                                                    disabled={loading}
-                                                                >
-                                                                    <SelectTrigger id={`step-type-${index}`}>
-                                                                        <SelectValue placeholder="Chọn loại bước" />
-                                                                    </SelectTrigger>
-                                                                    <SelectContent>
-                                                                        {workflowStepTypes.map((type) => (
-                                                                            <SelectItem key={type} value={type}>
-                                                                                {type}
-                                                                            </SelectItem>
-                                                                        ))}
-                                                                    </SelectContent>
-                                                                </Select>
-                                                                {errors.steps?.[index]?.type && (
-                                                                    <p className="text-red-500 text-sm">{errors.steps[index].type[0]}</p>
-                                                                )}
-                                                            </div>
+                                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                        <div className="space-y-2">
+                                                            <Label htmlFor={`step-sequence-${index}`}>Thứ tự</Label>
+                                                            <Input
+                                                                id={`step-sequence-${index}`}
+                                                                type="number"
+                                                                value={step.sequence}
+                                                                readOnly={true}
+                                                                disabled={loading}
+                                                                className={errors.steps?.[index]?.sequence ? "border-red-500" : ""}
+                                                            />
+                                                            {errors.steps?.[index]?.sequence && (
+                                                                <p className="text-red-500 text-sm">{errors.steps[index].sequence[0]}</p>
+                                                            )}
                                                         </div>
 
-                                                        {/* Kiosk Version Selection */}
-                                                        <Card className="border-dashed">
-                                                            <CardHeader className="pb-3">
-                                                                <CardTitle className="text-sm flex items-center gap-2">
-                                                                    <Monitor className="h-4 w-4" />
-                                                                    Bước 1: Chọn phiên bản kiosk
-                                                                </CardTitle>
-                                                            </CardHeader>
-                                                            <CardContent>
-                                                                <div className="relative">
-                                                                    <div className="flex items-center border rounded-md focus-within:ring-1 focus-within:ring-ring">
-                                                                        <Search className="h-4 w-4 ml-3 text-muted-foreground" />
-                                                                        <Input
-                                                                            placeholder="Tìm kiếm phiên bản kiosk..."
-                                                                            className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0"
-                                                                            value={
-                                                                                selectedKioskVersions[index]
-                                                                                    ? selectedKioskVersions[index]!.versionTitle
-                                                                                    : kioskVersionSearchQueries[index] || ""
-                                                                            }
-                                                                            onChange={(e) => {
-                                                                                if (!selectedKioskVersions[index]) {
-                                                                                    setKioskVersionSearchQueries((prev) => ({ ...prev, [index]: e.target.value }))
-                                                                                }
-                                                                            }}
-                                                                            onFocus={() => {
-                                                                                if (!selectedKioskVersions[index]) {
-                                                                                    setIsKioskVersionDropdownOpen((prev) => ({ ...prev, [index]: true }))
-                                                                                    loadKioskVersions(index, 1, kioskVersionSearchQueries[index] || "", true)
-                                                                                }
-                                                                            }}
-                                                                            disabled={loading}
-                                                                            readOnly={!!selectedKioskVersions[index]}
-                                                                        />
-                                                                        {selectedKioskVersions[index] && (
-                                                                            <Button
-                                                                                variant="ghost"
-                                                                                size="icon"
-                                                                                className="h-8 w-8 mr-1"
-                                                                                onClick={() => {
-                                                                                    setSelectedKioskVersions((prev) => ({ ...prev, [index]: null }))
-                                                                                    handleStepChange(index, "kioskVersionId", "")
-                                                                                    setKioskVersionSearchQueries((prev) => ({ ...prev, [index]: "" }))
-                                                                                }}
-                                                                                disabled={loading}
-                                                                            >
-                                                                                <X className="h-4 w-4" />
-                                                                            </Button>
-                                                                        )}
-                                                                    </div>
-                                                                    {isKioskVersionDropdownOpen[index] && !selectedKioskVersions[index] && (
-                                                                        <div className="absolute z-10 w-full mt-1 bg-popover rounded-md border shadow-md max-h-[200px] overflow-y-auto">
-                                                                            {kioskVersions.length > 0 ? (
-                                                                                <InfiniteScroll
-                                                                                    dataLength={kioskVersions.length}
-                                                                                    next={() =>
-                                                                                        loadKioskVersions(
-                                                                                            index,
-                                                                                            (kioskVersionPages[index] || 1) + 1,
-                                                                                            kioskVersionSearchQueries[index] || "",
-                                                                                        )
-                                                                                    }
-                                                                                    hasMore={hasMoreKioskVersions[index] || false}
-                                                                                    loader={<div className="p-2 text-center text-sm">Đang tải thêm...</div>}
-                                                                                >
-                                                                                    <div className="p-1">
-                                                                                        {kioskVersions.map((kv) => (
-                                                                                            <button
-                                                                                                key={kv.kioskVersionId}
-                                                                                                className="w-full text-left px-3 py-2 hover:bg-accent hover:text-accent-foreground rounded-sm flex items-center gap-2"
-                                                                                                onClick={() => handleKioskVersionSelect(index, kv)}
-                                                                                            >
-                                                                                                <Monitor className="h-4 w-4 text-muted-foreground" />
-                                                                                                <div>
-                                                                                                    <div className="font-medium">{kv.versionTitle}</div>
-                                                                                                    {kv.description && (
-                                                                                                        <div className="text-xs text-muted-foreground">
-                                                                                                            {kv.description}
-                                                                                                        </div>
-                                                                                                    )}
-                                                                                                </div>
-                                                                                            </button>
-                                                                                        ))}
-                                                                                    </div>
-                                                                                    <div className="p-2">
-                                                                                        <Button
-                                                                                            variant="outline"
-                                                                                            className="w-full"
-                                                                                            onClick={() =>
-                                                                                                setIsKioskVersionDropdownOpen((prev) => ({ ...prev, [index]: false }))
-                                                                                            }
-                                                                                        >
-                                                                                            Đóng
-                                                                                        </Button>
-                                                                                    </div>
-                                                                                </InfiniteScroll>
-                                                                            ) : (
-                                                                                <div className="p-3 text-center text-sm text-muted-foreground">
-                                                                                    Không tìm thấy phiên bản kiosk
-                                                                                </div>
-                                                                            )}
-                                                                        </div>
-                                                                    )}
-                                                                </div>
-                                                                {selectedKioskVersions[index] && (
-                                                                    <div className="mt-2 p-2 bg-muted/50 rounded-md">
-                                                                        <div className="flex items-center gap-2">
-                                                                            <Badge variant="secondary" className="text-xs">
-                                                                                Đã chọn
-                                                                            </Badge>
-                                                                            <span className="text-sm font-medium">
-                                                                                {selectedKioskVersions[index]!.versionTitle}
-                                                                            </span>
-                                                                        </div>
-                                                                    </div>
-                                                                )}
-                                                            </CardContent>
-                                                        </Card>
-
-                                                        {/* Device Model Selection */}
-                                                        {selectedKioskVersions[index] && (
-                                                            <Card className="border-dashed">
-                                                                <CardHeader className="pb-3">
-                                                                    <CardTitle className="text-sm flex items-center gap-2">
-                                                                        <Cpu className="h-4 w-4" />
-                                                                        Bước 2: Chọn mẫu thiết bị
-                                                                    </CardTitle>
-                                                                </CardHeader>
-                                                                <CardContent>
-                                                                    <div className="relative">
-                                                                        <div className="flex items-center border rounded-md focus-within:ring-1 focus-within:ring-ring">
-                                                                            <Search className="h-4 w-4 ml-3 text-muted-foreground" />
-                                                                            <Input
-                                                                                placeholder="Tìm kiếm mẫu thiết bị..."
-                                                                                className="border-0 focus-visible:ring-0 focus-visible:ring-offset-0"
-                                                                                value={
-                                                                                    selectedDeviceModels[index]
-                                                                                        ? selectedDeviceModels[index]!.modelName
-                                                                                        : deviceModelSearchQueries[index] || ""
-                                                                                }
-                                                                                onChange={(e) => {
-                                                                                    if (!selectedDeviceModels[index]) {
-                                                                                        setDeviceModelSearchQueries((prev) => ({
-                                                                                            ...prev,
-                                                                                            [index]: e.target.value,
-                                                                                        }))
-                                                                                    }
-                                                                                }}
-                                                                                onFocus={() => {
-                                                                                    if (!selectedDeviceModels[index]) {
-                                                                                        setIsDeviceModelDropdownOpen((prev) => ({ ...prev, [index]: true }))
-                                                                                        loadDeviceModels(index, 1, deviceModelSearchQueries[index] || "", true)
-                                                                                    }
-                                                                                }}
-                                                                                disabled={loading}
-                                                                                readOnly={!!selectedDeviceModels[index]}
-                                                                            />
-                                                                            {selectedDeviceModels[index] && (
-                                                                                <Button
-                                                                                    variant="ghost"
-                                                                                    size="icon"
-                                                                                    className="h-8 w-8 mr-1"
-                                                                                    onClick={() => {
-                                                                                        setSelectedDeviceModels((prev) => ({ ...prev, [index]: null }))
-                                                                                        handleStepChange(index, "deviceModelId", "")
-                                                                                        setDeviceModelSearchQueries((prev) => ({ ...prev, [index]: "" }))
-                                                                                    }}
-                                                                                    disabled={loading}
-                                                                                >
-                                                                                    <X className="h-4 w-4" />
-                                                                                </Button>
-                                                                            )}
-                                                                        </div>
-                                                                        {isDeviceModelDropdownOpen[index] && !selectedDeviceModels[index] && (
-                                                                            <div className="absolute z-10 w-full mt-1 bg-popover rounded-md border shadow-md max-h-[200px] overflow-y-auto">
-                                                                                {(deviceModels[index] || []).length > 0 ? (
-                                                                                    <InfiniteScroll
-                                                                                        dataLength={(deviceModels[index] || []).length}
-                                                                                        next={() =>
-                                                                                            loadDeviceModels(
-                                                                                                index,
-                                                                                                (deviceModelPages[index] || 1) + 1,
-                                                                                                deviceModelSearchQueries[index] || "",
-                                                                                            )
-                                                                                        }
-                                                                                        hasMore={hasMoreDeviceModels[index] || false}
-                                                                                        loader={<div className="p-2 text-center text-sm">Đang tải thêm...</div>}
-                                                                                    >
-                                                                                        <div className="p-1">
-                                                                                            {(deviceModels[index] || []).map((dm) => (
-                                                                                                <button
-                                                                                                    key={dm.deviceModelId}
-                                                                                                    className="w-full text-left px-3 py-2 hover:bg-accent hover:text-accent-foreground rounded-sm flex items-center gap-2"
-                                                                                                    onClick={() => handleDeviceModelSelect(index, dm)}
-                                                                                                >
-                                                                                                    <Cpu className="h-4 w-4 text-muted-foreground" />
-                                                                                                    <div>
-                                                                                                        <div className="font-medium">{dm.modelName}</div>
-                                                                                                        <div className="text-xs text-muted-foreground">
-                                                                                                            {dm.manufacturer}
-                                                                                                        </div>
-                                                                                                    </div>
-                                                                                                </button>
-                                                                                            ))}
-                                                                                        </div>
-                                                                                        <div className="p-2">
-                                                                                            <Button
-                                                                                                variant="outline"
-                                                                                                className="w-full"
-                                                                                                onClick={() =>
-                                                                                                    setIsDeviceModelDropdownOpen((prev) => ({ ...prev, [index]: false }))
-                                                                                                }
-                                                                                            >
-                                                                                                Đóng
-                                                                                            </Button>
-                                                                                        </div>
-                                                                                    </InfiniteScroll>
-                                                                                ) : (
-                                                                                    <div className="p-3 text-center text-sm text-muted-foreground">
-                                                                                        Không tìm thấy mẫu thiết bị
-                                                                                    </div>
-                                                                                )}
-                                                                            </div>
-                                                                        )}
-                                                                    </div>
-                                                                    {selectedDeviceModels[index] && (
-                                                                        <div className="mt-2 p-2 bg-muted/50 rounded-md">
-                                                                            <div className="flex items-center gap-2">
-                                                                                <Badge variant="secondary" className="text-xs">
-                                                                                    Đã chọn
-                                                                                </Badge>
-                                                                                <span className="text-sm font-medium">
-                                                                                    {selectedDeviceModels[index]!.modelName}
-                                                                                </span>
-                                                                            </div>
-                                                                            <div className="text-xs text-muted-foreground mt-1">
-                                                                                {selectedDeviceModels[index]!.manufacturer} •{" "}
-                                                                                {selectedDeviceModels[index]!.deviceType.name}
-                                                                            </div>
-                                                                        </div>
-                                                                    )}
-                                                                </CardContent>
-                                                            </Card>
-                                                        )}
-
-                                                        {/* Device Function Selection */}
-                                                        {selectedDeviceModels[index] && (
-                                                            <Card className="border-dashed">
-                                                                <CardHeader className="pb-3">
-                                                                    <CardTitle className="text-sm flex items-center gap-2">
-                                                                        <Function className="h-4 w-4" />
-                                                                        Bước 3: Chọn chức năng thiết bị
-                                                                    </CardTitle>
-                                                                </CardHeader>
-                                                                <CardContent>
-                                                                    {selectedDeviceModels[index]!.deviceFunctions.length === 0 ? (
-                                                                        <div className="text-center py-4 text-muted-foreground">
-                                                                            <Function className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                                                                            <p>Thiết bị này không có chức năng nào</p>
-                                                                        </div>
-                                                                    ) : (
-                                                                        <div className="space-y-2">
-                                                                            {selectedDeviceModels[index]!.deviceFunctions.map((func) => (
-                                                                                <div
-                                                                                    key={func.deviceFunctionId}
-                                                                                    className={`border rounded-md p-3 cursor-pointer transition-colors ${selectedDeviceFunctions[index]?.deviceFunctionId === func.deviceFunctionId
-                                                                                        ? "border-primary bg-primary/5"
-                                                                                        : "border-border hover:border-primary/50"
-                                                                                        }`}
-                                                                                    onClick={() => handleDeviceFunctionSelect(index, func)}
-                                                                                >
-                                                                                    <div className="flex items-center gap-2">
-                                                                                        <Function className="h-4 w-4 text-muted-foreground" />
-                                                                                        <span className="font-medium">{func.name}</span>
-                                                                                        {selectedDeviceFunctions[index]?.deviceFunctionId ===
-                                                                                            func.deviceFunctionId && (
-                                                                                                <Badge variant="secondary" className="text-xs ml-auto">
-                                                                                                    Đã chọn
-                                                                                                </Badge>
-                                                                                            )}
-                                                                                    </div>
-                                                                                    <div className="text-xs text-muted-foreground mt-1">
-                                                                                        {func.functionParameters.length} tham số
-                                                                                    </div>
-                                                                                </div>
-                                                                            ))}
-                                                                        </div>
-                                                                    )}
-                                                                </CardContent>
-                                                            </Card>
-                                                        )}
-
-                                                        {/* Function Parameters Selection */}
-                                                        {selectedDeviceFunctions[index] &&
-                                                            selectedDeviceFunctions[index]!.functionParameters.length > 0 && (
-                                                                <Card className="border-dashed">
-                                                                    <CardHeader className="pb-3">
-                                                                        <CardTitle className="text-sm flex items-center gap-2">
-                                                                            <Zap className="h-4 w-4" />
-                                                                            Bước 4: Chọn tham số chức năng
-                                                                        </CardTitle>
-                                                                    </CardHeader>
-                                                                    <CardContent>
-                                                                        <div className="space-y-3">
-                                                                            {selectedDeviceFunctions[index]!.functionParameters.map((param) => (
-                                                                                <div key={param.functionParameterId} className="flex items-start space-x-3">
-                                                                                    <Checkbox
-                                                                                        id={`param-${index}-${param.functionParameterId}`}
-                                                                                        checked={(step.selectedFunctionParameters || []).includes(
-                                                                                            param.functionParameterId,
-                                                                                        )}
-                                                                                        onCheckedChange={() =>
-                                                                                            handleFunctionParameterToggle(index, param.functionParameterId)
-                                                                                        }
-                                                                                        className="mt-1"
-                                                                                    />
-                                                                                    <Label
-                                                                                        htmlFor={`param-${index}-${param.functionParameterId}`}
-                                                                                        className="text-sm cursor-pointer flex-1"
-                                                                                    >
-                                                                                        <div className="font-medium">{param.name}</div>
-                                                                                        <div className="text-xs text-muted-foreground">
-                                                                                            <span className="font-mono bg-muted px-1 rounded">{param.type}</span>
-                                                                                            {param.description && ` • ${param.description}`}
-                                                                                            {param.default && ` • Mặc định: ${param.default}`}
-                                                                                        </div>
-                                                                                        {param.options && param.options.length > 0 && (
-                                                                                            <div className="text-xs text-muted-foreground mt-1">
-                                                                                                <span>Tùy chọn: </span>
-                                                                                                {param.options.map((option, i) => (
-                                                                                                    <span key={i} className="font-mono bg-muted px-1 rounded mr-1">
-                                                                                                        {option}
-                                                                                                    </span>
-                                                                                                ))}
-                                                                                            </div>
-                                                                                        )}
-                                                                                    </Label>
-                                                                                </div>
-                                                                            ))}
-                                                                        </div>
-                                                                    </CardContent>
-                                                                </Card>
+                                                        <div className="space-y-2">
+                                                            <Label htmlFor={`step-name-${index}`}>Tên bước</Label>
+                                                            <Input
+                                                                id={`step-name-${index}`}
+                                                                value={step.name}
+                                                                onChange={(e) => handleStepChange(index, "name", e.target.value)}
+                                                                disabled={loading}
+                                                                className={errors.steps?.[index]?.name ? "border-red-500" : ""}
+                                                            />
+                                                            {errors.steps?.[index]?.name && (
+                                                                <p className="text-red-500 text-sm">{errors.steps[index].name[0]}</p>
                                                             )}
+                                                        </div>
 
-                                                        {/* Other fields */}
-                                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                                                            <div className="space-y-2">
-                                                                <Label htmlFor={`step-maxRetries-${index}`}>Số lần thử lại tối đa</Label>
-                                                                <Input
-                                                                    id={`step-maxRetries-${index}`}
-                                                                    type="number"
-                                                                    value={step.maxRetries}
-                                                                    onChange={(e) =>
-                                                                        handleStepChange(index, "maxRetries", Number.parseInt(e.target.value))
-                                                                    }
-                                                                    disabled={loading}
-                                                                    className={errors.steps?.[index]?.maxRetries ? "border-red-500" : ""}
-                                                                />
-                                                                {errors.steps?.[index]?.maxRetries && (
-                                                                    <p className="text-red-500 text-sm">{errors.steps[index].maxRetries[0]}</p>
-                                                                )}
-                                                            </div>
+                                                        <div className="space-y-2">
+                                                            <Label htmlFor={`step-type-${index}`}>Loại bước</Label>
+                                                            <Select
+                                                                value={step.type}
+                                                                onValueChange={(value) => handleStepChange(index, "type", value)}
+                                                                disabled={loading}
+                                                            >
+                                                                <SelectTrigger id={`step-type-${index}`}>
+                                                                    <SelectValue placeholder="Chọn loại bước" />
+                                                                </SelectTrigger>
+                                                                <SelectContent>
+                                                                    {Object.values(EWorkflowStepType).map((type) => (
+                                                                        <SelectItem key={type} value={type}>
+                                                                            {EWorkflowStepTypeViMap[type]}
+                                                                        </SelectItem>
+                                                                    ))}
+                                                                </SelectContent>
+                                                            </Select>
+                                                            {errors.steps?.[index]?.type && (
+                                                                <p className="text-red-500 text-sm">{errors.steps[index].type[0]}</p>
+                                                            )}
+                                                        </div>
 
-                                                            <div className="space-y-2">
-                                                                <Label htmlFor={`step-callbackWorkflowId-${index}`}>Quy trình callback</Label>
-                                                                <Select
-                                                                    value={step.callbackWorkflowId}
-                                                                    onValueChange={(value) => handleStepChange(index, "callbackWorkflowId", value)}
-                                                                    disabled={loading || loadingWorkflows}
-                                                                >
-                                                                    <SelectTrigger id={`step-callbackWorkflowId-${index}`}>
-                                                                        <SelectValue
-                                                                            placeholder={
-                                                                                loadingWorkflows ? "Đang tải quy trình..." : "Chọn quy trình callback"
-                                                                            }
-                                                                        />
-                                                                    </SelectTrigger>
-                                                                    <SelectContent className="max-h-[300px]">
+                                                        <div className="space-y-2">
+                                                            <Label htmlFor={`step-maxRetries-${index}`}>Số lần thử lại tối đa</Label>
+                                                            <Input
+                                                                id={`step-maxRetries-${index}`}
+                                                                type="number"
+                                                                value={step.maxRetries}
+                                                                onChange={(e) => handleStepChange(index, "maxRetries", Number.parseInt(e.target.value))}
+                                                                disabled={loading}
+                                                                className={errors.steps?.[index]?.maxRetries ? "border-red-500" : ""}
+                                                            />
+                                                            {errors.steps?.[index]?.maxRetries && (
+                                                                <p className="text-red-500 text-sm">{errors.steps[index].maxRetries[0]}</p>
+                                                            )}
+                                                        </div>
+
+                                                        <div className="space-y-2">
+                                                            <Label htmlFor={`step-deviceModelId-${index}`}>Mẫu thiết bị</Label>
+                                                            <Select
+                                                                value={step.deviceModelId}
+                                                                onValueChange={(value) => handleStepChange(index, "deviceModelId", value)}
+                                                                disabled={loading || loadingDeviceModels || !selectedKioskVersion}
+                                                            >
+                                                                <SelectTrigger id={`step-deviceModelId-${index}`}>
+                                                                    <SelectValue
+                                                                        placeholder={
+                                                                            !selectedKioskVersion
+                                                                                ? "Vui lòng chọn phiên bản kiosk trước"
+                                                                                : loadingDeviceModels
+                                                                                    ? "Đang tải mẫu thiết bị..."
+                                                                                    : "Chọn mẫu thiết bị"
+                                                                        }
+                                                                    />
+                                                                </SelectTrigger>
+                                                                <SelectContent className="max-h-[300px]">
+                                                                    {selectedKioskVersion && (
                                                                         <InfiniteScroll
-                                                                            dataLength={workflows.length}
-                                                                            next={() => fetchWorkflows(workflowPage + 1)}
-                                                                            hasMore={hasMoreWorkflows}
+                                                                            dataLength={deviceModels.length}
+                                                                            next={() => fetchDeviceModels(deviceModelPage + 1)}
+                                                                            hasMore={hasMoreDeviceModels}
                                                                             loader={<div className="p-2 text-center text-sm">Đang tải thêm...</div>}
                                                                             scrollableTarget="select-content"
                                                                         >
-                                                                            {workflows.map((workflow) => (
-                                                                                <SelectItem key={workflow.workflowId} value={workflow.workflowId}>
-                                                                                    {workflow.name}
+                                                                            {deviceModels.map((deviceModel) => (
+                                                                                <SelectItem key={deviceModel.deviceModelId} value={deviceModel.deviceModelId}>
+                                                                                    {deviceModel.modelName}
                                                                                 </SelectItem>
                                                                             ))}
                                                                         </InfiniteScroll>
-                                                                    </SelectContent>
-                                                                </Select>
-                                                                {errors.steps?.[index]?.callbackWorkflowId && (
-                                                                    <p className="text-red-500 text-sm">{errors.steps[index].callbackWorkflowId[0]}</p>
-                                                                )}
-                                                            </div>
+                                                                    )}
+                                                                </SelectContent>
+                                                            </Select>
+                                                            {errors.steps?.[index]?.deviceModelId && (
+                                                                <p className="text-red-500 text-sm">{errors.steps[index].deviceModelId[0]}</p>
+                                                            )}
                                                         </div>
 
-                                                        {/* JSON Parameters */}
                                                         <div className="space-y-2">
-                                                            <Label htmlFor={`step-parameters-${index}`}>Tham số JSON</Label>
-                                                            <JsonEditorComponent
+                                                            <Label htmlFor={`step-deviceFunctionId-${index}`}>Chức năng thiết bị</Label>
+                                                            <Select
+                                                                value={step.deviceFunctionId}
+                                                                onValueChange={(value) => handleStepChange(index, "deviceFunctionId", value)}
+                                                                disabled={loading || !step.deviceModelId}
+                                                            >
+                                                                <SelectTrigger id={`step-deviceFunctionId-${index}`}>
+                                                                    <SelectValue
+                                                                        placeholder={
+                                                                            !step.deviceModelId
+                                                                                ? "Vui lòng chọn mẫu thiết bị trước"
+                                                                                : "Chọn chức năng thiết bị"
+                                                                        }
+                                                                    />
+                                                                </SelectTrigger>
+                                                                <SelectContent className="max-h-[300px]">
+                                                                    {step.deviceModelId &&
+                                                                        getDeviceFunctionsForModel(step.deviceModelId).map((deviceFunction) => (
+                                                                            <SelectItem
+                                                                                key={deviceFunction.deviceFunctionId}
+                                                                                value={deviceFunction.deviceFunctionId || deviceFunction.name}
+                                                                            >
+                                                                                <div className="flex flex-col">
+                                                                                    <span className="font-medium">{deviceFunction.name}</span>
+                                                                                    {deviceFunction.functionParameters &&
+                                                                                        deviceFunction.functionParameters.length > 0 && (
+                                                                                            <span className="text-sm text-muted-foreground">
+                                                                                                {deviceFunction.functionParameters.length} tham số
+                                                                                            </span>
+                                                                                        )}
+                                                                                </div>
+                                                                            </SelectItem>
+                                                                        ))}
+                                                                    {step.deviceModelId &&
+                                                                        getDeviceFunctionsForModel(step.deviceModelId).length === 0 && (
+                                                                            <div className="p-2 text-center text-sm text-muted-foreground">
+                                                                                Không có chức năng nào cho thiết bị này
+                                                                            </div>
+                                                                        )}
+                                                                </SelectContent>
+                                                            </Select>
+                                                            {errors.steps?.[index]?.deviceFunctionId && (
+                                                                <p className="text-red-500 text-sm">{errors.steps[index].deviceFunctionId[0]}</p>
+                                                            )}
+                                                        </div>
+
+                                                        <div className="space-y-2">
+                                                            <Label htmlFor={`step-callbackWorkflowId-${index}`}>Quy trình callback</Label>
+                                                            <Select
+                                                                value={step.callbackWorkflowId}
+                                                                onValueChange={(value) => handleStepChange(index, "callbackWorkflowId", value)}
+                                                                disabled={loading || loadingWorkflows}
+                                                            >
+                                                                <SelectTrigger id={`step-callbackWorkflowId-${index}`}>
+                                                                    <SelectValue
+                                                                        placeholder={loadingWorkflows ? "Đang tải quy trình..." : "Chọn quy trình callback"}
+                                                                    />
+                                                                </SelectTrigger>
+                                                                <SelectContent className="max-h-[300px]">
+                                                                    <InfiniteScroll
+                                                                        dataLength={workflows.length}
+                                                                        next={() => fetchWorkflows(workflowPage + 1)}
+                                                                        hasMore={hasMoreWorkflows}
+                                                                        loader={<div className="p-2 text-center text-sm">Đang tải thêm...</div>}
+                                                                        scrollableTarget="select-content"
+                                                                    >
+                                                                        {workflows.map((workflow) => (
+                                                                            <SelectItem key={workflow.workflowId} value={workflow.workflowId}>
+                                                                                {workflow.name}
+                                                                            </SelectItem>
+                                                                        ))}
+                                                                    </InfiniteScroll>
+                                                                </SelectContent>
+                                                            </Select>
+                                                            {errors.steps?.[index]?.callbackWorkflowId && (
+                                                                <p className="text-red-500 text-sm">{errors.steps[index].callbackWorkflowId[0]}</p>
+                                                            )}
+                                                        </div>
+
+                                                        <div className="space-y-2 md:col-span-2">
+                                                            <Label htmlFor={`step-parameters-${index}`}>Tham số</Label>
+                                                            <FunctionParameterEditor
+                                                                deviceFunctionId={step.deviceFunctionId}
+                                                                deviceModels={deviceModels}
                                                                 value={step.parameters}
                                                                 onChange={(value) => handleStepChange(index, "parameters", value)}
                                                                 disabled={loading}
-                                                                height="250px"
                                                             />
                                                             {errors.steps?.[index]?.parameters && (
                                                                 <p className="text-red-500 text-sm">{errors.steps[index].parameters[0]}</p>

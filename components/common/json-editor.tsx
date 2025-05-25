@@ -1,54 +1,22 @@
 "use client"
 
 import type React from "react"
-import { useEffect, useRef, useState } from "react"
-import JSONEditor, { type JSONEditorOptions } from "jsoneditor"
-import "jsoneditor/dist/jsoneditor.css"
+import { useEffect, useState } from "react"
+import AceEditor from "react-ace"
+import "ace-builds/src-noconflict/mode-json"
+import "ace-builds/src-noconflict/theme-cloud9_day"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Textarea } from "@/components/ui/textarea"
-import type { JSX } from "react/jsx-runtime" // Import JSX to fix the undeclared variable error
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Label } from "@/components/ui/label"
 
-// CSS tùy chỉnh để ghi đè kiểu của JSONEditor
-const customStyles = `
-    .jsoneditor {
-        border: 1px solid #a5edec; /* primary-200 */
-        border-radius: 0.375rem;
-        background-color: #e1f9f9; /* primary-100 */
-    }
-    .jsoneditor-tree {
-        font-family: 'Inter', sans-serif;
-        color: #295959; /* primary-500 */
-    }
-    .jsoneditor-field {
-        color: #3f8786; /* primary-400 */
-        font-weight: 600;
-    }
-    .jsoneditor-value {
-        color: #68e0df; /* primary-300 */
-    }
-    .jsoneditor-button {
-        background-color: #3f8786; /* primary-400 */
-        color: #ffffff; /* primary-foreground */
-        border-radius: 0.25rem;
-        padding: 0.25rem 0.5rem;
-    }
-    .jsoneditor-button:hover {
-        background-color: #295959; /* primary-500 */
-    }
-    .jsoneditor-expandable .jsoneditor-button {
-        background-color: transparent;
-        color: #3f8786; /* primary-400 */
-    }
-    .jsoneditor-expandable .jsoneditor-button:hover {
-        color: #295959; /* primary-500 */
-    }
-`
-
-// Chèn CSS tùy chỉnh vào tài liệu
-if (typeof document !== "undefined") {
-    const styleSheet = document.createElement("style")
-    styleSheet.innerText = customStyles
-    document.head.appendChild(styleSheet)
+interface FunctionParameter {
+    functionParameterId: string
+    deviceFunctionId: string
+    name: string
+    type: string
+    options: any[]
+    default: string
 }
 
 interface JsonEditorComponentProps {
@@ -56,6 +24,7 @@ interface JsonEditorComponentProps {
     onChange: (value: string) => void
     disabled?: boolean
     height?: string
+    functionParameters?: FunctionParameter[]
 }
 
 const JsonEditorComponent: React.FC<JsonEditorComponentProps> = ({
@@ -63,10 +32,9 @@ const JsonEditorComponent: React.FC<JsonEditorComponentProps> = ({
     onChange,
     disabled = false,
     height = "300px",
+    functionParameters = [],
 }) => {
-    const containerRef = useRef<HTMLDivElement>(null)
-    const editorRef = useRef<JSONEditor | null>(null)
-    const [selectedTab, setSelectedTab] = useState("editor")
+    const [selectedTab, setSelectedTab] = useState("ui")
     const [json, setJson] = useState(() => {
         try {
             return value ? JSON.parse(value) : {}
@@ -74,99 +42,198 @@ const JsonEditorComponent: React.FC<JsonEditorComponentProps> = ({
             return {}
         }
     })
-    const [stringView, setStringView] = useState(value || "{}")
+    const [stringView, setStringView] = useState("") // String View độc lập, không tự động cập nhật
+    const [selectedType, setSelectedType] = useState<string>("text")
     const [error, setError] = useState<string | null>(null)
+    const [forceUpdate, setForceUpdate] = useState(0)
 
-    // Khởi tạo JSONEditor
-    useEffect(() => {
-        if (containerRef.current && !disabled) {
-            const options: JSONEditorOptions = {
-                mode: "tree",
-                mainMenuBar: false,
-                navigationBar: false,
-                statusBar: false,
-                onChangeJSON: (updatedJson) => {
-                    setJson(updatedJson)
-                    const jsonString = JSON.stringify(updatedJson, null, 2)
-                    setStringView(jsonString)
-                    onChange(jsonString)
-                    setError(null)
-                },
-                onEditable: () => ({ field: false, value: true }),
-            }
+    const availableTypes = [
+        { value: "text", label: "Text" },
+        { value: "integer", label: "Integer" },
+        { value: "double", label: "Double" },
+        { value: "boolean", label: "Boolean" },
+    ]
 
-            editorRef.current = new JSONEditor(containerRef.current, options)
-            editorRef.current.set(json)
-        }
-
-        return () => {
-            editorRef.current?.destroy()
-        }
-    }, [disabled])
-
-    // Cập nhật khi value prop thay đổi
     useEffect(() => {
         try {
-            const parsedJson = value ? JSON.parse(value) : {}
-            setJson(parsedJson)
-            setStringView(value || "{}")
-            if (editorRef.current) {
-                editorRef.current.set(parsedJson)
-            }
+            const parsed = value ? JSON.parse(value) : {}
+            setJson(parsed)
+            setError(null)
         } catch {
-            // Ignore invalid JSON
+            setError("Dữ liệu JSON không hợp lệ")
         }
     }, [value])
 
-    // Xử lý thay đổi trong String View
-    const handleStringViewChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
-        const newValue = e.target.value
-        setStringView(newValue)
-        try {
-            const parsedJson = JSON.parse(newValue)
-            setJson(parsedJson)
-            onChange(newValue)
-            setError(null)
-        } catch (err) {
-            setError("JSON không hợp lệ")
+    const validateValueByType = (val: string, type: string) => {
+        if (!val.trim()) return { isValid: true }
+
+        switch (type) {
+            case "integer":
+                const intVal = Number.parseInt(val)
+                return {
+                    isValid: !isNaN(intVal) && intVal.toString() === val.trim() && Number.isInteger(intVal),
+                    error: "Giá trị phải là số nguyên (ví dụ: 42)",
+                }
+            case "double":
+                const floatVal = Number.parseFloat(val)
+                return {
+                    isValid: !isNaN(floatVal) && !isNaN(Number(val)),
+                    error: "Giá trị phải là số thập phân (ví dụ: 12.5)",
+                }
+            case "boolean":
+                return {
+                    isValid: val.trim() === "true" || val.trim() === "false",
+                    error: "Giá trị phải là true hoặc false",
+                }
+            case "text":
+                return { isValid: true }
+            default:
+                return { isValid: false, error: "Kiểu dữ liệu không hợp lệ" }
         }
     }
 
-    // Hàm hiển thị dạng MongoDB-style view
-    const renderMongoView = (data: any, indent = 0): JSX.Element[] => {
-        const items: JSX.Element[] = []
+    const handleStringViewChange = (e: React.ChangeEvent<HTMLTextAreaElement>) => {
+        const newValue = e.target.value
+        setStringView(newValue) // Chỉ cập nhật khi người dùng nhập vào String View
 
+        if (!newValue.trim()) {
+            setError(null)
+            return
+        }
+
+        const validation = validateValueByType(newValue, selectedType)
+        if (validation.isValid) {
+            // Convert raw input to proper JSON value based on type
+            let jsonValue: any
+
+            switch (selectedType) {
+                case "text":
+                    jsonValue = newValue // Keep as string
+                    break
+                case "integer":
+                    jsonValue = Number.parseInt(newValue)
+                    break
+                case "double":
+                    jsonValue = Number.parseFloat(newValue)
+                    break
+                case "boolean":
+                    jsonValue = newValue.trim() === "true"
+                    break
+                default:
+                    jsonValue = newValue
+            }
+
+            // Update the JSON with the converted value
+            const jsonString = JSON.stringify(jsonValue)
+            setJson(jsonValue)
+            onChange(jsonString)
+            setError(null)
+        } else {
+            setError(validation.error)
+        }
+    }
+
+    const handleJsonChange = (newValue: string) => {
+        try {
+            const parsed = JSON.parse(newValue)
+            const originalKeys = Object.keys(json)
+            const newKeys = Object.keys(parsed)
+
+            // Kiểm tra xem key có bị thay đổi không
+            const keysChanged = originalKeys.length !== newKeys.length || !originalKeys.every((key) => newKeys.includes(key))
+
+            if (keysChanged) {
+                setError("Không được phép thay đổi tên parameter (key)")
+                // Không cập nhật JSON, giữ nguyên giá trị cũ
+                setTimeout(() => {
+                    setError(null)
+                    // Force reset AceEditor về giá trị cũ
+                    setJson({ ...json })
+                }, 0)
+                return
+            }
+
+            setJson(parsed)
+            onChange(JSON.stringify(parsed, null, 2))
+            setError(null)
+        } catch {
+            setError("JSON không hợp lệ")
+            // Reset về giá trị cũ sau 2 giây
+            setTimeout(() => {
+                setError(null)
+                setJson({ ...json })
+            }, 0)
+        }
+    }
+
+    const renderUIView = (data: any, indent = 0): React.JSX.Element[] => {
+        const items: React.JSX.Element[] = []
         const spacing = (level: number) => <span style={{ paddingLeft: `${level * 20}px` }} />
 
         if (Array.isArray(data)) {
             data.forEach((item, index) => {
                 items.push(
-                    <div key={index}>
+                    <div key={index} className="py-1">
                         {spacing(indent)}
-                        <span className="text-primary-400">[{index}]</span>
+                        <span className="text-blue-600 font-medium">[{index}]</span>
                         {typeof item === "object" ? (
-                            <>{renderMongoView(item, indent + 1)}</>
+                            <div>{renderUIView(item, indent + 1)}</div>
                         ) : (
-                            <>
-                                : <span className="text-primary-300">{JSON.stringify(item)}</span>
-                            </>
+                            <input
+                                type="text"
+                                value={JSON.stringify(item)}
+                                onChange={(e) => {
+                                    try {
+                                        const newItem = JSON.parse(e.target.value)
+                                        const newData = [...data]
+                                        newData[index] = newItem
+                                        const newJson = Array.isArray(json) ? newData : { ...json, [index]: newData }
+                                        setJson(newJson)
+                                        onChange(JSON.stringify(newJson, null, 2))
+                                    } catch {
+                                        setError("Giá trị không hợp lệ")
+                                    }
+                                }}
+                                className="text-green-600 font-medium border rounded p-1 ml-2"
+                                disabled={disabled}
+                            />
                         )}
                     </div>,
                 )
             })
         } else if (typeof data === "object" && data !== null) {
             Object.entries(data).forEach(([key, value], i) => {
+                const param = functionParameters.find((p) => p.name === key)
+                const paramType = param?.type || "unknown"
+
                 items.push(
-                    <div key={i}>
+                    <div key={i} className="py-1 border-l-2 border-gray-100 pl-2 my-1">
                         {spacing(indent)}
-                        <strong className="text-primary-400">{key}</strong>
-                        {typeof value === "object" ? (
-                            <>:{renderMongoView(value, indent + 1)}</>
-                        ) : (
-                            <>
-                                : <span className="text-primary-300">{JSON.stringify(value)}</span>
-                            </>
-                        )}
+                        <div className="flex items-center gap-2">
+                            <span className="text-blue-600 font-semibold">{key}</span>
+                            <span className="text-xs bg-gray-100 text-gray-600 px-1 rounded">{paramType}</span>
+                            <span className="text-gray-500">:</span>
+                            {typeof value === "object" ? (
+                                <div className="ml-2">{renderUIView(value, indent + 1)}</div>
+                            ) : (
+                                <input
+                                    type="text"
+                                    value={JSON.stringify(value)}
+                                    onChange={(e) => {
+                                        try {
+                                            const newValue = JSON.parse(e.target.value)
+                                            const newJson = { ...json, [key]: newValue }
+                                            setJson(newJson)
+                                            onChange(JSON.stringify(newJson, null, 2))
+                                        } catch {
+                                            setError("Giá trị không hợp lệ")
+                                        }
+                                    }}
+                                    className="text-green-600 font-medium border rounded p-1"
+                                    disabled={disabled}
+                                />
+                            )}
+                        </div>
                     </div>,
                 )
             })
@@ -179,7 +246,7 @@ const JsonEditorComponent: React.FC<JsonEditorComponentProps> = ({
         return (
             <div className="bg-muted p-3 rounded-md">
                 <Textarea
-                    value={stringView}
+                    value={value}
                     readOnly
                     className="font-mono bg-transparent border-none resize-none"
                     style={{ height }}
@@ -188,38 +255,97 @@ const JsonEditorComponent: React.FC<JsonEditorComponentProps> = ({
         )
     }
 
+    const resetToOriginal = () => {
+        setForceUpdate((prev) => prev + 1)
+        setTimeout(() => setError(null), 100)
+    }
+
     return (
         <div className="border rounded-md">
             <Tabs value={selectedTab} onValueChange={setSelectedTab}>
                 <TabsList className="w-full">
-                    <TabsTrigger value="editor">JSON Editor</TabsTrigger>
+                    <TabsTrigger value="ui">UI View</TabsTrigger>
+                    <TabsTrigger value="json">JSON View</TabsTrigger>
                     <TabsTrigger value="string">String View</TabsTrigger>
-                    <TabsTrigger value="mongo">Mongo View</TabsTrigger>
                 </TabsList>
 
-                <TabsContent value="editor" className="mt-0">
-                    <div ref={containerRef} style={{ height }} />
+                <TabsContent value="ui" className="mt-0">
+                    <div className="bg-gray-50 p-4 text-sm rounded border overflow-auto" style={{ height }}>
+                        {Object.keys(json).length > 0 ? (
+                            <div className="space-y-1">{renderUIView(json)}</div>
+                        ) : (
+                            <div className="text-gray-500 text-center py-8">Chưa có dữ liệu để hiển thị</div>
+                        )}
+                    </div>
+                </TabsContent>
+
+                <TabsContent value="json" className="mt-0">
+                    <div className="bg-white border rounded p-2 overflow-auto" style={{ height }}>
+                        <AceEditor
+                            mode="json"
+                            theme="cloud9_day"
+                            value={JSON.stringify(json, null, 2)}
+                            onChange={handleJsonChange}
+                            name={`json-editor-${forceUpdate}`} // Force re-render khi có lỗi
+                            editorProps={{ $blockScrolling: true }}
+                            setOptions={{
+                                enableBasicAutocompletion: true,
+                                enableLiveAutocompletion: true,
+                                enableSnippets: true,
+                                showLineNumbers: true,
+                                tabSize: 2,
+                            }}
+                            style={{ width: "100%", height: "100%" }}
+                            readOnly={disabled}
+                        />
+                    </div>
                 </TabsContent>
 
                 <TabsContent value="string" className="mt-0">
                     <div className="space-y-2 p-2">
+                        <div className="flex items-center gap-2">
+                            <Label htmlFor="type-select" className="text-sm">
+                                Kiểu dữ liệu:
+                            </Label>
+                            <Select value={selectedType} onValueChange={setSelectedType} disabled={disabled}>
+                                <SelectTrigger id="type-select" className="w-40">
+                                    <SelectValue />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {availableTypes.map((type) => (
+                                        <SelectItem key={type.value} value={type.value}>
+                                            {type.label}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
                         <Textarea
                             value={stringView}
                             onChange={handleStringViewChange}
                             className="font-mono"
-                            style={{ height }}
-                            placeholder="Nhập JSON tại đây"
+                            style={{ height: `calc(${height} - 60px)` }}
+                            placeholder={
+                                selectedType === "text"
+                                    ? "Nhập text (ví dụ: Hello World)"
+                                    : selectedType === "integer"
+                                        ? "Nhập số nguyên (ví dụ: 42)"
+                                        : selectedType === "double"
+                                            ? "Nhập số thập phân (ví dụ: 12.5)"
+                                            : selectedType === "boolean"
+                                                ? "Nhập true hoặc false"
+                                                : "Nhập giá trị..."
+                            }
+                            disabled={disabled}
                         />
-                        {error && <p className="text-red-500 text-sm">{error}</p>}
-                    </div>
-                </TabsContent>
-
-                <TabsContent value="mongo" className="mt-0">
-                    <div
-                        className="bg-primary-100 p-4 text-sm font-mono rounded border border-primary-200 overflow-auto text-primary-500"
-                        style={{ height }}
-                    >
-                        {renderMongoView(json)}
+                        {error && <p className="text-sm text-red-500">{error}</p>}
+                        <div className="text-xs text-blue-600">
+                            <strong>Lưu ý:</strong> Nhập giá trị thô, không cần format JSON.
+                            {selectedType === "text" && " Ví dụ: Hello World"}
+                            {selectedType === "integer" && " Ví dụ: 42"}
+                            {selectedType === "double" && " Ví dụ: 12.5"}
+                            {selectedType === "boolean" && " Ví dụ: true"}
+                        </div>
                     </div>
                 </TabsContent>
             </Tabs>

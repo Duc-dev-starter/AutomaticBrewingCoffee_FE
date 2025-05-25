@@ -6,7 +6,7 @@ const stepSchema = z.object({
     type: z.nativeEnum(EWorkflowStepType, {
         errorMap: () => ({ message: "Loại bước không hợp lệ." }),
     }),
-    deviceTypeId: z.string().min(1, "Vui lòng chọn loại thiết bị."),
+    deviceModelId: z.string().min(1, "Vui lòng chọn loại thiết bị."),
     maxRetries: z.number().int().nonnegative("Số lần thử lại phải là số nguyên không âm."),
     callbackWorkflowId: z.string().optional().or(z.literal("")).nullable(),
     parameters: z.string().optional().or(z.literal("")).nullable(),

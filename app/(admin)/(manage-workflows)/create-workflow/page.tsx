@@ -153,7 +153,7 @@ const CreateWorkflow = () => {
 
         setLoadingDeviceModels(true)
         try {
-            const response = await getDeviceModels({ page: pageNumber, size: 10 })
+            const response = await getDeviceModels({ kioskVersionId: selectedKioskVersion, page: pageNumber, size: 10 })
             if (pageNumber === 1) {
                 setDeviceModels(response.items)
             } else {

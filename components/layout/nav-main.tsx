@@ -3,7 +3,6 @@
 import {
     LayoutDashboard,
     ShoppingCart,
-    ClipboardList,
     Layers,
     Computer,
     Tablet,
@@ -23,11 +22,19 @@ import {
     SidebarMenu,
     SidebarMenuButton,
     SidebarMenuItem,
+    useSidebar,
 } from "@/components/ui/sidebar"
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem as UIDropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
 import { usePathname } from "next/navigation"
 import { Path } from "@/constants/path"
 import { useEffect, useRef, useState } from "react"
 import { cn } from "@/lib/utils"
+import Link from "next/link"
 
 type BaseMenuItem = {
     title: string
@@ -75,11 +82,6 @@ const menuSections: MenuSection[] = [
     {
         title: "Quản lý sản xuất",
         items: [
-            // {
-            //     title: "Quản lý công thức",
-            //     url: Path.MANAGE_RECIPES,
-            //     icon: ClipboardList,
-            // },
             {
                 title: "Quản lý quy trình",
                 url: Path.MANAGE_WORKFLOWS,
@@ -137,11 +139,6 @@ const menuSections: MenuSection[] = [
     {
         title: "Quản lý kinh doanh",
         items: [
-            // {
-            //     title: "Quản lý chi phí",
-            //     url: Path.MANAGE_COSTS,
-            //     icon: DollarSign,
-            // },
             {
                 title: "Quản lý tổ chức",
                 url: Path.MANAGE_ORGANIZATIONS,
@@ -171,12 +168,15 @@ const menuSections: MenuSection[] = [
     },
 ]
 
-
 export function NavMain() {
     const path = usePathname()
     const activeItemRef = useRef<HTMLAnchorElement>(null)
     const containerRef = useRef<HTMLDivElement>(null)
     const [openDropdowns, setOpenDropdowns] = useState<Record<string, boolean>>({})
+    const { state } = useSidebar()
+
+    // Kiểm tra sidebar có đang ở chế độ collapsed không
+    const isCollapsed = state === "collapsed"
 
     const isDropdownActive = (children: StandardMenuItem[]) => {
         return children.some((child) => child.url === path)
@@ -205,9 +205,7 @@ export function NavMain() {
             const containerRect = container.getBoundingClientRect()
             const activeItemRect = activeItem.getBoundingClientRect()
 
-            const isFullyVisible =
-                activeItemRect.top >= containerRect.top &&
-                activeItemRect.bottom <= containerRect.bottom
+            const isFullyVisible = activeItemRect.top >= containerRect.top && activeItemRect.bottom <= containerRect.bottom
 
             if (!isFullyVisible) {
                 const containerHeight = container.clientHeight
@@ -231,6 +229,111 @@ export function NavMain() {
         }))
     }
 
+    // Component cho dropdown item khi collapsed
+    const CollapsedDropdownItem = ({ item }: { item: DropdownMenuItem }) => {
+        const isActiveParent = isDropdownActive(item.children)
+
+        return (
+            <SidebarMenuItem>
+                <DropdownMenu>
+                    <DropdownMenuTrigger asChild>
+                        <SidebarMenuButton
+                            tooltip={item.title}
+                            className={cn(
+                                "transition-all duration-200 hover:bg-[#e1f9f9] dark:hover:bg-[#1a3333]",
+                                isActiveParent && "bg-[#e1f9f9] dark:bg-[#1a3333]",
+                            )}
+                        >
+                            {item.icon && <item.icon className="size-4 text-[#68e0df]" />}
+                            <span className="sr-only">{item.title}</span>
+                        </SidebarMenuButton>
+                    </DropdownMenuTrigger>
+                    <DropdownMenuContent side="right" align="start" className="w-48">
+                        {item.children.map((child) => {
+                            const isChildActive = path === child.url
+                            return (
+                                <UIDropdownMenuItem key={child.title} asChild>
+                                    <Link
+                                        href={child.url}
+                                        className={cn(
+                                            "flex items-center gap-2 w-full",
+                                            isChildActive && "bg-accent text-accent-foreground",
+                                        )}
+                                    >
+                                        {child.icon && <child.icon className="size-4 text-[#68e0df]" />}
+                                        <span>{child.title}</span>
+                                    </Link>
+                                </UIDropdownMenuItem>
+                            )
+                        })}
+                    </DropdownMenuContent>
+                </DropdownMenu>
+            </SidebarMenuItem>
+        )
+    }
+
+    // Component cho dropdown item khi expanded
+    const ExpandedDropdownItem = ({ item }: { item: DropdownMenuItem }) => {
+        const isActiveParent = isDropdownActive(item.children)
+        const isOpen = openDropdowns[item.title] || false
+
+        return (
+            <div key={item.title} className="space-y-1">
+                <SidebarMenuItem>
+                    <SidebarMenuButton asChild tooltip={item.title}>
+                        <button
+                            onClick={() => toggleDropdown(item.title)}
+                            className={cn(
+                                "flex w-full items-center justify-between transition-all duration-200 hover:bg-[#e1f9f9] dark:hover:bg-[#1a3333]",
+                                isActiveParent && "bg-[#e1f9f9] dark:bg-[#1a3333]",
+                            )}
+                        >
+                            <div className="flex items-center gap-2">
+                                {item.icon && <item.icon className="size-4 text-[#68e0df]" />}
+                                <span className="text-gray-600 dark:text-gray-300 group-data-[collapsible=icon]:hidden">
+                                    {item.title}
+                                </span>
+                            </div>
+                            <ChevronRight
+                                className={cn(
+                                    "h-4 w-4 text-gray-500 transition-transform group-data-[collapsible=icon]:hidden",
+                                    isOpen && "rotate-90",
+                                )}
+                            />
+                        </button>
+                    </SidebarMenuButton>
+                </SidebarMenuItem>
+
+                {isOpen && (
+                    <div className="pl-6 border-l border-border ml-3 mt-1 space-y-1 group-data-[collapsible=icon]:hidden">
+                        {item.children.map((child) => {
+                            const isChildActive = path === child.url
+                            return (
+                                <SidebarMenuItem key={child.title}>
+                                    <SidebarMenuButton asChild tooltip={child.title}>
+                                        <Link
+                                            ref={isChildActive ? activeItemRef : null}
+                                            className={cn(
+                                                "transition-all duration-200 hover:bg-[#e1f9f9] dark:hover:bg-[#1a3333]",
+                                                isChildActive && "bg-[#e1f9f9] dark:bg-[#1a3333]",
+                                            )}
+                                            href={child.url}
+                                        >
+                                            {child.icon && <child.icon className="size-4 text-[#68e0df]" />}
+                                            <span className={cn("text-gray-600 dark:text-gray-300", isChildActive && "font-medium")}>
+                                                {child.title}
+                                            </span>
+                                        </Link>
+                                    </SidebarMenuButton>
+                                </SidebarMenuItem>
+                            )
+                        })}
+                    </div>
+                )}
+            </div>
+        )
+    }
+
     return (
         <div ref={containerRef} className="h-full overflow-y-auto no-scrollbar">
             {menuSections.map((section, index) => (
@@ -241,89 +344,38 @@ export function NavMain() {
                     <SidebarMenu>
                         {section.items.map((item) => {
                             if (!("children" in item) || !item.children) {
+                                // Standard menu item
                                 const isActive = path === item.url
                                 return (
                                     <SidebarMenuItem key={item.title}>
                                         <SidebarMenuButton asChild tooltip={item.title}>
-                                            <a
+                                            <Link
                                                 ref={isActive ? activeItemRef : null}
-                                                className={`transition-all duration-200 hover:bg-[#e1f9f9] dark:hover:bg-[#1a3333] ${isActive ? "bg-[#e1f9f9] dark:bg-[#1a3333]" : ""}`}
+                                                className={cn(
+                                                    "transition-all duration-200 hover:bg-[#e1f9f9] dark:hover:bg-[#1a3333]",
+                                                    isActive && "bg-[#e1f9f9] dark:bg-[#1a3333]",
+                                                )}
                                                 href={item.url}
                                             >
-                                                {item.icon && (
-                                                    <item.icon className={`size-4 text-[#68e0df]`} />
-                                                )}
+                                                {item.icon && <item.icon className="size-4 text-[#68e0df]" />}
                                                 <span
-                                                    className={`text-gray-600 dark:text-gray-300 group-data-[collapsible=icon]:hidden ${isActive ? "font-medium" : ""}`}
+                                                    className={cn(
+                                                        "text-gray-600 dark:text-gray-300 group-data-[collapsible=icon]:hidden",
+                                                        isActive && "font-medium",
+                                                    )}
                                                 >
                                                     {item.title}
                                                 </span>
-                                            </a>
+                                            </Link>
                                         </SidebarMenuButton>
                                     </SidebarMenuItem>
                                 )
                             } else {
-                                const isActiveParent = isDropdownActive(item.children)
-                                const isOpen = openDropdowns[item.title] || false
-
-                                return (
-                                    <div key={item.title} className="space-y-1">
-                                        <SidebarMenuItem>
-                                            <SidebarMenuButton asChild tooltip={item.title}>
-                                                <button
-                                                    onClick={() => toggleDropdown(item.title)}
-                                                    className={`flex w-full items-center justify-between transition-all duration-200 hover:bg-[#e1f9f9] dark:hover:bg-[#1a3333] ${isActiveParent ? "bg-[#e1f9f9] dark:bg-[#1a3333]" : ""}`}
-                                                >
-                                                    <div className="flex items-center gap-2">
-                                                        {item.icon && (
-                                                            <item.icon
-                                                                className={`size-4 text-[#68e0df]`}
-                                                            />
-                                                        )}
-                                                        <span className="text-gray-600 dark:text-gray-300 group-data-[collapsible=icon]:hidden">
-                                                            {item.title}
-                                                        </span>
-                                                    </div>
-                                                    <ChevronRight
-                                                        className={cn(
-                                                            "h-4 w-4 text-gray-500 transition-transform",
-                                                            isOpen && "rotate-90"
-                                                        )}
-                                                    />
-                                                </button>
-                                            </SidebarMenuButton>
-                                        </SidebarMenuItem>
-
-                                        {isOpen && (
-                                            <div className="pl-6 border-l border-border ml-3 mt-1 space-y-1">
-                                                {item.children.map((child) => {
-                                                    const isChildActive = path === child.url
-                                                    return (
-                                                        <SidebarMenuItem key={child.title}>
-                                                            <SidebarMenuButton asChild tooltip={child.title}>
-                                                                <a
-                                                                    ref={isChildActive ? activeItemRef : null}
-                                                                    className={`transition-all duration-200 hover:bg-[#e1f9f9] dark:hover:bg-[#1a3333] ${isChildActive ? "bg-[#e1f9f9] dark:bg-[#1a3333]" : ""}`}
-                                                                    href={child.url}
-                                                                >
-                                                                    {child.icon && (
-                                                                        <child.icon
-                                                                            className={`size-4 text-[#68e0df]`}
-                                                                        />
-                                                                    )}
-                                                                    <span
-                                                                        className={`text-gray-600 dark:text-gray-300 group-data-[collapsible=icon]:hidden ${isChildActive ? "font-medium" : ""}`}
-                                                                    >
-                                                                        {child.title}
-                                                                    </span>
-                                                                </a>
-                                                            </SidebarMenuButton>
-                                                        </SidebarMenuItem>
-                                                    )
-                                                })}
-                                            </div>
-                                        )}
-                                    </div>
+                                // Dropdown menu item - render differently based on collapsed state
+                                return isCollapsed ? (
+                                    <CollapsedDropdownItem key={item.title} item={item} />
+                                ) : (
+                                    <ExpandedDropdownItem key={item.title} item={item} />
                                 )
                             }
                         })}

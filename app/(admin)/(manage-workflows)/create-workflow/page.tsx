@@ -59,61 +59,40 @@ const CreateWorkflow = () => {
     const [products, setProducts] = useState<Product[]>([])
     const [deviceModels, setDeviceModels] = useState<DeviceModel[]>([])
     const [workflows, setWorkflows] = useState<Workflow[]>([])
+    const [kioskVersions, setKioskVersions] = useState<KioskVersion[]>([])
     const [page, setPage] = useState<number>(1)
     const [deviceModelPage, setDeviceModelPage] = useState<number>(1)
     const [workflowPage, setWorkflowPage] = useState<number>(1)
-    const [hasMore, setHasMore] = useState(true)
+    const [kioskVersionPage, setKioskVersionPage] = useState<number>(1)
+    const [hasMoreProducts, setHasMoreProducts] = useState(true)
     const [hasMoreDeviceModels, setHasMoreDeviceModels] = useState(true)
     const [hasMoreWorkflows, setHasMoreWorkflows] = useState(true)
+    const [hasMoreKioskVersions, setHasMoreKioskVersions] = useState(true)
     const [expandedStep, setExpandedStep] = useState<number | null>(0)
-    const [loadingProducts, setLoadingProducts] = useState(true)
+    const [loadingProducts, setLoadingProducts] = useState(false)
     const [loadingDeviceModels, setLoadingDeviceModels] = useState(false)
     const [loadingWorkflows, setLoadingWorkflows] = useState(false)
-
-    // Kiosk Version states - tách biệt để tránh conflict
-    const [kioskVersions, setKioskVersions] = useState<KioskVersion[]>([])
-    const [kioskVersionPage, setKioskVersionPage] = useState(1)
-    const [hasMoreKioskVersion, setHasMoreKioskVersion] = useState(true)
-    const [selectedKioskVersion, setSelectedKioskVersion] = useState<string>("")
     const [loadingKioskVersions, setLoadingKioskVersions] = useState(false)
-    const [kioskVersionsLoaded, setKioskVersionsLoaded] = useState(false)
-    const [kioskVersionError, setKioskVersionError] = useState<string | null>(null)
+    const [selectedKioskVersion, setSelectedKioskVersion] = useState<string>("")
 
-    // Memoize fetch functions để tránh re-creation
+    // Memoize fetch functions
     const fetchKioskVersions = useCallback(
         async (pageNumber: number) => {
-            if (loadingKioskVersions) {
-                console.log("Already loading kiosk versions, skipping...")
-                return
-            }
-
-            console.log(`Fetching kiosk versions page ${pageNumber}`)
+            if (loadingKioskVersions || !hasMoreKioskVersions) return
             setLoadingKioskVersions(true)
-            setKioskVersionError(null)
-
             try {
                 const response = await getKioskVersions({ page: pageNumber, size: 10 })
-                console.log("Kiosk Versions Response:", response)
-
-                if (!response || !response.items) {
-                    throw new Error("Invalid response format")
-                }
-
                 if (pageNumber === 1) {
                     setKioskVersions(response.items)
                 } else {
                     setKioskVersions((prev) => [...prev, ...response.items])
                 }
                 setKioskVersionPage(pageNumber)
-
                 if (response.items.length < 10) {
-                    setHasMoreKioskVersion(false)
+                    setHasMoreKioskVersions(false)
                 }
-                setKioskVersionsLoaded(true)
             } catch (error) {
                 const err = error as ErrorResponse
-                console.error("Error fetching kiosk versions:", error)
-                setKioskVersionError(err.message || "Lỗi khi tải phiên bản kiosk")
                 toast({
                     title: "Lỗi khi lấy danh sách phiên bản kiosk",
                     description: err.message || "Vui lòng thử lại",
@@ -123,39 +102,15 @@ const CreateWorkflow = () => {
                 setLoadingKioskVersions(false)
             }
         },
-        [loadingKioskVersions, toast],
-    )
-
-    const loadMoreKioskVersions = useCallback(async () => {
-        if (loadingKioskVersions || !hasMoreKioskVersion) {
-            console.log("Cannot load more kiosk versions:", { loadingKioskVersions, hasMoreKioskVersion })
-            return
-        }
-        const nextPage = kioskVersionPage + 1
-        await fetchKioskVersions(nextPage)
-    }, [loadingKioskVersions, hasMoreKioskVersion, kioskVersionPage, fetchKioskVersions])
-
-    const handleKioskVersionOpen = useCallback(() => {
-        console.log("Kiosk version dropdown opened", { kioskVersionsLoaded, loadingKioskVersions })
-        if (!kioskVersionsLoaded && !loadingKioskVersions) {
-            fetchKioskVersions(1)
-        }
-    }, [kioskVersionsLoaded, loadingKioskVersions, fetchKioskVersions])
-
-    const getDeviceFunctionsForModel = useCallback(
-        (deviceModelId: string) => {
-            const deviceModel = deviceModels.find((dm) => dm.deviceModelId === deviceModelId)
-            return deviceModel?.deviceFunctions || []
-        },
-        [deviceModels],
+        [loadingKioskVersions, hasMoreKioskVersions, toast],
     )
 
     const fetchProducts = useCallback(
         async (pageNumber: number) => {
+            if (loadingProducts || !hasMoreProducts) return
             setLoadingProducts(true)
             try {
                 const response = await getProducts({ page: pageNumber, size: 10 })
-                console.log("Products:", response.items)
                 if (pageNumber === 1) {
                     setProducts(response.items)
                 } else {
@@ -163,10 +118,9 @@ const CreateWorkflow = () => {
                 }
                 setPage(pageNumber)
                 if (response.items.length < 10) {
-                    setHasMore(false)
+                    setHasMoreProducts(false)
                 }
             } catch (error) {
-                console.error("Error fetching products:", error)
                 toast({
                     title: "Lỗi",
                     description: "Không tải được danh sách sản phẩm.",
@@ -176,19 +130,15 @@ const CreateWorkflow = () => {
                 setLoadingProducts(false)
             }
         },
-        [toast],
+        [loadingProducts, hasMoreProducts, toast],
     )
 
     const fetchDeviceModels = useCallback(
         async (pageNumber: number) => {
-            if (!selectedKioskVersion) {
-                return
-            }
-
+            if (!selectedKioskVersion || loadingDeviceModels || !hasMoreDeviceModels) return
             setLoadingDeviceModels(true)
             try {
                 const response = await getDeviceModels({ kioskVersionId: selectedKioskVersion, page: pageNumber, size: 10 })
-                console.log("Device Models:", response.items)
                 if (pageNumber === 1) {
                     setDeviceModels(response.items)
                 } else {
@@ -199,7 +149,6 @@ const CreateWorkflow = () => {
                     setHasMoreDeviceModels(false)
                 }
             } catch (error) {
-                console.error("Error fetching device types:", error)
                 toast({
                     title: "Lỗi",
                     description: "Không tải được các loại thiết bị.",
@@ -209,44 +158,46 @@ const CreateWorkflow = () => {
                 setLoadingDeviceModels(false)
             }
         },
-        [selectedKioskVersion, toast],
+        [selectedKioskVersion, loadingDeviceModels, hasMoreDeviceModels, toast],
     )
 
     const fetchWorkflows = useCallback(
         async (pageNumber: number) => {
-            setLoadingWorkflows(true)
+            if (loadingWorkflows || !hasMoreWorkflows) return;
+            setLoadingWorkflows(true);
             try {
-                const response = await getWorkflows({ page: pageNumber, size: 10 })
+                const response = await getWorkflows({ page: pageNumber, size: 10 });
+                console.log("API response:", response); // Debug
                 if (pageNumber === 1) {
-                    setWorkflows(response.items)
+                    setWorkflows(response.items);
                 } else {
-                    setWorkflows((prev) => [...prev, ...response.items])
+                    setWorkflows((prev) => [...prev, ...response.items]);
                 }
-                setWorkflowPage(pageNumber)
-                if (response.items.length < 10) {
-                    setHasMoreWorkflows(false)
+                setWorkflowPage(pageNumber);
+                // Kiểm tra dựa trên totalPages
+                if (pageNumber >= response.totalPages) {
+                    setHasMoreWorkflows(false);
                 }
             } catch (error) {
-                console.error("Error fetching workflows:", error)
                 toast({
                     title: "Lỗi",
                     description: "Không tải được các quy trình.",
                     variant: "destructive",
-                })
+                });
             } finally {
-                setLoadingWorkflows(false)
+                setLoadingWorkflows(false);
             }
         },
-        [toast],
-    )
-
-    // Initial data loading - chỉ chạy 1 lần
+        [loadingWorkflows, hasMoreWorkflows, toast],
+    );
+    // Load initial data only once when component mounts
     useEffect(() => {
         fetchProducts(1)
         fetchWorkflows(1)
-    }, []) // Bỏ dependencies để tránh re-run
+        fetchKioskVersions(1)
+    }, [fetchProducts, fetchWorkflows, fetchKioskVersions])
 
-    // Device models loading - chỉ phụ thuộc vào selectedKioskVersion
+    // Load device models when selectedKioskVersion changes
     useEffect(() => {
         if (selectedKioskVersion) {
             setDeviceModels([])
@@ -256,16 +207,14 @@ const CreateWorkflow = () => {
         } else {
             setDeviceModels([])
         }
-    }, [selectedKioskVersion]) // Chỉ phụ thuộc vào selectedKioskVersion
+    }, [selectedKioskVersion, fetchDeviceModels])
 
     const handleChange = useCallback(
         (field: string, value: string) => {
-            console.log(`Form field changed: ${field} = ${value}`)
             setFormData((prev) => ({
                 ...prev,
                 [field]: value,
             }))
-
             if (errors[field]) {
                 setErrors((prev) => {
                     const newErrors = { ...prev }
@@ -292,7 +241,6 @@ const CreateWorkflow = () => {
                     const selectedFunction = deviceModels
                         .flatMap((dm) => dm.deviceFunctions || [])
                         .find((df) => df.deviceFunctionId === value)
-
                     newSteps[index] = {
                         ...newSteps[index],
                         [field]: value,
@@ -302,10 +250,8 @@ const CreateWorkflow = () => {
                 } else {
                     newSteps[index] = { ...newSteps[index], [field]: value }
                 }
-
                 return { ...prev, steps: newSteps }
             })
-
             if (errors.steps?.[index]?.[field]) {
                 setErrors((prev) => {
                     const newErrors = { ...prev }
@@ -413,7 +359,6 @@ const CreateWorkflow = () => {
             if (!result.success) {
                 const newErrors = result.error.flatten().fieldErrors
                 setErrors(newErrors)
-                console.log(newErrors)
                 toast({
                     title: "Lỗi xác thực",
                     description: "Vui lòng kiểm tra lại thông tin đã nhập",
@@ -430,6 +375,7 @@ const CreateWorkflow = () => {
                     description: formData.description || undefined,
                     type: formData.type,
                     productId: formData.productId,
+                    kioskVersionId: selectedKioskVersion,
                     steps: formData.steps,
                 } as Partial<Workflow>
 
@@ -443,7 +389,6 @@ const CreateWorkflow = () => {
                 router.push(Path.MANAGE_WORKFLOWS)
             } catch (error) {
                 const err = error as ErrorResponse
-                console.error("Lỗi khi xử lý quy trình:", error)
                 toast({
                     title: "Lỗi khi xử lý quy trình",
                     description: err.message,
@@ -453,13 +398,40 @@ const CreateWorkflow = () => {
                 setLoading(false)
             }
         },
-        [formData, toast, router],
+        [formData, selectedKioskVersion, toast, router],
     )
 
     const loadMoreProducts = useCallback(async () => {
+        if (loadingProducts || !hasMoreProducts) return
         const nextPage = page + 1
         await fetchProducts(nextPage)
-    }, [page, fetchProducts])
+    }, [page, loadingProducts, hasMoreProducts, fetchProducts])
+
+    const loadMoreKioskVersions = useCallback(async () => {
+        if (loadingKioskVersions || !hasMoreKioskVersions) return
+        const nextPage = kioskVersionPage + 1
+        await fetchKioskVersions(nextPage)
+    }, [loadingKioskVersions, hasMoreKioskVersions, kioskVersionPage, fetchKioskVersions])
+
+    const loadMoreDeviceModels = useCallback(async () => {
+        if (loadingDeviceModels || !hasMoreDeviceModels) return
+        const nextPage = deviceModelPage + 1
+        await fetchDeviceModels(nextPage)
+    }, [loadingDeviceModels, hasMoreDeviceModels, deviceModelPage, fetchDeviceModels])
+
+    const loadMoreWorkflows = useCallback(async () => {
+        if (loadingWorkflows || !hasMoreWorkflows) return
+        const nextPage = workflowPage + 1
+        await fetchWorkflows(nextPage)
+    }, [loadingWorkflows, hasMoreWorkflows, workflowPage, fetchWorkflows])
+
+    const getDeviceFunctionsForModel = useCallback(
+        (deviceModelId: string) => {
+            const deviceModel = deviceModels.find((dm) => dm.deviceModelId === deviceModelId)
+            return deviceModel?.deviceFunctions || []
+        },
+        [deviceModels],
+    )
 
     return (
         <div className="container mx-auto p-6 space-y-8">
@@ -499,65 +471,29 @@ const CreateWorkflow = () => {
                         <Select
                             value={selectedKioskVersion}
                             onValueChange={setSelectedKioskVersion}
-                            onOpenChange={(open) => {
-                                console.log("Kiosk version dropdown open state:", open)
-                                if (open) {
-                                    handleKioskVersionOpen()
-                                }
-                            }}
                             disabled={loading}
                         >
                             <SelectTrigger id="kioskVersion">
                                 <SelectValue placeholder="Chọn phiên bản kiosk" />
                             </SelectTrigger>
                             <SelectContent className="max-h-[300px]">
-                                {kioskVersionError ? (
-                                    <div className="p-4 text-center text-red-500">
-                                        <p className="text-sm">{kioskVersionError}</p>
-                                        <Button
-                                            variant="outline"
-                                            size="sm"
-                                            className="mt-2"
-                                            onClick={() => {
-                                                setKioskVersionError(null)
-                                                setKioskVersionsLoaded(false)
-                                                fetchKioskVersions(1)
-                                            }}
-                                        >
-                                            Thử lại
-                                        </Button>
-                                    </div>
-                                ) : loadingKioskVersions && kioskVersions.length === 0 ? (
+                                {loadingKioskVersions && kioskVersions.length === 0 ? (
                                     <div className="p-4 text-center">
-                                        <div className="flex items-center justify-center space-x-2">
-                                            <Loader2 className="h-4 w-4 animate-spin" />
-                                            <span className="text-sm">Đang tải phiên bản kiosk...</span>
-                                        </div>
-                                    </div>
-                                ) : kioskVersions.length === 0 && kioskVersionsLoaded ? (
-                                    <div className="p-4 text-center text-gray-500">
-                                        <p className="text-sm">Không có phiên bản kiosk nào</p>
+                                        <Loader2 className="h-4 w-4 animate-spin mx-auto" />
+                                        <p className="text-sm text-gray-500 mt-2">Đang tải phiên bản kiosk...</p>
                                     </div>
                                 ) : (
-                                    <ScrollArea className="h-[200px]">
+                                    <ScrollArea id="kiosk-version-scroll" className="h-[200px]">
                                         <InfiniteScroll
                                             dataLength={kioskVersions.length}
                                             next={loadMoreKioskVersions}
-                                            hasMore={hasMoreKioskVersion && !loadingKioskVersions}
-                                            loader={
-                                                <div className="p-2 text-center text-sm flex items-center justify-center space-x-2">
-                                                    <Loader2 className="h-3 w-3 animate-spin" />
-                                                    <span>Đang tải thêm...</span>
-                                                </div>
-                                            }
+                                            hasMore={hasMoreKioskVersions}
+                                            loader={<div className="p-2 text-center text-sm">Đang tải thêm...</div>}
                                             scrollableTarget="kiosk-version-scroll"
-                                            style={{ overflow: "hidden" }}
                                         >
                                             {kioskVersions.map((version) => (
                                                 <SelectItem key={version.kioskVersionId} value={version.kioskVersionId}>
-                                                    <div className="flex flex-col">
-                                                        <span className="font-medium">{version.versionTitle}</span>
-                                                    </div>
+                                                    {version.versionTitle}
                                                 </SelectItem>
                                             ))}
                                         </InfiniteScroll>
@@ -620,8 +556,8 @@ const CreateWorkflow = () => {
                                         </SelectTrigger>
                                         <SelectContent>
                                             {Object.values(EWorkflowType).map((type) => (
-                                                <SelectItem key={type} value={type} className="flex items-center">
-                                                    <div className="flex items-center">{EWorkflowTypeViMap[type]}</div>
+                                                <SelectItem key={type} value={type}>
+                                                    {EWorkflowTypeViMap[type]}
                                                 </SelectItem>
                                             ))}
                                         </SelectContent>
@@ -643,10 +579,7 @@ const CreateWorkflow = () => {
                                         onValueChange={(value) => handleChange("productId", value)}
                                         disabled={loading}
                                     >
-                                        <SelectTrigger
-                                            id="productId"
-                                            className={errors.productId ? "border-red-500 focus-visible:ring-red-500" : ""}
-                                        >
+                                        <SelectTrigger id="productId" className={errors.productId ? "border-red-500 focus-visible:ring-red-500" : ""}>
                                             <SelectValue placeholder={loadingProducts ? "Đang tải sản phẩm..." : "Chọn sản phẩm"} />
                                         </SelectTrigger>
                                         <SelectContent className="max-h-[300px]">
@@ -654,7 +587,7 @@ const CreateWorkflow = () => {
                                                 <InfiniteScroll
                                                     dataLength={products.length}
                                                     next={loadMoreProducts}
-                                                    hasMore={hasMore}
+                                                    hasMore={hasMoreProducts}
                                                     loader={<div className="p-2 text-center text-sm">Đang tải thêm...</div>}
                                                     scrollableTarget="product-scroll"
                                                 >
@@ -867,7 +800,7 @@ const CreateWorkflow = () => {
                                                                         <ScrollArea id={`device-model-scroll-${index}`} className="h-[200px]">
                                                                             <InfiniteScroll
                                                                                 dataLength={deviceModels.length}
-                                                                                next={() => fetchDeviceModels(deviceModelPage + 1)}
+                                                                                next={loadMoreDeviceModels}
                                                                                 hasMore={hasMoreDeviceModels}
                                                                                 loader={<div className="p-2 text-center text-sm">Đang tải thêm...</div>}
                                                                                 scrollableTarget={`device-model-scroll-${index}`}
@@ -947,19 +880,21 @@ const CreateWorkflow = () => {
                                                                     />
                                                                 </SelectTrigger>
                                                                 <SelectContent className="max-h-[300px]">
-                                                                    <InfiniteScroll
-                                                                        dataLength={workflows.length}
-                                                                        next={() => fetchWorkflows(workflowPage + 1)}
-                                                                        hasMore={hasMoreWorkflows}
-                                                                        loader={<div className="p-2 text-center text-sm">Đang tải thêm...</div>}
-                                                                        scrollableTarget="select-content"
-                                                                    >
-                                                                        {workflows.map((workflow) => (
-                                                                            <SelectItem key={workflow.workflowId} value={workflow.workflowId}>
-                                                                                {workflow.name}
-                                                                            </SelectItem>
-                                                                        ))}
-                                                                    </InfiniteScroll>
+                                                                    <ScrollArea id="workflow-scroll" className="h-[200px]">
+                                                                        <InfiniteScroll
+                                                                            dataLength={workflows.length}
+                                                                            next={loadMoreWorkflows}
+                                                                            hasMore={hasMoreWorkflows}
+                                                                            loader={<div className="p-2 text-center text-sm">Đang tải thêm...</div>}
+                                                                            scrollableTarget="workflow-scroll"
+                                                                        >
+                                                                            {workflows.map((workflow) => (
+                                                                                <SelectItem key={workflow.workflowId} value={workflow.workflowId}>
+                                                                                    {workflow.name}
+                                                                                </SelectItem>
+                                                                            ))}
+                                                                        </InfiniteScroll>
+                                                                    </ScrollArea>
                                                                 </SelectContent>
                                                             </Select>
                                                             {errors.steps?.[index]?.callbackWorkflowId && (

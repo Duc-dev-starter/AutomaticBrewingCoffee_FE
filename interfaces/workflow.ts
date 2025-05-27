@@ -1,5 +1,6 @@
 import { EWorkflowStepType, EWorkflowType } from "@/enum/workflow";
 import { Product } from "./product";
+import { DeviceModel } from "./device";
 
 export interface WorkflowStep {
     name: string;
@@ -9,6 +10,7 @@ export interface WorkflowStep {
     callbackWorkflowId: string;
     parameters: string;
     sequence: number;
+    deviceModel: DeviceModel
 }
 
 export interface Workflow {

@@ -28,7 +28,14 @@ const WorkflowDetail = () => {
                 setLoading(true)
                 const response = await getWorkflow(slug as string)
                 console.log(response)
-                setWorkflow(response.response)
+
+                // Sort steps by sequence to ensure correct order
+                const workflowData = {
+                    ...response.response,
+                    steps: response.response.steps.sort((a, b) => a.sequence - b.sequence),
+                }
+
+                setWorkflow(workflowData)
             } catch (error: unknown) {
                 const err = error as ErrorResponse
                 console.error("Lỗi khi lấy thông tin quy trinh:", err)
@@ -151,7 +158,7 @@ const WorkflowDetail = () => {
 
                                 <div className="space-y-4">
                                     {workflow.steps.map((step, index) => (
-                                        <WorkflowStepCard key={index} step={step} index={index} />
+                                        <WorkflowStepCard key={`step-${step.sequence}-${index}`} step={step} index={index} />
                                     ))}
                                 </div>
                             </div>

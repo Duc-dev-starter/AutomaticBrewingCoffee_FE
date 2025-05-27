@@ -8,9 +8,13 @@ import ConfirmDeleteDialog from './confirm-delete-alert';
 import { ActionDropdown } from './action-dropdown';
 import { Pagination } from './pagination';
 import BaseFilterBadgesTable from './base-filter-badges-table'
+import { ParametersDisplay } from './parameter-display';
+import FunctionParameterEditor from './function-parameter-editor';
 
 export {
+    FunctionParameterEditor,
     BaseStatusFilter,
+    ParametersDisplay,
     ExportButton,
     RefreshButton,
     PageSizeSelector,

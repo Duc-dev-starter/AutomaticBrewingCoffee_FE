@@ -1,5 +1,4 @@
 // @ts-nocheck
-
 "use client"
 
 import type React from "react"
@@ -66,7 +65,15 @@ const UpdateWorkflow = () => {
         const fetchWorkflow = async () => {
             try {
                 const workflow = await getWorkflow(slug)
-                setFormData(workflow.response)
+
+                // Sort steps by sequence to ensure correct order
+                const sortedWorkflow = {
+                    ...workflow.response,
+                    steps: workflow.response.steps.sort((a, b) => a.sequence - b.sequence),
+                }
+
+                setFormData(sortedWorkflow)
+
                 // Set kiosk version if available in workflow data
                 if (workflow.response.kioskVersionId) {
                     setSelectedKioskVersion(workflow.response.kioskVersionId)
@@ -351,13 +358,19 @@ const UpdateWorkflow = () => {
             const temp = newSteps[index]
             newSteps[index] = newSteps[index - 1]
             newSteps[index - 1] = temp
-            return {
-                ...prev,
-                steps: newSteps.map((step, i) => ({
+
+            // Update sequences and sort to ensure correct order
+            const updatedSteps = newSteps
+                .map((step, i) => ({
                     ...step,
                     name: `Bước ${i + 1}`,
                     sequence: i + 1,
-                })),
+                }))
+                .sort((a, b) => a.sequence - b.sequence)
+
+            return {
+                ...prev,
+                steps: updatedSteps,
             }
         })
         setExpandedStep(index - 1)
@@ -372,13 +385,19 @@ const UpdateWorkflow = () => {
             const temp = newSteps[index]
             newSteps[index] = newSteps[index + 1]
             newSteps[index + 1] = temp
-            return {
-                ...prev,
-                steps: newSteps.map((step, i) => ({
+
+            // Update sequences and sort to ensure correct order
+            const updatedSteps = newSteps
+                .map((step, i) => ({
                     ...step,
                     name: `Bước ${i + 1}`,
                     sequence: i + 1,
-                })),
+                }))
+                .sort((a, b) => a.sequence - b.sequence)
+
+            return {
+                ...prev,
+                steps: updatedSteps,
             }
         })
         setExpandedStep(index + 1)

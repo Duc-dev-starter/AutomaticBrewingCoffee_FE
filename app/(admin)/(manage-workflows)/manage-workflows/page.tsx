@@ -45,7 +45,7 @@ const ManageWorkflows = () => {
     const [totalPages, setTotalPages] = useState(1);
     const [typeFilter, setTypeFilter] = useState<string>("");
 
-    const [sorting, setSorting] = useState<SortingState>([{ id: "name", desc: false }]);
+    const [sorting, setSorting] = useState<SortingState>([{ id: "createdDate", desc: true }]);
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
     const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
     const [rowSelection, setRowSelection] = useState({});

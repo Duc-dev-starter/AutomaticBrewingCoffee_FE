@@ -15,6 +15,8 @@ import InfiniteScroll from "react-infinite-scroll-component";
 import { EBaseStatus, EBaseStatusViMap } from "@/enum/base";
 import { KioskDialogProps } from "@/types/dialog";
 import { ErrorResponse } from "@/types/error";
+import { kioskVersionSchema } from "@/schema/kiosk";
+import { Textarea } from "@/components/ui/textarea";
 
 // Dữ liệu khởi tạo cho form
 const initialFormData = {
@@ -27,7 +29,8 @@ const initialFormData = {
 
 const KioskVersionDialog = ({ open, onOpenChange, onSuccess, kioskVersion }: KioskDialogProps) => {
     const { toast } = useToast();
-    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [errors, setErrors] = useState<Record<string, any>>({});
+    const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState(initialFormData);
     const [kioskTypes, setKioskTypes] = useState<KioskType[]>([]);
     const [page, setPage] = useState(1);
@@ -99,36 +102,34 @@ const KioskVersionDialog = ({ open, onOpenChange, onSuccess, kioskVersion }: Kio
     // Xử lý submit form
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        e.stopPropagation();
 
-        if (!formData.versionTitle.trim()) {
-            toast({
-                title: "Lỗi",
-                description: "Vui lòng nhập tiêu đề phiên bản.",
-                variant: "destructive",
-            });
+        const validationResult = kioskVersionSchema.safeParse(formData);
+        if (!validationResult.success) {
+            const { fieldErrors } = validationResult.error.flatten();
+            setErrors(fieldErrors);
             return;
         }
 
-        if (!formData.kioskTypeId) {
-            toast({
-                title: "Lỗi",
-                description: "Vui lòng chọn loại kiosk.",
-                variant: "destructive",
-            });
-            return;
-        }
+        setErrors({});
+        setLoading(true);
 
         try {
-            setIsSubmitting(true);
-            const payload = { ...formData };
+            const data = {
+                versionTitle: formData.versionTitle,
+                status: formData.status,
+                versionNumber: formData.versionNumber,
+                description: formData.description || undefined,
+                kioskTypeId: formData.kioskTypeId
+            }
             if (kioskVersion) {
-                await updateKioskVersion(kioskVersion.kioskVersionId, payload);
+                await updateKioskVersion(kioskVersion.kioskVersionId, data);
                 toast({
                     title: "Thành công",
                     description: "Cập nhật phiên bản kiosk thành công.",
                 });
             } else {
-                await createKioskVersion(payload);
+                await createKioskVersion(data);
                 toast({
                     title: "Thành công",
                     description: "Thêm phiên bản kiosk thành công.",
@@ -145,7 +146,7 @@ const KioskVersionDialog = ({ open, onOpenChange, onSuccess, kioskVersion }: Kio
                 variant: "destructive",
             });
         } finally {
-            setIsSubmitting(false);
+            setLoading(false);
         }
     };
 
@@ -188,23 +189,12 @@ const KioskVersionDialog = ({ open, onOpenChange, onSuccess, kioskVersion }: Kio
                                 placeholder="Nhập tiêu đề phiên bản"
                                 value={formData.versionTitle}
                                 onChange={(e) => handleChange("versionTitle", e.target.value)}
-                                disabled={isSubmitting}
+                                disabled={loading}
                             />
+                            {errors.versionTitle && <p className="text-red-500 text-sm">{errors.versionTitle}</p>}
                         </div>
 
-                        <div className="space-y-2">
-                            <Label htmlFor="description">
-                                Mô tả
-                                <span className="text-red-500 ml-1">*</span>
-                            </Label>
-                            <Input
-                                id="description"
-                                placeholder="Nhập mô tả"
-                                value={formData.description}
-                                onChange={(e) => handleChange("description", e.target.value)}
-                                disabled={isSubmitting}
-                            />
-                        </div>
+
 
                         <div className="space-y-2">
                             <Label htmlFor="versionNumber">
@@ -216,8 +206,9 @@ const KioskVersionDialog = ({ open, onOpenChange, onSuccess, kioskVersion }: Kio
                                 placeholder="Nhập số phiên bản"
                                 value={formData.versionNumber}
                                 onChange={(e) => handleChange("versionNumber", e.target.value)}
-                                disabled={isSubmitting}
+                                disabled={loading}
                             />
+                            {errors.versionNumber && <p className="text-red-500 text-sm">{errors.versionNumber}</p>}
                         </div>
 
                         <div className="space-y-2">
@@ -228,7 +219,7 @@ const KioskVersionDialog = ({ open, onOpenChange, onSuccess, kioskVersion }: Kio
                             <Select
                                 value={formData.kioskTypeId}
                                 onValueChange={(value) => handleChange("kioskTypeId", value)}
-                                disabled={isSubmitting}
+                                disabled={loading}
                             >
                                 <SelectTrigger id="kioskTypeId">
                                     <SelectValue placeholder="Chọn loại kiosk" />
@@ -250,6 +241,7 @@ const KioskVersionDialog = ({ open, onOpenChange, onSuccess, kioskVersion }: Kio
                                     </InfiniteScroll>
                                 </SelectContent>
                             </Select>
+                            {errors.kioskTypeId && <p className="text-red-500 text-sm">{errors.kioskTypeId}</p>}
                         </div>
 
                         <div className="space-y-2">
@@ -260,7 +252,7 @@ const KioskVersionDialog = ({ open, onOpenChange, onSuccess, kioskVersion }: Kio
                             <Select
                                 value={formData.status}
                                 onValueChange={(value) => handleChange("status", value)}
-                                disabled={isSubmitting}
+                                disabled={loading}
                             >
                                 <SelectTrigger>
                                     <SelectValue placeholder="Chọn trạng thái" />
@@ -273,6 +265,19 @@ const KioskVersionDialog = ({ open, onOpenChange, onSuccess, kioskVersion }: Kio
                                     ))}
                                 </SelectContent>
                             </Select>
+                            {errors.status && <p className="text-red-500 text-sm">{errors.status}</p>}
+                        </div>
+
+                        <div className="space-y-2">
+                            <Label htmlFor="description">Mô tả</Label>
+                            <Textarea
+                                id="description"
+                                placeholder="Nhập mô tả loại kiosk"
+                                value={formData.description}
+                                onChange={(e) => handleChange("description", e.target.value)}
+                                disabled={loading}
+                                className="min-h-[100px]"
+                            />
                         </div>
                     </div>
 
@@ -281,12 +286,12 @@ const KioskVersionDialog = ({ open, onOpenChange, onSuccess, kioskVersion }: Kio
                             type="button"
                             variant="outline"
                             onClick={() => onOpenChange(false)}
-                            disabled={isSubmitting}
+                            disabled={loading}
                         >
                             Hủy
                         </Button>
-                        <Button type="submit" disabled={isSubmitting}>
-                            {isSubmitting ? (
+                        <Button type="submit" disabled={loading}>
+                            {loading ? (
                                 <>
                                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                                     Đang xử lý...

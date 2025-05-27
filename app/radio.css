@@ -1,9 +1,0 @@
-.radio-active input[type="radio"] {
-    accent-color: var(--primary);
-    /* Màu primary cho Active */
-}
-
-.radio-inactive input[type="radio"] {
-    accent-color: var(--gray-400);
-    /* Màu xám cho Inactive */
-}

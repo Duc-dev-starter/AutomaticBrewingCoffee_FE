@@ -14,6 +14,7 @@ import { EBaseStatus, EBaseStatusViMap } from "@/enum/base";
 import { KioskDialogProps } from "@/types/dialog";
 import { createKioskType, updateKioskType } from "@/services/kiosk";
 import { ErrorResponse } from "@/types/error";
+import { kioskTypeSchema } from "@/schema/kiosk";
 
 const initialFormData = {
     name: "",
@@ -23,7 +24,8 @@ const initialFormData = {
 
 const KioskTypeDialog = ({ open, onOpenChange, onSuccess, kioskType }: KioskDialogProps) => {
     const { toast } = useToast();
-    const [isSubmitting, setIsSubmitting] = useState(false);
+    const [errors, setErrors] = useState<Record<string, any>>({});
+    const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState(initialFormData);
 
     // Populate form data when editing
@@ -53,36 +55,32 @@ const KioskTypeDialog = ({ open, onOpenChange, onSuccess, kioskType }: KioskDial
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        e.stopPropagation();
 
-        if (!formData.name.trim()) {
-            toast({
-                title: "Lỗi",
-                description: "Vui lòng nhập tên loại kiosk",
-                variant: "destructive",
-            });
+        const validationResult = kioskTypeSchema.safeParse(formData);
+        if (!validationResult.success) {
+            const { fieldErrors } = validationResult.error.flatten();
+            setErrors(fieldErrors);
             return;
         }
 
-        if (!formData.status) {
-            toast({
-                title: "Lỗi",
-                description: "Vui lòng chọn trạng thái",
-                variant: "destructive",
-            });
-            return;
-        }
+        setErrors({});
+        setLoading(true);
 
         try {
-            setIsSubmitting(true);
-            const payload = { ...formData };
+            const data = {
+                name: formData.name,
+                description: formData.description || undefined,
+                status: formData.status,
+            };
             if (kioskType) {
-                await updateKioskType(kioskType.kioskTypeId, payload);
+                await updateKioskType(kioskType.kioskTypeId, data);
                 toast({
                     title: "Thành công",
                     description: "Cập nhật loại kiosk thành công",
                 });
             } else {
-                await createKioskType(payload);
+                await createKioskType(data);
                 toast({
                     title: "Thành công",
                     description: "Thêm loại kiosk mới thành công",
@@ -99,7 +97,7 @@ const KioskTypeDialog = ({ open, onOpenChange, onSuccess, kioskType }: KioskDial
                 variant: "destructive",
             });
         } finally {
-            setIsSubmitting(false);
+            setLoading(false);
         }
     };
 
@@ -134,9 +132,10 @@ const KioskTypeDialog = ({ open, onOpenChange, onSuccess, kioskType }: KioskDial
                                 placeholder="Nhập tên loại kiosk"
                                 value={formData.name}
                                 onChange={(e) => handleChange("name", e.target.value)}
-                                disabled={isSubmitting}
+                                disabled={loading}
                                 required
                             />
+                            {errors.name && <p className="text-red-500 text-sm">{errors.name}</p>}
                         </div>
 
                         <div className="space-y-2">
@@ -146,7 +145,7 @@ const KioskTypeDialog = ({ open, onOpenChange, onSuccess, kioskType }: KioskDial
                             <Select
                                 value={formData.status}
                                 onValueChange={(value) => handleChange("status", value)}
-                                disabled={isSubmitting}
+                                disabled={loading}
                             >
                                 <SelectTrigger>
                                     <SelectValue placeholder="Chọn trạng thái" />
@@ -159,6 +158,7 @@ const KioskTypeDialog = ({ open, onOpenChange, onSuccess, kioskType }: KioskDial
                                     ))}
                                 </SelectContent>
                             </Select>
+                            {errors.status && <p className="text-red-500 text-sm">{errors.status}</p>}
                         </div>
 
                         <div className="space-y-2">
@@ -168,18 +168,18 @@ const KioskTypeDialog = ({ open, onOpenChange, onSuccess, kioskType }: KioskDial
                                 placeholder="Nhập mô tả loại kiosk"
                                 value={formData.description}
                                 onChange={(e) => handleChange("description", e.target.value)}
-                                disabled={isSubmitting}
+                                disabled={loading}
                                 className="min-h-[100px]"
                             />
                         </div>
                     </div>
 
                     <DialogFooter>
-                        <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting}>
+                        <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
                             Hủy
                         </Button>
-                        <Button type="submit" disabled={isSubmitting}>
-                            {isSubmitting ? (
+                        <Button type="submit" disabled={loading}>
+                            {loading ? (
                                 <>
                                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
                                     Đang xử lý...

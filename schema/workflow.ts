@@ -2,7 +2,7 @@ import { z } from "zod";
 import { EWorkflowType } from "@/enum/workflow";
 
 const stepSchema = z.object({
-    name: z.string().min(1, "Tên bước không được để trống."),
+    name: z.string().trim().min(1, "Tên bước không được để trống."),
     type: z.string().min(1, "Vui lòng chọn loại thiết bị."),
     deviceModelId: z.string().min(1, "Vui lòng chọn loại thiết bị."),
     maxRetries: z.number().int().nonnegative("Số lần thử lại phải là số nguyên không âm."),
@@ -11,9 +11,9 @@ const stepSchema = z.object({
 });
 
 export const workflowSchema = z.object({
-    name: z.string().min(1, "Tên quy trình không được để trống."),
-    productId: z.string().optional().nullable(),
-    description: z.string().optional().nullable(),
+    name: z.string().trim().min(1, "Tên quy trình không được để trống."),
+    productId: z.string().trim().optional().nullable(),
+    description: z.string().trim().optional().nullable(),
     type: z.nativeEnum(EWorkflowType, {
         errorMap: () => ({ message: "Loại quy trình không hợp lệ." }),
     }),

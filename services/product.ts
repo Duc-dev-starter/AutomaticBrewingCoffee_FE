@@ -29,3 +29,9 @@ export const deleteProduct = async (id: string) => {
     const response = await BaseService.delete({ url: `${Api.PRODUCTS}/${id}` })
     return response;
 }
+
+
+export const cloneProduct = async (productId: string) => {
+    const response = await BaseService.post({ url: `${Api.PRODUCTS}/clone`, payload: { productId } });
+    return response;
+}

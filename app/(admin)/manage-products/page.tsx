@@ -25,7 +25,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { columns } from "@/components/manage-products/columns";
 import useDebounce from "@/hooks/use-debounce";
 import { ConfirmDeleteDialog, ExportButton, NoResultsRow, Pagination, RefreshButton, SearchInput } from "@/components/common";
-import { getProducts, deleteProduct } from "@/services/product";
+import { getProducts, deleteProduct, cloneProduct } from "@/services/product";
 import { Product } from "@/interfaces/product";
 import { multiSelectFilter } from "@/utils/table";
 import { useToast } from "@/hooks/use-toast";
@@ -57,6 +57,8 @@ const ManageProducts = () => {
     const [detailDialogOpen, setDetailDialogOpen] = useState(false);
     const [detailProduct, setDetailProduct] = useState<Product | null>(null);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [flashingProductId, setFlashingProductId] = useState<string | null>(null);
+    const [isFlashing, setIsFlashing] = useState(false);
     const [productToDelete, setProductToDelete] = useState<Product | null>(null);
 
     const [searchValue, setSearchValue] = useState("");
@@ -187,6 +189,32 @@ const ManageProducts = () => {
         table.resetColumnFilters();
     };
 
+    const handleClone = async (product: Product) => {
+        try {
+            const response = await cloneProduct(product.productId);
+            const newProductId = response.response.productId;
+            toast({
+                title: "Thành công",
+                description: `Sản phẩm "${product.name}" đã được nhân bản.`,
+            });
+            await fetchProducts();
+            setFlashingProductId(newProductId);
+            setIsFlashing(true);
+            setTimeout(() => {
+                setIsFlashing(false);
+                setFlashingProductId(null);
+            }, 6000);
+        } catch (error) {
+            const err = error as ErrorResponse;
+            console.log(error);
+            toast({
+                title: "Lỗi khi nhân bản sản phẩm",
+                description: err.message,
+                variant: "destructive",
+            });
+        }
+    };
+
     const hasActiveFilters = statusFilter !== "" || productTypeFilter !== "" || productSizeFilter !== "" || searchValue !== "";
 
     const table = useReactTable({
@@ -195,6 +223,7 @@ const ManageProducts = () => {
             onViewDetails: handleViewDetails,
             onEdit: handleEdit,
             onDelete: handleDelete,
+            onClone: handleClone,
         }),
         onSortingChange: setSorting,
         onColumnFiltersChange: setColumnFilters,
@@ -339,7 +368,7 @@ const ManageProducts = () => {
                             {loading ? (
                                 Array.from({ length: pageSize }).map((_, index) => (
                                     <TableRow key={`skeleton-${index}`} className="animate-pulse">
-                                        {columns({ onViewDetails: () => { }, onEdit: () => { }, onDelete: () => { } }).map((column, cellIndex) => (
+                                        {columns({ onViewDetails: () => { }, onEdit: () => { }, onDelete: () => { }, onClone: () => { } }).map((column, cellIndex) => (
                                             <TableCell key={`skeleton-cell-${cellIndex}`}>
                                                 {column.id === "productId" ? (
                                                     <Skeleton className="h-5 w-24 mx-auto" />
@@ -373,7 +402,11 @@ const ManageProducts = () => {
                                 ))
                             ) : products.length ? (
                                 table.getRowModel().rows.map((row) => (
-                                    <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
+                                    <TableRow
+                                        key={row.id}
+                                        data-state={row.getIsSelected() && "selected"}
+                                        className={isFlashing && row.original.productId === flashingProductId ? "flash" : ""}
+                                    >
                                         {row.getVisibleCells().map((cell) => (
                                             <TableCell key={cell.id}>
                                                 {flexRender(cell.column.columnDef.cell, cell.getContext())}
@@ -382,7 +415,7 @@ const ManageProducts = () => {
                                     </TableRow>
                                 ))
                             ) : (
-                                <NoResultsRow columns={columns({ onViewDetails: () => { }, onEdit: () => { }, onDelete: () => { } })} />
+                                <NoResultsRow columns={columns({ onViewDetails: () => { }, onEdit: () => { }, onDelete: () => { }, onClone: () => { } })} />
                             )}
                         </TableBody>
                     </Table>

@@ -15,10 +15,12 @@ export const columns = ({
     onViewDetails,
     onEdit,
     onDelete,
+    onClone,
 }: {
     onViewDetails: (product: Product) => void;
     onEdit: (product: Product) => void;
     onDelete: (product: Product) => void;
+    onClone: (product: Product) => void;
 }): ColumnDef<Product>[] => [
         {
             id: "productId",
@@ -146,6 +148,7 @@ export const columns = ({
                     onViewDetails={(item) => onViewDetails(item)}
                     onEdit={(item) => onEdit(item)}
                     onDelete={(item) => onDelete(item)}
+                    onClone={(item) => onClone(item)}
                 />
             ),
             enableSorting: false,

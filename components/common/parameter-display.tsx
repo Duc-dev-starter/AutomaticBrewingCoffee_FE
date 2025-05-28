@@ -105,33 +105,27 @@ export function ParametersDisplay({ parameters, className, compact = false }: Pa
     return (
         <Card className={cn("border-blue-200 bg-blue-50/30", className)}>
             <Collapsible open={isOpen} onOpenChange={setIsOpen}>
-                <CollapsibleTrigger asChild>
-                    <Button variant="ghost" className="w-full justify-between p-3 h-auto hover:bg-blue-100/50">
-                        <div className="flex items-center gap-2">
-                            <Code2 className="h-4 w-4 text-blue-600" />
-                            <span className="text-sm font-medium text-blue-700">Tham số ({paramEntries.length})</span>
-                        </div>
-                        <div className="flex items-center gap-1">
-                            <Button
-                                variant="ghost"
-                                size="sm"
-                                className="h-6 w-6 p-0 hover:bg-blue-200"
-                                onClick={(e) => {
-                                    e.stopPropagation()
-                                    handleCopy()
-                                }}
-                            >
-                                {copied ? <Check className="h-3 w-3 text-green-600" /> : <Copy className="h-3 w-3 text-blue-600" />}
+                <div className="p-3 flex justify-between items-center">
+                    <div className="flex items-center gap-2">
+                        <Code2 className="h-4 w-4 text-blue-600" />
+                        <span className="text-sm font-medium text-blue-700">Tham số ({paramEntries.length})</span>
+                    </div>
+                    <div className="flex items-center gap-1">
+                        <Button
+                            variant="ghost"
+                            size="sm"
+                            className="h-6 w-6 p-0 hover:bg-blue-200"
+                            onClick={handleCopy}
+                        >
+                            {copied ? <Check className="h-3 w-3 text-green-600" /> : <Copy className="h-3 w-3 text-blue-600" />}
+                        </Button>
+                        <CollapsibleTrigger asChild>
+                            <Button variant="ghost" size="sm" className="h-6 w-6 p-0 hover:bg-blue-200">
+                                {isOpen ? <ChevronDown className="h-4 w-4 text-blue-600" /> : <ChevronRight className="h-4 w-4 text-blue-600" />}
                             </Button>
-                            {isOpen ? (
-                                <ChevronDown className="h-4 w-4 text-blue-600" />
-                            ) : (
-                                <ChevronRight className="h-4 w-4 text-blue-600" />
-                            )}
-                        </div>
-                    </Button>
-                </CollapsibleTrigger>
-
+                        </CollapsibleTrigger>
+                    </div>
+                </div>
                 <CollapsibleContent>
                     <div className="px-3 pb-3 space-y-2">
                         {paramEntries.map(([key, value], index) => (

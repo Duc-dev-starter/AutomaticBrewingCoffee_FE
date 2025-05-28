@@ -56,124 +56,78 @@ const CreateWorkflow = () => {
     const [errors, setErrors] = useState<Record<string, any>>({})
     const [loading, setLoading] = useState<boolean>(false)
     const [formData, setFormData] = useState(initialFormData)
-    const [products, setProducts] = useState<Product[]>([])
-    const [deviceModels, setDeviceModels] = useState<DeviceModel[]>([])
-    const [workflows, setWorkflows] = useState<Workflow[]>([])
-    const [page, setPage] = useState<number>(1)
-    const [deviceModelPage, setDeviceModelPage] = useState<number>(1)
-    const [workflowPage, setWorkflowPage] = useState<number>(1)
-    const [hasMore, setHasMore] = useState(true)
-    const [hasMoreDeviceModels, setHasMoreDeviceModels] = useState(true)
-    const [hasMoreWorkflows, setHasMoreWorkflows] = useState(true)
-    const [expandedStep, setExpandedStep] = useState<number | null>(0)
-    const [loadingProducts, setLoadingProducts] = useState(true)
-    const [loadingDeviceModels, setLoadingDeviceModels] = useState(false)
-    const [loadingWorkflows, setLoadingWorkflows] = useState(false)
 
-    // Kiosk Version states - tách biệt để tránh conflict
+    const [products, setProducts] = useState<Product[]>([])
+    const [productPage, setProductPage] = useState<number>(1)
+    const [hasMoreProducts, setHasMoreProducts] = useState(true)
+    const [loadingProducts, setLoadingProducts] = useState(true)
+
+    const [deviceModels, setDeviceModels] = useState<DeviceModel[]>([])
+    const [deviceModelPage, setDeviceModelPage] = useState<number>(1)
+    const [hasMoreDeviceModels, setHasMoreDeviceModels] = useState(true)
+    const [loadingDeviceModels, setLoadingDeviceModels] = useState(false)
+
+    const [workflows, setWorkflows] = useState<Workflow[]>([])
+    const [workflowPage, setWorkflowPage] = useState<number>(1)
+    const [hasMoreWorkflows, setHasMoreWorkflows] = useState(true)
+    const [loadingWorkflows, setLoadingWorkflows] = useState(true)
+
+    // Kiosk 
     const [kioskVersions, setKioskVersions] = useState<KioskVersion[]>([])
     const [kioskVersionPage, setKioskVersionPage] = useState(1)
     const [hasMoreKioskVersion, setHasMoreKioskVersion] = useState(true)
     const [selectedKioskVersion, setSelectedKioskVersion] = useState<string>("")
-    const [loadingKioskVersions, setLoadingKioskVersions] = useState(false)
-    const [kioskVersionsLoaded, setKioskVersionsLoaded] = useState(false)
+    const [loadingKioskVersions, setLoadingKioskVersions] = useState(true)
     const [kioskVersionError, setKioskVersionError] = useState<string | null>(null)
 
-    // Memoize fetch functions để tránh re-creation
+    const [expandedStep, setExpandedStep] = useState<number | null>(0)
+
     const fetchKioskVersions = useCallback(
         async (pageNumber: number) => {
-            if (loadingKioskVersions) {
-                console.log("Already loading kiosk versions, skipping...")
-                return
-            }
-
-            console.log(`Fetching kiosk versions page ${pageNumber}`)
-            setLoadingKioskVersions(true)
+            if (pageNumber === 1) setLoadingKioskVersions(true);
             setKioskVersionError(null)
 
             try {
                 const response = await getKioskVersions({ page: pageNumber, size: 10 })
-                console.log("Kiosk Versions Response:", response)
-
                 if (!response || !response.items) {
-                    throw new Error("Invalid response format")
+                    throw new Error("Invalid response format for Kiosk Versions")
                 }
 
-                if (pageNumber === 1) {
-                    setKioskVersions(response.items)
-                } else {
-                    setKioskVersions((prev) => [...prev, ...response.items])
-                }
+                setKioskVersions((prev) => (pageNumber === 1 ? response.items : [...prev, ...response.items]))
                 setKioskVersionPage(pageNumber)
-
-                if (response.items.length < 10) {
-                    setHasMoreKioskVersion(false)
-                }
-                setKioskVersionsLoaded(true)
+                setHasMoreKioskVersion(response.items.length >= 10)
             } catch (error) {
                 const err = error as ErrorResponse
                 console.error("Error fetching kiosk versions:", error)
                 setKioskVersionError(err.message || "Lỗi khi tải phiên bản kiosk")
-                toast({
-                    title: "Lỗi khi lấy danh sách phiên bản kiosk",
-                    description: err.message || "Vui lòng thử lại",
-                    variant: "destructive",
-                })
             } finally {
-                setLoadingKioskVersions(false)
+                if (pageNumber === 1 || !hasMoreKioskVersion) setLoadingKioskVersions(false)
             }
         },
-        [loadingKioskVersions, toast],
+        [toast],
     )
 
     const loadMoreKioskVersions = useCallback(async () => {
         if (loadingKioskVersions || !hasMoreKioskVersion) {
-            console.log("Cannot load more kiosk versions:", { loadingKioskVersions, hasMoreKioskVersion })
             return
         }
-        const nextPage = kioskVersionPage + 1
-        await fetchKioskVersions(nextPage)
+        await fetchKioskVersions(kioskVersionPage + 1)
     }, [loadingKioskVersions, hasMoreKioskVersion, kioskVersionPage, fetchKioskVersions])
 
-    const handleKioskVersionOpen = useCallback(() => {
-        console.log("Kiosk version dropdown opened", { kioskVersionsLoaded, loadingKioskVersions })
-        if (!kioskVersionsLoaded && !loadingKioskVersions) {
-            fetchKioskVersions(1)
-        }
-    }, [kioskVersionsLoaded, loadingKioskVersions, fetchKioskVersions])
-
-    const getDeviceFunctionsForModel = useCallback(
-        (deviceModelId: string) => {
-            const deviceModel = deviceModels.find((dm) => dm.deviceModelId === deviceModelId)
-            return deviceModel?.deviceFunctions || []
-        },
-        [deviceModels],
-    )
 
     const fetchProducts = useCallback(
         async (pageNumber: number) => {
-            setLoadingProducts(true)
+            if (pageNumber === 1) setLoadingProducts(true);
             try {
                 const response = await getProducts({ page: pageNumber, size: 10 })
-                console.log("Products:", response.items)
-                if (pageNumber === 1) {
-                    setProducts(response.items)
-                } else {
-                    setProducts((prev) => [...prev, ...response.items])
-                }
-                setPage(pageNumber)
-                if (response.items.length < 10) {
-                    setHasMore(false)
-                }
+                setProducts((prev) => (pageNumber === 1 ? response.items : [...prev, ...response.items]))
+                setProductPage(pageNumber)
+                setHasMoreProducts(response.items.length >= 10)
             } catch (error) {
                 console.error("Error fetching products:", error)
-                toast({
-                    title: "Lỗi",
-                    description: "Không tải được danh sách sản phẩm.",
-                    variant: "destructive",
-                })
+                toast({ title: "Lỗi", description: "Không tải được danh sách sản phẩm.", variant: "destructive" })
             } finally {
-                setLoadingProducts(false)
+                if (pageNumber === 1 || !hasMoreProducts) setLoadingProducts(false);
             }
         },
         [toast],
@@ -181,32 +135,19 @@ const CreateWorkflow = () => {
 
     const fetchDeviceModels = useCallback(
         async (pageNumber: number) => {
-            if (!selectedKioskVersion) {
-                return
-            }
+            if (!selectedKioskVersion) return;
+            if (pageNumber === 1) setLoadingDeviceModels(true);
 
-            setLoadingDeviceModels(true)
             try {
                 const response = await getDeviceModels({ kioskVersionId: selectedKioskVersion, page: pageNumber, size: 10 })
-                console.log("Device Models:", response.items)
-                if (pageNumber === 1) {
-                    setDeviceModels(response.items)
-                } else {
-                    setDeviceModels((prev) => [...prev, ...response.items])
-                }
+                setDeviceModels((prev) => (pageNumber === 1 ? response.items : [...prev, ...response.items]))
                 setDeviceModelPage(pageNumber)
-                if (response.items.length < 10) {
-                    setHasMoreDeviceModels(false)
-                }
+                setHasMoreDeviceModels(response.items.length >= 10)
             } catch (error) {
-                console.error("Error fetching device types:", error)
-                toast({
-                    title: "Lỗi",
-                    description: "Không tải được các loại thiết bị.",
-                    variant: "destructive",
-                })
+                console.error("Error fetching device models:", error)
+                toast({ title: "Lỗi", description: "Không tải được các loại thiết bị.", variant: "destructive" })
             } finally {
-                setLoadingDeviceModels(false)
+                if (pageNumber === 1 || !hasMoreDeviceModels) setLoadingDeviceModels(false);
             }
         },
         [selectedKioskVersion, toast],
@@ -214,39 +155,28 @@ const CreateWorkflow = () => {
 
     const fetchWorkflows = useCallback(
         async (pageNumber: number) => {
-            setLoadingWorkflows(true)
+            if (pageNumber === 1) setLoadingWorkflows(true);
             try {
                 const response = await getWorkflows({ page: pageNumber, size: 10 })
-                if (pageNumber === 1) {
-                    setWorkflows(response.items)
-                } else {
-                    setWorkflows((prev) => [...prev, ...response.items])
-                }
+                setWorkflows((prev) => (pageNumber === 1 ? response.items : [...prev, ...response.items]))
                 setWorkflowPage(pageNumber)
-                if (response.items.length < 10) {
-                    setHasMoreWorkflows(false)
-                }
+                setHasMoreWorkflows(response.items.length >= 10)
             } catch (error) {
                 console.error("Error fetching workflows:", error)
-                toast({
-                    title: "Lỗi",
-                    description: "Không tải được các quy trình.",
-                    variant: "destructive",
-                })
+                toast({ title: "Lỗi", description: "Không tải được các quy trình.", variant: "destructive" })
             } finally {
-                setLoadingWorkflows(false)
+                if (pageNumber === 1 || !hasMoreWorkflows) setLoadingWorkflows(false);
             }
         },
         [toast],
     )
 
-    // Initial data loading - chỉ chạy 1 lần
     useEffect(() => {
         fetchProducts(1)
         fetchWorkflows(1)
-    }, []) // Bỏ dependencies để tránh re-run
+        fetchKioskVersions(1)
+    }, [fetchProducts, fetchWorkflows, fetchKioskVersions])
 
-    // Device models loading - chỉ phụ thuộc vào selectedKioskVersion
     useEffect(() => {
         if (selectedKioskVersion) {
             setDeviceModels([])
@@ -256,16 +186,22 @@ const CreateWorkflow = () => {
         } else {
             setDeviceModels([])
         }
-    }, [selectedKioskVersion]) // Chỉ phụ thuộc vào selectedKioskVersion
+    }, [selectedKioskVersion, fetchDeviceModels])
+
+    const getDeviceFunctionsForModel = useCallback(
+        (deviceModelId: string) => {
+            const deviceModel = deviceModels.find((dm) => dm.deviceModelId === deviceModelId)
+            return deviceModel?.deviceFunctions || []
+        },
+        [deviceModels],
+    )
 
     const handleChange = useCallback(
-        (field: string, value: string) => {
-            console.log(`Form field changed: ${field} = ${value}`)
+        (field: string, value: string | null) => {
             setFormData((prev) => ({
                 ...prev,
                 [field]: value,
             }))
-
             if (errors[field]) {
                 setErrors((prev) => {
                     const newErrors = { ...prev }
@@ -278,52 +214,85 @@ const CreateWorkflow = () => {
     )
 
     const handleStepChange = useCallback(
-        (index: number, field: string, value: string | number) => {
+        (index: number, field: string, value: string | number | null) => {
             setFormData((prev) => {
-                const newSteps = [...prev.steps]
-                if (field === "deviceModelId") {
-                    newSteps[index] = {
-                        ...newSteps[index],
-                        [field]: value,
-                        deviceFunctionId: "",
-                        name: `Bước ${index + 1}`,
-                    }
-                } else if (field === "deviceFunctionId") {
-                    const selectedFunction = deviceModels
-                        .flatMap((dm) => dm.deviceFunctions || [])
-                        .find((df) => df.deviceFunctionId === value)
+                const newSteps = [...prev.steps];
+                const currentStep = JSON.parse(JSON.stringify(newSteps[index]));
 
-                    newSteps[index] = {
-                        ...newSteps[index],
-                        [field]: value,
-                        name: selectedFunction ? `Bước ${index + 1}` : "Bước tiếp theo",
-                        type: selectedFunction ? selectedFunction.name : EWorkflowStepType.AlertCancellationCommand,
+                if (field === "deviceModelId") {
+                    currentStep.deviceModelId = (value as string) || "";
+                    currentStep.deviceFunctionId = "";
+                    currentStep.name = `Bước ${currentStep.sequence}`;
+                    currentStep.type = "";
+                    currentStep.parameters = "";
+                } else if (field === "deviceFunctionId") {
+                    currentStep.deviceFunctionId = (value as string) || "";
+                    if (currentStep.deviceFunctionId && currentStep.deviceModelId) {
+                        const deviceModel = deviceModels.find(dm => dm.deviceModelId === currentStep.deviceModelId);
+                        const selectedFunction = deviceModel?.deviceFunctions?.find(
+                            (df) => df.deviceFunctionId === currentStep.deviceFunctionId || df.name === currentStep.deviceFunctionId
+                        );
+
+                        if (selectedFunction && typeof selectedFunction.name === 'string' && selectedFunction.name.trim() !== '') {
+                            const functionName = selectedFunction.name.trim();
+                            currentStep.name = functionName;
+                            currentStep.type = functionName;
+                        } else {
+                            currentStep.name = `Bước ${currentStep.sequence}`;
+                            currentStep.type = "";
+                        }
+                    } else {
+                        currentStep.name = `Bước ${currentStep.sequence}`;
+                        currentStep.type = "";
                     }
+                } else if (field === "parameters") {
+                    currentStep.parameters = (value as string) || "";
+                } else if (field === "maxRetries") {
+                    const numValue = Number(value);
+                    currentStep.maxRetries = Number.isNaN(numValue) ? 0 : Math.max(0, numValue);
                 } else {
-                    newSteps[index] = { ...newSteps[index], [field]: value }
+                    currentStep[field] = value;
+
+                    if (field === "callbackWorkflowId") {
+                        currentStep.callbackWorkflowId = value === "" ? null : value;
+                    }
                 }
 
-                return { ...prev, steps: newSteps }
-            })
+                currentStep.name = String(currentStep.name || `Bước ${currentStep.sequence}`);
+                currentStep.type = String(currentStep.type || "");
+                currentStep.deviceModelId = String(currentStep.deviceModelId || "");
+                currentStep.deviceFunctionId = String(currentStep.deviceFunctionId || "");
+                currentStep.parameters = String(currentStep.parameters || "");
 
+                if (currentStep.callbackWorkflowId === undefined || currentStep.callbackWorkflowId === "") {
+                    currentStep.callbackWorkflowId = null;
+                }
+
+
+                newSteps[index] = currentStep;
+                // console.log(`Step ${index} updated (${field}):`, JSON.stringify(currentStep, null, 2));
+                return { ...prev, steps: newSteps };
+            });
+
+            // Xóa lỗi tương ứng
             if (errors.steps?.[index]?.[field]) {
-                setErrors((prev) => {
-                    const newErrors = { ...prev }
+                setErrors((prevErrors) => {
+                    const newErrors = { ...prevErrors };
                     if (newErrors.steps && newErrors.steps[index]) {
-                        delete newErrors.steps[index][field]
+                        delete newErrors.steps[index][field];
                         if (Object.keys(newErrors.steps[index]).length === 0) {
-                            delete newErrors.steps[index]
+                            delete newErrors.steps[index];
                             if (Object.keys(newErrors.steps).length === 0) {
-                                delete newErrors.steps
+                                delete newErrors.steps;
                             }
                         }
                     }
-                    return newErrors
-                })
+                    return newErrors;
+                });
             }
         },
-        [deviceModels, errors],
-    )
+        [deviceModels, errors, setFormData, setErrors],
+    );
 
     const addStep = useCallback(() => {
         setFormData((prev) => {
@@ -334,7 +303,7 @@ const CreateWorkflow = () => {
                     ...prev.steps,
                     {
                         name: `Bước ${newSequence}`,
-                        type: EWorkflowStepType.AlertCancellationCommand,
+                        type: "",
                         deviceModelId: "",
                         deviceFunctionId: "",
                         maxRetries: 0,
@@ -355,13 +324,15 @@ const CreateWorkflow = () => {
                 ...prev,
                 steps: newSteps.map((step, i) => ({
                     ...step,
-                    name: `Bước ${i + 1}`,
+
+                    name: step.deviceFunctionId ? step.name : `Bước ${i + 1}`,
                     sequence: i + 1,
                 })),
             }
         })
-        setExpandedStep(null)
-    }, [])
+        if (expandedStep === index) setExpandedStep(null)
+        else if (expandedStep && expandedStep > index) setExpandedStep(expandedStep - 1)
+    }, [expandedStep])
 
     const moveStepUp = useCallback((index: number) => {
         if (index === 0) return
@@ -374,7 +345,7 @@ const CreateWorkflow = () => {
                 ...prev,
                 steps: newSteps.map((step, i) => ({
                     ...step,
-                    name: `Bước ${i + 1}`,
+                    name: step.deviceFunctionId ? step.name : `Bước ${i + 1}`,
                     sequence: i + 1,
                 })),
             }
@@ -394,7 +365,7 @@ const CreateWorkflow = () => {
                     ...prev,
                     steps: newSteps.map((step, i) => ({
                         ...step,
-                        name: `Bước ${i + 1}`,
+                        name: step.deviceFunctionId ? step.name : `Bước ${i + 1}`,
                         sequence: i + 1,
                     })),
                 }
@@ -409,36 +380,63 @@ const CreateWorkflow = () => {
             e.preventDefault()
             e.stopPropagation()
 
+            const finalFormData = {
+                ...formData,
+                kioskVersionId: selectedKioskVersion || undefined,
+            };
+
+
             const result = workflowSchema.safeParse(formData)
+
             if (!result.success) {
                 const newErrors = result.error.flatten().fieldErrors
                 setErrors(newErrors)
-                console.log(newErrors)
+                console.log("Validation Errors:", newErrors)
                 toast({
                     title: "Lỗi xác thực",
                     description: "Vui lòng kiểm tra lại thông tin đã nhập",
                     variant: "destructive",
                 })
+                if (newErrors.steps) {
+                    const firstErrorStepIndex = Object.keys(newErrors.steps)
+                        .map(Number)
+                        .sort((a, b) => a - b)[0];
+                    if (firstErrorStepIndex !== undefined) {
+                        setExpandedStep(firstErrorStepIndex);
+                    }
+                } else if (newErrors.name || newErrors.type || newErrors.productId) {
+                    // Không cần làm gì thêm, các lỗi này ở phần thông tin chung
+                }
                 return
             }
 
             setErrors({})
             setLoading(true)
             try {
-                const data = {
-                    name: formData.name,
-                    description: formData.description || undefined,
-                    type: formData.type,
-                    productId: formData.productId,
-                    steps: formData.steps,
-                } as Partial<Workflow>
+                const validatedData = result.data;
 
-                await createWorkflow(data)
+                const dataToSend = {
+                    name: validatedData.name,
+                    description: validatedData.description || undefined,
+                    type: validatedData.type,
+                    productId: validatedData.productId || null,
+                    kioskVersionId: selectedKioskVersion || undefined,
+                    steps: validatedData.steps.map(step => ({
+                        ...step,
+                        parameters: step.parameters || undefined,
+                        callbackWorkflowId: step.callbackWorkflowId || undefined,
+                        deviceModelId: step.deviceModelId || undefined,
+                        deviceFunctionId: step.deviceFunctionId || undefined,
+                    })),
+                }
+
+                await createWorkflow(dataToSend as any)
                 toast({
                     title: "Thành công",
                     description: "Thêm quy trình mới thành công",
                 })
                 setFormData(initialFormData)
+                setSelectedKioskVersion("")
                 setExpandedStep(0)
                 router.push(Path.MANAGE_WORKFLOWS)
             } catch (error) {
@@ -446,20 +444,23 @@ const CreateWorkflow = () => {
                 console.error("Lỗi khi xử lý quy trình:", error)
                 toast({
                     title: "Lỗi khi xử lý quy trình",
-                    description: err.message,
+                    description: err.message || "Đã xảy ra lỗi không mong muốn.",
                     variant: "destructive",
                 })
             } finally {
                 setLoading(false)
             }
         },
-        [formData, toast, router],
+        [formData, selectedKioskVersion, toast, router],
     )
 
     const loadMoreProducts = useCallback(async () => {
-        const nextPage = page + 1
-        await fetchProducts(nextPage)
-    }, [page, fetchProducts])
+        if (loadingProducts || !hasMoreProducts) return;
+        await fetchProducts(productPage + 1);
+    }, [productPage, fetchProducts, loadingProducts, hasMoreProducts]);
+
+
+
 
     return (
         <div className="container mx-auto p-6 space-y-8">
@@ -468,7 +469,7 @@ const CreateWorkflow = () => {
                     <Info className="mr-2 h-5 w-5" />
                     Tạo quy trình mới
                 </h1>
-                <Button type="submit" disabled={loading} className="bg-blue-500 hover:bg-blue-600" onClick={handleSubmit}>
+                <Button type="button" disabled={loading} className="bg-blue-500 hover:bg-blue-600" onClick={handleSubmit}>
                     {loading ? (
                         <>
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -486,31 +487,28 @@ const CreateWorkflow = () => {
                 <CardHeader>
                     <CardTitle className="flex items-center">
                         <Settings className="mr-2 h-5 w-5" />
-                        Chọn phiên bản Kiosk
+                        Chọn phiên bản Kiosk (Tùy chọn)
                     </CardTitle>
-                    <CardDescription>Chọn phiên bản kiosk để áp dụng cho quy trình này</CardDescription>
+                    <CardDescription>Chọn phiên bản kiosk nếu quy trình của bạn cần tương tác với các thiết bị cụ thể theo phiên bản.</CardDescription>
                 </CardHeader>
                 <CardContent>
                     <div className="space-y-2">
                         <Label htmlFor="kioskVersion" className="flex items-center">
                             Phiên bản Kiosk
-                            <span className="text-red-500 ml-1">*</span>
                         </Label>
                         <Select
                             value={selectedKioskVersion}
                             onValueChange={setSelectedKioskVersion}
-                            onOpenChange={(open) => {
-                                console.log("Kiosk version dropdown open state:", open)
-                                if (open) {
-                                    handleKioskVersionOpen()
-                                }
-                            }}
-                            disabled={loading}
+                            disabled={loadingKioskVersions && kioskVersions.length === 0 && !kioskVersionError}
                         >
                             <SelectTrigger id="kioskVersion">
-                                <SelectValue placeholder="Chọn phiên bản kiosk" />
+                                <SelectValue placeholder={
+                                    loadingKioskVersions && kioskVersions.length === 0 && !kioskVersionError
+                                        ? "Đang tải phiên bản kiosk..."
+                                        : "Chọn phiên bản kiosk (nếu cần)"
+                                } />
                             </SelectTrigger>
-                            <SelectContent className="max-h-[300px]">
+                            <SelectContent id="kiosk-version-scroll-content" className="max-h-[300px]">
                                 {kioskVersionError ? (
                                     <div className="p-4 text-center text-red-500">
                                         <p className="text-sm">{kioskVersionError}</p>
@@ -518,27 +516,24 @@ const CreateWorkflow = () => {
                                             variant="outline"
                                             size="sm"
                                             className="mt-2"
-                                            onClick={() => {
-                                                setKioskVersionError(null)
-                                                setKioskVersionsLoaded(false)
-                                                fetchKioskVersions(1)
-                                            }}
+                                            onClick={() => fetchKioskVersions(1)} // Thử lại từ trang 1
                                         >
                                             Thử lại
                                         </Button>
                                     </div>
-                                ) : loadingKioskVersions && kioskVersions.length === 0 ? (
+                                ) : loadingKioskVersions && kioskVersions.length === 0 ? ( // Đang tải và chưa có item nào
                                     <div className="p-4 text-center">
                                         <div className="flex items-center justify-center space-x-2">
                                             <Loader2 className="h-4 w-4 animate-spin" />
                                             <span className="text-sm">Đang tải phiên bản kiosk...</span>
                                         </div>
                                     </div>
-                                ) : kioskVersions.length === 0 && kioskVersionsLoaded ? (
+                                ) : !loadingKioskVersions && kioskVersions.length === 0 ? (
                                     <div className="p-4 text-center text-gray-500">
                                         <p className="text-sm">Không có phiên bản kiosk nào</p>
                                     </div>
                                 ) : (
+
                                     <ScrollArea className="h-[200px]">
                                         <InfiniteScroll
                                             dataLength={kioskVersions.length}
@@ -550,14 +545,12 @@ const CreateWorkflow = () => {
                                                     <span>Đang tải thêm...</span>
                                                 </div>
                                             }
-                                            scrollableTarget="kiosk-version-scroll"
-                                            style={{ overflow: "hidden" }}
+                                            scrollableTarget="kiosk-version-scroll-content" // Target là ID của SelectContent
+                                        // style={{ overflow: "hidden" }} // Có thể không cần thiết
                                         >
                                             {kioskVersions.map((version) => (
                                                 <SelectItem key={version.kioskVersionId} value={version.kioskVersionId}>
-                                                    <div className="flex flex-col">
-                                                        <span className="font-medium">{version.versionTitle}</span>
-                                                    </div>
+                                                    {version.versionTitle}
                                                 </SelectItem>
                                             ))}
                                         </InfiniteScroll>
@@ -565,17 +558,24 @@ const CreateWorkflow = () => {
                                 )}
                             </SelectContent>
                         </Select>
-                        {selectedKioskVersion && (
+                        {selectedKioskVersion && kioskVersions.find((v) => v.kioskVersionId === selectedKioskVersion) && (
                             <div className="mt-2">
                                 <Badge variant="outline" className="bg-green-50 text-green-700 border-green-200">
                                     Đã chọn: {kioskVersions.find((v) => v.kioskVersionId === selectedKioskVersion)?.versionTitle}
                                 </Badge>
                             </div>
                         )}
+                        {errors.kioskVersionId && (
+                            <p className="text-red-500 text-sm flex items-center">
+                                <AlertTriangle className="h-3 w-3 mr-1" />
+                                {errors.kioskVersionId[0]}
+                            </p>
+                        )}
                     </div>
                 </CardContent>
             </Card>
-            <form>
+
+            <form onSubmit={handleSubmit}>
                 <div className="flex flex-col md:flex-row gap-6">
                     <div className="w-full md:w-[35%] space-y-6">
                         <Card>
@@ -594,7 +594,7 @@ const CreateWorkflow = () => {
                                         placeholder="Nhập tên quy trình"
                                         value={formData.name}
                                         onChange={(e) => handleChange("name", e.target.value)}
-                                        disabled={loading}
+                                        disabled={loading} // Chỉ disable bởi loading chung
                                         className={errors.name ? "border-red-500 focus-visible:ring-red-500" : ""}
                                     />
                                     {errors.name && (
@@ -620,8 +620,8 @@ const CreateWorkflow = () => {
                                         </SelectTrigger>
                                         <SelectContent>
                                             {Object.values(EWorkflowType).map((type) => (
-                                                <SelectItem key={type} value={type} className="flex items-center">
-                                                    <div className="flex items-center">{EWorkflowTypeViMap[type]}</div>
+                                                <SelectItem key={type} value={type}>
+                                                    {EWorkflowTypeViMap[type]}
                                                 </SelectItem>
                                             ))}
                                         </SelectContent>
@@ -636,33 +636,36 @@ const CreateWorkflow = () => {
 
                                 <div className="space-y-2">
                                     <Label htmlFor="productId" className="flex items-center">
-                                        Sản phẩm
+                                        Sản phẩm (Tùy chọn)
                                     </Label>
                                     <Select
                                         value={formData.productId || ""}
-                                        onValueChange={(value) => handleChange("productId", value)}
-                                        disabled={loading}
+                                        onValueChange={(value) => handleChange("productId", value || null)} // Ensure null if empty
+                                        disabled={loading || loadingProducts && products.length === 0}
                                     >
                                         <SelectTrigger
                                             id="productId"
                                             className={errors.productId ? "border-red-500 focus-visible:ring-red-500" : ""}
                                         >
-                                            <SelectValue placeholder={loadingProducts ? "Đang tải sản phẩm..." : "Chọn sản phẩm"} />
+                                            <SelectValue placeholder={loadingProducts && products.length === 0 ? "Đang tải sản phẩm..." : "Chọn sản phẩm"} />
                                         </SelectTrigger>
-                                        <SelectContent className="max-h-[300px]">
-                                            <ScrollArea id="product-scroll" className="h-[200px]">
+                                        <SelectContent id="product-scroll-content" className="max-h-[300px]">
+                                            <ScrollArea className="h-[200px]">
                                                 <InfiniteScroll
                                                     dataLength={products.length}
                                                     next={loadMoreProducts}
-                                                    hasMore={hasMore}
+                                                    hasMore={hasMoreProducts && !loadingProducts}
                                                     loader={<div className="p-2 text-center text-sm">Đang tải thêm...</div>}
-                                                    scrollableTarget="product-scroll"
+                                                    scrollableTarget="product-scroll-content"
                                                 >
                                                     {products.map((product) => (
                                                         <SelectItem key={product.productId} value={product.productId}>
                                                             {product.name}
                                                         </SelectItem>
                                                     ))}
+                                                    {!loadingProducts && products.length === 0 && (
+                                                        <div className="p-2 text-center text-sm text-gray-500">Không có sản phẩm.</div>
+                                                    )}
                                                 </InfiniteScroll>
                                             </ScrollArea>
                                         </SelectContent>
@@ -677,7 +680,7 @@ const CreateWorkflow = () => {
 
                                 <div className="space-y-2">
                                     <Label htmlFor="description" className="flex items-center">
-                                        Mô tả
+                                        Mô tả (Tùy chọn)
                                         <TooltipProvider>
                                             <Tooltip>
                                                 <TooltipTrigger asChild>
@@ -697,6 +700,12 @@ const CreateWorkflow = () => {
                                         disabled={loading}
                                         className="min-h-[120px]"
                                     />
+                                    {errors.description && (
+                                        <p className="text-red-500 text-sm flex items-center">
+                                            <AlertTriangle className="h-3 w-3 mr-1" />
+                                            {errors.description[0]}
+                                        </p>
+                                    )}
                                 </div>
                             </CardContent>
                         </Card>
@@ -707,7 +716,7 @@ const CreateWorkflow = () => {
                             <CardHeader className="flex flex-row items-center justify-between">
                                 <div>
                                     <CardTitle>Các bước thực hiện</CardTitle>
-                                    <CardDescription>Thêm và quản lý các bước của quy trình</CardDescription>
+                                    <CardDescription>Thêm và quản lý các bước của quy trình. Bước là bắt buộc.</CardDescription>
                                 </div>
                                 <Button type="button" onClick={addStep} disabled={loading} className="bg-blue-500 hover:bg-blue-600">
                                     <PlusCircle className="mr-2 h-4 w-4" />
@@ -715,10 +724,17 @@ const CreateWorkflow = () => {
                                 </Button>
                             </CardHeader>
                             <CardContent>
+                                {errors.steps && typeof errors.steps === 'string' && ( // Lỗi chung cho steps array
+                                    <p className="text-red-500 text-sm flex items-center mb-2">
+                                        <AlertTriangle className="h-3 w-3 mr-1" />
+                                        {errors.steps}
+                                    </p>
+                                )}
                                 {formData.steps.length === 0 ? (
                                     <div className="text-center py-12 border-2 border-dashed rounded-lg">
                                         <Settings className="h-12 w-12 mx-auto text-gray-400 mb-3" />
                                         <p className="text-gray-500">Chưa có bước nào được thêm vào</p>
+                                        <p className="text-gray-500">Quy trình phải có ít nhất một bước.</p>
                                         <Button type="button" onClick={addStep} variant="outline" className="mt-4">
                                             <PlusCircle className="mr-2 h-4 w-4" />
                                             Thêm bước đầu tiên
@@ -734,9 +750,9 @@ const CreateWorkflow = () => {
                                     >
                                         {formData.steps.map((step, index) => (
                                             <AccordionItem
-                                                key={index}
+                                                key={index} // Sử dụng index làm key nếu step không có ID ổn định và thứ tự có thể thay đổi
                                                 value={index.toString()}
-                                                className="border rounded-md overflow-hidden bg-white dark:bg-gray-800"
+                                                className={`border rounded-md overflow-hidden bg-white dark:bg-gray-800 ${errors.steps?.[index] ? 'border-red-500' : 'border-gray-200 dark:border-gray-700'}`}
                                             >
                                                 <AccordionTrigger className="px-4 py-3 hover:no-underline">
                                                     <div className="flex items-center justify-between w-full">
@@ -744,46 +760,56 @@ const CreateWorkflow = () => {
                                                             <Badge variant="outline" className="mr-3 bg-blue-50 text-blue-700 border-blue-200">
                                                                 {step.sequence}
                                                             </Badge>
-                                                            <span className="font-medium">{step.name}</span>
+                                                            <span className="font-medium truncate max-w-[200px] sm:max-w-[300px] md:max-w-[400px]" title={step.name || `Bước ${step.sequence}`}>
+                                                                {step.name || `Bước ${step.sequence}`}
+                                                            </span>
                                                             {step.type && (
-                                                                <Badge variant="secondary" className="ml-3">
+                                                                <Badge variant="secondary" className="ml-3 hidden sm:inline-flex">
                                                                     {step.type}
                                                                 </Badge>
                                                             )}
+                                                            {errors.steps?.[index] && (
+                                                                <AlertTriangle className="h-4 w-4 text-red-500 ml-2" title="Bước này có lỗi" />
+                                                            )}
                                                         </div>
-                                                        <div className="flex items-center space-x-1 mr-4">
+                                                        {/* Actions: Move up, Move down, Delete */}
+                                                        <div className="flex items-center space-x-1 mr-4 flex-shrink-0">
                                                             <div
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation()
-                                                                    moveStepUp(index)
-                                                                }}
-                                                                className={`h-7 w-7 rounded-full flex items-center justify-center ${loading || index === 0 ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-100"}`}
+                                                                role="button"
+                                                                tabIndex={0}
+                                                                onClick={(e) => { e.stopPropagation(); moveStepUp(index); }}
+                                                                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.stopPropagation(); moveStepUp(index); } }}
+                                                                className={`h-7 w-7 rounded-full flex items-center justify-center ${loading || index === 0 ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-100 dark:hover:bg-gray-700"}`}
+                                                                title="Di chuyển lên"
                                                             >
                                                                 <ChevronUp className="h-4 w-4" />
                                                             </div>
                                                             <div
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation()
-                                                                    moveStepDown(index)
-                                                                }}
-                                                                className={`h-7 w-7 rounded-full flex items-center justify-center ${loading || index === formData.steps.length - 1 ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-100"}`}
+                                                                role="button"
+                                                                tabIndex={0}
+                                                                onClick={(e) => { e.stopPropagation(); moveStepDown(index); }}
+                                                                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.stopPropagation(); moveStepDown(index); } }}
+                                                                className={`h-7 w-7 rounded-full flex items-center justify-center ${loading || index === formData.steps.length - 1 ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-100 dark:hover:bg-gray-700"}`}
+                                                                title="Di chuyển xuống"
                                                             >
                                                                 <ChevronDown className="h-4 w-4" />
                                                             </div>
                                                             <div
-                                                                onClick={(e) => {
-                                                                    e.stopPropagation()
-                                                                    removeStep(index)
-                                                                }}
-                                                                className={`h-7 w-7 rounded-full flex items-center justify-center ${loading ? "opacity-50 cursor-not-allowed" : "text-red-500 hover:text-red-700 hover:bg-red-50"}`}
+                                                                role="button"
+                                                                tabIndex={0}
+                                                                onClick={(e) => { e.stopPropagation(); removeStep(index); }}
+                                                                onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.stopPropagation(); removeStep(index); } }}
+                                                                className={`h-7 w-7 rounded-full flex items-center justify-center ${loading ? "opacity-50 cursor-not-allowed" : "text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900"}`}
+                                                                title="Xóa bước"
                                                             >
                                                                 <Trash2 className="h-4 w-4" />
                                                             </div>
                                                         </div>
                                                     </div>
                                                 </AccordionTrigger>
-                                                <AccordionContent className="px-4 pb-4 pt-2">
+                                                <AccordionContent className="px-4 pb-4 pt-2 border-t">
                                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                        {/* Sequence */}
                                                         <div className="space-y-2">
                                                             <Label htmlFor={`step-sequence-${index}`}>Thứ tự</Label>
                                                             <Input
@@ -792,22 +818,19 @@ const CreateWorkflow = () => {
                                                                 value={step.sequence}
                                                                 readOnly={true}
                                                                 disabled={loading}
-                                                                className={errors.steps?.[index]?.sequence ? "border-red-500" : ""}
+                                                                className="bg-gray-50"
                                                             />
-                                                            {errors.steps?.[index]?.sequence && (
-                                                                <p className="text-red-500 text-sm">{errors.steps[index].sequence[0]}</p>
-                                                            )}
                                                         </div>
 
                                                         <div className="space-y-2">
-                                                            <Label htmlFor={`step-name-${index}`}>Tên bước</Label>
+                                                            <Label htmlFor={`step-name-${index}`}>Tên bước (tự động)</Label>
                                                             <Input
                                                                 id={`step-name-${index}`}
                                                                 value={step.name}
                                                                 readOnly={true}
                                                                 disabled={loading}
                                                                 className={`${errors.steps?.[index]?.name ? "border-red-500" : ""} bg-gray-50`}
-                                                                placeholder="Tên sẽ tự động cập nhật khi chọn chức năng thiết bị"
+                                                                placeholder="Tên sẽ tự động cập nhật"
                                                             />
                                                             {errors.steps?.[index]?.name && (
                                                                 <p className="text-red-500 text-sm">{errors.steps[index].name[0]}</p>
@@ -815,14 +838,14 @@ const CreateWorkflow = () => {
                                                         </div>
 
                                                         <div className="space-y-2">
-                                                            <Label htmlFor={`step-type-${index}`}>Loại bước</Label>
+                                                            <Label htmlFor={`step-type-${index}`}>Loại bước (tự động)</Label>
                                                             <Input
                                                                 id={`step-type-${index}`}
                                                                 value={step.type}
                                                                 readOnly={true}
                                                                 disabled={loading}
                                                                 className={`${errors.steps?.[index]?.type ? "border-red-500" : ""} bg-gray-50`}
-                                                                placeholder="Loại sẽ tự động cập nhật khi chọn chức năng thiết bị"
+                                                                placeholder="Loại sẽ tự động cập nhật"
                                                             />
                                                             {errors.steps?.[index]?.type && (
                                                                 <p className="text-red-500 text-sm">{errors.steps[index].type[0]}</p>
@@ -834,8 +857,9 @@ const CreateWorkflow = () => {
                                                             <Input
                                                                 id={`step-maxRetries-${index}`}
                                                                 type="number"
+                                                                min="0"
                                                                 value={step.maxRetries}
-                                                                onChange={(e) => handleStepChange(index, "maxRetries", Number.parseInt(e.target.value))}
+                                                                onChange={(e) => handleStepChange(index, "maxRetries", Number.parseInt(e.target.value) >= 0 ? Number.parseInt(e.target.value) : 0)}
                                                                 disabled={loading}
                                                                 className={errors.steps?.[index]?.maxRetries ? "border-red-500" : ""}
                                                             />
@@ -849,34 +873,37 @@ const CreateWorkflow = () => {
                                                             <Select
                                                                 value={step.deviceModelId}
                                                                 onValueChange={(value) => handleStepChange(index, "deviceModelId", value)}
-                                                                disabled={loading || loadingDeviceModels || !selectedKioskVersion}
+                                                                disabled={loading || !selectedKioskVersion || (loadingDeviceModels && deviceModels.length === 0)}
                                                             >
-                                                                <SelectTrigger id={`step-deviceModelId-${index}`}>
+                                                                <SelectTrigger id={`step-deviceModelId-${index}`} className={errors.steps?.[index]?.deviceModelId ? "border-red-500" : ""}>
                                                                     <SelectValue
                                                                         placeholder={
                                                                             !selectedKioskVersion
-                                                                                ? "Vui lòng chọn phiên bản kiosk trước"
-                                                                                : loadingDeviceModels
+                                                                                ? "Chọn phiên bản kiosk trước"
+                                                                                : loadingDeviceModels && deviceModels.length === 0
                                                                                     ? "Đang tải mẫu thiết bị..."
                                                                                     : "Chọn mẫu thiết bị"
                                                                         }
                                                                     />
                                                                 </SelectTrigger>
-                                                                <SelectContent className="max-h-[300px]">
+                                                                <SelectContent id={`device-model-scroll-content-${index}`} className="max-h-[300px]">
                                                                     {selectedKioskVersion && (
-                                                                        <ScrollArea id={`device-model-scroll-${index}`} className="h-[200px]">
+                                                                        <ScrollArea className="h-[200px]">
                                                                             <InfiniteScroll
                                                                                 dataLength={deviceModels.length}
-                                                                                next={() => fetchDeviceModels(deviceModelPage + 1)}
-                                                                                hasMore={hasMoreDeviceModels}
+                                                                                next={() => fetchDeviceModels(deviceModelPage + 1)} // fetchDeviceModels đã memoized
+                                                                                hasMore={hasMoreDeviceModels && !loadingDeviceModels}
                                                                                 loader={<div className="p-2 text-center text-sm">Đang tải thêm...</div>}
-                                                                                scrollableTarget={`device-model-scroll-${index}`}
+                                                                                scrollableTarget={`device-model-scroll-content-${index}`}
                                                                             >
                                                                                 {deviceModels.map((deviceModel) => (
                                                                                     <SelectItem key={deviceModel.deviceModelId} value={deviceModel.deviceModelId}>
                                                                                         {deviceModel.modelName}
                                                                                     </SelectItem>
                                                                                 ))}
+                                                                                {!loadingDeviceModels && deviceModels.length === 0 && (
+                                                                                    <div className="p-2 text-center text-sm text-gray-500">Không có mẫu thiết bị.</div>
+                                                                                )}
                                                                             </InfiniteScroll>
                                                                         </ScrollArea>
                                                                     )}
@@ -892,41 +919,35 @@ const CreateWorkflow = () => {
                                                             <Select
                                                                 value={step.deviceFunctionId}
                                                                 onValueChange={(value) => handleStepChange(index, "deviceFunctionId", value)}
-                                                                disabled={loading || !step.deviceModelId}
+                                                                disabled={loading || !step.deviceModelId || getDeviceFunctionsForModel(step.deviceModelId).length === 0}
                                                             >
-                                                                <SelectTrigger id={`step-deviceFunctionId-${index}`}>
+                                                                <SelectTrigger id={`step-deviceFunctionId-${index}`} className={errors.steps?.[index]?.deviceFunctionId ? "border-red-500" : ""}>
                                                                     <SelectValue
                                                                         placeholder={
                                                                             !step.deviceModelId
-                                                                                ? "Vui lòng chọn mẫu thiết bị trước"
-                                                                                : "Chọn chức năng thiết bị"
+                                                                                ? "Chọn mẫu thiết bị trước"
+                                                                                : getDeviceFunctionsForModel(step.deviceModelId).length === 0
+                                                                                    ? "Không có chức năng"
+                                                                                    : "Chọn chức năng"
                                                                         }
                                                                     />
                                                                 </SelectTrigger>
                                                                 <SelectContent className="max-h-[300px]">
-                                                                    {step.deviceModelId &&
-                                                                        getDeviceFunctionsForModel(step.deviceModelId).map((deviceFunction) => (
-                                                                            <SelectItem
-                                                                                key={deviceFunction.deviceFunctionId}
-                                                                                value={deviceFunction.deviceFunctionId || deviceFunction.name}
-                                                                            >
-                                                                                <div className="flex flex-col">
-                                                                                    <span className="font-medium">{deviceFunction.name}</span>
-                                                                                    {deviceFunction.functionParameters &&
-                                                                                        deviceFunction.functionParameters.length > 0 && (
-                                                                                            <span className="text-sm text-muted-foreground">
-                                                                                                {deviceFunction.functionParameters.length} tham số
-                                                                                            </span>
-                                                                                        )}
-                                                                                </div>
-                                                                            </SelectItem>
-                                                                        ))}
-                                                                    {step.deviceModelId &&
-                                                                        getDeviceFunctionsForModel(step.deviceModelId).length === 0 && (
-                                                                            <div className="p-2 text-center text-sm text-muted-foreground">
-                                                                                Không có chức năng nào cho thiết bị này
+                                                                    {getDeviceFunctionsForModel(step.deviceModelId).map((df) => (
+                                                                        <SelectItem
+                                                                            key={df.deviceFunctionId || df.name}
+                                                                            value={df.deviceFunctionId || df.name}
+                                                                        >
+                                                                            <div className="flex flex-col">
+                                                                                <span className="font-medium">{df.name}</span>
+                                                                                {df.functionParameters && df.functionParameters.length > 0 && (
+                                                                                    <span className="text-xs text-muted-foreground">
+                                                                                        {df.functionParameters.length} tham số
+                                                                                    </span>
+                                                                                )}
                                                                             </div>
-                                                                        )}
+                                                                        </SelectItem>
+                                                                    ))}
                                                                 </SelectContent>
                                                             </Select>
                                                             {errors.steps?.[index]?.deviceFunctionId && (
@@ -935,31 +956,36 @@ const CreateWorkflow = () => {
                                                         </div>
 
                                                         <div className="space-y-2">
-                                                            <Label htmlFor={`step-callbackWorkflowId-${index}`}>Quy trình callback</Label>
+                                                            <Label htmlFor={`step-callbackWorkflowId-${index}`}>Quy trình callback (Tùy chọn)</Label>
                                                             <Select
                                                                 value={step.callbackWorkflowId}
                                                                 onValueChange={(value) => handleStepChange(index, "callbackWorkflowId", value)}
-                                                                disabled={loading || loadingWorkflows}
+                                                                disabled={loading || (loadingWorkflows && workflows.length === 0)}
                                                             >
-                                                                <SelectTrigger id={`step-callbackWorkflowId-${index}`}>
+                                                                <SelectTrigger id={`step-callbackWorkflowId-${index}`} className={errors.steps?.[index]?.callbackWorkflowId ? "border-red-500" : ""}>
                                                                     <SelectValue
-                                                                        placeholder={loadingWorkflows ? "Đang tải quy trình..." : "Chọn quy trình callback"}
+                                                                        placeholder={loadingWorkflows && workflows.length === 0 ? "Đang tải quy trình..." : "Chọn quy trình callback"}
                                                                     />
                                                                 </SelectTrigger>
-                                                                <SelectContent className="max-h-[300px]">
-                                                                    <InfiniteScroll
-                                                                        dataLength={workflows.length}
-                                                                        next={() => fetchWorkflows(workflowPage + 1)}
-                                                                        hasMore={hasMoreWorkflows}
-                                                                        loader={<div className="p-2 text-center text-sm">Đang tải thêm...</div>}
-                                                                        scrollableTarget="select-content"
-                                                                    >
-                                                                        {workflows.map((workflow) => (
-                                                                            <SelectItem key={workflow.workflowId} value={workflow.workflowId}>
-                                                                                {workflow.name}
-                                                                            </SelectItem>
-                                                                        ))}
-                                                                    </InfiniteScroll>
+                                                                <SelectContent id={`workflow-callback-scroll-content-${index}`} className="max-h-[300px]">
+                                                                    <ScrollArea className="h-[200px]">
+                                                                        <InfiniteScroll
+                                                                            dataLength={workflows.length}
+                                                                            next={() => fetchWorkflows(workflowPage + 1)}
+                                                                            hasMore={hasMoreWorkflows && !loadingWorkflows}
+                                                                            loader={<div className="p-2 text-center text-sm">Đang tải thêm...</div>}
+                                                                            scrollableTarget={`workflow-callback-scroll-content-${index}`}
+                                                                        >
+                                                                            {workflows.map((wf) => (
+                                                                                <SelectItem key={wf.workflowId} value={wf.workflowId}>
+                                                                                    {wf.name}
+                                                                                </SelectItem>
+                                                                            ))}
+                                                                            {!loadingWorkflows && workflows.length === 0 && (
+                                                                                <div className="p-2 text-center text-sm text-gray-500">Không có quy trình.</div>
+                                                                            )}
+                                                                        </InfiniteScroll>
+                                                                    </ScrollArea>
                                                                 </SelectContent>
                                                             </Select>
                                                             {errors.steps?.[index]?.callbackWorkflowId && (
@@ -968,13 +994,13 @@ const CreateWorkflow = () => {
                                                         </div>
 
                                                         <div className="space-y-2 md:col-span-2">
-                                                            <Label htmlFor={`step-parameters-${index}`}>Tham số</Label>
+                                                            <Label htmlFor={`step-parameters-${index}`}>Tham số (JSON)</Label>
                                                             <FunctionParameterEditor
                                                                 deviceFunctionId={step.deviceFunctionId}
                                                                 deviceModels={deviceModels}
                                                                 value={step.parameters}
                                                                 onChange={(value) => handleStepChange(index, "parameters", value)}
-                                                                disabled={loading}
+                                                                disabled={loading || !step.deviceFunctionId}
                                                             />
                                                             {errors.steps?.[index]?.parameters && (
                                                                 <p className="text-red-500 text-sm">{errors.steps[index].parameters[0]}</p>

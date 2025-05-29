@@ -25,7 +25,7 @@ import { PlusCircle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import useDebounce from "@/hooks/use-debounce";
 import { ConfirmDeleteDialog, BaseStatusFilter, ExportButton, NoResultsRow, Pagination, RefreshButton, SearchInput } from "@/components/common";
-import { getKiosks, deleteKiosk, syncKiosk, getKioskExportSetup } from "@/services/kiosk";
+import { getKiosks, deleteKiosk, syncKiosk } from "@/services/kiosk";
 import { Kiosk } from "@/interfaces/kiosk";
 import { multiSelectFilter } from "@/utils/table";
 import { useToast } from "@/hooks/use-toast";
@@ -35,6 +35,7 @@ import { BaseFilterBadges } from "@/components/common/base-filter-badges";
 import { useRouter } from "next/navigation";
 import WebhookDialog from "@/components/dialog/webhook/webhook-dialog";
 import { ErrorResponse } from "@/types/error";
+import axios from "axios";
 
 const ManageKiosks = () => {
     const router = useRouter();
@@ -202,27 +203,41 @@ const ManageKiosks = () => {
 
 
     const handleExport = async (kiosk: Kiosk) => {
-        setLoading(true);
         try {
-            const response = await getKioskExportSetup(kiosk.kioskId);
-            toast({
-                title: "Thành công",
-                // @ts-ignore
-                description: response.message
-            })
-        } catch (error) {
-            const err = error as ErrorResponse;
-            toast({
-                title: "Lỗi khi xóa loại kiosk",
-                description: err.message,
-                variant: "destructive",
+            const response = await axios.get(
+                `https://localhost:30475/api/v1/kiosks/${kiosk.kioskId}/export-setup`,
+                {
+                    responseType: 'blob',
+                    headers: {
+                        'accept': 'application/zip'
+                    }
+                }
+            );
+
+            if (response.headers['content-type'] === 'application/zip') {
+                const blob = new Blob([response.data], { type: 'application/zip' });
+                const url = window.URL.createObjectURL(blob);
+                const link = document.createElement('a');
+                link.href = url;
+                link.download = `kiosk_${kiosk.kioskId}.zip`;
+                link.click();
+                window.URL.revokeObjectURL(url);
+                console.log("Tải file thành công!");
+                toast({
+                    title: "Thành công",
+                    description: "Tải file thành công!",
+                });
+            } else {
+                throw new Error("Server không trả về file ZIP");
             }
-            )
+        } catch (error) {
+            // @ts-ignore
+            const errMessage = error.response ? error.response.data : error.message;
+            console.log("Chi tiết lỗi:", errMessage);
         } finally {
             setLoading(false);
         }
-    }
-
+    };
 
     const table = useReactTable({
         data: kiosks,

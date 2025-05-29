@@ -5,19 +5,18 @@ import { PagingResponse } from "@/types/paging";
 import { ApiRequest, ApiResponse } from "@/types/api";
 
 export const BaseService = {
-    async get<T = any>({ url, payload, headers }: ApiRequest): Promise<AxiosResponse<T>> {
-        if (!url) {
-            throw new Error("URL is required for GET request");
-        }
+    async get<T = any>({ url, payload, headers, responseType }: ApiRequest): Promise<AxiosResponse<T>> {
+        if (!url) throw new Error("URL is required for GET request");
+
         try {
             const params = cleanParams({ ...payload });
             const response = await axiosInstance.get<T, AxiosResponse<T>>(url, {
                 params,
                 headers: headers || {},
+                responseType: responseType || 'json',
             });
             return response;
         } catch (error) {
-            // Handle error if needed, e.g., dispatch error action
             console.error("GET request failed", error);
             throw error;
         }

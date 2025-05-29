@@ -1,3 +1,5 @@
+import { ResponseType } from "axios";
+
 export interface ApiResponse<T = any> {
     isSuccess: boolean;
     message: string;
@@ -12,4 +14,5 @@ export interface ApiRequest {
     url: string;
     payload?: any;
     headers?: object;
+    responseType?: ResponseType;
 }

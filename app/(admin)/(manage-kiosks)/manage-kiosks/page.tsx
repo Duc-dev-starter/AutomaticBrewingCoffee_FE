@@ -25,7 +25,7 @@ import { PlusCircle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import useDebounce from "@/hooks/use-debounce";
 import { ConfirmDeleteDialog, BaseStatusFilter, ExportButton, NoResultsRow, Pagination, RefreshButton, SearchInput } from "@/components/common";
-import { getKiosks, deleteKiosk, syncKiosk } from "@/services/kiosk";
+import { getKiosks, deleteKiosk, syncKiosk, getKioskExportSetup } from "@/services/kiosk";
 import { Kiosk } from "@/interfaces/kiosk";
 import { multiSelectFilter } from "@/utils/table";
 import { useToast } from "@/hooks/use-toast";
@@ -200,6 +200,30 @@ const ManageKiosks = () => {
         table.resetColumnFilters();
     };
 
+
+    const handleExport = async (kiosk: Kiosk) => {
+        setLoading(true);
+        try {
+            const response = await getKioskExportSetup(kiosk.kioskId);
+            toast({
+                title: "Thành công",
+                // @ts-ignore
+                description: response.message
+            })
+        } catch (error) {
+            const err = error as ErrorResponse;
+            toast({
+                title: "Lỗi khi xóa loại kiosk",
+                description: err.message,
+                variant: "destructive",
+            }
+            )
+        } finally {
+            setLoading(false);
+        }
+    }
+
+
     const table = useReactTable({
         data: kiosks,
         columns: columns({
@@ -208,6 +232,7 @@ const ManageKiosks = () => {
             onDelete: handleDelete,
             onSync: handleSync,
             onWebhook: handleWebhook,
+            onExport: handleExport,
         }),
         onSortingChange: setSorting,
         onColumnFiltersChange: setColumnFilters,
@@ -237,6 +262,7 @@ const ManageKiosks = () => {
     const toggleLoading = () => {
         fetchKiosks();
     };
+
 
     return (
         <div className="w-full">
@@ -344,7 +370,7 @@ const ManageKiosks = () => {
                             {loading ? (
                                 Array.from({ length: pageSize }).map((_, index) => (
                                     <TableRow key={`skeleton-${index}`} className="animate-pulse">
-                                        {columns({ onViewDetails: () => { }, onEdit: () => { }, onDelete: () => { }, onSync: () => { }, onWebhook: () => { } }).map((column, cellIndex) => (
+                                        {columns({ onViewDetails: () => { }, onEdit: () => { }, onDelete: () => { }, onSync: () => { }, onWebhook: () => { }, onExport: () => { } }).map((column, cellIndex) => (
                                             <TableCell key={`skeleton-cell-${cellIndex}`}>
                                                 {column.id === "kioskId" ? (
                                                     <Skeleton className="h-5 w-24 mx-auto" />
@@ -386,7 +412,7 @@ const ManageKiosks = () => {
                                     </TableRow>
                                 ))
                             ) : (
-                                <NoResultsRow columns={columns({ onViewDetails: () => { }, onEdit: () => { }, onDelete: () => { }, onSync: () => { }, onWebhook: () => { } })} />
+                                <NoResultsRow columns={columns({ onViewDetails: () => { }, onEdit: () => { }, onDelete: () => { }, onSync: () => { }, onWebhook: () => { }, onExport: () => { } })} />
                             )}
                         </TableBody>
                     </Table>

@@ -3,11 +3,13 @@ import { Button } from "../ui/button";
 
 type ExportButtonProps = {
     loading: boolean;
+    onExport?: () => void;
 };
 
-const ExportButton: React.FC<ExportButtonProps> = ({ loading }) => {
+const ExportButton: React.FC<ExportButtonProps> = ({ loading, onExport }) => {
     return (
         <Button
+            onClick={onExport}
             disabled={loading}
             variant="outline"
             effect="shineHover"

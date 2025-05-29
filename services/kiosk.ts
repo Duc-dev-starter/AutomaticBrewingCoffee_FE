@@ -133,3 +133,7 @@ export const getOnhub = async (kioskDeviceId: string) => {
     return response;
 }
 
+export const getKioskExportSetup = async (kioskId: string) => {
+    const response = await BaseService.get({ url: `${Api.KIOSKS}/${kioskId}/export-setup` });
+    return response;
+}

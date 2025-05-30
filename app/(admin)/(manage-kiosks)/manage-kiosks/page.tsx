@@ -36,6 +36,8 @@ import { useRouter } from "next/navigation";
 import WebhookDialog from "@/components/dialog/webhook/webhook-dialog";
 import { ErrorResponse } from "@/types/error";
 import axios from "axios";
+import Cookies from "js-cookie"
+
 
 const ManageKiosks = () => {
     const router = useRouter();
@@ -204,13 +206,20 @@ const ManageKiosks = () => {
 
     const handleExport = async (kiosk: Kiosk) => {
         try {
+            const token = Cookies.get('accessToken');
+            const headers: any = {
+                'accept': 'application/zip',
+            };
+
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`;
+            }
+
             const response = await axios.get(
                 `https://localhost:30475/api/v1/kiosks/${kiosk.kioskId}/export-setup`,
                 {
                     responseType: 'blob',
-                    headers: {
-                        'accept': 'application/zip'
-                    }
+                    headers: headers,
                 }
             );
 
@@ -238,6 +247,7 @@ const ManageKiosks = () => {
             setLoading(false);
         }
     };
+
 
     const table = useReactTable({
         data: kiosks,

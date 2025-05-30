@@ -72,7 +72,6 @@ const CreateWorkflow = () => {
     const [hasMoreWorkflows, setHasMoreWorkflows] = useState(true)
     const [loadingWorkflows, setLoadingWorkflows] = useState(true)
 
-    // Kiosk 
     const [kioskVersions, setKioskVersions] = useState<KioskVersion[]>([])
     const [kioskVersionPage, setKioskVersionPage] = useState(1)
     const [hasMoreKioskVersion, setHasMoreKioskVersion] = useState(true)
@@ -377,6 +376,7 @@ const CreateWorkflow = () => {
 
     const handleSubmit = useCallback(
         async (e: React.FormEvent) => {
+            console.log("Form Data before submit:", JSON.stringify(formData, null, 2));
             e.preventDefault()
             e.stopPropagation()
 
@@ -415,6 +415,8 @@ const CreateWorkflow = () => {
             try {
                 const validatedData = result.data;
 
+                console.log("validatedData AFTER Zod parse:", JSON.stringify(validatedData, null, 2));
+
                 const dataToSend = {
                     name: validatedData.name,
                     description: validatedData.description || undefined,
@@ -427,6 +429,7 @@ const CreateWorkflow = () => {
                         callbackWorkflowId: step.callbackWorkflowId || undefined,
                         deviceModelId: step.deviceModelId || undefined,
                         deviceFunctionId: step.deviceFunctionId || undefined,
+                        sequence: step.sequence || 1,
                     })),
                 }
 
@@ -545,8 +548,7 @@ const CreateWorkflow = () => {
                                                     <span>Đang tải thêm...</span>
                                                 </div>
                                             }
-                                            scrollableTarget="kiosk-version-scroll-content" // Target là ID của SelectContent
-                                        // style={{ overflow: "hidden" }} // Có thể không cần thiết
+                                            scrollableTarget="kiosk-version-scroll-content"
                                         >
                                             {kioskVersions.map((version) => (
                                                 <SelectItem key={version.kioskVersionId} value={version.kioskVersionId}>
@@ -594,7 +596,7 @@ const CreateWorkflow = () => {
                                         placeholder="Nhập tên quy trình"
                                         value={formData.name}
                                         onChange={(e) => handleChange("name", e.target.value)}
-                                        disabled={loading} // Chỉ disable bởi loading chung
+                                        disabled={loading}
                                         className={errors.name ? "border-red-500 focus-visible:ring-red-500" : ""}
                                     />
                                     {errors.name && (

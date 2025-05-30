@@ -8,6 +8,7 @@ const stepSchema = z.object({
     maxRetries: z.number().int().nonnegative("Số lần thử lại phải là số nguyên không âm."),
     callbackWorkflowId: z.string().optional().or(z.literal("")).nullable(),
     parameters: z.string().optional().or(z.literal("")).nullable(),
+    sequence: z.number().min(1),
 });
 
 export const workflowSchema = z.object({

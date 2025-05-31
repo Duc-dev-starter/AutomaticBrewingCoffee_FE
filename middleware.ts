@@ -33,7 +33,7 @@ const allowedPaths = [
     Path.CREATE_ACCOUNT,
     Path.CREATE_WORKFLOW,
     Path.UPDATE_WORKFLOW,
-    '/test'
+    Path.MANAGE_ACCOUNTS
 ];
 
 const dynamicPathPrefixes = [

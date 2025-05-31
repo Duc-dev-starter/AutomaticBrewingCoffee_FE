@@ -3,6 +3,7 @@ export const Api = {
     LOGIN: '/auth/login',
     REFRESH_TOKEN: '/auth/refresh',
     CREATE_ACCOUNT: '/auth/create-account',
+    ACCOUNTS: '/auth/accounts',
 
     // DEVICE
     DEVICES: '/devices',

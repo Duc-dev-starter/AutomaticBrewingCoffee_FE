@@ -24,6 +24,7 @@ export function ActionDropdown<T>({
     onWebhook,
     onClone,
     onExport,
+
 }: ActionDropdownProps<T>) {
     return (
         <div className="flex justify-center">

@@ -21,4 +21,5 @@ export interface Workflow {
     description: string;
     type: EWorkflowType;
     steps: WorkflowStep[];
+    kioskVersionId: string;
 }

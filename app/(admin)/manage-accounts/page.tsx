@@ -27,18 +27,18 @@ import useDebounce from "@/hooks/use-debounce";
 import { BaseStatusFilter, ConfirmDeleteDialog, ExportButton, NoResultsRow, Pagination, RefreshButton, SearchInput } from "@/components/common";
 import { multiSelectFilter } from "@/utils/table";
 import { useToast } from "@/hooks/use-toast";
-import { LocationType } from "@/interfaces/location";
-import { columns } from "@/components/manage-locations/columns";
-import { getLocationTypes, deleteLocationType } from "@/services/locationType";
-import { LocationTypeDetailDialog, LocationTypeDialog } from "@/components/dialog/locationType";
 import { ErrorResponse } from "@/types/error";
+import { columns } from "@/components/manage-accounts/columns";
+import { Account } from "@/interfaces/account";
+import { banAccount, getAccounts, unbanAccount } from "@/services/auth";
+import ConfirmBanUnbanDialog from "@/components/common/confirm-ban-or-ban-alert";
 
-const ManageLocationTypes = () => {
+const ManageAccounts = () => {
     const { toast } = useToast();
     const [loading, setLoading] = useState(true);
     const [pageSize, setPageSize] = useState(10);
     const [currentPage, setCurrentPage] = useState(1);
-    const [locationTypes, setLocationTypes] = useState<LocationType[]>([]);
+    const [accounts, setAccounts] = useState<Account[]>([]);
     const [totalItems, setTotalItems] = useState(0);
     const [totalPages, setTotalPages] = useState(1);
     const [statusFilter, setStatusFilter] = useState<string>("");
@@ -49,11 +49,11 @@ const ManageLocationTypes = () => {
     const [rowSelection, setRowSelection] = useState({});
 
     const [dialogOpen, setDialogOpen] = useState(false);
-    const [selectedLocationType, setSelectedLocationType] = useState<LocationType | undefined>(undefined);
+    const [selectedAccount, setSelectedAccount] = useState<Account | undefined>(undefined);
     const [detailDialogOpen, setDetailDialogOpen] = useState(false);
-    const [detailLocation, setDetailLocation] = useState<LocationType | null>(null);
+    const [detailAccount, setDetailAccount] = useState<Account | null>(null);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-    const [locationTypeToDelete, setLocationTypeToDelete] = useState<LocationType | null>(null);
+    const [accountToBanOrUnban, setAccountToBanOrUnban] = useState<Account | null>(null);
 
     const [searchValue, setSearchValue] = useState<string>("");
     const debouncedSearchValue = useDebounce(searchValue, 500);
@@ -69,18 +69,18 @@ const ManageLocationTypes = () => {
         table.getColumn("name")?.setFilterValue(debouncedSearchValue || undefined);
     }, [debouncedSearchValue, statusFilter]);
 
-    const fetchLocationTypes = useCallback(async () => {
+    const fetchAccounts = useCallback(async () => {
         try {
             setLoading(true);
 
-            const nameFilter = columnFilters.find((filter) => filter.id === "name");
-            const filterBy = nameFilter ? "name" : undefined;
+            const nameFilter = columnFilters.find((filter) => filter.id === "fullName");
+            const filterBy = nameFilter ? "fullName" : undefined;
             const filterQuery = nameFilter?.value as string | undefined;
 
             const sortBy = sorting.length > 0 ? sorting[0]?.id : undefined;
             const isAsc = sorting.length > 0 ? !sorting[0]?.desc : undefined;
 
-            const response = await getLocationTypes({
+            const response = await getAccounts({
                 filterBy,
                 filterQuery,
                 page: currentPage,
@@ -89,7 +89,7 @@ const ManageLocationTypes = () => {
                 isAsc,
             });
 
-            setLocationTypes(response.items);
+            setAccounts(response.items);
             setTotalItems(response.total);
             setTotalPages(response.totalPages);
         } catch (err) {
@@ -106,59 +106,73 @@ const ManageLocationTypes = () => {
 
     useEffect(() => {
         if (isInitialMount.current) {
-            fetchLocationTypes(); // Gọi lần đầu khi mount
+            fetchAccounts();
             isInitialMount.current = false;
         } else {
-            fetchLocationTypes(); // Gọi khi có thay đổi thực sự
+            fetchAccounts(); // Gọi khi có thay đổi thực sự
         }
-    }, [fetchLocationTypes, currentPage, pageSize, sorting, columnFilters]);
+    }, [fetchAccounts, currentPage, pageSize, sorting, columnFilters]);
 
     const handleSuccess = () => {
-        fetchLocationTypes();
+        fetchAccounts();
         setDialogOpen(false);
-        setSelectedLocationType(undefined);
+        setSelectedAccount(undefined);
     };
 
-    const handleEdit = (locationType: LocationType) => {
-        setSelectedLocationType(locationType);
+    const handleEdit = (account: Account) => {
+        setSelectedAccount(account);
         setDialogOpen(true);
     };
 
-    const handleViewDetails = (locationType: LocationType) => {
-        setDetailLocation(locationType);
+    const handleViewDetails = (account: Account) => {
+        setDetailAccount(account);
         setDetailDialogOpen(true);
     };
 
-    const handleDelete = (locationType: LocationType) => {
-        setLocationTypeToDelete(locationType);
+    const handleToggle = (account: Account) => {
+        setAccountToBanOrUnban(account);
         setDeleteDialogOpen(true);
     };
 
-    const confirmDelete = async () => {
-        if (!locationTypeToDelete) return;
+    const confirmBanOrUnban = async (reason: string) => {
+        if (!accountToBanOrUnban) return;
         try {
-            await deleteLocationType(locationTypeToDelete.locationTypeId);
-            toast({
-                title: "Thành công",
-                description: `Location "${locationTypeToDelete.name}" đã được xóa.`,
-            });
-            fetchLocationTypes();
+            if (accountToBanOrUnban.isBanned) {
+                await unbanAccount({
+                    accountId: accountToBanOrUnban.accountId,
+                    unbannedReason: reason,
+                });
+                toast({
+                    title: "Thành công",
+                    description: `Tài khoản "${accountToBanOrUnban.fullName}" đã được mở khóa.`,
+                });
+            } else {
+                await banAccount({
+                    accountId: accountToBanOrUnban.accountId,
+                    bannedReason: reason,
+                });
+                toast({
+                    title: "Thành công",
+                    description: `Tài khoản "${accountToBanOrUnban.fullName}" đã được khóa.`,
+                });
+            }
+            fetchAccounts();
         } catch (error: unknown) {
             const err = error as ErrorResponse;
-            console.error("Lỗi khi xóa location:", err);
+            console.error("Lỗi khi thao tác với account:", err);
             toast({
-                title: "Lỗi khi xóa loại location",
+                title: "Lỗi",
                 description: err.message,
                 variant: "destructive",
             });
         } finally {
             setDeleteDialogOpen(false);
-            setLocationTypeToDelete(null);
+            setAccountToBanOrUnban(null);
         }
     };
 
     const handleAdd = () => {
-        setSelectedLocationType(undefined);
+        setSelectedAccount(undefined);
         setDialogOpen(true);
     };
 
@@ -171,11 +185,10 @@ const ManageLocationTypes = () => {
     const hasActiveFilters = statusFilter !== "" || searchValue !== "";
 
     const table = useReactTable({
-        data: locationTypes,
+        data: accounts,
         columns: columns({
             onViewDetails: handleViewDetails,
-            onEdit: handleEdit,
-            onDelete: handleDelete,
+            handleToggle: handleToggle,
         }),
         onSortingChange: setSorting,
         onColumnFiltersChange: setColumnFilters,
@@ -206,25 +219,24 @@ const ManageLocationTypes = () => {
         setCurrentPage(1);
     }, [columnFilters]);
 
-
     return (
         <div className="w-full">
             <div className="flex flex-col space-y-4 p-4 sm:p-6">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                     <div>
-                        <h2 className="text-2xl font-bold tracking-tight">Quản lý location</h2>
-                        <p className="text-muted-foreground">Quản lý và giám sát tất cả các location pha cà phê tự động.</p>
+                        <h2 className="text-2xl font-bold tracking-tight">Quản lý tài khoản</h2>
+                        <p className="text-muted-foreground">Quản lý và giám sát tất cả các tài khoản pha cà phê tự động.</p>
                     </div>
                     <div className="flex items-center gap-2">
                         <ExportButton loading={loading} />
-                        <RefreshButton loading={loading} toggleLoading={fetchLocationTypes} />
+                        <RefreshButton loading={loading} toggleLoading={fetchAccounts} />
                     </div>
                 </div>
                 <div className="flex flex-col sm:flex-row items-center py-4 gap-4">
                     <div className="relative w-full sm:w-72">
                         <SearchInput
                             loading={loading}
-                            placeHolderText="Tìm kiếm location..."
+                            placeHolderText="Tìm kiếm tài khoản..."
                             searchValue={searchValue}
                             setSearchValue={setSearchValue}
                         />
@@ -253,11 +265,8 @@ const ManageLocationTypes = () => {
                                             checked={column.getIsVisible()}
                                             onCheckedChange={(value) => column.toggleVisibility(!!value)}
                                         >
-                                            {column.id === "locationId" ? "Mã location" :
-                                                column.id === "name" ? "Tên location" : ""
-                                                // column.id === "createdDate" ? "Ngày tạo" :
-                                                //     column.id === "updatedDate" ? "Ngày cập nhật" : column.id
-                                            }
+                                            {column.id === "accountId" ? "Mã tài khoản" :
+                                                column.id === "fullName" ? "Tên tài khoản" : ""}
                                         </DropdownMenuCheckboxItem>
                                     ))}
                             </DropdownMenuContent>
@@ -299,22 +308,15 @@ const ManageLocationTypes = () => {
                             {loading ? (
                                 Array.from({ length: pageSize }).map((_, index) => (
                                     <TableRow key={`skeleton-${index}`} className="animate-pulse">
-                                        {columns({ onViewDetails: () => { }, onEdit: () => { }, onDelete: () => { } }).map((column, cellIndex) => (
+                                        {columns({ onViewDetails: () => { }, handleToggle: () => { } }).map((column, cellIndex) => (
                                             <TableCell key={`skeleton-cell-${cellIndex}`}>
-                                                {column.id === "locationTypeId" ? (
+                                                {column.id === "accountId" ? (
                                                     <Skeleton className="h-5 w-24 mx-auto" />
-                                                ) : column.id === "name" ? (
+                                                ) : column.id === "fullName" ? (
                                                     <div className="flex items-center gap-2 justify-center">
                                                         <Skeleton className="h-4 w-4 rounded-full" />
                                                         <Skeleton className="h-5 w-40" />
                                                     </div>
-                                                    // ) : column.id === "status" ? (
-                                                    //     <Skeleton className="h-6 w-24 rounded-full mx-auto" />
-                                                    // ) : column.id === "createdDate" || column.id === "updatedDate" ? (
-                                                    //     <div className="flex items-center gap-2 justify-center">
-                                                    //         <Skeleton className="h-4 w-4 rounded-full" />
-                                                    //         <Skeleton className="h-5 w-24" />
-                                                    //     </div>
                                                 ) : column.id === "actions" ? (
                                                     <div className="flex justify-center">
                                                         <Skeleton className="h-8 w-8 rounded-full" />
@@ -326,7 +328,7 @@ const ManageLocationTypes = () => {
                                         ))}
                                     </TableRow>
                                 ))
-                            ) : locationTypes.length ? (
+                            ) : accounts.length ? (
                                 table.getRowModel().rows.map((row) => (
                                     <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
                                         {row.getVisibleCells().map((cell) => (
@@ -337,7 +339,7 @@ const ManageLocationTypes = () => {
                                     </TableRow>
                                 ))
                             ) : (
-                                <NoResultsRow columns={columns({ onViewDetails: () => { }, onEdit: () => { }, onDelete: () => { } })} />
+                                <NoResultsRow columns={columns({ onViewDetails: () => { }, handleToggle: () => { } })} />
                             )}
                         </TableBody>
                     </Table>
@@ -352,29 +354,16 @@ const ManageLocationTypes = () => {
                     totalPages={totalPages}
                 />
             </div>
-            <LocationTypeDialog
-                open={dialogOpen}
-                onOpenChange={setDialogOpen}
-                onSuccess={handleSuccess}
-                locationType={selectedLocationType}
-            />
-            <LocationTypeDetailDialog
-                open={detailDialogOpen}
-                onOpenChange={(open) => {
-                    setDetailDialogOpen(open);
-                    if (!open) setDetailLocation(null);
-                }}
-                locationType={detailLocation}
-            />
-            <ConfirmDeleteDialog
+
+            <ConfirmBanUnbanDialog
                 open={deleteDialogOpen}
                 onOpenChange={setDeleteDialogOpen}
-                description={`Bạn có chắc chắn muốn xóa location "${locationTypeToDelete?.name}"? Hành động này không thể hoàn tác.`}
-                onConfirm={confirmDelete}
-                onCancel={() => setLocationTypeToDelete(null)}
+                onConfirm={confirmBanOrUnban}
+                item={accountToBanOrUnban}
+                action={accountToBanOrUnban?.isBanned ? "unban" : "ban"}
             />
         </div>
     );
 };
 
-export default ManageLocationTypes;
+export default ManageAccounts;

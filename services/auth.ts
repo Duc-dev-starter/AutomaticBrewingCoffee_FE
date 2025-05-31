@@ -3,6 +3,8 @@ import { BaseService } from "./base"
 import { Api } from "@/constants/api";
 import { handleToken } from "@/utils/cookie";
 import Cookies from 'js-cookie'
+import { PagingParams, PagingResponse } from "@/types/paging";
+import { Account } from "@/interfaces/account";
 
 export const login = async (payload: { email: string; password: string }): Promise<ApiResponse> => {
     const response = await BaseService.post<ApiResponse>({ url: Api.LOGIN, payload });
@@ -36,7 +38,26 @@ export const refreshToken = async () => {
     }
 };
 
-export const createAccount = async (payload: { email: string; password: string, fullName: string, roleName: string, referenceId: string }): Promise<ApiResponse> => {
-    const response = await BaseService.post<ApiResponse>({ url: Api.CREATE_ACCOUNT, payload });
-    return response;
+
+export const getAccounts = async (params: PagingParams = {}): Promise<PagingResponse<Account>> => {
+    return BaseService.getPaging<Account>({
+        url: Api.ACCOUNTS,
+        payload: params,
+    });
 };
+
+export const getAccount = async (accountId: string) => {
+    const response = await BaseService.getById({ url: Api.ACCOUNTS, id: accountId });
+    return response;
+}
+
+
+export const banAccount = async (payload: { accountId: string, bannedReason: string }) => {
+    const response = await BaseService.put({ url: '/auth/ban-account', payload });
+    return response;
+}
+
+export const unbanAccount = async (payload: { accountId: string, unbannedReason: string }) => {
+    const response = await BaseService.put({ url: '/auth/unban-account', payload });
+    return response;
+}

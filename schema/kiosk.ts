@@ -19,5 +19,5 @@ export const kioskVersionSchema = z.object({
 export const kioskTypeSchema = z.object({
     name: z.string().trim().min(1, "Tên loại kiosk không được để trống."),
     status: z.enum([EBaseStatus.Active, EBaseStatus.Inactive], { message: "Vui lòng chọn trạng thái cho menu." }),
-    description: z.string().trim().optional(),
+    description: z.string().trim().max(450, "Mô tả không được quá 450 ký tự.").optional(),
 });

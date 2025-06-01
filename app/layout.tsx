@@ -4,6 +4,7 @@ import { Tooltip, TooltipProvider } from "@/components/ui/tooltip";
 import { Inter } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
+import { SignalRProvider } from "@/contexts/signalR";
 
 
 const inter = Inter({
@@ -32,7 +33,9 @@ export default function RootLayout({
         >
           <TooltipProvider>
             <Tooltip>
-              {children}
+              <SignalRProvider>
+                {children}
+              </SignalRProvider>
             </Tooltip>
           </TooltipProvider>
           <Toaster />

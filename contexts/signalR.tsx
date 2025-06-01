@@ -22,6 +22,8 @@ export const SignalRProvider = ({ children }: { children: React.ReactNode }) => 
         connectionRef.current = new signalR.HubConnectionBuilder()
             .withUrl(`https://localhost:30475/notification-hub`, {
                 accessTokenFactory: () => getAccessTokenFromCookie() || "",
+                skipNegotiation: true,
+                transport: signalR.HttpTransportType.WebSockets,
             })
             .withAutomaticReconnect()
             .configureLogging(signalR.LogLevel.Information)

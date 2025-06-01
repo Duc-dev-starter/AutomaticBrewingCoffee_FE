@@ -20,10 +20,10 @@ export const SignalRProvider = ({ children }: { children: React.ReactNode }) => 
     // Khởi tạo connection chỉ 1 lần (mount)
     if (!connectionRef.current) {
         connectionRef.current = new signalR.HubConnectionBuilder()
-            .withUrl(`https://localhost:30475/notification-hub`, {
-                accessTokenFactory: () => getAccessTokenFromCookie() || "",
+            .withUrl(`https://localhost:30475/hubs/notification`, {
                 skipNegotiation: true,
                 transport: signalR.HttpTransportType.WebSockets,
+                accessTokenFactory: () => getAccessTokenFromCookie() || "",
             })
             .withAutomaticReconnect()
             .configureLogging(signalR.LogLevel.Information)

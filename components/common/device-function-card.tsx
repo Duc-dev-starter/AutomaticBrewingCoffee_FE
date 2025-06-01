@@ -180,14 +180,39 @@ export function DeviceFunctionCard({
                                                     {/* Default Value */}
                                                     <div className="space-y-2">
                                                         <Label htmlFor={`param-default-${index}-${paramIndex}`}>Giá trị mặc định</Label>
-                                                        <Input
-                                                            id={`param-default-${index}-${paramIndex}`}
-                                                            value={param.default}
-                                                            onChange={(e) =>
-                                                                onUpdateParameter(index, paramIndex, "default", e.target.value)
-                                                            }
-                                                            placeholder="Nhập giá trị mặc định"
-                                                        />
+                                                        {param.type === EFunctionParameterType.Boolean ? (
+                                                            <Select
+                                                                value={
+                                                                    typeof param.default === "string"
+                                                                        ? param.default
+                                                                        : param.default === true
+                                                                            ? "true"
+                                                                            : param.default === false
+                                                                                ? "false"
+                                                                                : ""
+                                                                }
+                                                                onValueChange={(value) =>
+                                                                    onUpdateParameter(index, paramIndex, "default", value === "true")
+                                                                }
+                                                            >
+                                                                <SelectTrigger>
+                                                                    <SelectValue placeholder="Chọn true/false" />
+                                                                </SelectTrigger>
+                                                                <SelectContent>
+                                                                    <SelectItem value="true">True</SelectItem>
+                                                                    <SelectItem value="false">False</SelectItem>
+                                                                </SelectContent>
+                                                            </Select>
+                                                        ) : (
+                                                            <Input
+                                                                id={`param-default-${index}-${paramIndex}`}
+                                                                value={param.default || ""}
+                                                                onChange={(e) =>
+                                                                    onUpdateParameter(index, paramIndex, "default", e.target.value)
+                                                                }
+                                                                placeholder="Nhập giá trị mặc định"
+                                                            />
+                                                        )}
                                                     </div>
 
                                                     {/* Description */}
@@ -205,31 +230,32 @@ export function DeviceFunctionCard({
                                                 </div>
 
                                                 {/* Min/Max Values */}
-                                                <div className="grid grid-cols-2 gap-3">
-                                                    <div className="space-y-2">
-                                                        <Label htmlFor={`param-min-${index}-${paramIndex}`}>Giá trị tối thiểu</Label>
-                                                        <Input
-                                                            id={`param-min-${index}-${paramIndex}`}
-                                                            value={param.min || ""}
-                                                            onChange={(e) =>
-                                                                onUpdateParameter(index, paramIndex, "min", e.target.value || null)
-                                                            }
-                                                            placeholder="Tùy chọn"
-                                                        />
+                                                {(param.type === EFunctionParameterType.Double || param.type === EFunctionParameterType.Integer) && (
+                                                    <div className="grid grid-cols-2 gap-3">
+                                                        <div className="space-y-2">
+                                                            <Label htmlFor={`param-min-${index}-${paramIndex}`}>Giá trị tối thiểu</Label>
+                                                            <Input
+                                                                id={`param-min-${index}-${paramIndex}`}
+                                                                value={param.min || ""}
+                                                                onChange={(e) =>
+                                                                    onUpdateParameter(index, paramIndex, "min", e.target.value || null)
+                                                                }
+                                                                placeholder="Tùy chọn"
+                                                            />
+                                                        </div>
+                                                        <div className="space-y-2">
+                                                            <Label htmlFor={`param-max-${index}-${paramIndex}`}>Giá trị tối đa</Label>
+                                                            <Input
+                                                                id={`param-max-${index}-${paramIndex}`}
+                                                                value={param.max || ""}
+                                                                onChange={(e) =>
+                                                                    onUpdateParameter(index, paramIndex, "max", e.target.value || null)
+                                                                }
+                                                                placeholder="Tùy chọn"
+                                                            />
+                                                        </div>
                                                     </div>
-
-                                                    <div className="space-y-2">
-                                                        <Label htmlFor={`param-max-${index}-${paramIndex}`}>Giá trị tối đa</Label>
-                                                        <Input
-                                                            id={`param-max-${index}-${paramIndex}`}
-                                                            value={param.max || ""}
-                                                            onChange={(e) =>
-                                                                onUpdateParameter(index, paramIndex, "max", e.target.value || null)
-                                                            }
-                                                            placeholder="Tùy chọn"
-                                                        />
-                                                    </div>
-                                                </div>
+                                                )}
 
                                                 {/* Dynamic Options Input */}
                                                 <DynamicOptionsInput

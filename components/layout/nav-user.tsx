@@ -16,6 +16,7 @@ import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/c
 import Link from "next/link"
 import { Path } from "@/constants/path"
 import { ThemeSelector } from "./theme-selector"
+import { logout } from "@/services/auth"
 
 export function NavUser({
     user,
@@ -122,7 +123,7 @@ export function NavUser({
                             </DropdownMenuItem>
                         </DropdownMenuGroup>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem className="cursor-pointer hover:bg-red-50 dark:hover:bg-red-900/20 focus:bg-red-50 dark:focus:bg-red-900/20">
+                        <DropdownMenuItem onClick={logout} className="cursor-pointer hover:bg-red-50 dark:hover:bg-red-900/20 focus:bg-red-50 dark:focus:bg-red-900/20">
                             <LogOut className="mr-2 h-4 w-4 text-red-500" />
                             <p className="text-red-600 dark:text-red-400">Đăng xuất</p>
                         </DropdownMenuItem>

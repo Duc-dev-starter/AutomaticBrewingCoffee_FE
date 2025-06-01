@@ -67,3 +67,11 @@ export const changePassword = async (payload: { oldPassword: string, newPassword
     const response = await BaseService.put({ url: '/auth/change-password', payload });
     return response;
 }
+
+export const logout = async () => {
+    Object.keys(Cookies.get()).forEach((cookieName) => {
+        Cookies.remove(cookieName);
+    });
+
+    window.location.href = '/login';
+};

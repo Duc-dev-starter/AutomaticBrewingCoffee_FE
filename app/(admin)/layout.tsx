@@ -10,7 +10,8 @@ import { useSignalR } from "@/contexts/signalR";
 import { useToast } from "@/hooks/use-toast";
 import { registerToast } from "@/utils";
 import { useEffect, useState } from "react";
-import { HubConnectionState } from "@microsoft/signalr"; // thêm import này
+import { HubConnectionState } from "@microsoft/signalr";
+import { logout } from "@/services/auth";
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
     const { toast } = useToast();
@@ -24,9 +25,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     useEffect(() => {
         startConnection();
         const handler = (data: any) => {
-            console.log("Received notification:", data);
+            console.log("Logout:", data);
+            logout();
         };
-        on("ReceiveNotification", handler);
+        startConnection();
+        on("ForceLogout", handler);
 
         if (connection) {
             setConnectionState(connection.state);
@@ -59,8 +62,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             const interval = setInterval(handleStateChange, 1000);
 
             return () => {
-                off("ReceiveNotification", handler);
                 clearInterval(interval);
+                off("ForceLogout", handler);
             };
         } else {
             setConnectionState(null);

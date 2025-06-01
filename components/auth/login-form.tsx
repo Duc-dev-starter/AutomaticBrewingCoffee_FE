@@ -16,6 +16,7 @@ import { login } from "@/services/auth"
 import { handleToken } from "@/utils/cookie"
 import { Path } from "@/constants/path"
 import { useToast } from "@/hooks/use-toast"
+import { ErrorResponse } from "@/types/error"
 
 export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRef<"div">) {
     const router = useRouter()
@@ -53,7 +54,8 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
                 setIsLoading(false);
             }
         } catch (error) {
-            setError("Đã xảy ra lỗi khi đăng nhập. Vui lòng thử lại.");
+            const err = error as ErrorResponse
+            setError(err.message);
             console.error("Login error:", error);
         } finally {
             setIsLoading(false);

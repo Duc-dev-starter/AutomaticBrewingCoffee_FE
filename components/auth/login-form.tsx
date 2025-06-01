@@ -47,6 +47,7 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
                 });
                 handleToken(accessToken, refreshToken);
                 router.push(Path.DASHBOARD);
+
             } else {
                 setError("Email hoặc mật khẩu không chính xác");
                 setIsLoading(false);

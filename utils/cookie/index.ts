@@ -38,3 +38,8 @@ export const handleToken = (accessToken: string, refreshToken: string) => {
     Cookies.set('refreshToken', refreshToken, { expires: expiresInDaysRefreshToken, secure: true });
     Cookies.set('user', JSON.stringify(user), { expires: expiresInDaysRefreshToken, secure: true })
 }
+
+export const getAccessTokenFromCookie = (): string | null => {
+    const token = Cookies.get("accessToken");
+    return token || null;
+}

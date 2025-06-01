@@ -1,4 +1,5 @@
 import { EBaseStatus } from "@/enum/base";
+import { Organization } from "./organization";
 
 export interface Account {
     accountId: string,
@@ -8,4 +9,5 @@ export interface Account {
     status: EBaseStatus,
     isBanned: boolean,
     referenceId: string,
+    organization?: Organization;
 }

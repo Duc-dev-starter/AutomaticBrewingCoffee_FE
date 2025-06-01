@@ -61,3 +61,9 @@ export const unbanAccount = async (payload: { accountId: string, unbannedReason:
     const response = await BaseService.put({ url: '/auth/unban-account', payload });
     return response;
 }
+
+
+export const changePassword = async (payload: { oldPassword: string, newPassword: string }) => {
+    const response = await BaseService.put({ url: '/auth/change-password', payload });
+    return response;
+}

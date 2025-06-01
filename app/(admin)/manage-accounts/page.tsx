@@ -21,17 +21,16 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { PlusCircle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import useDebounce from "@/hooks/use-debounce";
-import { BaseStatusFilter, ConfirmDeleteDialog, ExportButton, NoResultsRow, Pagination, RefreshButton, SearchInput } from "@/components/common";
+import { BaseStatusFilter, ConfirmBanUnbanDialog, ExportButton, NoResultsRow, Pagination, RefreshButton, SearchInput } from "@/components/common";
 import { multiSelectFilter } from "@/utils/table";
 import { useToast } from "@/hooks/use-toast";
 import { ErrorResponse } from "@/types/error";
 import { columns } from "@/components/manage-accounts/columns";
 import { Account } from "@/interfaces/account";
 import { banAccount, getAccounts, unbanAccount } from "@/services/auth";
-import ConfirmBanUnbanDialog from "@/components/common/confirm-ban-or-ban-alert";
+import { AccountDetailDialog } from "@/components/dialog/account";
 
 const ManageAccounts = () => {
     const { toast } = useToast();
@@ -48,8 +47,6 @@ const ManageAccounts = () => {
     const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
     const [rowSelection, setRowSelection] = useState({});
 
-    const [dialogOpen, setDialogOpen] = useState(false);
-    const [selectedAccount, setSelectedAccount] = useState<Account | undefined>(undefined);
     const [detailDialogOpen, setDetailDialogOpen] = useState(false);
     const [detailAccount, setDetailAccount] = useState<Account | null>(null);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
@@ -113,16 +110,6 @@ const ManageAccounts = () => {
         }
     }, [fetchAccounts, currentPage, pageSize, sorting, columnFilters]);
 
-    const handleSuccess = () => {
-        fetchAccounts();
-        setDialogOpen(false);
-        setSelectedAccount(undefined);
-    };
-
-    const handleEdit = (account: Account) => {
-        setSelectedAccount(account);
-        setDialogOpen(true);
-    };
 
     const handleViewDetails = (account: Account) => {
         setDetailAccount(account);
@@ -171,10 +158,6 @@ const ManageAccounts = () => {
         }
     };
 
-    const handleAdd = () => {
-        setSelectedAccount(undefined);
-        setDialogOpen(true);
-    };
 
     const clearAllFilters = () => {
         setStatusFilter("");
@@ -271,10 +254,6 @@ const ManageAccounts = () => {
                                     ))}
                             </DropdownMenuContent>
                         </DropdownMenu>
-                        <Button onClick={handleAdd}>
-                            <PlusCircle className="mr-2 h-4 w-4" />
-                            Thêm
-                        </Button>
                     </div>
                 </div>
                 <div className="rounded-md border">
@@ -354,6 +333,14 @@ const ManageAccounts = () => {
                     totalPages={totalPages}
                 />
             </div>
+            <AccountDetailDialog
+                open={detailDialogOpen}
+                onOpenChange={(open) => {
+                    setDetailDialogOpen(open);
+                    if (!open) setDetailAccount(null);
+                }}
+                account={detailAccount}
+            />
 
             <ConfirmBanUnbanDialog
                 open={deleteDialogOpen}

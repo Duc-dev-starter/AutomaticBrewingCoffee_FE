@@ -10,6 +10,8 @@ import { Pagination } from './pagination';
 import BaseFilterBadgesTable from './base-filter-badges-table'
 import { ParametersDisplay } from './parameter-display';
 import FunctionParameterEditor from './function-parameter-editor';
+import ConfirmBanUnbanDialog from "./confirm-ban-or-ban-alert";
+
 
 export {
     FunctionParameterEditor,
@@ -23,5 +25,6 @@ export {
     ConfirmDeleteDialog,
     ActionDropdown,
     Pagination,
-    BaseFilterBadgesTable
+    BaseFilterBadgesTable,
+    ConfirmBanUnbanDialog
 }

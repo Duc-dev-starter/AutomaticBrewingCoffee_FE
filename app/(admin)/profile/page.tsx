@@ -1,3 +1,4 @@
+"use client"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
@@ -9,7 +10,13 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Textarea } from "@/components/ui/textarea"
 import { BellRing, Key, Lock, Mail, Shield, User, UserCog } from "lucide-react"
 
-import React from 'react'
+import React, { useState } from 'react'
+import { useForm } from "react-hook-form"
+import { zodResolver } from "@hookform/resolvers/zod"
+import { ChangePasswordFormData, changePasswordSchema } from "@/schema/auth"
+import { changePassword } from "@/services/auth"
+import { toast } from "@/hooks/use-toast"
+
 
 const user = {
     firstName: "Admin",
@@ -26,6 +33,38 @@ const user = {
 }
 
 const Profile = () => {
+    const {
+        register,
+        handleSubmit,
+        formState: { errors, isSubmitting },
+        reset
+    } = useForm<ChangePasswordFormData>({
+        resolver: zodResolver(changePasswordSchema)
+    });
+
+
+    const onChangePassword = async (data: ChangePasswordFormData) => {
+        try {
+            await changePassword({
+                oldPassword: data.currentPassword,
+                newPassword: data.newPassword
+            });
+            toast({
+                title: "Thành công",
+                description: `Đổi mật khẩu thành công`,
+            });
+        } catch (err) {
+            console.error(err);
+            toast({
+                title: "Lỗi",
+                description: "Không thể tải danh sách location.",
+                variant: "destructive",
+            });
+        } finally {
+            reset();
+        }
+    };
+
     return (
         <div className="container mx-auto py-8">
             <div className="grid gap-8 md:grid-cols-4">
@@ -147,31 +186,57 @@ const Profile = () => {
                                     </CardDescription>
                                 </CardHeader>
                                 <CardContent className="space-y-4">
-                                    <div className="space-y-2">
-                                        <Label htmlFor="currentPassword">Mật Khẩu Hiện Tại</Label>
-                                        <Input id="currentPassword" type="password" />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="newPassword">Mật Khẩu Mới</Label>
-                                        <Input id="newPassword" type="password" />
-                                    </div>
-                                    <div className="space-y-2">
-                                        <Label htmlFor="confirmPassword">Xác Nhận Mật Khẩu Mới</Label>
-                                        <Input id="confirmPassword" type="password" />
-                                    </div>
-                                    <div className="rounded-lg border p-3">
-                                        <h4 className="mb-2 text-sm font-medium">Yêu Cầu Mật Khẩu:</h4>
-                                        <ul className="space-y-1 text-xs text-muted-foreground">
-                                            <li>Ít nhất 8 ký tự</li>
-                                            <li>Ít nhất một chữ cái in hoa</li>
-                                            <li>Ít nhất một chữ số</li>
-                                            <li>Ít nhất một ký tự đặc biệt</li>
-                                        </ul>
-                                    </div>
+                                    <form onSubmit={handleSubmit(onChangePassword)} className="space-y-4">
+                                        <div className="space-y-2">
+                                            <Label htmlFor="currentPassword">Mật Khẩu Hiện Tại</Label>
+                                            <Input
+                                                id="currentPassword"
+                                                type="password"
+                                                autoComplete="current-password"
+                                                {...register("currentPassword")}
+                                                disabled={isSubmitting}
+                                            />
+                                            {errors.currentPassword && (
+                                                <p className="text-destructive text-xs">{errors.currentPassword.message}</p>
+                                            )}
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="newPassword">Mật Khẩu Mới</Label>
+                                            <Input
+                                                id="newPassword"
+                                                type="password"
+                                                autoComplete="new-password"
+                                                {...register("newPassword")}
+                                                disabled={isSubmitting}
+                                            />
+                                            {errors.newPassword && (
+                                                <p className="text-destructive text-xs">{errors.newPassword.message}</p>
+                                            )}
+                                        </div>
+                                        <div className="space-y-2">
+                                            <Label htmlFor="confirmPassword">Xác Nhận Mật Khẩu Mới</Label>
+                                            <Input
+                                                id="confirmPassword"
+                                                type="password"
+                                                autoComplete="new-password"
+                                                {...register("confirmPassword")}
+                                                disabled={isSubmitting}
+                                            />
+                                            {errors.confirmPassword && (
+                                                <p className="text-destructive text-xs">{errors.confirmPassword.message}</p>
+                                            )}
+                                        </div>
+                                        <div className="rounded-lg border p-3">
+                                            <h4 className="mb-2 text-sm font-medium">Yêu Cầu Mật Khẩu:</h4>
+                                            <ul className="space-y-1 text-xs text-muted-foreground">
+                                                <li>Ít nhất 4 ký tự</li>
+                                            </ul>
+                                        </div>
+                                        <Button type="submit" disabled={isSubmitting}>
+                                            {isSubmitting ? "Đang cập nhật..." : "Cập Nhật Mật Khẩu"}
+                                        </Button>
+                                    </form>
                                 </CardContent>
-                                <CardFooter>
-                                    <Button>Cập Nhật Mật Khẩu</Button>
-                                </CardFooter>
                             </Card>
                         </TabsContent>
 

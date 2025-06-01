@@ -156,10 +156,11 @@ const ManageKiosks = () => {
             });
             fetchKiosks();
         } catch (error) {
+            const err = error as ErrorResponse
             console.error("Lỗi khi xóa kiosk:", error);
             toast({
                 title: "Lỗi",
-                description: "Không thể xóa kiosk. Vui lòng thử lại.",
+                description: err.message,
                 variant: "destructive",
             });
         } finally {
@@ -184,7 +185,7 @@ const ManageKiosks = () => {
             const err = error as ErrorResponse;
             console.error("Lỗi khi xóa loại kiosk:", err);
             toast({
-                title: "Lỗi khi xóa loại kiosk",
+                title: "Lỗi khi đồng bộ loại kiosk",
                 description: err.message,
                 variant: "destructive",
             }

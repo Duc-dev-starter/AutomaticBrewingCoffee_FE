@@ -76,10 +76,11 @@ const KioskDetailPage = () => {
             const kioskData = await getKiosk(slug)
             setKiosk(kioskData.response)
         } catch (error) {
+            const err = error as ErrorResponse
             console.error("Error fetching data:", error)
             toast({
                 title: "Lỗi",
-                description: "Không thể tải dữ liệu. Vui lòng thử lại sau.",
+                description: err.message,
                 variant: "destructive",
             })
         } finally {
@@ -99,11 +100,11 @@ const KioskDetailPage = () => {
         } catch (error) {
             const err = error as ErrorResponse
             console.error("Error fetching onhub data:", error);
-            // toast({
-            //     title: "Lỗi",
-            //     description: err.message,
-            //     variant: "destructive",
-            // });
+            toast({
+                title: "Lỗi",
+                description: err.message,
+                variant: "destructive",
+            });
             setOnhubData(null);
         } finally {
             setLoadingOnhub(false);
@@ -126,10 +127,11 @@ const KioskDetailPage = () => {
             const response = await getDevicesToReplace(kioskDevice.deviceId)
             setReplacementDevices(response.items || [])
         } catch (error) {
+            const err = error as ErrorResponse
             console.error("Error fetching replacement devices:", error)
             toast({
                 title: "Lỗi",
-                description: "Không thể tải danh sách thiết bị thay thế.",
+                description: err.message,
                 variant: "destructive",
             })
         } finally {
@@ -154,10 +156,11 @@ const KioskDetailPage = () => {
             // Refresh data
             await fetchKioskData()
         } catch (error) {
+            const err = error as ErrorResponse
             console.error("Error replacing device:", error)
             toast({
                 title: "Lỗi",
-                description: "Không thể thay thế thiết bị. Vui lòng thử lại sau.",
+                description: err.message,
                 variant: "destructive",
             })
         } finally {

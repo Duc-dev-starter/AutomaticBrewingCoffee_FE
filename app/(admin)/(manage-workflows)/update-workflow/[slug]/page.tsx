@@ -60,35 +60,65 @@ const UpdateWorkflow = () => {
     const [loadingKioskVersions, setLoadingKioskVersions] = useState(false)
     const [kioskVersionsLoaded, setKioskVersionsLoaded] = useState(false)
 
-    // Fetch workflow by slug
     useEffect(() => {
         const fetchWorkflow = async () => {
             try {
-                const workflow = await getWorkflow(slug)
-
-                // Sort steps by sequence to ensure correct order
+                const workflow = await getWorkflow(slug);
                 const sortedWorkflow = {
                     ...workflow.response,
                     steps: workflow.response.steps.sort((a, b) => a.sequence - b.sequence),
-                }
+                };
 
-                setFormData(sortedWorkflow)
+                // Ánh xạ deviceFunctionId từ step.name hoặc step.type
+                const updatedSteps = sortedWorkflow.steps.map((step) => {
+                    if (step.deviceModel && step.deviceModel.deviceFunctions) {
+                        const matchingFunction = step.deviceModel.deviceFunctions.find(
+                            (df) => df.name === step.name || df.name === step.type
+                        );
+                        if (matchingFunction) {
+                            return {
+                                ...step,
+                                deviceFunctionId: matchingFunction.deviceFunctionId,
+                            };
+                        }
+                    }
+                    return step;
+                });
 
-                // Set kiosk version if available in workflow data
+                // Cập nhật formData với steps đã được ánh xạ
+                setFormData({
+                    ...sortedWorkflow,
+                    steps: updatedSteps,
+                });
+
+                // Cập nhật selectedKioskVersion nếu có
                 if (workflow.response.kioskVersionId) {
-                    setSelectedKioskVersion(workflow.response.kioskVersionId)
+                    setSelectedKioskVersion(workflow.response.kioskVersionId);
                 }
+
+                // Trích xuất danh sách deviceModels duy nhất
+                const uniqueDeviceModels = Array.from(
+                    new Map(
+                        sortedWorkflow.steps
+                            .filter((step) => step.deviceModel)
+                            .map((step) => [step.deviceModel.deviceModelId, step.deviceModel])
+                    ).values()
+                );
+                setDeviceModels(uniqueDeviceModels);
+
+                // Tải kioskVersions
+                await fetchKioskVersions(1);
             } catch (error) {
-                console.error("Error fetching workflow:", error)
+                console.error("Error fetching workflow:", error);
                 toast({
                     title: "Lỗi",
                     description: "Không tải được dữ liệu quy trình.",
                     variant: "destructive",
-                })
+                });
             }
-        }
-        fetchWorkflow()
-    }, [slug, toast])
+        };
+        fetchWorkflow();
+    }, [slug, toast]);
 
     const fetchKioskVersions = async (pageNumber: number) => {
         setLoadingKioskVersions(true)

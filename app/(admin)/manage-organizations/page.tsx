@@ -55,7 +55,7 @@ const ManageOrganizations = () => {
     const [searchValue, setSearchValue] = useState("")
     const debouncedSearchValue = useDebounce(searchValue, 500)
 
-    const [sorting, setSorting] = useState<SortingState>([])
+    const [sorting, setSorting] = useState<SortingState>([{ id: "createdDate", desc: true }]);
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
     const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
     const [rowSelection, setRowSelection] = useState({})

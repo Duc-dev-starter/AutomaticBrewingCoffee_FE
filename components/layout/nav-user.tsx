@@ -43,16 +43,6 @@ export function NavUser({
         )
     }
 
-    // Get initials from fullname
-    const getInitials = (name: string) => {
-        return name
-            .split(" ")
-            .map((part) => part[0])
-            .join("")
-            .toUpperCase()
-            .substring(0, 2)
-    }
-
     return (
         <SidebarMenu>
             <SidebarMenuItem>
@@ -61,7 +51,7 @@ export function NavUser({
                         <SidebarMenuButton size="lg" className="hover:bg-[#e1f9f9] dark:hover:bg-[#1a3333]">
                             <Avatar className="h-9 w-9 rounded-md border border-[#e1f9f9] bg-[#e1f9f9] text-[#68e0df] dark:border-[#1a3333] dark:bg-[#1a3333]">
                                 <AvatarImage src={"/avatars/shadcn.jpg"} alt={user.fullname} />
-                                <AvatarFallback className="rounded-md text-sm font-medium">{getInitials(user.fullname)}</AvatarFallback>
+                                <AvatarFallback className="rounded-md text-sm font-medium">{user.fullname}</AvatarFallback>
                             </Avatar>
                             <div className="grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden">
                                 <span className="truncate font-medium text-gray-700 dark:text-gray-300">{user.fullname}</span>
@@ -82,7 +72,7 @@ export function NavUser({
                                     <Avatar className="h-9 w-9 rounded-md border border-[#e1f9f9] bg-[#e1f9f9] text-[#68e0df] dark:border-[#1a3333] dark:bg-[#1a3333]">
                                         <AvatarImage src={"/avatars/shadcn.jpg"} alt={user.fullname} />
                                         <AvatarFallback className="rounded-md text-sm font-medium">
-                                            {getInitials(user.fullname)}
+                                            {user.fullname}
                                         </AvatarFallback>
                                     </Avatar>
                                     <div className="grid flex-1 text-left text-sm leading-tight">

@@ -11,6 +11,7 @@ import BaseFilterBadgesTable from './base-filter-badges-table'
 import { ParametersDisplay } from './parameter-display';
 import FunctionParameterEditor from './function-parameter-editor';
 import ConfirmBanUnbanDialog from "./confirm-ban-or-ban-alert";
+import CustomFallback from './custom-fallback';
 
 
 export {
@@ -26,5 +27,6 @@ export {
     ActionDropdown,
     Pagination,
     BaseFilterBadgesTable,
-    ConfirmBanUnbanDialog
+    ConfirmBanUnbanDialog,
+    CustomFallback
 }

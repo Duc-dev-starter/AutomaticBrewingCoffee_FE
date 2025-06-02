@@ -5,6 +5,8 @@ import { Inter } from "next/font/google";
 import { ThemeProvider } from "@/components/theme-provider";
 import { Toaster } from "@/components/ui/toaster";
 import { SignalRProvider } from "@/contexts/signalR";
+import { ErrorBoundary } from "@sentry/nextjs";
+import { CustomFallback } from "@/components/common";
 
 
 const inter = Inter({
@@ -34,7 +36,9 @@ export default function RootLayout({
           <TooltipProvider>
             <Tooltip>
               <SignalRProvider>
-                {children}
+                <ErrorBoundary fallback={<CustomFallback />}>
+                  {children}
+                </ErrorBoundary>
               </SignalRProvider>
             </Tooltip>
           </TooltipProvider>

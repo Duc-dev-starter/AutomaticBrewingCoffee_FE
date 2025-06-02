@@ -2,14 +2,8 @@ import { Badge } from "@/components/ui/badge";
 import { X } from "lucide-react";
 import { EWorkflowTypeViMap } from "@/enum/workflow";
 import { EBaseStatusViMap } from "@/enum/base";
+import { FilterBadgesProps } from "@/types/filter";
 
-type FilterBadgesProps = {
-    searchValue: string;
-    setSearchValue: (value: string) => void;
-    statusFilter: string,
-    setStatusFilter: (value: string) => void;
-    hasActiveFilters: boolean;
-};
 
 export const BaseFilterBadges = ({
     searchValue,

@@ -15,11 +15,6 @@ import { EBaseStatus, EBaseStatusViMap } from "@/enum/base"
 import type { FilterProps } from "@/types/filter"
 import { cn } from "@/lib/utils"
 
-// Status color mapping
-const statusColorMap = {
-    [EBaseStatus.Active]: "bg-primary",
-    [EBaseStatus.Inactive]: "bg-gray-400",
-}
 
 const statusStyleMap: Record<EBaseStatus, { dot: string; text: string }> = {
     [EBaseStatus.Active]: {

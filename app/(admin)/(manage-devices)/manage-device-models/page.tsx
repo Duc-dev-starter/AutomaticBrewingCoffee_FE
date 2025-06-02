@@ -31,10 +31,9 @@ import { multiSelectFilter } from "@/utils/table";
 import { useToast } from "@/hooks/use-toast";
 import { DeviceFilter } from "@/components/manage-devices/filter";
 import { FilterBadges } from "@/components/manage-devices/filter-badges";
-import DeviceModelDialog from "@/components/dialog/device/device-model-dialog";
-import DeviceModelDetailDialog from "@/components/dialog/device/device-model-detail-dialog";
 import { columns } from "@/components/manage-devices/manage-device-models/columns";
 import { ErrorResponse } from "@/types/error";
+import { DeviceModelDetailDialog, DeviceModelDialog } from "@/components/dialog/device";
 
 const ManageDeviceModels = () => {
     const { toast } = useToast();

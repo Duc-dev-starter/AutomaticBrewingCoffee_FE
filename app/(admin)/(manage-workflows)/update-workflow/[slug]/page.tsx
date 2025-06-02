@@ -69,7 +69,6 @@ const UpdateWorkflow = () => {
                     steps: workflow.response.steps.sort((a, b) => a.sequence - b.sequence),
                 };
 
-                // Ánh xạ deviceFunctionId từ step.name hoặc step.type
                 const updatedSteps = sortedWorkflow.steps.map((step) => {
                     if (step.deviceModel && step.deviceModel.deviceFunctions) {
                         const matchingFunction = step.deviceModel.deviceFunctions.find(
@@ -85,18 +84,15 @@ const UpdateWorkflow = () => {
                     return step;
                 });
 
-                // Cập nhật formData với steps đã được ánh xạ
                 setFormData({
                     ...sortedWorkflow,
                     steps: updatedSteps,
                 });
 
-                // Cập nhật selectedKioskVersion nếu có
                 if (workflow.response.kioskVersionId) {
                     setSelectedKioskVersion(workflow.response.kioskVersionId);
                 }
 
-                // Trích xuất danh sách deviceModels duy nhất
                 const uniqueDeviceModels = Array.from(
                     new Map(
                         sortedWorkflow.steps
@@ -106,7 +102,6 @@ const UpdateWorkflow = () => {
                 );
                 setDeviceModels(uniqueDeviceModels);
 
-                // Tải kioskVersions
                 await fetchKioskVersions(1);
             } catch (error) {
                 console.error("Error fetching workflow:", error);

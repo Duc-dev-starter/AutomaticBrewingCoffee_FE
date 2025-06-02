@@ -15,6 +15,7 @@ import {
     Settings,
     Cpu,
     HardDrive,
+    User,
 } from "lucide-react"
 import {
     SidebarGroup,
@@ -143,6 +144,11 @@ const menuSections: MenuSection[] = [
                 title: "Quản lý tổ chức",
                 url: Path.MANAGE_ORGANIZATIONS,
                 icon: DollarSign,
+            },
+            {
+                title: "Quản lý tài khoản",
+                url: Path.MANAGE_ACCOUNTS,
+                icon: User,
             },
             {
                 title: "Quản lý sản phẩm",

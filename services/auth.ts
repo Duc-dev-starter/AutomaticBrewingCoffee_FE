@@ -20,7 +20,8 @@ export const refreshToken = async () => {
         }
 
         const response = await BaseService.post({
-            url: Api.REFRESH_TOKEN, payload: {
+            url: Api.REFRESH_TOKEN,
+            payload: {
                 refreshToken: currentRefreshToken
             }
         });
@@ -75,3 +76,8 @@ export const logout = async () => {
 
     window.location.href = '/login';
 };
+
+export const getCurrentUser = async () => {
+    const response = await BaseService.get({ url: Api.GET_CURRENT_ACCOUNT });
+    return response;
+}

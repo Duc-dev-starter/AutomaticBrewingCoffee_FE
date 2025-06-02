@@ -4,6 +4,7 @@ export const Api = {
     REFRESH_TOKEN: '/auth/refresh',
     CREATE_ACCOUNT: '/auth/create-account',
     ACCOUNTS: '/auth/accounts',
+    GET_CURRENT_ACCOUNT: '/auth/current-account',
 
     // DEVICE
     DEVICES: '/devices',

@@ -1,8 +1,6 @@
 import { Device } from "@/interfaces/device";
 import { Calendar, Cpu, MoreHorizontal, Power } from "lucide-react";
-import { Badge } from "../ui/badge";
 import { type ColumnDef } from "@tanstack/react-table";
-import clsx from "clsx";
 import { EDeviceStatus, EDeviceStatusViMap } from '@/enum/device';
 import { formatDate } from "@/utils/date";
 import { ActionDropdown } from "../common";

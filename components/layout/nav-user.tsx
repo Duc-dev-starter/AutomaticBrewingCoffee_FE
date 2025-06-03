@@ -17,15 +17,16 @@ import Link from "next/link"
 import { Path } from "@/constants/path"
 import { ThemeSelector } from "./theme-selector"
 import { logout } from "@/services/auth"
+import { Account } from "@/interfaces/account"
 
 export function NavUser({
-    user,
+    account,
 }: {
-    user: { fullname: string; role: string } | null
+    account: Account | null
 }) {
     const { isMobile } = useSidebar()
 
-    if (user === null) {
+    if (account === null) {
         return (
             <SidebarMenu>
                 <SidebarMenuItem>
@@ -50,12 +51,12 @@ export function NavUser({
                     <DropdownMenuTrigger asChild>
                         <SidebarMenuButton size="lg" className="hover:bg-[#e1f9f9] dark:hover:bg-[#1a3333]">
                             <Avatar className="h-9 w-9 rounded-md border border-[#e1f9f9] bg-[#e1f9f9] text-[#68e0df] dark:border-[#1a3333] dark:bg-[#1a3333]">
-                                <AvatarImage src={"/avatars/shadcn.jpg"} alt={user.fullname} />
-                                <AvatarFallback className="rounded-md text-sm font-medium">{user.fullname}</AvatarFallback>
+                                <AvatarImage src={"/avatars/shadcn.jpg"} alt={account.fullName} />
+                                <AvatarFallback className="rounded-md text-sm font-medium">{account.fullName}</AvatarFallback>
                             </Avatar>
                             <div className="grid flex-1 text-left text-sm leading-tight group-data-[collapsible=icon]:hidden">
-                                <span className="truncate font-medium text-gray-700 dark:text-gray-300">{user.fullname}</span>
-                                <span className="truncate text-xs text-gray-500 dark:text-gray-400">{user.role}</span>
+                                <span className="truncate font-medium text-gray-700 dark:text-gray-300">{account.fullName}</span>
+                                <span className="truncate text-xs text-gray-500 dark:text-gray-400">{account.roleName}</span>
                             </div>
                             <ChevronsUpDown className="ml-auto size-4 text-[#68e0df] group-data-[collapsible=icon]:hidden" />
                         </SidebarMenuButton>
@@ -70,14 +71,14 @@ export function NavUser({
                             <Link href={Path.PROFILE}>
                                 <div className="flex items-center gap-2 px-1 py-1.5 text-left text-sm hover:bg-[#e1f9f9] dark:hover:bg-[#1a3333] rounded-md transition-colors duration-200">
                                     <Avatar className="h-9 w-9 rounded-md border border-[#e1f9f9] bg-[#e1f9f9] text-[#68e0df] dark:border-[#1a3333] dark:bg-[#1a3333]">
-                                        <AvatarImage src={"/avatars/shadcn.jpg"} alt={user.fullname} />
+                                        <AvatarImage src={"/avatars/shadcn.jpg"} alt={account.fullName} />
                                         <AvatarFallback className="rounded-md text-sm font-medium">
-                                            {user.fullname}
+                                            {account.fullName}
                                         </AvatarFallback>
                                     </Avatar>
                                     <div className="grid flex-1 text-left text-sm leading-tight">
-                                        <span className="truncate font-semibold">{user.fullname}</span>
-                                        <span className="truncate text-xs text-gray-500 dark:text-gray-400">{user.role}</span>
+                                        <span className="truncate font-semibold">{account.fullName}</span>
+                                        <span className="truncate text-xs text-gray-500 dark:text-gray-400">{account.roleName}</span>
                                     </div>
                                 </div>
                             </Link>

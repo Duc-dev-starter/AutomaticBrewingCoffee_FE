@@ -12,11 +12,12 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { AlertCircle, Coffee, Lock, LogIn, Mail } from "lucide-react"
 import { Alert, AlertDescription } from "@/components/ui/alert"
-import { login } from "@/services/auth"
+import { getCurrentUser, login } from "@/services/auth"
 import { handleToken } from "@/utils/cookie"
 import { Path } from "@/constants/path"
 import { useToast } from "@/hooks/use-toast"
 import { ErrorResponse } from "@/types/error"
+import { useAccountStore } from "@/stores/user"
 
 export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRef<"div">) {
     const router = useRouter()
@@ -25,6 +26,7 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
     const [error, setError] = useState("")
     const [isLoading, setIsLoading] = useState(false)
     const { toast } = useToast();
+    const { setAccount } = useAccountStore();
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -47,6 +49,10 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
                     description: `Chuẩn bị điều hướng sang dashboard`,
                 });
                 handleToken(accessToken, refreshToken);
+                const userResponse = await getCurrentUser();
+                if (userResponse?.isSuccess && userResponse.response) {
+                    setAccount(userResponse.response);
+                }
                 router.push(Path.DASHBOARD);
 
             } else {

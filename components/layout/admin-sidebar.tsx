@@ -9,20 +9,12 @@ import Link from "next/link"
 import { Coffee } from "lucide-react"
 import { Path } from "@/constants/path"
 import clsx from "clsx"
+import { useAccountStore } from "@/stores/user"
 
 export function AdminSidebar() {
-    const [user, setUser] = React.useState<any>(null)
+    const account = useAccountStore(state => state.account);
+    console.log(account)
 
-    React.useEffect(() => {
-        const userStr = Cookies.get("user")
-        if (userStr) {
-            try {
-                setUser(JSON.parse(userStr))
-            } catch (err) {
-                console.error("Error parsing user cookie:", err)
-            }
-        }
-    }, [])
 
     return (
         <Sidebar collapsible="icon" className="bg-white dark:bg-[#121212]">
@@ -46,7 +38,7 @@ export function AdminSidebar() {
             <SidebarContent>
                 <NavMain />
             </SidebarContent>
-            <SidebarFooter className="py-2">{user && <NavUser user={user} />}</SidebarFooter>
+            <SidebarFooter className="py-2">{account && <NavUser account={account} />}</SidebarFooter>
             <SidebarRail />
         </Sidebar>
     )

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { ChevronDownIcon } from "@radix-ui/react-icons";
 import {
     type ColumnFiltersState,
@@ -24,16 +24,14 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { PlusCircle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DeviceType } from "@/interfaces/device";
-import useDebounce from "@/hooks/use-debounce";
 import { BaseStatusFilter, ConfirmDeleteDialog, ExportButton, NoResultsRow, Pagination, RefreshButton, SearchInput } from "@/components/common";
 import { multiSelectFilter } from "@/utils/table";
-import { useToast } from "@/hooks/use-toast";
 import { deleteDeviceType } from "@/services/device";
 import { columns } from "@/components/manage-devices/manage-device-types/columns";
 import { BaseFilterBadges } from "@/components/common/base-filter-badges";
 import { DeviceTypeDetailDialog, DeviceTypeDialog } from "@/components/dialog/device";
-import { useDeviceTypes } from "@/hooks/use-device-types";
 import { ErrorResponse } from "@/types/error";
+import { useDebounce, useDeviceTypes, useToast } from "@/hooks";
 
 const ManageDeviceTypes = () => {
     const { toast } = useToast();
@@ -88,20 +86,20 @@ const ManageDeviceTypes = () => {
         setSelectedDeviceType(undefined);
     };
 
-    const handleEdit = (deviceType: DeviceType) => {
+    const handleEdit = useCallback((deviceType: DeviceType) => {
         setSelectedDeviceType(deviceType);
         setDialogOpen(true);
-    };
+    }, []);
 
-    const handleViewDetails = (deviceType: DeviceType) => {
+    const handleViewDetails = useCallback((deviceType: DeviceType) => {
         setDetailDeviceType(deviceType);
         setDetailDialogOpen(true);
-    };
+    }, []);
 
-    const handleDelete = (deviceType: DeviceType) => {
+    const handleDelete = useCallback((deviceType: DeviceType) => {
         setTypeDeviceToDelete(deviceType);
         setDeleteDialogOpen(true);
-    };
+    }, []);
 
     const confirmDelete = async () => {
         if (!deviceTypeToDelete) return;
@@ -138,13 +136,18 @@ const ManageDeviceTypes = () => {
 
     const hasActiveFilters = statusFilter !== "" || searchValue !== "";
 
-    const table = useReactTable({
-        data: data?.items || [],
-        columns: columns({
+    const columnsDef = useMemo(
+        () => columns({
             onViewDetails: handleViewDetails,
             onEdit: handleEdit,
             onDelete: handleDelete,
         }),
+        [handleViewDetails, handleEdit, handleDelete]
+    );
+
+    const table = useReactTable({
+        data: data?.items || [],
+        columns: columnsDef,
         onSortingChange: setSorting,
         onColumnFiltersChange: setColumnFilters,
         getCoreRowModel: getCoreRowModel(),
@@ -246,7 +249,7 @@ const ManageDeviceTypes = () => {
                 />
 
                 <div className="rounded-md border">
-                    <Table>
+                    <Table className="table-fixed">
                         <TableHeader>
                             {table.getHeaderGroups().map((headerGroup) => (
                                 <TableRow key={headerGroup.id}>

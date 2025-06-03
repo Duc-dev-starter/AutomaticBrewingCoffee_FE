@@ -5,6 +5,9 @@ export const Api = {
     CREATE_ACCOUNT: '/auth/create-account',
     ACCOUNTS: '/auth/accounts',
     GET_CURRENT_ACCOUNT: '/auth/current-account',
+    BAN_ACCOUNT: '/auth/ban-account',
+    UNBAN_ACCOUNT: '/auth/unban-account',
+    CHANGE_PASSWORD: '/auth/change-password',
 
     // DEVICE
     DEVICES: '/devices',

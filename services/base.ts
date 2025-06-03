@@ -10,11 +10,11 @@ export const BaseService = {
 
         try {
             const params = cleanParams({ ...payload });
-            const response = await axiosInstance.get<T, AxiosResponse<T>>(url, {
+            const response = await axiosInstance.get<T, T>(url, {
                 params,
                 headers: headers || {},
                 responseType: responseType || 'json',
-            });
+            }) as any;
             return response;
         } catch (error) {
             console.error("GET request failed", error);

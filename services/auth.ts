@@ -54,18 +54,18 @@ export const getAccount = async (accountId: string) => {
 
 
 export const banAccount = async (payload: { accountId: string, bannedReason: string }) => {
-    const response = await BaseService.put({ url: '/auth/ban-account', payload });
+    const response = await BaseService.put({ url: Api.BAN_ACCOUNT, payload });
     return response;
 }
 
 export const unbanAccount = async (payload: { accountId: string, unbannedReason: string }) => {
-    const response = await BaseService.put({ url: '/auth/unban-account', payload });
+    const response = await BaseService.put({ url: Api.UNBAN_ACCOUNT, payload });
     return response;
 }
 
 
 export const changePassword = async (payload: { oldPassword: string, newPassword: string }) => {
-    const response = await BaseService.put({ url: '/auth/change-password', payload });
+    const response = await BaseService.put({ url: Api.CHANGE_PASSWORD, payload });
     return response;
 }
 
@@ -77,7 +77,8 @@ export const logout = async () => {
     window.location.href = '/login';
 };
 
-export const getCurrentUser = async () => {
-    const response = await BaseService.get({ url: Api.GET_CURRENT_ACCOUNT });
+export const getCurrentUser = async (): Promise<ApiResponse> => {
+    const response = await BaseService.get<ApiResponse>({ url: Api.GET_CURRENT_ACCOUNT });
+    // @ts-ignore
     return response;
 }

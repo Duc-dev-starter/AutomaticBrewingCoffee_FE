@@ -2,7 +2,7 @@ import { DeviceType } from "@/interfaces/device";
 import { Calendar, Cpu, Power } from "lucide-react";
 import { type ColumnDef } from "@tanstack/react-table";
 import clsx from "clsx";
-import { formatDate } from "@/utils/date";
+import { formatDate, formatTime } from "@/utils/date";
 import { ActionDropdown } from "@/components/common";
 import { EBaseStatus, EBaseStatusViMap } from "@/enum/base";
 import { Badge } from "@/components/ui/badge";
@@ -32,9 +32,9 @@ export const columns = ({
             accessorKey: "name",
             header: "Tên thiết bị",
             cell: ({ row }) => (
-                <div className="flex items-center justify-center gap-2">
+                <div className="max-w-[200px] flex items-center justify-center gap-2">
                     <Cpu className="h-4 w-4 text-muted-foreground" />
-                    <span>{row.original.name}</span>
+                    {truncateText(row.original.name, 15)}
                 </div>
             ),
         },
@@ -78,6 +78,7 @@ export const columns = ({
             accessorKey: "createdDate",
             header: "Ngày tạo",
             cell: ({ row }) => {
+                const createdDate = new Date(row.original.createdDate);
                 return (
                     <div className="flex items-center justify-center">
                         <Calendar className="h-4 w-4 mr-1 text-muted-foreground" />
@@ -92,21 +93,14 @@ export const columns = ({
             header: "Ngày cập nhật",
             cell: ({ row }) => {
                 const updatedDate = row.original.updatedDate;
-
                 const renderCentered = (text: string) => (
                     <div className="flex items-center justify-center text-muted-foreground">
                         <span>{text}</span>
                     </div>
                 );
-
                 if (!updatedDate) return renderCentered("Chưa cập nhật");
-
                 const date = new Date(updatedDate);
-
-                if (isNaN(date.getTime())) {
-                    return renderCentered("Ngày không hợp lệ");
-                }
-
+                if (isNaN(date.getTime())) return renderCentered("Ngày không hợp lệ");
                 return (
                     <div className="flex items-center justify-center">
                         <Calendar className="h-4 w-4 mr-1 text-muted-foreground" />

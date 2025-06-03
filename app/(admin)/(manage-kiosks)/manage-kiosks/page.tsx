@@ -366,7 +366,7 @@ const ManageKiosks = () => {
                 />
 
                 <div className="rounded-md border">
-                    <Table>
+                    <Table className="table-fixed">
                         <TableHeader>
                             {table.getHeaderGroups().map((headerGroup) => (
                                 <TableRow key={headerGroup.id}>

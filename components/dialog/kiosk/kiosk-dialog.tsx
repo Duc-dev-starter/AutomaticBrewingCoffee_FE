@@ -51,7 +51,27 @@ const KioskDialog = ({ open, onOpenChange, onSuccess, kiosk }: KioskDialogProps)
     const [hasMoreDevices, setHasMoreDevices] = useState(true)
     const [isDeviceDropdownOpen, setIsDeviceDropdownOpen] = useState(false)
 
-    // Fetch dữ liệu ban đầu
+    // Cập nhật formData dựa trên prop kiosk khi dialog mở
+    useEffect(() => {
+        if (open && kiosk) {
+            console.log(kiosk)
+            setFormData({
+                kioskVersionId: kiosk.kioskVersionId || "",
+                storeId: kiosk.storeId || "",
+                // @ts-ignore
+                deviceIds: kiosk.deviceIds || [],
+                location: kiosk.location || "",
+                status: kiosk.status || EBaseStatus.Active,
+                installedDate: kiosk.installedDate ? format(new Date(kiosk.installedDate), "yyyy-MM-dd") : "",
+                position: kiosk.position || "",
+                warrantyTime: kiosk.warrantyTime ? format(new Date(kiosk.warrantyTime), "yyyy-MM-dd") : "",
+            })
+        } else if (open) {
+            setFormData(initialFormData)
+        }
+    }, [open, kiosk])
+
+    // Fetch dữ liệu ban đầu (kiosk versions và stores)
     useEffect(() => {
         const fetchData = async () => {
             setFetching(true)
@@ -76,13 +96,10 @@ const KioskDialog = ({ open, onOpenChange, onSuccess, kiosk }: KioskDialogProps)
         }
         if (open) {
             fetchData()
-            if (!kiosk) {
-                setFormData(initialFormData)
-                setErrors({})
-            }
+            setErrors({})
             setIsDeviceDropdownOpen(false)
         }
-    }, [open, toast, kiosk])
+    }, [open, toast])
 
     // Fetch thiết bị hợp lệ khi kioskVersionId thay đổi
     useEffect(() => {

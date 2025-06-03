@@ -7,34 +7,8 @@ export const config = {
     ],
 };
 
-const allowedPaths = [
-    Path.DASHBOARD,
-    Path.MANAGE_ORDERS,
-    Path.MANAGE_RECIPES,
-    Path.MANAGE_INGREDIENTS,
-    Path.MANAGE_DEVICES,
-    Path.MANAGE_KIOSKS,
-    Path.MANAGE_COSTS,
-    Path.MANAGE_PRODUCTS,
-    Path.PROFILE,
-    Path.REMINDER,
-    Path.RECIPE,
-    Path.HOME,
-    Path.LOGIN,
-    Path.NOT_FOUND,
-    Path.MANAGE_WORKFLOWS,
-    Path.MANAGE_LOCATION_TYPES,
-    Path.MANAGE_ORGANIZATIONS,
-    Path.MANAGE_STORES,
-    Path.MANAGE_DEVICE_TYPES,
-    Path.MANAGE_DEVICE_MODELS,
-    Path.MANAGE_KIOSK_VERSIONS,
-    Path.MANAGE_KIOSK_TYPES,
-    Path.CREATE_ACCOUNT,
-    Path.CREATE_WORKFLOW,
-    Path.UPDATE_WORKFLOW,
-    Path.MANAGE_ACCOUNTS
-];
+const allowedPaths = Object.values(Path);
+
 
 const dynamicPathPrefixes = [
     Path.MANAGE_MENUS,

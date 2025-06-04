@@ -38,5 +38,5 @@ export const deviceSchema = z.object({
     status: z.enum([EDeviceStatus.Maintain, EDeviceStatus.Stock, EDeviceStatus.Working], { message: "Vui lòng chọn trạng thái cho thiết bị." }),
     serialNumber: z.string().trim().min(1, "Số serial không được để trống."),
     deviceModelId: z.string().min(1, "Vui lòng chọn mẫu thiết bị."),
-    description: z.string().trim().max(450, "Mô tả thiết bị không được quá 450 ký tự.").optional(),
+    description: z.string().trim().max(450, "Mô tả thiết bị không được quá 450 ký tự.").min(1, "Mô tả không được để trống"),
 });

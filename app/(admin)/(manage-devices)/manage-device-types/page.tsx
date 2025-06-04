@@ -35,10 +35,10 @@ import { useDebounce, useDeviceTypes, useToast } from "@/hooks";
 
 const ManageDeviceTypes = () => {
     const { toast } = useToast();
-    const [pageSize, setPageSize] = useState(10);
-    const [currentPage, setCurrentPage] = useState(1);
+    const [pageSize, setPageSize] = useState<number>(10);
+    const [currentPage, setCurrentPage] = useState<number>(1);
     const [statusFilter, setStatusFilter] = useState<string>("");
-    const [searchValue, setSearchValue] = useState("");
+    const [searchValue, setSearchValue] = useState<string>("");
     const debouncedSearchValue = useDebounce(searchValue, 500);
 
     const [sorting, setSorting] = useState<SortingState>([{ id: "createdDate", desc: true }]);
@@ -46,7 +46,7 @@ const ManageDeviceTypes = () => {
     const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
     const [rowSelection, setRowSelection] = useState({});
 
-    const [dialogOpen, setDialogOpen] = useState(false);
+    const [dialogOpen, setDialogOpen] = useState<boolean>(false);
     const [selectedDeviceType, setSelectedDeviceType] = useState<DeviceType | undefined>(undefined);
     const [detailDialogOpen, setDetailDialogOpen] = useState(false);
     const [detailDeviceType, setDetailDeviceType] = useState<DeviceType | null>(null);

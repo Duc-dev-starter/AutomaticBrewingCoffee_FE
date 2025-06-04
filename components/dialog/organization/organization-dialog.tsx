@@ -337,8 +337,9 @@ const OrganizationDialog = ({ open, onOpenChange, onSuccess, organization }: Org
 
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <Label htmlFor="name" className="required">
+                                <Label htmlFor="name">
                                     Tên tổ chức
+                                    <span className="text-red-500 ml-1">*</span>
                                 </Label>
                                 <Input
                                     id="name"
@@ -350,7 +351,10 @@ const OrganizationDialog = ({ open, onOpenChange, onSuccess, organization }: Org
                                 {errors.name && <p className="text-red-500 text-sm">{errors.name}</p>}
                             </div>
                             <div className="space-y-2">
-                                <Label htmlFor="taxId">Mã số thuế</Label>
+                                <Label htmlFor="taxId">
+                                    Mã số thuế
+                                    <span className="text-red-500 ml-1">*</span>
+                                </Label>
                                 <Input
                                     id="taxId"
                                     placeholder="Nhập mã số thuế"
@@ -364,7 +368,9 @@ const OrganizationDialog = ({ open, onOpenChange, onSuccess, organization }: Org
 
                         <div className="grid grid-cols-2 gap-4">
                             <div className="space-y-2">
-                                <Label htmlFor="contactEmail">Email liên hệ</Label>
+                                <Label htmlFor="contactEmail">Email liên hệ
+                                    <span className="text-red-500 ml-1">*</span>
+                                </Label>
                                 <Input
                                     id="contactEmail"
                                     type="email"
@@ -377,7 +383,9 @@ const OrganizationDialog = ({ open, onOpenChange, onSuccess, organization }: Org
                             </div>
 
                             <div className="space-y-2">
-                                <Label htmlFor="contactPhone">Số điện thoại</Label>
+                                <Label htmlFor="contactPhone">Số điện thoại
+                                    <span className="text-red-500 ml-1">*</span>
+                                </Label>
                                 <Input
                                     id="contactPhone"
                                     placeholder="Nhập số điện thoại"

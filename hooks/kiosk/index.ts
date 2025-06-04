@@ -1,0 +1,1 @@
+import { useKioskTypes } from './use-kiosk-types'

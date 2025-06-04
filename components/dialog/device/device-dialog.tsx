@@ -259,7 +259,9 @@ const DeviceDialog = ({ open, onOpenChange, onSuccess, device }: DeviceDialogPro
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="description">Mô tả</Label>
+                            <Label htmlFor="description">Mô tả
+                                <span className="text-red-500 ml-1">*</span>
+                            </Label>
                             <Textarea
                                 id="description"
                                 placeholder="Nhập mô tả thiết bị"

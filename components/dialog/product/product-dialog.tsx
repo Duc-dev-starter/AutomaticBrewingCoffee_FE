@@ -349,7 +349,9 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
 
                         <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                             <div className="grid gap-2 min-h-[4.5rem]">
-                                <Label htmlFor="name">Tên sản phẩm</Label>
+                                <Label htmlFor="name" className="asterisk">
+                                    Tên sản phẩm
+                                </Label>
                                 <Input
                                     id="name"
                                     value={formData.name}
@@ -380,7 +382,9 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                                 {errors.parentId && <p className="text-red-500 text-sm">{errors.parentId}</p>}
                             </div>
                             <div className="grid gap-2 min-h-[4.5rem]">
-                                <Label htmlFor="size">Size</Label>
+                                <Label htmlFor="size" className="asterisk">
+                                    Size
+                                </Label>
                                 <Select
                                     value={formData.size}
                                     onValueChange={(value) => setFormData({ ...formData, size: value as EProductSize })}
@@ -398,7 +402,9 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                                 {errors.size && <p className="text-red-500 text-sm">{errors.size}</p>}
                             </div>
                             <div className="grid gap-2 min-h-[4.5rem]">
-                                <Label htmlFor="type">Loại sản phẩm</Label>
+                                <Label htmlFor="type" className="asterisk">
+                                    Loại sản phẩm
+                                </Label>
                                 <Select
                                     value={formData.type}
                                     onValueChange={(value) => setFormData({ ...formData, type: value as EProductType })}
@@ -416,7 +422,9 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                                 {errors.type && <p className="text-red-500 text-sm">{errors.type}</p>}
                             </div>
                             <div className="grid gap-2 min-h-[4.5rem]">
-                                <Label htmlFor="status">Trạng thái</Label>
+                                <Label htmlFor="status" className="asterisk">
+                                    Trạng thái
+                                </Label>
                                 <Select
                                     value={formData.status}
                                     onValueChange={(value) => setFormData({ ...formData, status: value as EProductStatus })}
@@ -451,7 +459,9 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                                 {errors.price && <p className="text-red-500 text-sm">{errors.price}</p>}
                             </div>
                             <div className="grid gap-2 min-h-[4.5rem]">
-                                <Label htmlFor="isActive">Hoạt động</Label>
+                                <Label htmlFor="isActive" className="asterisk">
+                                    Hoạt động
+                                </Label>
                                 <Select
                                     value={formData.isActive.toString()}
                                     onValueChange={(value) => setFormData({ ...formData, isActive: value === "true" })}

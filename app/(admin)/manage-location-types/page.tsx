@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState, useRef } from "react";
+import { useCallback, useEffect, useState, useRef, useMemo } from "react";
 import { ChevronDownIcon } from "@radix-ui/react-icons";
 import {
     type ColumnFiltersState,
@@ -23,25 +23,19 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { PlusCircle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import useDebounce from "@/hooks/use-debounce";
 import { BaseStatusFilter, ConfirmDeleteDialog, ExportButton, NoResultsRow, Pagination, RefreshButton, SearchInput } from "@/components/common";
 import { multiSelectFilter } from "@/utils/table";
-import { useToast } from "@/hooks/use-toast";
 import { LocationType } from "@/interfaces/location";
 import { columns } from "@/components/manage-locations/columns";
-import { getLocationTypes, deleteLocationType } from "@/services/locationType";
+import { deleteLocationType } from "@/services/locationType";
 import { LocationTypeDetailDialog, LocationTypeDialog } from "@/components/dialog/locationType";
 import { ErrorResponse } from "@/types/error";
-import { useLocationTypes } from "@/hooks";
+import { useDebounce, useLocationTypes, useToast } from "@/hooks";
 
 const ManageLocationTypes = () => {
     const { toast } = useToast();
-    const [loading, setLoading] = useState(true);
-    const [pageSize, setPageSize] = useState(10);
-    const [currentPage, setCurrentPage] = useState(1);
-    const [locationTypes, setLocationTypes] = useState<LocationType[]>([]);
-    const [totalItems, setTotalItems] = useState(0);
-    const [totalPages, setTotalPages] = useState(1);
+    const [pageSize, setPageSize] = useState<number>(10);
+    const [currentPage, setCurrentPage] = useState<number>(1);
     const [statusFilter, setStatusFilter] = useState<string>("");
 
     const [sorting, setSorting] = useState<SortingState>([{ id: "createdDate", desc: true }]);
@@ -49,7 +43,7 @@ const ManageLocationTypes = () => {
     const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
     const [rowSelection, setRowSelection] = useState({});
 
-    const [dialogOpen, setDialogOpen] = useState(false);
+    const [dialogOpen, setDialogOpen] = useState<boolean>(false);
     const [selectedLocationType, setSelectedLocationType] = useState<LocationType | undefined>(undefined);
     const [detailDialogOpen, setDetailDialogOpen] = useState(false);
     const [detailLocation, setDetailLocation] = useState<LocationType | null>(null);
@@ -58,8 +52,6 @@ const ManageLocationTypes = () => {
 
     const [searchValue, setSearchValue] = useState<string>("");
     const debouncedSearchValue = useDebounce(searchValue, 500);
-
-    const isInitialMount = useRef(true);
 
     const params = {
         filterBy: debouncedSearchValue ? "name" : undefined,
@@ -71,64 +63,25 @@ const ManageLocationTypes = () => {
         status: statusFilter || undefined,
     };
 
-    // Gộp đồng bộ tất cả bộ lọc trong một useEffect
+
     useEffect(() => {
-        if (isInitialMount.current) {
-            isInitialMount.current = false;
-            return; // Bỏ qua lần đầu tiên khi mount
-        }
         table.getColumn("name")?.setFilterValue(debouncedSearchValue || undefined);
     }, [debouncedSearchValue, statusFilter]);
 
     const { data, error, isLoading, mutate } = useLocationTypes(params);
 
-
-    const fetchLocationTypes = useCallback(async () => {
-        try {
-            setLoading(true);
-
-            const nameFilter = columnFilters.find((filter) => filter.id === "name");
-            const filterBy = nameFilter ? "name" : undefined;
-            const filterQuery = nameFilter?.value as string | undefined;
-
-            const sortBy = sorting.length > 0 ? sorting[0]?.id : undefined;
-            const isAsc = sorting.length > 0 ? !sorting[0]?.desc : undefined;
-
-            const response = await getLocationTypes({
-                filterBy,
-                filterQuery,
-                page: currentPage,
-                size: pageSize,
-                sortBy,
-                isAsc,
-            });
-
-            setLocationTypes(response.items);
-            setTotalItems(response.total);
-            setTotalPages(response.totalPages);
-        } catch (err) {
-            console.error(err);
+    useEffect(() => {
+        if (error) {
             toast({
-                title: "Lỗi",
-                description: "Không thể tải danh sách location.",
+                title: "Lỗi khi lấy danh sách loại vị trí",
+                description: error.message || "Đã xảy ra lỗi không xác định",
                 variant: "destructive",
             });
-        } finally {
-            setLoading(false);
         }
-    }, [currentPage, pageSize, columnFilters, sorting, toast]);
-
-    useEffect(() => {
-        if (isInitialMount.current) {
-            fetchLocationTypes(); // Gọi lần đầu khi mount
-            isInitialMount.current = false;
-        } else {
-            fetchLocationTypes(); // Gọi khi có thay đổi thực sự
-        }
-    }, [fetchLocationTypes, currentPage, pageSize, sorting, columnFilters]);
+    }, [error, toast]);
 
     const handleSuccess = () => {
-        fetchLocationTypes();
+        mutate();
         setDialogOpen(false);
         setSelectedLocationType(undefined);
     };
@@ -147,6 +100,7 @@ const ManageLocationTypes = () => {
         setLocationTypeToDelete(locationType);
         setDeleteDialogOpen(true);
     }, []);
+
     const confirmDelete = async () => {
         if (!locationTypeToDelete) return;
         try {
@@ -155,7 +109,7 @@ const ManageLocationTypes = () => {
                 title: "Thành công",
                 description: `Location "${locationTypeToDelete.name}" đã được xóa.`,
             });
-            fetchLocationTypes();
+            mutate();
         } catch (error: unknown) {
             const err = error as ErrorResponse;
             console.error("Lỗi khi xóa location:", err);
@@ -181,15 +135,20 @@ const ManageLocationTypes = () => {
         table.resetColumnFilters();
     };
 
-    const hasActiveFilters = statusFilter !== "" || searchValue !== "";
-
-    const table = useReactTable({
-        data: locationTypes,
-        columns: columns({
+    const columnsDef = useMemo(
+        () => columns({
             onViewDetails: handleViewDetails,
             onEdit: handleEdit,
             onDelete: handleDelete,
         }),
+        [handleViewDetails, handleEdit, handleDelete]
+    );
+
+    const hasActiveFilters = statusFilter !== "" || searchValue !== "";
+
+    const table = useReactTable({
+        data: data?.items || [],
+        columns: columnsDef,
         onSortingChange: setSorting,
         onColumnFiltersChange: setColumnFilters,
         getCoreRowModel: getCoreRowModel(),
@@ -207,7 +166,7 @@ const ManageLocationTypes = () => {
         manualPagination: true,
         manualFiltering: true,
         manualSorting: true,
-        pageCount: totalPages,
+        pageCount: data?.totalPages || 1,
         filterFns: { multiSelect: multiSelectFilter },
     });
 
@@ -229,14 +188,14 @@ const ManageLocationTypes = () => {
                         <p className="text-muted-foreground">Quản lý và giám sát tất cả các location pha cà phê tự động.</p>
                     </div>
                     <div className="flex items-center gap-2">
-                        <ExportButton loading={loading} />
-                        <RefreshButton loading={loading} toggleLoading={fetchLocationTypes} />
+                        <ExportButton loading={isLoading} />
+                        <RefreshButton loading={isLoading} toggleLoading={mutate} />
                     </div>
                 </div>
                 <div className="flex flex-col sm:flex-row items-center py-4 gap-4">
                     <div className="relative w-full sm:w-72">
                         <SearchInput
-                            loading={loading}
+                            loading={isLoading}
                             placeHolderText="Tìm kiếm location..."
                             searchValue={searchValue}
                             setSearchValue={setSearchValue}
@@ -244,7 +203,7 @@ const ManageLocationTypes = () => {
                     </div>
                     <div className="flex items-center gap-2 ml-auto">
                         <BaseStatusFilter
-                            loading={loading}
+                            loading={isLoading}
                             statusFilter={statusFilter}
                             setStatusFilter={setStatusFilter}
                             clearAllFilters={clearAllFilters}
@@ -267,9 +226,9 @@ const ManageLocationTypes = () => {
                                             onCheckedChange={(value) => column.toggleVisibility(!!value)}
                                         >
                                             {column.id === "locationId" ? "Mã location" :
-                                                column.id === "name" ? "Tên location" : ""
-                                                // column.id === "createdDate" ? "Ngày tạo" :
-                                                //     column.id === "updatedDate" ? "Ngày cập nhật" : column.id
+                                                column.id === "name" ? "Tên location" :
+                                                    column.id === "createdDate" ? "Ngày tạo" :
+                                                        column.id === "updatedDate" ? "Ngày cập nhật" : column.id
                                             }
                                         </DropdownMenuCheckboxItem>
                                     ))}
@@ -309,7 +268,7 @@ const ManageLocationTypes = () => {
                             ))}
                         </TableHeader>
                         <TableBody>
-                            {loading ? (
+                            {isLoading ? (
                                 Array.from({ length: pageSize }).map((_, index) => (
                                     <TableRow key={`skeleton-${index}`} className="animate-pulse">
                                         {columns({ onViewDetails: () => { }, onEdit: () => { }, onDelete: () => { } }).map((column, cellIndex) => (
@@ -323,11 +282,11 @@ const ManageLocationTypes = () => {
                                                     </div>
                                                     // ) : column.id === "status" ? (
                                                     //     <Skeleton className="h-6 w-24 rounded-full mx-auto" />
-                                                    // ) : column.id === "createdDate" || column.id === "updatedDate" ? (
-                                                    //     <div className="flex items-center gap-2 justify-center">
-                                                    //         <Skeleton className="h-4 w-4 rounded-full" />
-                                                    //         <Skeleton className="h-5 w-24" />
-                                                    //     </div>
+                                                ) : column.id === "createdDate" || column.id === "updatedDate" ? (
+                                                    <div className="flex items-center gap-2 justify-center">
+                                                        <Skeleton className="h-4 w-4 rounded-full" />
+                                                        <Skeleton className="h-5 w-24" />
+                                                    </div>
                                                 ) : column.id === "actions" ? (
                                                     <div className="flex justify-center">
                                                         <Skeleton className="h-8 w-8 rounded-full" />
@@ -339,7 +298,7 @@ const ManageLocationTypes = () => {
                                         ))}
                                     </TableRow>
                                 ))
-                            ) : locationTypes.length ? (
+                            ) : data?.items?.length ? (
                                 table.getRowModel().rows.map((row) => (
                                     <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
                                         {row.getVisibleCells().map((cell) => (
@@ -356,13 +315,13 @@ const ManageLocationTypes = () => {
                     </Table>
                 </div>
                 <Pagination
-                    loading={loading}
+                    loading={isLoading}
                     pageSize={pageSize}
                     setPageSize={setPageSize}
                     currentPage={currentPage}
                     setCurrentPage={setCurrentPage}
-                    totalItems={totalItems}
-                    totalPages={totalPages}
+                    totalItems={data?.total || 0}
+                    totalPages={data?.totalPages || 1}
                 />
             </div>
             <LocationTypeDialog

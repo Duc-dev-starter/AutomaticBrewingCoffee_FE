@@ -224,9 +224,8 @@ const KioskDialog = ({ open, onOpenChange, onSuccess, kiosk }: KioskDialogProps)
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
                     <div className="grid gap-2 min-h-[4.5rem]">
-                        <Label htmlFor="kioskVersionId">
+                        <Label htmlFor="kioskVersionId" className="asterisk">
                             Phiên bản kiosk
-                            <span className="text-red-500 ml-1">*</span>
                         </Label>
                         <Select
                             value={formData.kioskVersionId}
@@ -247,9 +246,8 @@ const KioskDialog = ({ open, onOpenChange, onSuccess, kiosk }: KioskDialogProps)
                         {errors.kioskVersionId && <p className="text-red-500 text-sm">{errors.kioskVersionId}</p>}
                     </div>
                     <div className="grid gap-2 min-h-[4.5rem]">
-                        <Label htmlFor="storeId">
+                        <Label htmlFor="storeId" className="asterisk">
                             Cửa hàng
-                            <span className="text-red-500 ml-1">*</span>
                         </Label>
                         <Select
                             value={formData.storeId}
@@ -270,9 +268,8 @@ const KioskDialog = ({ open, onOpenChange, onSuccess, kiosk }: KioskDialogProps)
                         {errors.storeId && <p className="text-red-500 text-sm">{errors.storeId}</p>}
                     </div>
                     <div className="grid gap-2 min-h-[4.5rem]">
-                        <Label htmlFor="deviceIds">
+                        <Label htmlFor="deviceIds" className="asterisk">
                             Thiết bị
-                            <span className="text-red-500 ml-1">*</span>
                         </Label>
                         <div className="flex flex-col gap-2">
                             <div className="relative">
@@ -394,9 +391,8 @@ const KioskDialog = ({ open, onOpenChange, onSuccess, kiosk }: KioskDialogProps)
                         {errors.deviceIds && <p className="text-red-500 text-sm">{errors.deviceIds}</p>}
                     </div>
                     <div className="grid gap-2 min-h-[4.5rem]">
-                        <Label htmlFor="location">
+                        <Label htmlFor="location" className="">
                             Địa chỉ
-                            <span className="text-red-500 ml-1">*</span>
                         </Label>
                         <Input
                             id="location"
@@ -408,9 +404,8 @@ const KioskDialog = ({ open, onOpenChange, onSuccess, kiosk }: KioskDialogProps)
                         {errors.location && <p className="text-red-500 text-sm">{errors.location}</p>}
                     </div>
                     <div className="grid gap-2 min-h-[4.5rem]">
-                        <Label htmlFor="position">
+                        <Label htmlFor="position" className="asterisk">
                             Vị trí
-                            <span className="text-red-500 ml-1">*</span>
                         </Label>
                         <Input
                             id="position"
@@ -422,9 +417,8 @@ const KioskDialog = ({ open, onOpenChange, onSuccess, kiosk }: KioskDialogProps)
                         {errors.position && <p className="text-red-500 text-sm">{errors.position}</p>}
                     </div>
                     <div className="grid gap-2 min-h-[4.5rem]">
-                        <Label htmlFor="status">
+                        <Label htmlFor="status" className="asterisk">
                             Trạng thái
-                            <span className="text-red-500 ml-1">*</span>
                         </Label>
                         <Select
                             value={formData.status}
@@ -442,11 +436,9 @@ const KioskDialog = ({ open, onOpenChange, onSuccess, kiosk }: KioskDialogProps)
                         {errors.status && <p className="text-red-500 text-sm">{errors.status}</p>}
                     </div>
 
-                    {/* NGÀY LẮP ĐẶT - CHỈ CHO PHÉP CHỌN TỪ HÔM NAY TRỞ VỀ QUÁ KHỨ */}
                     <div className="grid gap-2 min-h-[4.5rem]">
-                        <Label htmlFor="installedDate">
+                        <Label htmlFor="installedDate" className="asterisk">
                             Ngày lắp đặt
-                            <span className="text-red-500 ml-1">*</span>
                             <span className="text-xs text-muted-foreground ml-2">(Từ hôm nay trở về quá khứ)</span>
                         </Label>
                         <Popover>
@@ -485,11 +477,9 @@ const KioskDialog = ({ open, onOpenChange, onSuccess, kiosk }: KioskDialogProps)
                         {errors.installedDate && <p className="text-red-500 text-sm">{errors.installedDate}</p>}
                     </div>
 
-                    {/* NGÀY BẢO HÀNH - CHỈ CHO PHÉP CHỌN TỪ NGÀY LẮP ĐẶT TRỞ VỀ TƯƠNG LAI */}
                     <div className="grid gap-2 min-h-[4.5rem]">
-                        <Label htmlFor="warrantyTime">
+                        <Label htmlFor="warrantyTime" className="asterisk">
                             Thời gian bảo hành
-                            <span className="text-red-500 ml-1">*</span>
                             <span className="text-xs text-muted-foreground ml-2">(Từ ngày lắp đặt trở về tương lai)</span>
                         </Label>
                         <Popover>

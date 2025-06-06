@@ -23,26 +23,22 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { PlusCircle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import useDebounce from "@/hooks/use-debounce";
 import { ConfirmDeleteDialog, BaseStatusFilter, ExportButton, NoResultsRow, PageSizeSelector, Pagination, RefreshButton, SearchInput } from "@/components/common";
 import { getMenus, deleteMenu } from "@/services/menu";
 import { Menu } from "@/interfaces/menu";
 import { multiSelectFilter } from "@/utils/table";
-import { useToast } from "@/hooks/use-toast";
+import { useDebounce, useMenus, useToast } from "@/hooks"
+
 import { columns } from "@/components/manage-menus/columns";
-import MenuDialog from "@/components/dialog/menu/menu-dialog";
-import MenuDetailDialog from "@/components/dialog/menu/menu-detail-dialog";
+
 import { useRouter } from "next/navigation";
 import { ErrorResponse } from "@/types/error";
+import { MenuDetailDialog, MenuDialog } from "@/components/dialog/menu";
 
 const ManageMenus = () => {
     const { toast } = useToast();
-    const [loading, setLoading] = useState(true);
     const [pageSize, setPageSize] = useState(10);
     const [currentPage, setCurrentPage] = useState(1);
-    const [menus, setMenus] = useState<Menu[]>([]);
-    const [totalItems, setTotalItems] = useState(0);
-    const [totalPages, setTotalPages] = useState(1);
 
     const [statusFilter, setStatusFilter] = useState<string>("");
 
@@ -63,75 +59,37 @@ const ManageMenus = () => {
     const [searchValue, setSearchValue] = useState("");
     const debouncedSearchValue = useDebounce(searchValue, 500);
 
-    const isInitialMount = useRef(true);
+    const params = {
+        filterBy: debouncedSearchValue ? "name" : undefined,
+        filterQuery: debouncedSearchValue || undefined,
+        page: currentPage,
+        size: pageSize,
+        sortBy: sorting.length > 0 ? sorting[0]?.id : undefined,
+        isAsc: sorting.length > 0 ? !sorting[0]?.desc : undefined,
+        status: statusFilter || undefined,
+    };
 
     const hasActiveFilters = statusFilter !== "" || searchValue !== "";
 
-    // Đồng bộ cả searchValue và statusFilter với columnFilters
     useEffect(() => {
-        if (isInitialMount.current) {
-            return; // Bỏ qua lần đầu khi mount
-        }
-        table.getColumn("location")?.setFilterValue(debouncedSearchValue || undefined);
+        table.getColumn("name")?.setFilterValue(debouncedSearchValue || undefined);
         table.getColumn("status")?.setFilterValue(statusFilter || undefined);
     }, [debouncedSearchValue, statusFilter]);
 
+    const { data, error, isLoading, mutate } = useMenus(params);
 
-    // Đồng bộ tìm kiếm với columnFilters
     useEffect(() => {
-        if (isInitialMount.current) {
-            return; // Bỏ qua lần đầu khi mount
-        }
-        table.getColumn("name")?.setFilterValue(debouncedSearchValue || undefined);
-    }, [debouncedSearchValue]);
-
-    const fetchMenus = useCallback(async () => {
-        try {
-            setLoading(true);
-
-            const nameFilter = columnFilters.find((filter) => filter.id === "name");
-            const filterBy = nameFilter ? "name" : undefined;
-            const filterQuery = nameFilter?.value as string | undefined;
-
-            const statusFilterValue = columnFilters.find((filter) => filter.id === "status")?.value as string | undefined;
-
-            const sortBy = sorting.length > 0 ? sorting[0]?.id : undefined;
-            const isAsc = sorting.length > 0 ? !sorting[0]?.desc : undefined;
-
-            const response = await getMenus({
-                filterBy,
-                filterQuery,
-                page: currentPage,
-                size: pageSize,
-                sortBy,
-                isAsc,
-                status: statusFilterValue,
-            });
-
-            setMenus(response.items);
-            setTotalItems(response.total);
-            setTotalPages(response.totalPages);
-        } catch (error: unknown) {
-            const err = error as ErrorResponse;
-            console.error("Lỗi khi lấy danh sách menu:", err);
+        if (error) {
             toast({
                 title: "Lỗi khi lấy danh sách menu",
-                description: err.message,
+                description: error.message || "Đã xảy ra lỗi không xác định",
                 variant: "destructive",
             });
-        } finally {
-            setLoading(false);
         }
-    }, [currentPage, pageSize, columnFilters, sorting, toast]);
-
-    // Gọi fetchMenus khi mount và khi có thay đổi
-    useEffect(() => {
-        fetchMenus();
-        isInitialMount.current = false;
-    }, [fetchMenus]);
+    }, [error, toast]);
 
     const handleSuccess = () => {
-        fetchMenus();
+        mutate();
         setDialogOpen(false);
         setSelectedMenu(undefined);
     };
@@ -158,7 +116,7 @@ const ManageMenus = () => {
                 title: "Thành công",
                 description: `Menu "${menuToDelete.name}" đã được xóa.`,
             });
-            fetchMenus();
+            mutate();
         } catch (error: unknown) {
             const err = error as ErrorResponse;
             console.error("Lỗi khi xóa menu:", err);
@@ -186,7 +144,7 @@ const ManageMenus = () => {
 
 
     const table = useReactTable({
-        data: menus,
+        data: data?.items || [],
         columns: columns({
             onViewDetails: handleViewDetails,
             onEdit: handleEdit,
@@ -209,7 +167,7 @@ const ManageMenus = () => {
         manualPagination: true,
         manualFiltering: true,
         manualSorting: true,
-        pageCount: totalPages,
+        pageCount: data?.totalPages || 1,
         filterFns: { multiSelect: multiSelectFilter },
     });
 
@@ -231,14 +189,14 @@ const ManageMenus = () => {
                         <p className="text-muted-foreground">Quản lý và giám sát tất cả menu.</p>
                     </div>
                     <div className="flex items-center gap-2">
-                        <ExportButton loading={loading} />
-                        <RefreshButton loading={loading} toggleLoading={fetchMenus} />
+                        <ExportButton loading={isLoading} />
+                        <RefreshButton loading={isLoading} toggleLoading={mutate} />
                     </div>
                 </div>
                 <div className="flex flex-col sm:flex-row items-center py-4 gap-4">
                     <div className="relative w-full sm:w-72">
                         <SearchInput
-                            loading={loading}
+                            loading={isLoading}
                             placeHolderText="Tìm kiếm tên menu..."
                             searchValue={searchValue}
                             setSearchValue={setSearchValue}
@@ -250,7 +208,7 @@ const ManageMenus = () => {
                             setStatusFilter={setStatusFilter}
                             clearAllFilters={clearAllFilters}
                             hasActiveFilters={hasActiveFilters}
-                            loading={loading}
+                            loading={isLoading}
                         />
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
@@ -312,7 +270,7 @@ const ManageMenus = () => {
                             ))}
                         </TableHeader>
                         <TableBody>
-                            {loading ? (
+                            {isLoading ? (
                                 Array.from({ length: pageSize }).map((_, index) => (
                                     <TableRow key={`skeleton-${index}`} className="animate-pulse">
                                         {columns({ onViewDetails: () => { }, onEdit: () => { }, onDelete: () => { } }).map((column, cellIndex) => (
@@ -337,7 +295,7 @@ const ManageMenus = () => {
                                         ))}
                                     </TableRow>
                                 ))
-                            ) : menus.length ? (
+                            ) : data?.items?.length ? (
                                 table.getRowModel().rows.map((row) => (
                                     <TableRow key={row.id} data-state={row.getIsSelected() ? "selected" : undefined}>
                                         {row.getVisibleCells().map((cell) => (
@@ -354,13 +312,13 @@ const ManageMenus = () => {
                     </Table>
                 </div>
                 <Pagination
-                    loading={loading}
+                    loading={isLoading}
                     pageSize={pageSize}
                     setPageSize={setPageSize}
                     currentPage={currentPage}
                     setCurrentPage={setCurrentPage}
-                    totalItems={totalItems}
-                    totalPages={totalPages}
+                    totalItems={data?.total || 0}
+                    totalPages={data?.totalPages || 1}
                 />
             </div>
             <MenuDialog

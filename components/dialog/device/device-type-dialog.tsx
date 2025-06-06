@@ -123,9 +123,8 @@ const DeviceTypeDialog = ({ open, onOpenChange, onSuccess, deviceType }: DeviceD
                 <form onSubmit={handleSubmit} className="space-y-6 py-4">
                     <div className="space-y-4">
                         <div className="space-y-2">
-                            <Label htmlFor="name">
+                            <Label htmlFor="name" className="asterisk">
                                 Tên loại thiết bị
-                                <span className="text-red-500 ml-1">*</span>
                             </Label>
                             <Input
                                 id="name"
@@ -138,7 +137,7 @@ const DeviceTypeDialog = ({ open, onOpenChange, onSuccess, deviceType }: DeviceD
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="status" className="required">
+                            <Label htmlFor="status" className="asterisk">
                                 Trạng thái
                             </Label>
                             <Select

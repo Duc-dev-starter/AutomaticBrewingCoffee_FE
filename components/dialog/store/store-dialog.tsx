@@ -203,7 +203,9 @@ const StoreDialog = ({ open, onOpenChange, onSuccess, store }: StoreDialogProps)
                 <form onSubmit={handleSubmit} className="space-y-6 py-4">
                     <div className="space-y-4">
                         <div className="space-y-2">
-                            <Label htmlFor="name">Tên cửa hàng</Label>
+                            <Label htmlFor="name" className="asterisk">
+                                Tên cửa hàng
+                            </Label>
                             <Input
                                 id="name"
                                 value={formData.name}
@@ -223,7 +225,9 @@ const StoreDialog = ({ open, onOpenChange, onSuccess, store }: StoreDialogProps)
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                         <div className="grid gap-2">
-                            <Label htmlFor="locationAddress">Địa chỉ</Label>
+                            <Label htmlFor="locationAddress" className="asterisk">\
+                                Địa chỉ
+                            </Label>
                             <Input
                                 id="locationAddress"
                                 value={formData.locationAddress}
@@ -232,7 +236,9 @@ const StoreDialog = ({ open, onOpenChange, onSuccess, store }: StoreDialogProps)
                             {errors.locationAddress && <p className="text-red-500 text-sm">{errors.locationAddress}</p>}
                         </div>
                         <div className="grid gap-2">
-                            <Label htmlFor="status">Trạng thái</Label>
+                            <Label htmlFor="status" className="asterisk">
+                                Trạng thái
+                            </Label>
                             <Select
                                 value={formData.status}
                                 onValueChange={(value) => setFormData({ ...formData, status: value as EBaseStatus })}
@@ -250,7 +256,9 @@ const StoreDialog = ({ open, onOpenChange, onSuccess, store }: StoreDialogProps)
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                         <div className="grid gap-2">
-                            <Label htmlFor="organizationId">Tổ chức</Label>
+                            <Label htmlFor="organizationId" className="asterisk">
+                                Tổ chức
+                            </Label>
                             <Select
                                 value={formData.organizationId}
                                 onValueChange={(value) => setFormData({ ...formData, organizationId: value })}
@@ -280,7 +288,9 @@ const StoreDialog = ({ open, onOpenChange, onSuccess, store }: StoreDialogProps)
                             {errors.organizationId && <p className="text-red-500 text-sm">{errors.organizationId}</p>}
                         </div>
                         <div className="grid gap-2">
-                            <Label htmlFor="locationTypeId">Loại địa điểm</Label>
+                            <Label htmlFor="locationTypeId" className="asterisk">
+                                Loại địa điểm
+                            </Label>
                             <Select
                                 value={formData.locationTypeId}
                                 onValueChange={(value) => setFormData({ ...formData, locationTypeId: value })}

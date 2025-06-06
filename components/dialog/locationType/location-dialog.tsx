@@ -119,9 +119,8 @@ const LocationTypeDialog = ({ open, onOpenChange, onSuccess, locationType }: Loc
                 <form onSubmit={handleSubmit} className="space-y-6 py-4">
                     <div className="space-y-4">
                         <div className="space-y-2">
-                            <Label htmlFor="name" className="required">
+                            <Label htmlFor="name" className="asterisk">
                                 Tên location
-                                <span className="text-red-500 ml-1">*</span>
                             </Label>
                             <Input
                                 id="name"
@@ -135,9 +134,8 @@ const LocationTypeDialog = ({ open, onOpenChange, onSuccess, locationType }: Loc
 
 
                         <div className="space-y-2">
-                            <Label htmlFor="description">
+                            <Label htmlFor="description" className="required">
                                 Mô tả
-                                <span className="text-red-500 ml-1">*</span>
                             </Label>
                             <Textarea
                                 id="description"

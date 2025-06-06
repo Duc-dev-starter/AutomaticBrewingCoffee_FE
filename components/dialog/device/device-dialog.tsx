@@ -169,9 +169,8 @@ const DeviceDialog = ({ open, onOpenChange, onSuccess, device }: DeviceDialogPro
                 <form onSubmit={handleSubmit} className="space-y-6 py-4">
                     <div className="space-y-4">
                         <div className="space-y-2">
-                            <Label htmlFor="deviceModelId" className="required">
+                            <Label htmlFor="deviceModelId" className="asterisk">
                                 Mẫu thiết bị
-                                <span className="text-red-500 ml-1">*</span>
                             </Label>
                             <Select
                                 value={formData.deviceModelId}
@@ -188,11 +187,11 @@ const DeviceDialog = ({ open, onOpenChange, onSuccess, device }: DeviceDialogPro
                                         hasMore={hasMoreDeviceModels}
                                         loader={<div className="p-2 text-center text-sm">Đang tải thêm...</div>}
                                         scrollableTarget="select-content-devicemodel"
-                                        style={{ overflow: "hidden" }} // Important for layout within SelectContent
+                                        style={{ overflow: "hidden" }}
                                     >
                                         {deviceModels.map((model) => (
                                             <SelectItem key={model.deviceModelId} value={model.deviceModelId}>
-                                                {model.modelName} {/* Giả sử DeviceModel có thuộc tính modelName */}
+                                                {model.modelName}
                                             </SelectItem>
                                         ))}
                                         {!hasMoreDeviceModels && deviceModels.length === 0 && (
@@ -205,9 +204,8 @@ const DeviceDialog = ({ open, onOpenChange, onSuccess, device }: DeviceDialogPro
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="serialNumber">
+                            <Label htmlFor="serialNumber" className="asterisk">
                                 Số Serial
-                                <span className="text-red-500 ml-1">*</span>
                             </Label>
                             <Input
                                 id="serialNumber"
@@ -220,9 +218,8 @@ const DeviceDialog = ({ open, onOpenChange, onSuccess, device }: DeviceDialogPro
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="name">
+                            <Label htmlFor="name" className="asterisk">
                                 Tên thiết bị
-                                <span className="text-red-500 ml-1">*</span>
                             </Label>
                             <Input
                                 id="name"
@@ -235,9 +232,8 @@ const DeviceDialog = ({ open, onOpenChange, onSuccess, device }: DeviceDialogPro
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="status">
+                            <Label htmlFor="status" className="asterisk">
                                 Trạng thái
-                                <span className="text-red-500 ml-1">*</span>
                             </Label>
                             <Select
                                 value={formData.status}
@@ -259,8 +255,8 @@ const DeviceDialog = ({ open, onOpenChange, onSuccess, device }: DeviceDialogPro
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="description">Mô tả
-                                <span className="text-red-500 ml-1">*</span>
+                            <Label htmlFor="description" className="asterisk">
+                                Mô tả
                             </Label>
                             <Textarea
                                 id="description"

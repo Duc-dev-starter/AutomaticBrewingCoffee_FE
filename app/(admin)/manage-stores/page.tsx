@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState, useRef } from "react";
+import { useCallback, useEffect, useState, useRef, useMemo } from "react";
 import { ChevronDownIcon } from "@radix-ui/react-icons";
 import {
     type ColumnFiltersState,
@@ -24,24 +24,19 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { PlusCircle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Store } from "@/interfaces/store";
-import { getStores, deleteStore } from "@/services/store";
-import useDebounce from "@/hooks/use-debounce";
+import { deleteStore } from "@/services/store";
 import { BaseStatusFilter, ConfirmDeleteDialog, ExportButton, NoResultsRow, Pagination, RefreshButton, SearchInput } from "@/components/common";
 import { multiSelectFilter } from "@/utils/table";
-import { useToast } from "@/hooks/use-toast";
 import { columns } from "@/components/manage-stores/columns";
 import { BaseFilterBadges } from "@/components/common/base-filter-badges";
 import { StoreDetailDialog, StoreDialog } from "@/components/dialog/store";
 import { ErrorResponse } from "@/types/error";
+import { useDebounce, useStores, useToast } from "@/hooks";
 
 const ManageStores = () => {
     const { toast } = useToast();
-    const [loading, setLoading] = useState(true);
-    const [pageSize, setPageSize] = useState(10);
-    const [currentPage, setCurrentPage] = useState(1);
-    const [stores, setStores] = useState<Store[]>([]);
-    const [totalItems, setTotalItems] = useState(0);
-    const [totalPages, setTotalPages] = useState(1);
+    const [pageSize, setPageSize] = useState<number>(10);
+    const [currentPage, setCurrentPage] = useState<number>(1);
     const [statusFilter, setStatusFilter] = useState<string>("");
 
     const [sorting, setSorting] = useState<SortingState>([{ id: "createdDate", desc: true }]);
@@ -49,7 +44,7 @@ const ManageStores = () => {
     const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
     const [rowSelection, setRowSelection] = useState({});
 
-    const [dialogOpen, setDialogOpen] = useState(false);
+    const [dialogOpen, setDialogOpen] = useState<boolean>(false);
     const [selectedStore, setSelectedStore] = useState<Store | undefined>(undefined);
     const [detailDialogOpen, setDetailDialogOpen] = useState(false);
     const [detailStore, setDetailStore] = useState<Store | null>(null);
@@ -59,85 +54,53 @@ const ManageStores = () => {
     const [searchValue, setSearchValue] = useState("");
     const debouncedSearchValue = useDebounce(searchValue, 500);
 
-    const isInitialMount = useRef(true);
+    const params = {
+        filterBy: debouncedSearchValue ? "name" : undefined,
+        filterQuery: debouncedSearchValue || undefined,
+        page: currentPage,
+        size: pageSize,
+        sortBy: sorting.length > 0 ? sorting[0]?.id : undefined,
+        isAsc: sorting.length > 0 ? !sorting[0]?.desc : undefined,
+        status: statusFilter || undefined,
+    };
+
+    const { data, error, isLoading, mutate } = useStores(params);
 
     useEffect(() => {
-        if (isInitialMount.current) {
-            isInitialMount.current = false;
-            return;
-        }
         table.getColumn("name")?.setFilterValue(debouncedSearchValue || undefined);
         table.getColumn("status")?.setFilterValue(statusFilter || undefined);
     }, [debouncedSearchValue, statusFilter]);
 
-    const fetchStores = useCallback(async () => {
-        try {
-            setLoading(true);
-
-            const nameFilter = columnFilters.find((filter) => filter.id === "name");
-            const filterBy = nameFilter ? "name" : undefined;
-            const filterQuery = nameFilter?.value as string | undefined;
-
-            const statusFilterValue = columnFilters.find((filter) => filter.id === "status")?.value as string | undefined;
-
-            const sortBy = sorting.length > 0 ? sorting[0]?.id : undefined;
-            const isAsc = sorting.length > 0 ? !sorting[0]?.desc : undefined;
-
-            const response = await getStores({
-                filterBy,
-                filterQuery,
-                page: currentPage,
-                size: pageSize,
-                sortBy,
-                isAsc,
-                status: statusFilterValue,
-            });
-
-            setStores(response.items);
-            setTotalItems(response.total);
-            setTotalPages(response.totalPages);
-        } catch (error: unknown) {
-            const err = error as ErrorResponse
-            console.error("Lỗi khi lấy danh sách cửa hàng:", err);
+    useEffect(() => {
+        if (error) {
             toast({
-                title: "Lỗi khi lấy danh sách cửa hàng",
-                description: err.message,
+                title: "Lỗi khi lấy danh sách loại vị trí",
+                description: error.message || "Đã xảy ra lỗi không xác định",
                 variant: "destructive",
             });
-        } finally {
-            setLoading(false);
         }
-    }, [currentPage, pageSize, columnFilters, sorting, toast]);
-
-    useEffect(() => {
-        if (isInitialMount.current) {
-            fetchStores();
-            isInitialMount.current = false;
-        } else {
-            fetchStores();
-        }
-    }, [fetchStores, currentPage, pageSize, sorting, columnFilters]);
+    }, [error, toast]);
 
     const handleSuccess = () => {
-        fetchStores();
+        mutate();
         setDialogOpen(false);
         setSelectedStore(undefined);
     };
 
-    const handleEdit = (store: Store) => {
+    const handleEdit = useCallback((store: Store) => {
         setSelectedStore(store);
         setDialogOpen(true);
-    };
+    }, []);
 
-    const handleViewDetails = (store: Store) => {
+    const handleViewDetails = useCallback((store: Store) => {
         setDetailStore(store);
         setDetailDialogOpen(true);
-    };
+    }, []);
 
-    const handleDelete = (store: Store) => {
+    const handleDelete = useCallback((store: Store) => {
         setStoreToDelete(store);
         setDeleteDialogOpen(true);
-    };
+    }, []);
 
     const confirmDelete = async () => {
         if (!storeToDelete) return;
@@ -147,7 +110,7 @@ const ManageStores = () => {
                 title: "Thành công",
                 description: `Cửa hàng "${storeToDelete.name}" đã được xóa.`,
             });
-            fetchStores();
+            mutate();
         } catch (error: unknown) {
             const err = error as ErrorResponse;
             console.error("Lỗi khi xóa cửa hàng:", err);
@@ -174,15 +137,20 @@ const ManageStores = () => {
         table.resetColumnFilters();
     };
 
-    const hasActiveFilters = statusFilter !== "" || searchValue !== "";
-
-    const table = useReactTable({
-        data: stores,
-        columns: columns({
+    const columnsDef = useMemo(
+        () => columns({
             onViewDetails: handleViewDetails,
             onEdit: handleEdit,
             onDelete: handleDelete,
         }),
+        [handleViewDetails, handleEdit, handleDelete]
+    );
+
+    const hasActiveFilters = statusFilter !== "" || searchValue !== "";
+
+    const table = useReactTable({
+        data: data?.items || [],
+        columns: columnsDef,
         onSortingChange: setSorting,
         onColumnFiltersChange: setColumnFilters,
         getCoreRowModel: getCoreRowModel(),
@@ -200,7 +168,7 @@ const ManageStores = () => {
         manualPagination: true,
         manualFiltering: true,
         manualSorting: true,
-        pageCount: totalPages,
+        pageCount: data?.totalPages || 1,
         filterFns: { multiSelect: multiSelectFilter },
     });
 
@@ -222,14 +190,14 @@ const ManageStores = () => {
                         <p className="text-muted-foreground">Quản lý và giám sát tất cả các cửa hàng.</p>
                     </div>
                     <div className="flex items-center gap-2">
-                        <ExportButton loading={loading} />
-                        <RefreshButton loading={loading} toggleLoading={fetchStores} />
+                        <ExportButton loading={isLoading} />
+                        <RefreshButton loading={isLoading} toggleLoading={mutate} />
                     </div>
                 </div>
                 <div className="flex flex-col sm:flex-row items-center py-4 gap-4">
                     <div className="relative w-full sm:w-72">
                         <SearchInput
-                            loading={loading}
+                            loading={isLoading}
                             placeHolderText="Tìm kiếm cửa hàng..."
                             searchValue={searchValue}
                             setSearchValue={setSearchValue}
@@ -241,7 +209,7 @@ const ManageStores = () => {
                             setStatusFilter={setStatusFilter}
                             clearAllFilters={clearAllFilters}
                             hasActiveFilters={hasActiveFilters}
-                            loading={loading}
+                            loading={isLoading}
                         />
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
@@ -311,7 +279,7 @@ const ManageStores = () => {
                             ))}
                         </TableHeader>
                         <TableBody>
-                            {loading ? (
+                            {isLoading ? (
                                 Array.from({ length: pageSize }).map((_, index) => (
                                     <TableRow key={`skeleton-${index}`} className="animate-pulse">
                                         {columns({ onViewDetails: () => { }, onEdit: () => { }, onDelete: () => { } }).map((column, cellIndex) => (
@@ -341,7 +309,7 @@ const ManageStores = () => {
                                         ))}
                                     </TableRow>
                                 ))
-                            ) : stores.length ? (
+                            ) : data?.items?.length ? (
                                 table.getRowModel().rows.map((row) => (
                                     <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
                                         {row.getVisibleCells().map((cell) => (
@@ -358,13 +326,13 @@ const ManageStores = () => {
                     </Table>
                 </div>
                 <Pagination
-                    loading={loading}
+                    loading={isLoading}
                     pageSize={pageSize}
                     setPageSize={setPageSize}
                     currentPage={currentPage}
                     setCurrentPage={setCurrentPage}
-                    totalItems={totalItems}
-                    totalPages={totalPages}
+                    totalItems={data?.total || 0}
+                    totalPages={data?.totalPages || 1}
                 />
             </div>
             <StoreDialog

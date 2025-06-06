@@ -71,6 +71,12 @@
     width: 100%;
   }
 
+  .asterisk::after {
+    content: '*';
+    color: red;
+    margin-left: 0.1rem;
+  }
+
 
   :root {
     --background: 0 0% 100%;

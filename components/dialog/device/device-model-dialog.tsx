@@ -277,9 +277,8 @@ const DeviceModelDialog = ({ open, onOpenChange, onSuccess, deviceModel }: Devic
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="deviceTypeId" className="required">
+                            <Label htmlFor="deviceTypeId" className="asterisk">
                                 Loại thiết bị
-                                <span className="text-red-500 ml-1">*</span>
                             </Label>
                             <Select
                                 value={formData.deviceTypeId}
@@ -310,7 +309,7 @@ const DeviceModelDialog = ({ open, onOpenChange, onSuccess, deviceModel }: Devic
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="status" className="required">
+                            <Label htmlFor="status" className="asterisk">
                                 Trạng thái
                             </Label>
                             <Select

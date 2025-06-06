@@ -180,9 +180,8 @@ const KioskVersionDialog = ({ open, onOpenChange, onSuccess, kioskVersion }: Kio
                 <form onSubmit={handleSubmit} className="space-y-6 py-4">
                     <div className="space-y-4">
                         <div className="space-y-2">
-                            <Label htmlFor="versionTitle">
+                            <Label htmlFor="versionTitle" className="asterisk">
                                 Tiêu đề phiên bản
-                                <span className="text-red-500 ml-1">*</span>
                             </Label>
                             <Input
                                 id="versionTitle"
@@ -197,9 +196,8 @@ const KioskVersionDialog = ({ open, onOpenChange, onSuccess, kioskVersion }: Kio
 
 
                         <div className="space-y-2">
-                            <Label htmlFor="versionNumber">
+                            <Label htmlFor="versionNumber" className="asterisk">
                                 Số phiên bản
-                                <span className="text-red-500 ml-1">*</span>
                             </Label>
                             <Input
                                 id="versionNumber"
@@ -212,9 +210,8 @@ const KioskVersionDialog = ({ open, onOpenChange, onSuccess, kioskVersion }: Kio
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="kioskTypeId">
+                            <Label htmlFor="kioskTypeId" className="asterisk">
                                 Loại kiosk
-                                <span className="text-red-500 ml-1">*</span>
                             </Label>
                             <Select
                                 value={formData.kioskTypeId}
@@ -245,9 +242,8 @@ const KioskVersionDialog = ({ open, onOpenChange, onSuccess, kioskVersion }: Kio
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="status">
+                            <Label htmlFor="status" className="asterisk">
                                 Trạng thái
-                                <span className="text-red-500 ml-1">*</span>
                             </Label>
                             <Select
                                 value={formData.status}

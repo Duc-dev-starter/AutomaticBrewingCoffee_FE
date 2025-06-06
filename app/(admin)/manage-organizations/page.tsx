@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useState, useRef } from "react"
+import { useCallback, useEffect, useState, useRef, useMemo } from "react"
 import { ChevronDownIcon } from "@radix-ui/react-icons"
 import {
     type ColumnFiltersState,
@@ -23,7 +23,6 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
 import { PlusCircle } from "lucide-react"
 import { Skeleton } from "@/components/ui/skeleton"
-import useDebounce from "@/hooks/use-debounce"
 import {
     ConfirmDeleteDialog,
     BaseStatusFilter,
@@ -33,26 +32,22 @@ import {
     RefreshButton,
     SearchInput,
 } from "@/components/common"
-import { getOrganizations, deleteOrganization } from "@/services/organization"
+import { deleteOrganization } from "@/services/organization"
 import type { Organization } from "@/interfaces/organization"
 import { multiSelectFilter } from "@/utils/table"
-import { useToast } from "@/hooks/use-toast"
 import { columns } from "@/components/manage-organizations/columns"
 import { OrganizationDetailDialog, OrganizationDialog } from "@/components/dialog/organization"
 import { BaseFilterBadges } from "@/components/common/base-filter-badges"
 import { ErrorResponse } from "@/types/error"
+import { useDebounce, useOrganizations, useToast } from "@/hooks"
 
 const ManageOrganizations = () => {
     const { toast } = useToast()
-    const [loading, setLoading] = useState(true)
-    const [pageSize, setPageSize] = useState(10)
-    const [currentPage, setCurrentPage] = useState(1)
-    const [organizations, setOrganizations] = useState<Organization[]>([])
-    const [totalItems, setTotalItems] = useState(0)
-    const [totalPages, setTotalPages] = useState(1)
+    const [pageSize, setPageSize] = useState<number>(10)
+    const [currentPage, setCurrentPage] = useState<number>(1)
 
     const [statusFilter, setStatusFilter] = useState<string>("")
-    const [searchValue, setSearchValue] = useState("")
+    const [searchValue, setSearchValue] = useState<string>("")
     const debouncedSearchValue = useDebounce(searchValue, 500)
 
     const [sorting, setSorting] = useState<SortingState>([{ id: "createdDate", desc: true }]);
@@ -60,94 +55,63 @@ const ManageOrganizations = () => {
     const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
     const [rowSelection, setRowSelection] = useState({})
 
-    const [dialogOpen, setDialogOpen] = useState(false)
+    const [dialogOpen, setDialogOpen] = useState<boolean>(false)
     const [selectedOrganization, setSelectedOrganization] = useState<Organization | undefined>(undefined)
-    const [detailDialogOpen, setDetailDialogOpen] = useState(false)
+    const [detailDialogOpen, setDetailDialogOpen] = useState<boolean>(false)
     const [detailOrganization, setDetailOrganization] = useState<Organization | null>(null)
-    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false)
     const [organizationToDelete, setOrganizationToDelete] = useState<Organization | null>(null)
 
-    const isInitialMount = useRef(true)
+
+    const params = {
+        filterBy: debouncedSearchValue ? "name" : undefined,
+        filterQuery: debouncedSearchValue || undefined,
+        page: currentPage,
+        size: pageSize,
+        sortBy: sorting.length > 0 ? sorting[0]?.id : undefined,
+        isAsc: sorting.length > 0 ? !sorting[0]?.desc : undefined,
+        status: statusFilter || undefined,
+    };
 
     const hasActiveFilters = statusFilter !== "" || searchValue !== ""
 
-    // Đồng bộ cả searchValue và statusFilter với columnFilters
     useEffect(() => {
-        if (isInitialMount.current) {
-            return // Bỏ qua lần đầu khi mount
-        }
-        table.getColumn("name")?.setFilterValue(debouncedSearchValue || undefined)
+        table.getColumn("name")?.setFilterValue(debouncedSearchValue || undefined);
         table.getColumn("status")?.setFilterValue(statusFilter || undefined)
     }, [debouncedSearchValue, statusFilter])
 
-    const fetchOrganizations = useCallback(async () => {
-        try {
-            setLoading(true)
+    const { data, error, isLoading, mutate } = useOrganizations(params);
 
-            const nameFilter = columnFilters.find((filter) => filter.id === "name")
-            const filterBy = nameFilter ? "name" : undefined
-            const filterQuery = nameFilter?.value as string | undefined
-
-            const statusFilterValue = columnFilters.find((filter) => filter.id === "status")?.value as string | undefined
-
-            const sortBy = sorting.length > 0 ? sorting[0]?.id : undefined
-            const isAsc = sorting.length > 0 ? !sorting[0]?.desc : undefined
-            const response = await getOrganizations({
-                filterBy,
-                filterQuery,
-                page: currentPage,
-                size: pageSize,
-                sortBy,
-                isAsc,
-                status: statusFilterValue,
-            })
-
-            setOrganizations(response.items)
-            setTotalItems(response.total)
-            setTotalPages(response.totalPages)
-        } catch (error: unknown) {
-            const err = error as ErrorResponse;
-            console.error("Lỗi khi lấy danh sách tổ chức:", err);
+    useEffect(() => {
+        if (error) {
             toast({
-                title: "Lỗi khi lấy danh sách tổ chức",
-                description: err.message,
+                title: "Lỗi khi lấy danh sách loại vị trí",
+                description: error.message || "Đã xảy ra lỗi không xác định",
                 variant: "destructive",
             });
-        } finally {
-            setLoading(false)
         }
-    }, [currentPage, pageSize, columnFilters, sorting, toast])
-
-    // Gọi fetchOrganizations khi mount và khi có thay đổi
-    useEffect(() => {
-        if (isInitialMount.current) {
-            fetchOrganizations() // Gọi lần đầu khi mount
-            isInitialMount.current = false
-        } else {
-            fetchOrganizations() // Gọi khi có thay đổi thực sự
-        }
-    }, [fetchOrganizations])
+    }, [error, toast]);
 
     const handleSuccess = () => {
-        fetchOrganizations()
+        mutate();
         setDialogOpen(false)
         setSelectedOrganization(undefined)
     }
 
-    const handleEdit = (organization: Organization) => {
-        setSelectedOrganization(organization)
-        setDialogOpen(true)
-    }
+    const handleEdit = useCallback((organization: Organization) => {
+        setSelectedOrganization(organization);
+        setDialogOpen(true);
+    }, []);
 
-    const handleViewDetails = (organization: Organization) => {
-        setDetailOrganization(organization)
-        setDetailDialogOpen(true)
-    }
+    const handleViewDetails = useCallback((organization: Organization) => {
+        setDetailOrganization(organization);
+        setDetailDialogOpen(true);
+    }, []);
 
-    const handleDelete = (organization: Organization) => {
-        setOrganizationToDelete(organization)
-        setDeleteDialogOpen(true)
-    }
+    const handleDelete = useCallback((organization: Organization) => {
+        setOrganizationToDelete(organization);
+        setDeleteDialogOpen(true);
+    }, []);
 
     const confirmDelete = async () => {
         if (!organizationToDelete) return
@@ -157,7 +121,7 @@ const ManageOrganizations = () => {
                 title: "Thành công",
                 description: `Tổ chức "${organizationToDelete.name}" đã được xóa.`,
             })
-            fetchOrganizations()
+            mutate()
         } catch (error: unknown) {
             const err = error as ErrorResponse;
             console.error("Lỗi khi xóa tổ chức:", err);
@@ -183,13 +147,18 @@ const ManageOrganizations = () => {
         table.resetColumnFilters()
     }
 
-    const table = useReactTable({
-        data: organizations,
-        columns: columns({
+    const columnsDef = useMemo(
+        () => columns({
             onViewDetails: handleViewDetails,
             onEdit: handleEdit,
             onDelete: handleDelete,
         }),
+        [handleViewDetails, handleEdit, handleDelete]
+    );
+
+    const table = useReactTable({
+        data: data?.items || [],
+        columns: columnsDef,
         onSortingChange: setSorting,
         onColumnFiltersChange: setColumnFilters,
         getCoreRowModel: getCoreRowModel(),
@@ -207,7 +176,7 @@ const ManageOrganizations = () => {
         manualPagination: true,
         manualFiltering: true,
         manualSorting: true,
-        pageCount: totalPages,
+        pageCount: data?.totalPages || 1,
         filterFns: { multiSelect: multiSelectFilter },
     })
 
@@ -228,14 +197,14 @@ const ManageOrganizations = () => {
                         <p className="text-muted-foreground">Quản lý và giám sát tất cả tổ chức.</p>
                     </div>
                     <div className="flex items-center gap-2">
-                        <ExportButton loading={loading} />
-                        <RefreshButton loading={loading} toggleLoading={fetchOrganizations} />
+                        <ExportButton loading={isLoading} />
+                        <RefreshButton loading={isLoading} toggleLoading={mutate} />
                     </div>
                 </div>
                 <div className="flex flex-col sm:flex-row items-center py-4 gap-4">
                     <div className="relative w-full sm:w-72">
                         <SearchInput
-                            loading={loading}
+                            loading={isLoading}
                             placeHolderText="Tìm kiếm tên tổ chức..."
                             searchValue={searchValue}
                             setSearchValue={setSearchValue}
@@ -247,7 +216,7 @@ const ManageOrganizations = () => {
                             setStatusFilter={setStatusFilter}
                             clearAllFilters={clearAllFilters}
                             hasActiveFilters={hasActiveFilters}
-                            loading={loading}
+                            loading={isLoading}
                         />
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
@@ -318,7 +287,7 @@ const ManageOrganizations = () => {
                             ))}
                         </TableHeader>
                         <TableBody>
-                            {loading ? (
+                            {isLoading ? (
                                 Array.from({ length: pageSize }).map((_, index) => (
                                     <TableRow key={`skeleton-${index}`} className="animate-pulse">
                                         {columns({ onViewDetails: () => { }, onEdit: () => { }, onDelete: () => { } }).map(
@@ -362,7 +331,7 @@ const ManageOrganizations = () => {
                                         )}
                                     </TableRow>
                                 ))
-                            ) : organizations.length ? (
+                            ) : data?.items?.length ? (
                                 table.getRowModel().rows.map((row) => (
                                     <TableRow key={row.id} data-state={row.getIsSelected() ? "selected" : undefined}>
                                         {row.getVisibleCells().map((cell) => (
@@ -377,13 +346,13 @@ const ManageOrganizations = () => {
                     </Table>
                 </div>
                 <Pagination
-                    loading={loading}
+                    loading={isLoading}
                     pageSize={pageSize}
                     setPageSize={setPageSize}
                     currentPage={currentPage}
                     setCurrentPage={setCurrentPage}
-                    totalItems={totalItems}
-                    totalPages={totalPages}
+                    totalItems={data?.total || 0}
+                    totalPages={data?.totalPages || 1}
                 />
             </div>
             <OrganizationDialog

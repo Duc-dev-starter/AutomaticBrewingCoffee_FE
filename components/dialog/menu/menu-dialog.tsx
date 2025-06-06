@@ -172,7 +172,7 @@ const MenuDialog = ({ open, onOpenChange, onSuccess, menu }: MenuDialogProps) =>
                 <form onSubmit={handleSubmit} className="space-y-6 py-4">
                     <div className="space-y-4">
                         <div className="space-y-2">
-                            <Label htmlFor="kioskId" className="required">
+                            <Label htmlFor="kioskId" className="asterisk">
                                 Kiosk
                             </Label>
                             <Select
@@ -210,7 +210,7 @@ const MenuDialog = ({ open, onOpenChange, onSuccess, menu }: MenuDialogProps) =>
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="name" className="required">
+                            <Label htmlFor="name" className="asterisk">
                                 Tên menu
                             </Label>
                             <Input
@@ -224,7 +224,7 @@ const MenuDialog = ({ open, onOpenChange, onSuccess, menu }: MenuDialogProps) =>
                         </div>
 
                         <div className="space-y-2">
-                            <Label htmlFor="status" className="required">
+                            <Label htmlFor="status" className="asterisk">
                                 Trạng thái
                             </Label>
                             <Select

@@ -16,11 +16,13 @@ const SignalRContext = createContext<ISignalRContext | null>(null);
 
 export const SignalRProvider = ({ children }: { children: React.ReactNode }) => {
     const connectionRef = useRef<signalR.HubConnection | null>(null);
-
-    // Khởi tạo connection chỉ 1 lần (mount)
+    const url = process.env.NEXT_PUBLIC_SIGNALR_URL;
+    if (!url) {
+        throw new Error("Missing SignalR URL environment variable.");
+    }
     if (!connectionRef.current) {
         connectionRef.current = new signalR.HubConnectionBuilder()
-            .withUrl(`https://localhost:30475/hubs/notification`, {
+            .withUrl(url, {
                 skipNegotiation: true,
                 transport: signalR.HttpTransportType.WebSockets,
                 accessTokenFactory: () => getAccessTokenFromCookie() || "",

@@ -32,6 +32,7 @@ import { columns } from "@/components/manage-locations/columns";
 import { getLocationTypes, deleteLocationType } from "@/services/locationType";
 import { LocationTypeDetailDialog, LocationTypeDialog } from "@/components/dialog/locationType";
 import { ErrorResponse } from "@/types/error";
+import { useLocationTypes } from "@/hooks";
 
 const ManageLocationTypes = () => {
     const { toast } = useToast();
@@ -60,6 +61,16 @@ const ManageLocationTypes = () => {
 
     const isInitialMount = useRef(true);
 
+    const params = {
+        filterBy: debouncedSearchValue ? "name" : undefined,
+        filterQuery: debouncedSearchValue || undefined,
+        page: currentPage,
+        size: pageSize,
+        sortBy: sorting.length > 0 ? sorting[0]?.id : undefined,
+        isAsc: sorting.length > 0 ? !sorting[0]?.desc : undefined,
+        status: statusFilter || undefined,
+    };
+
     // Gộp đồng bộ tất cả bộ lọc trong một useEffect
     useEffect(() => {
         if (isInitialMount.current) {
@@ -68,6 +79,9 @@ const ManageLocationTypes = () => {
         }
         table.getColumn("name")?.setFilterValue(debouncedSearchValue || undefined);
     }, [debouncedSearchValue, statusFilter]);
+
+    const { data, error, isLoading, mutate } = useLocationTypes(params);
+
 
     const fetchLocationTypes = useCallback(async () => {
         try {
@@ -119,21 +133,20 @@ const ManageLocationTypes = () => {
         setSelectedLocationType(undefined);
     };
 
-    const handleEdit = (locationType: LocationType) => {
+    const handleEdit = useCallback((locationType: LocationType) => {
         setSelectedLocationType(locationType);
         setDialogOpen(true);
-    };
+    }, []);
 
-    const handleViewDetails = (locationType: LocationType) => {
+    const handleViewDetails = useCallback((locationType: LocationType) => {
         setDetailLocation(locationType);
         setDetailDialogOpen(true);
-    };
+    }, []);
 
-    const handleDelete = (locationType: LocationType) => {
+    const handleDelete = useCallback((locationType: LocationType) => {
         setLocationTypeToDelete(locationType);
         setDeleteDialogOpen(true);
-    };
-
+    }, []);
     const confirmDelete = async () => {
         if (!locationTypeToDelete) return;
         try {

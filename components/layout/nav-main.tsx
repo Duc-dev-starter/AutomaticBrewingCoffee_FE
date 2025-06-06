@@ -10,12 +10,12 @@ import {
     Box,
     Store,
     Menu,
-    type LucideIcon,
     ChevronRight,
     Settings,
     Cpu,
     HardDrive,
     User,
+    type LucideIcon,
 } from "lucide-react"
 import {
     SidebarGroup,
@@ -33,9 +33,10 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { usePathname } from "next/navigation"
 import { Path } from "@/constants/path"
-import { useEffect, useRef, useState } from "react"
+import { useEffect, useRef, useState, useMemo } from "react"
 import { cn } from "@/lib/utils"
 import Link from "next/link"
+import { Roles } from "@/enum/role"
 
 type BaseMenuItem = {
     title: string
@@ -59,35 +60,24 @@ type MenuSection = {
     items: MenuItem[]
 }
 
+// Danh sách menu mặc định
 const menuSections: MenuSection[] = [
     {
         title: "Tổng quan",
         items: [
-            {
-                title: "Dashboard",
-                url: Path.DASHBOARD,
-                icon: LayoutDashboard,
-            },
+            { title: "Dashboard", url: Path.DASHBOARD, icon: LayoutDashboard },
         ],
     },
     {
         title: "Quản lý đơn hàng",
         items: [
-            {
-                title: "Quản lý đơn hàng",
-                url: Path.MANAGE_ORDERS,
-                icon: ShoppingCart,
-            },
+            { title: "Quản lý đơn hàng", url: Path.MANAGE_ORDERS, icon: ShoppingCart },
         ],
     },
     {
         title: "Quản lý sản xuất",
         items: [
-            {
-                title: "Quản lý quy trình",
-                url: Path.MANAGE_WORKFLOWS,
-                icon: Layers,
-            },
+            { title: "Quản lý quy trình", url: Path.MANAGE_WORKFLOWS, icon: Layers },
         ],
     },
     {
@@ -97,42 +87,18 @@ const menuSections: MenuSection[] = [
                 title: "Quản lý thiết bị",
                 icon: Computer,
                 children: [
-                    {
-                        title: "Thiết bị",
-                        url: Path.MANAGE_DEVICES,
-                        icon: Cpu,
-                    },
-                    {
-                        title: "Loại thiết bị",
-                        url: Path.MANAGE_DEVICE_TYPES,
-                        icon: Settings,
-                    },
-                    {
-                        title: "Mẫu thiết bị",
-                        url: Path.MANAGE_DEVICE_MODELS,
-                        icon: HardDrive,
-                    },
+                    { title: "Thiết bị", url: Path.MANAGE_DEVICES, icon: Cpu },
+                    { title: "Loại thiết bị", url: Path.MANAGE_DEVICE_TYPES, icon: Settings },
+                    { title: "Mẫu thiết bị", url: Path.MANAGE_DEVICE_MODELS, icon: HardDrive },
                 ],
             },
             {
                 title: "Quản lý kiosk",
                 icon: Tablet,
                 children: [
-                    {
-                        title: "Kiosk",
-                        url: Path.MANAGE_KIOSKS,
-                        icon: Cpu,
-                    },
-                    {
-                        title: "Loại kiosk",
-                        url: Path.MANAGE_KIOSK_TYPES,
-                        icon: Settings,
-                    },
-                    {
-                        title: "Mẫu kiosk",
-                        url: Path.MANAGE_KIOSK_VERSIONS,
-                        icon: HardDrive,
-                    },
+                    { title: "Kiosk", url: Path.MANAGE_KIOSKS, icon: Cpu },
+                    { title: "Loại kiosk", url: Path.MANAGE_KIOSK_TYPES, icon: Settings },
+                    { title: "Mẫu kiosk", url: Path.MANAGE_KIOSK_VERSIONS, icon: HardDrive },
                 ],
             },
         ],
@@ -140,102 +106,81 @@ const menuSections: MenuSection[] = [
     {
         title: "Quản lý kinh doanh",
         items: [
-            {
-                title: "Quản lý tổ chức",
-                url: Path.MANAGE_ORGANIZATIONS,
-                icon: DollarSign,
-            },
-            {
-                title: "Quản lý tài khoản",
-                url: Path.MANAGE_ACCOUNTS,
-                icon: User,
-            },
-            {
-                title: "Quản lý sản phẩm",
-                url: Path.MANAGE_PRODUCTS,
-                icon: Box,
-            },
-            {
-                title: "Quản lý cửa hàng",
-                url: Path.MANAGE_STORES,
-                icon: Store,
-            },
-            {
-                title: "Quản lý menu",
-                url: Path.MANAGE_MENUS,
-                icon: Menu,
-            },
-            {
-                title: "Quản lý location",
-                url: Path.MANAGE_LOCATION_TYPES,
-                icon: Menu,
-            },
+            { title: "Quản lý tổ chức", url: Path.MANAGE_ORGANIZATIONS, icon: DollarSign },
+            { title: "Quản lý tài khoản", url: Path.MANAGE_ACCOUNTS, icon: User },
+            { title: "Quản lý sản phẩm", url: Path.MANAGE_PRODUCTS, icon: Box },
+            { title: "Quản lý cửa hàng", url: Path.MANAGE_STORES, icon: Store },
+            { title: "Quản lý menu", url: Path.MANAGE_MENUS, icon: Menu },
+            { title: "Quản lý location", url: Path.MANAGE_LOCATION_TYPES, icon: Menu },
         ],
     },
 ]
 
-export function NavMain() {
+export function NavMain({ roleName }: { roleName: string | undefined }) {
     const path = usePathname()
     const activeItemRef = useRef<HTMLAnchorElement>(null)
     const containerRef = useRef<HTMLDivElement>(null)
     const [openDropdowns, setOpenDropdowns] = useState<Record<string, boolean>>({})
     const { state } = useSidebar()
-
-    // Kiểm tra sidebar có đang ở chế độ collapsed không
     const isCollapsed = state === "collapsed"
 
+    const filteredMenuSections = useMemo(() => {
+        if (roleName === Roles.ADMIN || !roleName) {
+            return menuSections
+        } else if (roleName === Roles.ORGANIZATION) {
+            return menuSections.map(section => {
+                if (section.title === "Quản lý kinh doanh") {
+                    return {
+                        ...section,
+                        items: section.items.filter(item =>
+                            item.title !== "Quản lý location" &&
+                            item.title !== "Quản lý tổ chức" &&
+                            item.title !== "Quản lý tài khoản"
+                        ),
+                    }
+                }
+                return section
+            })
+        }
+        return menuSections
+    }, [roleName])
+
     const isDropdownActive = (children: StandardMenuItem[]) => {
-        return children.some((child) => child.url === path)
+        return children.some(child => child.url === path)
     }
 
     useEffect(() => {
         const initialOpenState: Record<string, boolean> = {}
-        menuSections.forEach((section) => {
-            section.items.forEach((item) => {
+        filteredMenuSections.forEach(section => {
+            section.items.forEach(item => {
                 if ("children" in item && item.children) {
-                    const isActive = isDropdownActive(item.children)
-                    if (isActive) {
+                    if (isDropdownActive(item.children)) {
                         initialOpenState[item.title] = true
                     }
                 }
             })
         })
         setOpenDropdowns(initialOpenState)
-    }, [path])
+    }, [path, filteredMenuSections])
 
     useEffect(() => {
         if (activeItemRef.current && containerRef.current) {
             const container = containerRef.current
             const activeItem = activeItemRef.current
-
             const containerRect = container.getBoundingClientRect()
             const activeItemRect = activeItem.getBoundingClientRect()
 
-            const isFullyVisible = activeItemRect.top >= containerRect.top && activeItemRect.bottom <= containerRect.bottom
-
-            if (!isFullyVisible) {
-                const containerHeight = container.clientHeight
-                const activeItemTop = activeItem.offsetTop
-                const activeItemHeight = activeItem.clientHeight
-
-                const scrollToPosition = activeItemTop - containerHeight / 2 + activeItemHeight / 2
-
-                container.scrollTo({
-                    top: Math.max(0, scrollToPosition),
-                    behavior: "smooth",
-                })
+            if (!(activeItemRect.top >= containerRect.top && activeItemRect.bottom <= containerRect.bottom)) {
+                const scrollToPosition = activeItem.offsetTop - container.clientHeight / 2 + activeItem.clientHeight / 2
+                container.scrollTo({ top: Math.max(0, scrollToPosition), behavior: "smooth" })
             }
         }
-    }, [path, openDropdowns, activeItemRef.current])
+    }, [path, openDropdowns])
 
     const toggleDropdown = (title: string) => {
-        setOpenDropdowns((prev) => ({
-            ...prev,
-            [title]: !prev[title],
-        }))
+        setOpenDropdowns(prev => ({ ...prev, [title]: !prev[title] }))
     }
 
-    // Component cho dropdown item khi collapsed
     const CollapsedDropdownItem = ({ item }: { item: DropdownMenuItem }) => {
         const isActiveParent = isDropdownActive(item.children)
 
@@ -250,12 +195,12 @@ export function NavMain() {
                                 isActiveParent && "bg-[#e1f9f9] dark:bg-[#1a3333]",
                             )}
                         >
-                            {item.icon && <item.icon className="size-4 text-[#68e0df]" />}
+                            <item.icon className="size-4 text-[#68e0df]" />
                             <span className="sr-only">{item.title}</span>
                         </SidebarMenuButton>
                     </DropdownMenuTrigger>
                     <DropdownMenuContent side="right" align="start" className="w-48">
-                        {item.children.map((child) => {
+                        {item.children.map(child => {
                             const isChildActive = path === child.url
                             return (
                                 <UIDropdownMenuItem key={child.title} asChild>
@@ -266,7 +211,7 @@ export function NavMain() {
                                             isChildActive && "bg-accent text-accent-foreground",
                                         )}
                                     >
-                                        {child.icon && <child.icon className="size-4 text-[#68e0df]" />}
+                                        <child.icon className="size-4 text-[#68e0df]" />
                                         <span>{child.title}</span>
                                     </Link>
                                 </UIDropdownMenuItem>
@@ -278,7 +223,6 @@ export function NavMain() {
         )
     }
 
-    // Component cho dropdown item khi expanded
     const ExpandedDropdownItem = ({ item }: { item: DropdownMenuItem }) => {
         const isActiveParent = isDropdownActive(item.children)
         const isOpen = openDropdowns[item.title] || false
@@ -295,7 +239,7 @@ export function NavMain() {
                             )}
                         >
                             <div className="flex items-center gap-2">
-                                {item.icon && <item.icon className="size-4 text-[#68e0df]" />}
+                                <item.icon className="size-4 text-[#68e0df]" />
                                 <span className="text-gray-600 dark:text-gray-300 group-data-[collapsible=icon]:hidden">
                                     {item.title}
                                 </span>
@@ -312,7 +256,7 @@ export function NavMain() {
 
                 {isOpen && (
                     <div className="pl-6 border-l border-border ml-3 mt-1 space-y-1 group-data-[collapsible=icon]:hidden">
-                        {item.children.map((child) => {
+                        {item.children.map(child => {
                             const isChildActive = path === child.url
                             return (
                                 <SidebarMenuItem key={child.title}>
@@ -325,7 +269,7 @@ export function NavMain() {
                                             )}
                                             href={child.url}
                                         >
-                                            {child.icon && <child.icon className="size-4 text-[#68e0df]" />}
+                                            <child.icon className="size-4 text-[#68e0df]" />
                                             <span className={cn("text-gray-600 dark:text-gray-300", isChildActive && "font-medium")}>
                                                 {child.title}
                                             </span>
@@ -342,15 +286,14 @@ export function NavMain() {
 
     return (
         <div ref={containerRef} className="h-full overflow-y-auto no-scrollbar">
-            {menuSections.map((section, index) => (
+            {filteredMenuSections.map((section, index) => (
                 <SidebarGroup key={index} className="mb-4">
                     <SidebarGroupLabel className="text-xs font-medium text-gray-500 dark:text-gray-400 group-data-[collapsible=icon]:hidden">
                         {section.title}
                     </SidebarGroupLabel>
                     <SidebarMenu>
-                        {section.items.map((item) => {
+                        {section.items.map(item => {
                             if (!("children" in item) || !item.children) {
-                                // Standard menu item
                                 const isActive = path === item.url
                                 return (
                                     <SidebarMenuItem key={item.title}>
@@ -363,13 +306,11 @@ export function NavMain() {
                                                 )}
                                                 href={item.url}
                                             >
-                                                {item.icon && <item.icon className="size-4 text-[#68e0df]" />}
-                                                <span
-                                                    className={cn(
-                                                        "text-gray-600 dark:text-gray-300 group-data-[collapsible=icon]:hidden",
-                                                        isActive && "font-medium",
-                                                    )}
-                                                >
+                                                <item.icon className="size-4 text-[#68e0df]" />
+                                                <span className={cn(
+                                                    "text-gray-600 dark:text-gray-300 group-data-[collapsible=icon]:hidden",
+                                                    isActive && "font-medium",
+                                                )}>
                                                     {item.title}
                                                 </span>
                                             </Link>
@@ -377,7 +318,6 @@ export function NavMain() {
                                     </SidebarMenuItem>
                                 )
                             } else {
-                                // Dropdown menu item - render differently based on collapsed state
                                 return isCollapsed ? (
                                     <CollapsedDropdownItem key={item.title} item={item} />
                                 ) : (

@@ -14,11 +14,12 @@ import { useAccountStore } from "@/stores/user"
 export function AdminSidebar() {
     const account = useAccountStore(state => state.account);
     console.log(account)
+    const roleName = account?.roleName
 
 
     return (
         <Sidebar collapsible="icon" className="bg-white dark:bg-[#121212]">
-            <SidebarHeader className="py-4 bg-primary-100" >
+            <SidebarHeader className="py-4 " >
                 <Link
                     href={Path.DASHBOARD}
                     className={clsx(
@@ -36,7 +37,7 @@ export function AdminSidebar() {
                 </Link>
             </SidebarHeader>
             <SidebarContent>
-                <NavMain />
+                <NavMain roleName={roleName} />
             </SidebarContent>
             <SidebarFooter className="py-2">{account && <NavUser account={account} />}</SidebarFooter>
             <SidebarRail />

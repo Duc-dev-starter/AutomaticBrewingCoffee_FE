@@ -15,12 +15,6 @@ import { EDeviceStatus, EDeviceStatusViMap } from "@/enum/device"
 import { FilterProps } from "@/types/filter"
 import { cn } from "@/lib/utils"
 
-const deviceStatusColorMap = {
-    [EDeviceStatus.Stock]: "bg-primary",
-    [EDeviceStatus.Working]: "bg-green-500",
-    [EDeviceStatus.Maintain]: "bg-yellow-500",
-}
-
 const statusStyleMap: Record<EDeviceStatus, { dot: string; text: string }> = {
     [EDeviceStatus.Maintain]: {
         dot: "bg-yellow-500",
@@ -36,22 +30,49 @@ const statusStyleMap: Record<EDeviceStatus, { dot: string; text: string }> = {
     },
 }
 
+const fallbackLabel = "Không rõ"
+const fallbackStyle = {
+    dot: "bg-gray-400",
+    text: "text-muted-foreground",
+}
 
 export const DeviceFilter = ({ statusFilter, setStatusFilter }: FilterProps) => {
     const statuses = Object.values(EDeviceStatus)
     const totalStatuses = statuses.length
     const activeCount = statusFilter ? 1 : 0
 
+    const isKnownStatus =
+        statusFilter && statuses.includes(statusFilter as EDeviceStatus)
+
+    const displayStyle = isKnownStatus
+        ? statusStyleMap[statusFilter as EDeviceStatus]
+        : fallbackStyle
+
+    const displayLabel = isKnownStatus
+        ? EDeviceStatusViMap[statusFilter as EDeviceStatus]
+        : fallbackLabel
+
     return (
         <DropdownMenu>
             <DropdownMenuTrigger asChild>
                 <Button variant="outline" className="ml-auto">
                     {statusFilter ? (
-                        <span className={cn("w-2 h-2 rounded-full mr-2", deviceStatusColorMap[statusFilter as EDeviceStatus])} />
+                        <>
+                            <span
+                                className={cn(
+                                    "w-2 h-2 rounded-full mr-2",
+                                    displayStyle.dot
+                                )}
+                            />
+                            <span className={cn(displayStyle.text)}>{displayLabel}</span>
+                        </>
                     ) : (
-                        <Filter className="mr-2 h-4 w-4" />
+                        <>
+                            <Filter className="mr-2 h-4 w-4" />
+                            Trạng thái
+                        </>
                     )}
-                    Trạng thái <span className="ml-1 bg-gray-200 rounded-full px-2 pt-0.5 pb-1 text-xs">
+                    <span className="ml-1 bg-gray-200 rounded-full px-2 pt-0.5 pb-1 text-xs">
                         {activeCount}/{totalStatuses}
                     </span>
                     <ChevronDownIcon className="ml-2 h-4 w-4" />
@@ -60,7 +81,10 @@ export const DeviceFilter = ({ statusFilter, setStatusFilter }: FilterProps) => 
             <DropdownMenuContent align="end" className="w-56">
                 <DropdownMenuLabel>Lọc theo trạng thái</DropdownMenuLabel>
                 <DropdownMenuSeparator />
-                <DropdownMenuRadioGroup value={statusFilter} onValueChange={setStatusFilter}>
+                <DropdownMenuRadioGroup
+                    value={statusFilter}
+                    onValueChange={setStatusFilter}
+                >
                     {statuses.map((status) => (
                         <DropdownMenuRadioItem
                             key={status}
@@ -74,16 +98,27 @@ export const DeviceFilter = ({ statusFilter, setStatusFilter }: FilterProps) => 
                                 status === EDeviceStatus.Working && "data-[state=checked]:text-green-500",
                             )}
                         >
-                            <span className="text-black">{EDeviceStatusViMap[status as EDeviceStatus]}</span>
+                            <span className="text-black">
+                                {EDeviceStatusViMap[status as EDeviceStatus]}
+                            </span>
                             {statusFilter === status && (
-                                <Check
-                                    className={cn(
-                                        "ml-auto h-4 w-4 text-muted-foreground"
-                                    )}
-                                />
+                                <Check className="ml-auto h-4 w-4 text-muted-foreground" />
                             )}
                         </DropdownMenuRadioItem>
                     ))}
+                    {!isKnownStatus && statusFilter && (
+                        <DropdownMenuRadioItem
+                            value={statusFilter}
+                            className={cn(
+                                "group relative flex items-center cursor-pointer",
+                                fallbackStyle.text,
+                                "hover:bg-muted hover:text-yellow-600"
+                            )}
+                        >
+                            <span className="text-black">{fallbackLabel}</span>
+                            <Check className="ml-auto h-4 w-4 text-muted-foreground" />
+                        </DropdownMenuRadioItem>
+                    )}
                 </DropdownMenuRadioGroup>
                 {statusFilter && (
                     <>
@@ -102,5 +137,5 @@ export const DeviceFilter = ({ statusFilter, setStatusFilter }: FilterProps) => 
                 )}
             </DropdownMenuContent>
         </DropdownMenu>
-    );
-};
+    )
+}

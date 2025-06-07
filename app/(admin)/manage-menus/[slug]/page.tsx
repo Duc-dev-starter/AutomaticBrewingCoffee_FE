@@ -61,12 +61,6 @@ const MenuDetail = () => {
         ? menu.menuProductMappings.map((mapping) => mapping.product?.productId).filter(Boolean)
         : []) as string[];
 
-    const hasActiveFilters =
-        statusFilter !== "" ||
-        productTypeFilter !== "" ||
-        productSizeFilter !== "" ||
-        searchValue !== "";
-
     const [addProductDialogOpen, setAddProductDialogOpen] = useState(false);
     const [deleteProductDialogOpen, setDeleteProductDialogOpen] = useState(false);
     const [selectedMapping, setSelectedMapping] = useState<MenuProductMapping | null>(null);
@@ -132,20 +126,9 @@ const MenuDetail = () => {
     }, [filterAndPaginateProducts]);
 
     const handleFilterChange = () => setCurrentPage(1);
-    const handleSearchChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        setSearchValue(e.target.value);
-        handleFilterChange();
-    };
+
     const handleStatusFilterChange = (value: string) => {
         setStatusFilter(value);
-        handleFilterChange();
-    };
-    const handleProductTypeFilterChange = (value: string) => {
-        setProductTypeFilter(value);
-        handleFilterChange();
-    };
-    const handleProductSizeFilterChange = (value: string) => {
-        setProductSizeFilter(value);
         handleFilterChange();
     };
 

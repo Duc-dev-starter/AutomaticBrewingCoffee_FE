@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState, useRef } from "react";
+import { useCallback, useEffect, useState, useMemo } from "react";
 import { ChevronDownIcon } from "@radix-ui/react-icons";
 import {
     type ColumnFiltersState,
@@ -23,8 +23,8 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { PlusCircle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ConfirmDeleteDialog, BaseStatusFilter, ExportButton, NoResultsRow, PageSizeSelector, Pagination, RefreshButton, SearchInput } from "@/components/common";
-import { getMenus, deleteMenu } from "@/services/menu";
+import { ConfirmDeleteDialog, BaseStatusFilter, ExportButton, NoResultsRow, Pagination, RefreshButton, SearchInput } from "@/components/common";
+import { deleteMenu } from "@/services/menu";
 import { Menu } from "@/interfaces/menu";
 import { multiSelectFilter } from "@/utils/table";
 import { useDebounce, useMenus, useToast } from "@/hooks"
@@ -34,6 +34,7 @@ import { columns } from "@/components/manage-menus/columns";
 import { useRouter } from "next/navigation";
 import { ErrorResponse } from "@/types/error";
 import { MenuDetailDialog, MenuDialog } from "@/components/dialog/menu";
+import { Path } from "@/constants/path";
 
 const ManageMenus = () => {
     const { toast } = useToast();
@@ -94,19 +95,19 @@ const ManageMenus = () => {
         setSelectedMenu(undefined);
     };
 
-    const handleEdit = (menu: Menu) => {
+    const handleEdit = useCallback((menu: Menu) => {
         setSelectedMenu(menu);
         setDialogOpen(true);
-    };
+    }, []);
 
-    const handleViewDetails = (menu: Menu) => {
-        router.push(`/manage-menus/${menu.menuId}`)
-    };
+    const handleViewDetails = useCallback((menu: Menu) => {
+        router.push(`${Path.MANAGE_MENUS}/${menu.menuId}`)
+    }, [])
 
-    const handleDelete = (menu: Menu) => {
+    const handleDelete = useCallback((menu: Menu) => {
         setMenuToDelete(menu);
         setDeleteDialogOpen(true);
-    };
+    }, []);
 
     const confirmDelete = async () => {
         if (!menuToDelete) return;
@@ -142,14 +143,19 @@ const ManageMenus = () => {
         table.resetColumnFilters();
     };
 
-
-    const table = useReactTable({
-        data: data?.items || [],
-        columns: columns({
+    const columnsDef = useMemo(
+        () => columns({
             onViewDetails: handleViewDetails,
             onEdit: handleEdit,
             onDelete: handleDelete,
         }),
+        [handleViewDetails, handleEdit, handleDelete]
+    );
+
+
+    const table = useReactTable({
+        data: data?.items || [],
+        columns: columnsDef,
         onSortingChange: setSorting,
         onColumnFiltersChange: setColumnFilters,
         getCoreRowModel: getCoreRowModel(),

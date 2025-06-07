@@ -13,6 +13,8 @@ export interface PagingParams {
     productSize?: string;
     hasMenu?: boolean;
     kioskVersionId?: string;
+    organizationId?: string;
+    storeId?: string;
 }
 
 export interface PagingResponse<T> {

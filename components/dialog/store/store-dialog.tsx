@@ -225,7 +225,7 @@ const StoreDialog = ({ open, onOpenChange, onSuccess, store }: StoreDialogProps)
                     </div>
                     <div className="grid grid-cols-2 gap-4">
                         <div className="grid gap-2">
-                            <Label htmlFor="locationAddress" className="asterisk">\
+                            <Label htmlFor="locationAddress" className="asterisk">
                                 Địa chỉ
                             </Label>
                             <Input

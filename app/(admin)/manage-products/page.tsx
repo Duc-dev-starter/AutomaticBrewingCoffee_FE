@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useEffect, useState, useRef } from "react";
+import { useCallback, useEffect, useState, useRef, useMemo } from "react";
 import { ChevronDownIcon } from "@radix-ui/react-icons";
 import {
     type ColumnFiltersState,
@@ -23,26 +23,20 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { PlusCircle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { columns } from "@/components/manage-products/columns";
-import useDebounce from "@/hooks/use-debounce";
 import { ConfirmDeleteDialog, ExportButton, NoResultsRow, Pagination, RefreshButton, SearchInput } from "@/components/common";
 import { getProducts, deleteProduct, cloneProduct } from "@/services/product";
 import { Product } from "@/interfaces/product";
 import { multiSelectFilter } from "@/utils/table";
-import { useToast } from "@/hooks/use-toast";
 import { ProductDialog, ProductDetailDialog } from "@/components/dialog/product";
 import { ProductFilter } from "@/components/manage-products/filter";
 import { FilterBadges } from "@/components/manage-products/filter-badges";
 import { ErrorResponse } from "@/types/error";
+import { useDebounce, useProducts, useToast } from "@/hooks";
 
 const ManageProducts = () => {
     const { toast } = useToast();
-    const [loading, setLoading] = useState(true);
     const [pageSize, setPageSize] = useState(10);
     const [currentPage, setCurrentPage] = useState(1);
-    const [products, setProducts] = useState<Product[]>([]);
-    const [totalItems, setTotalItems] = useState(0);
-    const [totalPages, setTotalPages] = useState(1);
-
     const [sorting, setSorting] = useState<SortingState>([{ id: "createdDate", desc: true }]);
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
     const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
@@ -64,76 +58,29 @@ const ManageProducts = () => {
     const [searchValue, setSearchValue] = useState("");
     const debouncedSearchValue = useDebounce(searchValue, 500);
 
-    const isInitialMount = useRef(true);
+    const params = {
+        filterBy: debouncedSearchValue ? "name" : undefined,
+        filterQuery: debouncedSearchValue || undefined,
+        page: currentPage,
+        size: pageSize,
+        sortBy: sorting.length > 0 ? sorting[0]?.id : undefined,
+        isAsc: sorting.length > 0 ? !sorting[0]?.desc : undefined,
+        status: statusFilter || undefined,
+        productType: productTypeFilter || undefined,
+        productSize: productSizeFilter || undefined,
+    };
 
-    // Gộp đồng bộ tất cả bộ lọc trong một useEffect
+    const { data, error, isLoading, mutate } = useProducts(params);
+
     useEffect(() => {
-        if (isInitialMount.current) {
-            isInitialMount.current = false;
-            return; // Bỏ qua lần đầu tiên khi mount
-        }
         table.getColumn("name")?.setFilterValue(debouncedSearchValue || undefined);
         table.getColumn("status")?.setFilterValue(statusFilter || undefined);
         table.getColumn("type")?.setFilterValue(productTypeFilter || undefined);
         table.getColumn("size")?.setFilterValue(productSizeFilter || undefined);
     }, [debouncedSearchValue, statusFilter, productTypeFilter, productSizeFilter]);
 
-    const fetchProducts = useCallback(async () => {
-        console.log("Fetching products..."); // Để kiểm tra số lần gọi
-        try {
-            setLoading(true);
-
-            const nameFilter = columnFilters.find((filter) => filter.id === "name");
-            const filterBy = nameFilter ? "name" : undefined;
-            const filterQuery = nameFilter?.value as string | undefined;
-
-            const statusFilterValue = columnFilters.find((filter) => filter.id === "status")?.value as string | undefined;
-            const productTypeFilterValue = columnFilters.find((filter) => filter.id === "type")?.value as string | undefined;
-            const productSizeFilterValue = columnFilters.find((filter) => filter.id === "size")?.value as string | undefined;
-
-            const sortBy = sorting.length > 0 ? sorting[0]?.id : undefined;
-            const isAsc = sorting.length > 0 ? !sorting[0]?.desc : undefined;
-
-            const response = await getProducts({
-                filterBy,
-                filterQuery,
-                page: currentPage,
-                size: pageSize,
-                sortBy,
-                isAsc,
-                status: statusFilterValue,
-                productType: productTypeFilterValue,
-                productSize: productSizeFilterValue,
-            });
-
-            setProducts(response.items);
-            setTotalItems(response.total);
-            setTotalPages(response.totalPages);
-        } catch (error: unknown) {
-            const err = error as ErrorResponse;
-            console.error("Lỗi khi lấy danh sách sản phẩm:", err);
-            toast({
-                title: "Lỗi khi lấy danh sách sản phẩm",
-                description: err.message,
-                variant: "destructive",
-            });
-        } finally {
-            setLoading(false);
-        }
-    }, [currentPage, pageSize, columnFilters, sorting, toast]);
-
-    // Gọi fetchProducts khi mount và khi có thay đổi
-    useEffect(() => {
-        if (isInitialMount.current) {
-            fetchProducts(); // Gọi lần đầu khi mount
-            isInitialMount.current = false;
-        } else {
-            fetchProducts(); // Gọi khi có thay đổi trong dependencies
-        }
-    }, [fetchProducts]);
-
     const handleSuccess = () => {
-        fetchProducts();
+        mutate();
         setDialogOpen(false);
         setSelectedProduct(undefined);
     };
@@ -143,10 +90,10 @@ const ManageProducts = () => {
         setDialogOpen(true);
     };
 
-    const handleViewDetails = (product: Product) => {
+    const handleViewDetails = useCallback((product: Product) => {
         setDetailProduct(product);
         setDetailDialogOpen(true);
-    };
+    }, []);
 
     const handleDelete = (product: Product) => {
         setProductToDelete(product);
@@ -161,7 +108,7 @@ const ManageProducts = () => {
                 title: "Thành công",
                 description: `Sản phẩm "${productToDelete.name}" đã được xóa.`,
             });
-            fetchProducts();
+            mutate();
         } catch (error: unknown) {
             const err = error as ErrorResponse;
             console.error("Lỗi khi xóa sản phẩm:", err);
@@ -197,7 +144,7 @@ const ManageProducts = () => {
                 title: "Thành công",
                 description: `Sản phẩm "${product.name}" đã được nhân bản.`,
             });
-            await fetchProducts();
+            mutate();
             setFlashingProductId(newProductId);
             setIsFlashing(true);
             setTimeout(() => {
@@ -217,14 +164,19 @@ const ManageProducts = () => {
 
     const hasActiveFilters = statusFilter !== "" || productTypeFilter !== "" || productSizeFilter !== "" || searchValue !== "";
 
-    const table = useReactTable({
-        data: products,
-        columns: columns({
+    const columnsDef = useMemo(
+        () => columns({
             onViewDetails: handleViewDetails,
             onEdit: handleEdit,
             onDelete: handleDelete,
             onClone: handleClone,
         }),
+        [handleViewDetails, handleEdit, handleDelete, handleClone]
+    );
+
+    const table = useReactTable({
+        data: data?.items || [],
+        columns: columnsDef,
         onSortingChange: setSorting,
         onColumnFiltersChange: setColumnFilters,
         getCoreRowModel: getCoreRowModel(),
@@ -242,7 +194,7 @@ const ManageProducts = () => {
         manualPagination: true,
         manualFiltering: true,
         manualSorting: true,
-        pageCount: totalPages,
+        pageCount: data?.totalPages || 1,
         filterFns: { multiSelect: multiSelectFilter },
     });
 
@@ -254,7 +206,6 @@ const ManageProducts = () => {
         setCurrentPage(1);
     }, [columnFilters]);
 
-
     return (
         <div className="w-full">
             <div className="flex flex-col space-y-4 p-4 sm:p-6">
@@ -264,14 +215,14 @@ const ManageProducts = () => {
                         <p className="text-muted-foreground">Quản lý và giám sát tất cả các sản phẩm.</p>
                     </div>
                     <div className="flex items-center gap-2">
-                        <ExportButton loading={loading} />
-                        <RefreshButton loading={loading} toggleLoading={fetchProducts} />
+                        <ExportButton loading={isLoading} />
+                        <RefreshButton loading={isLoading} toggleLoading={mutate} />
                     </div>
                 </div>
                 <div className="flex flex-col sm:flex-row items-center py-4 gap-4">
                     <div className="relative w-full sm:w-72">
                         <SearchInput
-                            loading={loading}
+                            loading={isLoading}
                             placeHolderText="Tìm kiếm sản phẩm..."
                             searchValue={searchValue}
                             setSearchValue={setSearchValue}
@@ -283,7 +234,7 @@ const ManageProducts = () => {
                             setStatusFilter={setStatusFilter}
                             clearAllFilters={clearAllFilters}
                             hasActiveFilters={hasActiveFilters}
-                            loading={loading}
+                            loading={isLoading}
                             productTypeFilter={productTypeFilter}
                             setProductTypeFilter={setProductTypeFilter}
                             productSizeFilter={productSizeFilter}
@@ -365,7 +316,7 @@ const ManageProducts = () => {
                             ))}
                         </TableHeader>
                         <TableBody>
-                            {loading ? (
+                            {isLoading ? (
                                 Array.from({ length: pageSize }).map((_, index) => (
                                     <TableRow key={`skeleton-${index}`} className="animate-pulse">
                                         {columns({ onViewDetails: () => { }, onEdit: () => { }, onDelete: () => { }, onClone: () => { } }).map((column, cellIndex) => (
@@ -400,7 +351,7 @@ const ManageProducts = () => {
                                         ))}
                                     </TableRow>
                                 ))
-                            ) : products.length ? (
+                            ) : data?.items?.length ? (
                                 table.getRowModel().rows.map((row) => (
                                     <TableRow
                                         key={row.id}
@@ -421,13 +372,13 @@ const ManageProducts = () => {
                     </Table>
                 </div>
                 <Pagination
-                    loading={loading}
+                    loading={isLoading}
                     pageSize={pageSize}
                     setPageSize={setPageSize}
                     currentPage={currentPage}
                     setCurrentPage={setCurrentPage}
-                    totalItems={totalItems}
-                    totalPages={totalPages}
+                    totalItems={data?.total || 0}
+                    totalPages={data?.totalPages || 1}
                 />
             </div>
             <ProductDialog

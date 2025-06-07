@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState, useRef } from "react";
+import { useCallback, useEffect, useState, useMemo } from "react";
 import { ChevronDownIcon } from "@radix-ui/react-icons";
 import {
     type ColumnFiltersState,
@@ -22,24 +22,19 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
-import useDebounce from "@/hooks/use-debounce";
 import { BaseStatusFilter, ConfirmBanUnbanDialog, ExportButton, NoResultsRow, Pagination, RefreshButton, SearchInput } from "@/components/common";
 import { multiSelectFilter } from "@/utils/table";
-import { useToast } from "@/hooks/use-toast";
 import { ErrorResponse } from "@/types/error";
 import { columns } from "@/components/manage-accounts/columns";
 import { Account } from "@/interfaces/account";
-import { banAccount, getAccounts, unbanAccount } from "@/services/auth";
+import { banAccount, unbanAccount } from "@/services/auth";
 import { AccountDetailDialog } from "@/components/dialog/account";
+import { useAccounts, useDebounce, useToast } from "@/hooks";
 
 const ManageAccounts = () => {
     const { toast } = useToast();
-    const [loading, setLoading] = useState(true);
-    const [pageSize, setPageSize] = useState(10);
-    const [currentPage, setCurrentPage] = useState(1);
-    const [accounts, setAccounts] = useState<Account[]>([]);
-    const [totalItems, setTotalItems] = useState(0);
-    const [totalPages, setTotalPages] = useState(1);
+    const [pageSize, setPageSize] = useState<number>(10);
+    const [currentPage, setCurrentPage] = useState<number>(1);
     const [statusFilter, setStatusFilter] = useState<string>("");
 
     const [sorting, setSorting] = useState<SortingState>([{ id: "createdDate", desc: true }]);
@@ -47,79 +42,50 @@ const ManageAccounts = () => {
     const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
     const [rowSelection, setRowSelection] = useState({});
 
-    const [detailDialogOpen, setDetailDialogOpen] = useState(false);
+    const [detailDialogOpen, setDetailDialogOpen] = useState<boolean>(false);
     const [detailAccount, setDetailAccount] = useState<Account | null>(null);
-    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState<boolean>(false);
     const [accountToBanOrUnban, setAccountToBanOrUnban] = useState<Account | null>(null);
 
     const [searchValue, setSearchValue] = useState<string>("");
     const debouncedSearchValue = useDebounce(searchValue, 500);
 
-    const isInitialMount = useRef(true);
+    const params = {
+        filterBy: debouncedSearchValue ? "fullName" : undefined,
+        filterQuery: debouncedSearchValue || undefined,
+        page: currentPage,
+        size: pageSize,
+        sortBy: sorting.length > 0 ? sorting[0]?.id : undefined,
+        isAsc: sorting.length > 0 ? !sorting[0]?.desc : undefined,
+        status: statusFilter || undefined,
+    };
 
-    // Gộp đồng bộ tất cả bộ lọc trong một useEffect
+    const { data, error, isLoading, mutate } = useAccounts(params);
+
     useEffect(() => {
-        if (isInitialMount.current) {
-            isInitialMount.current = false;
-            return; // Bỏ qua lần đầu tiên khi mount
-        }
-        table.getColumn("name")?.setFilterValue(debouncedSearchValue || undefined);
+        table.getColumn("fullName")?.setFilterValue(debouncedSearchValue || undefined);
     }, [debouncedSearchValue, statusFilter]);
 
-    const fetchAccounts = useCallback(async () => {
-        try {
-            setLoading(true);
-
-            const nameFilter = columnFilters.find((filter) => filter.id === "fullName");
-            const filterBy = nameFilter ? "fullName" : undefined;
-            const filterQuery = nameFilter?.value as string | undefined;
-
-            const sortBy = sorting.length > 0 ? sorting[0]?.id : undefined;
-            const isAsc = sorting.length > 0 ? !sorting[0]?.desc : undefined;
-
-            const response = await getAccounts({
-                filterBy,
-                filterQuery,
-                page: currentPage,
-                size: pageSize,
-                sortBy,
-                isAsc,
-            });
-
-            setAccounts(response.items);
-            setTotalItems(response.total);
-            setTotalPages(response.totalPages);
-        } catch (err) {
-            console.error(err);
+    useEffect(() => {
+        if (error) {
             toast({
-                title: "Lỗi",
-                description: "Không thể tải danh sách location.",
+                title: "Lỗi khi lấy danh sách tài khoản",
+                description: error.message || "Đã xảy ra lỗi không xác định",
                 variant: "destructive",
             });
-        } finally {
-            setLoading(false);
         }
-    }, [currentPage, pageSize, columnFilters, sorting, toast]);
-
-    useEffect(() => {
-        if (isInitialMount.current) {
-            fetchAccounts();
-            isInitialMount.current = false;
-        } else {
-            fetchAccounts(); // Gọi khi có thay đổi thực sự
-        }
-    }, [fetchAccounts, currentPage, pageSize, sorting, columnFilters]);
+    }, [error, toast]);
 
 
-    const handleViewDetails = (account: Account) => {
+    const handleViewDetails = useCallback((account: Account) => {
         setDetailAccount(account);
         setDetailDialogOpen(true);
-    };
+    }, [])
 
-    const handleToggle = (account: Account) => {
+    const handleToggle = useCallback((account: Account) => {
         setAccountToBanOrUnban(account);
         setDeleteDialogOpen(true);
-    };
+    }, [])
 
     const confirmBanOrUnban = async (reason: string) => {
         if (!accountToBanOrUnban) return;
@@ -143,7 +109,7 @@ const ManageAccounts = () => {
                     description: `Tài khoản "${accountToBanOrUnban.fullName}" đã được khóa.`,
                 });
             }
-            fetchAccounts();
+            mutate();
         } catch (error: unknown) {
             const err = error as ErrorResponse;
             console.error("Lỗi khi thao tác với account:", err);
@@ -167,12 +133,17 @@ const ManageAccounts = () => {
 
     const hasActiveFilters = statusFilter !== "" || searchValue !== "";
 
-    const table = useReactTable({
-        data: accounts,
-        columns: columns({
+    const columnsDef = useMemo(
+        () => columns({
             onViewDetails: handleViewDetails,
             handleToggle: handleToggle,
         }),
+        [handleViewDetails, handleToggle]
+    );
+
+    const table = useReactTable({
+        data: data?.items || [],
+        columns: columnsDef,
         onSortingChange: setSorting,
         onColumnFiltersChange: setColumnFilters,
         getCoreRowModel: getCoreRowModel(),
@@ -190,7 +161,7 @@ const ManageAccounts = () => {
         manualPagination: true,
         manualFiltering: true,
         manualSorting: true,
-        pageCount: totalPages,
+        pageCount: data?.totalPages || 1,
         filterFns: { multiSelect: multiSelectFilter },
     });
 
@@ -211,14 +182,14 @@ const ManageAccounts = () => {
                         <p className="text-muted-foreground">Quản lý và giám sát tất cả các tài khoản pha cà phê tự động.</p>
                     </div>
                     <div className="flex items-center gap-2">
-                        <ExportButton loading={loading} />
-                        <RefreshButton loading={loading} toggleLoading={fetchAccounts} />
+                        <ExportButton loading={isLoading} />
+                        <RefreshButton loading={isLoading} toggleLoading={mutate} />
                     </div>
                 </div>
                 <div className="flex flex-col sm:flex-row items-center py-4 gap-4">
                     <div className="relative w-full sm:w-72">
                         <SearchInput
-                            loading={loading}
+                            loading={isLoading}
                             placeHolderText="Tìm kiếm tài khoản..."
                             searchValue={searchValue}
                             setSearchValue={setSearchValue}
@@ -226,7 +197,7 @@ const ManageAccounts = () => {
                     </div>
                     <div className="flex items-center gap-2 ml-auto">
                         <BaseStatusFilter
-                            loading={loading}
+                            loading={isLoading}
                             statusFilter={statusFilter}
                             setStatusFilter={setStatusFilter}
                             clearAllFilters={clearAllFilters}
@@ -284,7 +255,7 @@ const ManageAccounts = () => {
                             ))}
                         </TableHeader>
                         <TableBody>
-                            {loading ? (
+                            {isLoading ? (
                                 Array.from({ length: pageSize }).map((_, index) => (
                                     <TableRow key={`skeleton-${index}`} className="animate-pulse">
                                         {columns({ onViewDetails: () => { }, handleToggle: () => { } }).map((column, cellIndex) => (
@@ -307,7 +278,7 @@ const ManageAccounts = () => {
                                         ))}
                                     </TableRow>
                                 ))
-                            ) : accounts.length ? (
+                            ) : data?.items?.length ? (
                                 table.getRowModel().rows.map((row) => (
                                     <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
                                         {row.getVisibleCells().map((cell) => (
@@ -324,13 +295,13 @@ const ManageAccounts = () => {
                     </Table>
                 </div>
                 <Pagination
-                    loading={loading}
+                    loading={isLoading}
                     pageSize={pageSize}
                     setPageSize={setPageSize}
                     currentPage={currentPage}
                     setCurrentPage={setCurrentPage}
-                    totalItems={totalItems}
-                    totalPages={totalPages}
+                    totalItems={data?.total || 0}
+                    totalPages={data?.totalPages || 1}
                 />
             </div>
             <AccountDetailDialog

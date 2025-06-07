@@ -1,6 +1,6 @@
 import useDebounce from './use-debounce'
 import { useDeviceTypes, useDeviceModels, useDevices } from './device'
-import { useKioskTypes } from './kiosk/use-kiosk-types'
+import { useKioskTypes, useKioskVersions, useKiosks } from './kiosk'
 import { useIsMobile } from './use-mobile'
 import { useToast } from './use-toast'
 import useScrollPosition from './use-scroll-position'
@@ -11,6 +11,7 @@ import { useAccounts } from './use-accounts'
 import { useStores } from './use-stores'
 import { useOrganizations } from './use-organization'
 import { useMenus } from './use-menus'
+import { useProducts } from './use-products'
 
 export {
     useDebounce, useDeviceTypes, useKioskTypes, useIsMobile, useToast, useScrollPosition, useDeviceModels, useDevices,
@@ -20,5 +21,8 @@ export {
     useAccounts,
     useStores,
     useOrganizations,
-    useMenus
+    useMenus,
+    useKioskVersions,
+    useKiosks,
+    useProducts
 }

@@ -217,7 +217,7 @@ const ManageKiosks = () => {
             }
 
             const response = await axios.get(
-                `https://localhost:30475/api/v1/kiosks/${kiosk.kioskId}/export-setup`,
+                `${process.env.NEXT_PUBLIC_API_BASE_URL}/kiosks/${kiosk.kioskId}/export-setup`,
                 {
                     responseType: 'blob',
                     headers: headers,

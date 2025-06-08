@@ -4,7 +4,7 @@ import { PagingParams } from "@/types/paging";
 
 export function useDevices(params: PagingParams) {
     return useCrossTabSWR(
-        ["deviceTypes", params],
+        ["devices", params],
         () => getDevices(params)
     );
 }

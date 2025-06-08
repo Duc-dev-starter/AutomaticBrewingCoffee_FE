@@ -18,6 +18,7 @@ export function useCrossTabSWR<T>(
         fetcher,
         {
             ...options,
+            revalidateOnMount: true,
             revalidateOnFocus: false,
             refreshInterval: 60 * 1000,
             onError: (err) => toast({ title: "Lỗi", description: err.message })

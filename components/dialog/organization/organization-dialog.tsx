@@ -93,7 +93,6 @@ const OrganizationDialog = ({ open, onOpenChange, onSuccess, organization }: Org
         const previewUrl = URL.createObjectURL(file)
         setLogoPreview(previewUrl)
         setLogoFile(file)
-        // Clear logoUrl when uploading a file
         setFormData((prev) => ({
             ...prev,
             logoUrl: "",
@@ -106,7 +105,6 @@ const OrganizationDialog = ({ open, onOpenChange, onSuccess, organization }: Org
             logoUrl: url,
         }))
         setLogoPreview(url)
-        // Clear file when using URL
         setLogoFile(null)
     }
 
@@ -130,7 +128,6 @@ const OrganizationDialog = ({ open, onOpenChange, onSuccess, organization }: Org
             return
         }
 
-        // Test if the URL is valid by loading the image
         const img = new Image()
         img.onload = () => {
             setLogoPreview(formData.logoUrl)
@@ -194,7 +191,6 @@ const OrganizationDialog = ({ open, onOpenChange, onSuccess, organization }: Org
                 status: formData.status,
             }
 
-            // Handle logo based on the active tab
             if (logoTab === "upload" && logoFile) {
                 const logoBase64 = await fileToBase64(logoFile)
                 payload.logoBase64 = logoBase64
@@ -250,7 +246,7 @@ const OrganizationDialog = ({ open, onOpenChange, onSuccess, organization }: Org
                         )}
                     </DialogTitle>
                 </DialogHeader>
-                <form onSubmit={handleSubmit} className="space-y-6 py-4">
+                <div className="space-y-6 py-4">
                     <div className="space-y-4">
                         <div className="space-y-2">
                             <Label htmlFor="logo">Logo tổ chức</Label>
@@ -335,8 +331,8 @@ const OrganizationDialog = ({ open, onOpenChange, onSuccess, organization }: Org
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-2">
+                        <div className="flex gap-4">
+                            <div className="flex-1 space-y-2">
                                 <Label htmlFor="name" className="asterisk">
                                     Tên tổ chức
                                 </Label>
@@ -349,7 +345,7 @@ const OrganizationDialog = ({ open, onOpenChange, onSuccess, organization }: Org
                                 />
                                 {errors.name && <p className="text-red-500 text-sm">{errors.name}</p>}
                             </div>
-                            <div className="space-y-2">
+                            <div className="flex-1 space-y-2">
                                 <Label htmlFor="taxId" className="asterisk">
                                     Mã số thuế
                                 </Label>
@@ -364,8 +360,8 @@ const OrganizationDialog = ({ open, onOpenChange, onSuccess, organization }: Org
                             </div>
                         </div>
 
-                        <div className="grid grid-cols-2 gap-4">
-                            <div className="space-y-2">
+                        <div className="flex gap-4">
+                            <div className="flex-1 space-y-2">
                                 <Label htmlFor="contactEmail" className="asterisk">
                                     Email liên hệ
                                 </Label>
@@ -379,8 +375,7 @@ const OrganizationDialog = ({ open, onOpenChange, onSuccess, organization }: Org
                                 />
                                 {errors.contactEmail && <p className="text-red-500 text-sm">{errors.contactEmail}</p>}
                             </div>
-
-                            <div className="space-y-2">
+                            <div className="flex-1 space-y-2">
                                 <Label htmlFor="contactPhone" className="asterisk">
                                     Số điện thoại
                                 </Label>
@@ -435,7 +430,7 @@ const OrganizationDialog = ({ open, onOpenChange, onSuccess, organization }: Org
                         <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
                             Hủy
                         </Button>
-                        <Button type="submit" disabled={loading}>
+                        <Button type="submit" disabled={loading} onClick={handleSubmit}>
                             {loading ? (
                                 <>
                                     <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -454,7 +449,7 @@ const OrganizationDialog = ({ open, onOpenChange, onSuccess, organization }: Org
                             )}
                         </Button>
                     </DialogFooter>
-                </form>
+                </div>
             </DialogContent>
         </Dialog>
     )

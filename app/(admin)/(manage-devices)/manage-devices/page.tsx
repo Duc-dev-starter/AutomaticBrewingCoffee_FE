@@ -176,6 +176,16 @@ const ManageDevices = () => {
         setCurrentPage(1);
     }, [columnFilters]);
 
+    const visibleCount = useMemo(
+        () => table.getAllColumns().filter(col => col.getIsVisible()).length,
+        [table.getState().columnVisibility]
+    );
+
+    const totalCount = useMemo(
+        () => table.getAllColumns().length,
+        []
+    );
+
     return (
         <div className="w-full">
             <div className="flex flex-col space-y-4 p-4 sm:p-6">
@@ -209,7 +219,9 @@ const ManageDevices = () => {
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button variant="outline">
-                                    Cột <ChevronDownIcon className="ml-2 h-4 w-4" />
+                                    Cột <span className="bg-gray-200 rounded-full px-2 pt-0.5 pb-1 text-xs">
+                                        {visibleCount}/{totalCount}
+                                    </span> <ChevronDownIcon className="h-4 w-4" />
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
@@ -228,7 +240,8 @@ const ManageDevices = () => {
                                                         column.id === "deviceInfo" ? "Thông tin" :
                                                             column.id === "status" ? "Trạng thái" :
                                                                 column.id === "createdDate" ? "Ngày tạo" :
-                                                                    column.id === "updatedDate" ? "Ngày cập nhật" : column.id}
+                                                                    column.id === "updatedDate" ? "Ngày cập nhật" :
+                                                                        column.id === "actions" ? "Hành động" : column.id}
                                         </DropdownMenuCheckboxItem>
                                     ))}
                             </DropdownMenuContent>

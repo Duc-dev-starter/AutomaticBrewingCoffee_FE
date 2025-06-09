@@ -180,6 +180,15 @@ const ManageStores = () => {
         setCurrentPage(1);
     }, [columnFilters]);
 
+    const visibleCount = useMemo(
+        () => table.getAllColumns().filter(col => col.getIsVisible()).length,
+        [table.getState().columnVisibility]
+    );
+
+    const totalCount = useMemo(
+        () => table.getAllColumns().length,
+        []
+    );
 
     return (
         <div className="w-full">
@@ -214,7 +223,9 @@ const ManageStores = () => {
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button variant="outline">
-                                    Cột <ChevronDownIcon className="ml-2 h-4 w-4" />
+                                    Cột <span className="bg-gray-200 rounded-full px-2 pt-0.5 pb-1 text-xs">
+                                        {visibleCount}/{totalCount}
+                                    </span> <ChevronDownIcon className="h-4 w-4" />
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
@@ -231,7 +242,8 @@ const ManageStores = () => {
                                                 column.id === "name" ? "Tên cửa hàng" :
                                                     column.id === "status" ? "Trạng thái" :
                                                         column.id === "locationAddress" ? "Địa chỉ" :
-                                                            column.id === "contactPhone" ? "Số điện thoại" : column.id}
+                                                            column.id === "contactPhone" ? "Số điện thoại" :
+                                                                column.id === "actions" ? "Hành động" : column.id}
                                         </DropdownMenuCheckboxItem>
                                     ))}
                             </DropdownMenuContent>

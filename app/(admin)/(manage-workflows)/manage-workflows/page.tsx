@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState, useRef } from "react";
+import { useCallback, useEffect, useState, useRef, useMemo } from "react";
 import { ChevronDownIcon } from "@radix-ui/react-icons";
 import {
     type ColumnFiltersState,
@@ -197,6 +197,15 @@ const ManageWorkflows = () => {
         setCurrentPage(1);
     }, [columnFilters]);
 
+    const visibleCount = useMemo(
+        () => table.getAllColumns().filter(col => col.getIsVisible()).length,
+        [table.getState().columnVisibility]
+    );
+
+    const totalCount = useMemo(
+        () => table.getAllColumns().length,
+        []
+    );
 
     return (
         <div className="w-full">
@@ -230,8 +239,10 @@ const ManageWorkflows = () => {
                         />
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
-                                <Button variant="outline" disabled={loading}>
-                                    Cột <ChevronDownIcon className="ml-2 h-4 w-4" />
+                                <Button variant="outline">
+                                    Cột <span className="bg-gray-200 rounded-full px-2 pt-0.5 pb-1 text-xs">
+                                        {visibleCount}/{totalCount}
+                                    </span> <ChevronDownIcon className="h-4 w-4" />
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">

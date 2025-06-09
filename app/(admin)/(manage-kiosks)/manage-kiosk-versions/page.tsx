@@ -33,6 +33,7 @@ import { KioskVersionDialog } from "@/components/dialog/kiosk";
 import { useRouter } from "next/navigation";
 import { ErrorResponse } from "@/types/error";
 import { useDebounce, useKioskVersions, useToast } from "@/hooks";
+import { Path } from "@/constants/path";
 
 const ManageKioskVersions = () => {
     const router = useRouter();
@@ -93,9 +94,9 @@ const ManageKioskVersions = () => {
         setDialogOpen(true);
     }, []);
 
-    const handleViewDetails = (kioskVersion: KioskVersion) => {
-        router.push(`/manage-kiosk-versions/${kioskVersion.kioskVersionId}`);
-    };
+    const handleViewDetails = useCallback((kioskVersion: KioskVersion) => {
+        router.push(`${Path.MANAGE_KIOSK_VERSIONS}/${kioskVersion.kioskVersionId}`);
+    }, [])
 
     const handleDelete = useCallback((kioskVersion: KioskVersion) => {
         setKioskVersionToDelete(kioskVersion);
@@ -180,6 +181,16 @@ const ManageKioskVersions = () => {
         setCurrentPage(1);
     }, [columnFilters]);
 
+    const visibleCount = useMemo(
+        () => table.getAllColumns().filter(col => col.getIsVisible()).length,
+        [table.getState().columnVisibility]
+    );
+
+    const totalCount = useMemo(
+        () => table.getAllColumns().length,
+        []
+    );
+
 
     return (
         <div className="w-full">
@@ -214,7 +225,9 @@ const ManageKioskVersions = () => {
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button variant="outline">
-                                    Cột <ChevronDownIcon className="ml-2 h-4 w-4" />
+                                    Cột <span className="bg-gray-200 rounded-full px-2 pt-0.5 pb-1 text-xs">
+                                        {visibleCount}/{totalCount}
+                                    </span> <ChevronDownIcon className="h-4 w-4" />
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
@@ -232,7 +245,8 @@ const ManageKioskVersions = () => {
                                                     column.id === "versionNumber" ? "Số phiên bản" :
                                                         column.id === "status" ? "Trạng thái" :
                                                             column.id === "createdDate" ? "Ngày tạo" :
-                                                                column.id === "updatedDate" ? "Ngày cập nhật" : column.id}
+                                                                column.id === "updatedDate" ? "Ngày cập nhật" :
+                                                                    column.id === "actions" ? "Hành động" : column.id}
                                         </DropdownMenuCheckboxItem>
                                     ))}
                             </DropdownMenuContent>

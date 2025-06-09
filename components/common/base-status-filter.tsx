@@ -62,10 +62,10 @@ export const BaseStatusFilter = ({ statusFilter, setStatusFilter }: FilterProps)
                             Trạng thái
                         </>
                     )}
-                    <span className="ml-1 bg-gray-200 rounded-full px-2 pt-0.5 pb-1 text-xs">
+                    <span className=" bg-gray-200 rounded-full px-2 pt-0.5 pb-1 text-xs">
                         {activeCount}/{totalStatuses}
                     </span>
-                    <ChevronDownIcon className="ml-2 h-4 w-4" />
+                    <ChevronDownIcon className="h-4 w-4" />
                 </Button>
 
             </DropdownMenuTrigger>

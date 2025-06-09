@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState, useRef } from "react";
+import { useCallback, useEffect, useState, useMemo } from "react";
 import { ChevronDownIcon } from "@radix-ui/react-icons";
 import {
     type ColumnFiltersState,
@@ -23,12 +23,10 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { PlusCircle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import useDebounce from "@/hooks/use-debounce";
 import { ConfirmDeleteDialog, BaseStatusFilter, ExportButton, NoResultsRow, Pagination, RefreshButton, SearchInput } from "@/components/common";
-import { getKiosks, deleteKiosk, syncKiosk } from "@/services/kiosk";
+import { deleteKiosk, syncKiosk } from "@/services/kiosk";
 import { Kiosk } from "@/interfaces/kiosk";
 import { multiSelectFilter } from "@/utils/table";
-import { useToast } from "@/hooks/use-toast";
 import { columns } from "@/components/manage-kiosks/columns";
 import { KioskDetailDialog, KioskDialog } from "@/components/dialog/kiosk";
 import { BaseFilterBadges } from "@/components/common/base-filter-badges";
@@ -37,17 +35,15 @@ import WebhookDialog from "@/components/dialog/webhook/webhook-dialog";
 import { ErrorResponse } from "@/types/error";
 import axios from "axios";
 import Cookies from "js-cookie"
+import { useDebounce, useKiosks, useToast } from "@/hooks";
+import { Path } from "@/constants/path";
 
 
 const ManageKiosks = () => {
     const router = useRouter();
     const { toast } = useToast();
-    const [loading, setLoading] = useState<boolean>(true);
     const [pageSize, setPageSize] = useState<number>(10);
     const [currentPage, setCurrentPage] = useState<number>(1);
-    const [kiosks, setKiosks] = useState<Kiosk[]>([]);
-    const [totalItems, setTotalItems] = useState<number>(0);
-    const [totalPages, setTotalPages] = useState<number>(1);
 
     const [statusFilter, setStatusFilter] = useState<string>("");
     const [searchValue, setSearchValue] = useState<string>("");
@@ -67,84 +63,55 @@ const ManageKiosks = () => {
     const [webhookDialogOpen, setWebhookDialogOpen] = useState<boolean>(false);
     const [selectedKioskId, setSelectedKioskId] = useState<string | null>(null);
 
-    const isInitialMount = useRef<boolean>(true);
-
     const hasActiveFilters = statusFilter !== "" || searchValue !== "";
 
+    const params = {
+        filterBy: debouncedSearchValue ? "location" : undefined,
+        filterQuery: debouncedSearchValue || undefined,
+        page: currentPage,
+        size: pageSize,
+        sortBy: sorting.length > 0 ? sorting[0]?.id : undefined,
+        isAsc: sorting.length > 0 ? !sorting[0]?.desc : undefined,
+        status: statusFilter || undefined,
+    };
+
+    const { data, error, isLoading, mutate } = useKiosks(params);
+
     useEffect(() => {
-        if (isInitialMount.current) {
-            return;
+        if (error) {
+            toast({
+                title: "Lỗi khi lấy danh sách kiosk",
+                description: error.message || "Đã xảy ra lỗi không xác định",
+                variant: "destructive",
+            });
         }
+    }, [error, toast]);
+
+    useEffect(() => {
         table.getColumn("location")?.setFilterValue(debouncedSearchValue || undefined);
         table.getColumn("status")?.setFilterValue(statusFilter || undefined);
     }, [debouncedSearchValue, statusFilter]);
 
-    const fetchKiosks = useCallback(async () => {
-        try {
-            setLoading(true);
-
-            const locationFilter = columnFilters.find((filter) => filter.id === "location");
-            const filterBy = locationFilter ? "location" : undefined;
-            const filterQuery = locationFilter?.value as string | undefined;
-
-            const statusFilterValue = columnFilters.find((filter) => filter.id === "status")?.value as string | undefined;
-
-            const sortBy = sorting.length > 0 ? sorting[0]?.id : undefined;
-            const isAsc = sorting.length > 0 ? !sorting[0]?.desc : undefined;
-
-            const response = await getKiosks({
-                filterBy,
-                filterQuery,
-                page: currentPage,
-                size: pageSize,
-                sortBy,
-                isAsc,
-                status: statusFilterValue,
-            });
-
-            setKiosks(response.items);
-            setTotalItems(response.total);
-            setTotalPages(response.totalPages);
-        } catch (err) {
-            console.error(err);
-            toast({
-                title: "Lỗi",
-                description: "Không thể tải danh sách kiosk.",
-                variant: "destructive",
-            });
-        } finally {
-            setLoading(false);
-        }
-    }, [currentPage, pageSize, columnFilters, sorting, toast]);
-
-    useEffect(() => {
-        if (isInitialMount.current) {
-            fetchKiosks();
-            isInitialMount.current = false;
-        } else {
-            fetchKiosks();
-        }
-    }, [fetchKiosks]);
 
     const handleSuccess = () => {
-        fetchKiosks();
+        mutate();
         setDialogOpen(false);
         setSelectedKiosk(undefined);
     };
 
-    const handleEdit = (kiosk: Kiosk) => {
+    const handleEdit = useCallback((kiosk: Kiosk) => {
         setSelectedKiosk(kiosk);
         setDialogOpen(true);
-    };
+    }, [])
 
-    const handleViewDetails = (kiosk: Kiosk) => {
-        router.push(`/manage-kiosks/${kiosk.kioskId}`);
-    };
+    const handleViewDetails = useCallback((kiosk: Kiosk) => {
+        router.push(`${Path.MANAGE_KIOSKS}/${kiosk.kioskId}`);
+    }, [])
 
-    const handleDelete = (kiosk: Kiosk) => {
+    const handleDelete = useCallback((kiosk: Kiosk) => {
         setKioskToDelete(kiosk);
         setDeleteDialogOpen(true);
-    };
+    }, [])
 
     const confirmDelete = async () => {
         if (!kioskToDelete) return;
@@ -154,7 +121,7 @@ const ManageKiosks = () => {
                 title: "Thành công",
                 description: `Kiosk tại "${kioskToDelete.location}" đã được xóa.`,
             });
-            fetchKiosks();
+            mutate();
         } catch (error) {
             const err = error as ErrorResponse
             console.error("Lỗi khi xóa kiosk:", error);
@@ -193,10 +160,10 @@ const ManageKiosks = () => {
         }
     };
 
-    const handleWebhook = (kiosk: Kiosk) => {
+    const handleWebhook = useCallback((kiosk: Kiosk) => {
         setSelectedKioskId(kiosk.kioskId);
         setWebhookDialogOpen(true);
-    };
+    }, [])
 
     const clearAllFilters = () => {
         setStatusFilter("");
@@ -245,14 +212,12 @@ const ManageKiosks = () => {
             const errMessage = error.response ? error.response.data : error.message;
             console.log("Chi tiết lỗi:", errMessage);
         } finally {
-            setLoading(false);
+            mutate();
         }
     };
 
-
-    const table = useReactTable({
-        data: kiosks,
-        columns: columns({
+    const columnsDef = useMemo(
+        () => columns({
             onViewDetails: handleViewDetails,
             onEdit: handleEdit,
             onDelete: handleDelete,
@@ -260,6 +225,13 @@ const ManageKiosks = () => {
             onWebhook: handleWebhook,
             onExport: handleExport,
         }),
+        [handleViewDetails, handleEdit, handleDelete, handleSync, handleWebhook, handleExport]
+    );
+
+
+    const table = useReactTable({
+        data: data?.items || [],
+        columns: columnsDef,
         onSortingChange: setSorting,
         onColumnFiltersChange: setColumnFilters,
         getCoreRowModel: getCoreRowModel(),
@@ -277,7 +249,7 @@ const ManageKiosks = () => {
         manualPagination: true,
         manualFiltering: true,
         manualSorting: true,
-        pageCount: totalPages,
+        pageCount: data?.totalPages || 1,
         filterFns: { multiSelect: multiSelectFilter },
     });
 
@@ -285,9 +257,15 @@ const ManageKiosks = () => {
         table.setPageSize(pageSize);
     }, [pageSize, table]);
 
-    const toggleLoading = () => {
-        fetchKiosks();
-    };
+    const visibleCount = useMemo(
+        () => table.getAllColumns().filter(col => col.getIsVisible()).length,
+        [table.getState().columnVisibility]
+    );
+
+    const totalCount = useMemo(
+        () => table.getAllColumns().length,
+        []
+    );
 
 
     return (
@@ -299,14 +277,14 @@ const ManageKiosks = () => {
                         <p className="text-muted-foreground">Quản lý và giám sát tất cả kiosk.</p>
                     </div>
                     <div className="flex items-center gap-2">
-                        <ExportButton loading={loading} />
-                        <RefreshButton loading={loading} toggleLoading={toggleLoading} />
+                        <ExportButton loading={isLoading} />
+                        <RefreshButton loading={isLoading} toggleLoading={mutate} />
                     </div>
                 </div>
                 <div className="flex flex-col sm:flex-row items-center py-4 gap-4">
                     <div className="relative w-full sm:w-72">
                         <SearchInput
-                            loading={loading}
+                            loading={isLoading}
                             placeHolderText="Tìm kiếm địa chỉ kiosk..."
                             searchValue={searchValue}
                             setSearchValue={setSearchValue}
@@ -318,12 +296,14 @@ const ManageKiosks = () => {
                             setStatusFilter={setStatusFilter}
                             clearAllFilters={clearAllFilters}
                             hasActiveFilters={hasActiveFilters}
-                            loading={loading}
+                            loading={isLoading}
                         />
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button variant="outline">
-                                    Cột <ChevronDownIcon className="ml-2 h-4 w-4" />
+                                    Cột <span className="bg-gray-200 rounded-full px-2 pt-0.5 pb-1 text-xs">
+                                        {visibleCount}/{totalCount}
+                                    </span> <ChevronDownIcon className="h-4 w-4" />
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
@@ -393,7 +373,7 @@ const ManageKiosks = () => {
                             ))}
                         </TableHeader>
                         <TableBody>
-                            {loading ? (
+                            {isLoading ? (
                                 Array.from({ length: pageSize }).map((_, index) => (
                                     <TableRow key={`skeleton-${index}`} className="animate-pulse">
                                         {columns({ onViewDetails: () => { }, onEdit: () => { }, onDelete: () => { }, onSync: () => { }, onWebhook: () => { }, onExport: () => { } }).map((column, cellIndex) => (
@@ -427,7 +407,7 @@ const ManageKiosks = () => {
                                         ))}
                                     </TableRow>
                                 ))
-                            ) : kiosks.length ? (
+                            ) : data?.items?.length ? (
                                 table.getRowModel().rows.map((row) => (
                                     <TableRow key={row.id} data-state={row.getIsSelected() ? "selected" : undefined}>
                                         {row.getVisibleCells().map((cell) => (
@@ -444,13 +424,13 @@ const ManageKiosks = () => {
                     </Table>
                 </div>
                 <Pagination
-                    loading={loading}
+                    loading={isLoading}
                     pageSize={pageSize}
                     setPageSize={setPageSize}
                     currentPage={currentPage}
                     setCurrentPage={setCurrentPage}
-                    totalItems={totalItems}
-                    totalPages={totalPages}
+                    totalItems={data?.total || 0}
+                    totalPages={data?.totalPages || 1}
                 />
             </div>
             <KioskDialog

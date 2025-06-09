@@ -472,7 +472,7 @@ const CreateWorkflow = () => {
                     <Info className="mr-2 h-5 w-5" />
                     Tạo quy trình mới
                 </h1>
-                <Button type="button" disabled={loading} className="bg-blue-500 hover:bg-blue-600" onClick={handleSubmit}>
+                <Button type="button" disabled={loading} className="bg-primary hover:bg-primary-200" onClick={handleSubmit}>
                     {loading ? (
                         <>
                             <Loader2 className="mr-2 h-4 w-4 animate-spin" />
@@ -720,7 +720,7 @@ const CreateWorkflow = () => {
                                     <CardTitle>Các bước thực hiện</CardTitle>
                                     <CardDescription>Thêm và quản lý các bước của quy trình. Bước là bắt buộc.</CardDescription>
                                 </div>
-                                <Button type="button" onClick={addStep} disabled={loading} className="bg-blue-500 hover:bg-blue-600">
+                                <Button type="button" onClick={addStep} disabled={loading} className="bg-primary hover:bg-primary-200">
                                     <PlusCircle className="mr-2 h-4 w-4" />
                                     Thêm bước
                                 </Button>

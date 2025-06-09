@@ -26,6 +26,8 @@ export const Path = {
     CREATE_ACCOUNT: "/create-account",
     CREATE_WORKFLOW: "/create-workflow",
     UPDATE_WORKFLOW: "/update-workflow",
-    MANAGE_ACCOUNTS: "/manage-accounts"
+    MANAGE_ACCOUNTS: "/manage-accounts",
+    MANAGE_SYNC_EVENT: "/manage-sync-events",
+    MANAGE_SYNC_TASKS: "/manage-sync-tasks",
 };
 

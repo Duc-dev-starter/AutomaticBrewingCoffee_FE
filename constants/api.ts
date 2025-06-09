@@ -39,6 +39,9 @@ export const Api = {
     ORGANIZATIONS: '/organizations',
 
     // STORE
-    STORES: '/stores'
+    STORES: '/stores',
+
+    // SYNC
+    SYNCS: '/syncs'
 
 }

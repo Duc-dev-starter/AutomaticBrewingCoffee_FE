@@ -32,7 +32,7 @@ export function AdminSidebar() {
                         <Coffee className="h-6 w-6" />
                     </div>
                     <span className="ml-3 text-lg font-medium text-gray-700 dark:text-white group-data-[collapsible=icon]:hidden">
-                        AI Cofi
+                        ZION
                     </span>
                 </Link>
             </SidebarHeader>

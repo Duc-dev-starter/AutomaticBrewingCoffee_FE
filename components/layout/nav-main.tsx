@@ -104,6 +104,13 @@ const menuSections: MenuSection[] = [
         ],
     },
     {
+        title: "Quản lý đồng bộ",
+        items: [
+            { title: "Quản lý đồng bộ event", url: Path.MANAGE_SYNC_EVENT, icon: DollarSign },
+            { title: "Quản lý đồng bộ task", url: Path.MANAGE_SYNC_TASKS, icon: User },
+        ],
+    },
+    {
         title: "Quản lý kinh doanh",
         items: [
             { title: "Quản lý tổ chức", url: Path.MANAGE_ORGANIZATIONS, icon: DollarSign },

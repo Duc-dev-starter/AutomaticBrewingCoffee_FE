@@ -38,6 +38,7 @@ const WebhookDialog = ({ open, onOpenChange, kioskId }: WebhookDialogProps) => {
             toast({
                 title: "Thành công",
                 description: response.message,
+                variant: "success"
             });
             if (type === EWebhookType.MenuSynchronized) {
                 setMenuUrl("");

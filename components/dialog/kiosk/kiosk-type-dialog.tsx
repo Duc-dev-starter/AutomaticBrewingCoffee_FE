@@ -78,12 +78,14 @@ const KioskTypeDialog = ({ open, onOpenChange, onSuccess, kioskType }: KioskDial
                 toast({
                     title: "Thành công",
                     description: "Cập nhật loại kiosk thành công",
+                    variant: "success"
                 });
             } else {
                 await createKioskType(data);
                 toast({
                     title: "Thành công",
                     description: "Thêm loại kiosk mới thành công",
+                    variant: "success"
                 });
             }
             onSuccess?.();

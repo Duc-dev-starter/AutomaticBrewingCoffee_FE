@@ -77,12 +77,14 @@ const DeviceTypeDialog = ({ open, onOpenChange, onSuccess, deviceType }: DeviceD
                 toast({
                     title: "Thành công",
                     description: "Cập nhật loại thiết bị thành công",
+                    variant: "success"
                 });
             } else {
                 await createDeviceType(data);
                 toast({
                     title: "Thành công",
                     description: "Thêm loại thiết bị mới thành công",
+                    variant: "success"
                 });
             }
             onSuccess?.();

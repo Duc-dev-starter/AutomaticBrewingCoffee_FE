@@ -172,12 +172,14 @@ const MenuDialog = ({ open, onOpenChange, onSuccess, menu }: MenuDialogProps) =>
                 toast({
                     title: "Thành công",
                     description: "Cập nhật menu thành công",
+                    variant: "success"
                 });
             } else {
                 await createMenu(data);
                 toast({
                     title: "Thành công",
                     description: "Thêm menu mới thành công",
+                    variant: "success"
                 });
             }
             onSuccess?.();

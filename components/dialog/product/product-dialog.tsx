@@ -190,12 +190,14 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                 toast({
                     title: "Thành công",
                     description: `Sản phẩm "${formData.name}" đã được cập nhật.`,
+                    variant: "success"
                 })
             } else {
                 await createProduct(data)
                 toast({
                     title: "Thành công",
                     description: `Sản phẩm "${formData.name}" đã được tạo.`,
+                    variant: "success"
                 })
             }
             onSuccess?.()

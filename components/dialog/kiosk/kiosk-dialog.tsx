@@ -193,12 +193,14 @@ const KioskDialog = ({ open, onOpenChange, onSuccess, kiosk }: KioskDialogProps)
                 toast({
                     title: "Thành công",
                     description: `Kiosk tại "${formData.location}" đã được cập nhật.`,
+                    variant: "success"
                 })
             } else {
                 await createKiosk(data)
                 toast({
                     title: "Thành công",
                     description: `Kiosk tại "${formData.location}" đã được tạo.`,
+                    variant: "success"
                 })
             }
             onSuccess?.()

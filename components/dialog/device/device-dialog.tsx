@@ -117,12 +117,14 @@ const DeviceDialog = ({ open, onOpenChange, onSuccess, device }: DeviceDialogPro
                 toast({
                     title: "Thành công",
                     description: "Cập nhật thiết bị thành công.",
+                    variant: "success"
                 });
             } else {
                 await createDevice(data);
                 toast({
                     title: "Thành công",
                     description: "Thêm thiết bị mới thành công.",
+                    variant: "success"
                 });
             }
             onSuccess?.();

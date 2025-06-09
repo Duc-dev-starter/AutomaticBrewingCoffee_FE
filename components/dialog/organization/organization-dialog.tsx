@@ -203,12 +203,14 @@ const OrganizationDialog = ({ open, onOpenChange, onSuccess, organization }: Org
                 toast({
                     title: "Thành công",
                     description: "Cập nhật tổ chức thành công",
+                    variant: "success"
                 })
             } else {
                 await createOrganization(payload)
                 toast({
                     title: "Thành công",
                     description: "Thêm tổ chức mới thành công",
+                    variant: "success"
                 })
             }
             onSuccess?.()

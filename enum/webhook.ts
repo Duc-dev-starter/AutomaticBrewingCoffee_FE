@@ -1,4 +1,4 @@
 export enum EWebhookType {
-    MenuSynchronized = "MenuSynchronized",
+    MenuSynchronized = "SynchronizedData",
     PaymentCallback = "PaymentCallback",
 }

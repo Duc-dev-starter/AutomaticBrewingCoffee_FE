@@ -194,12 +194,14 @@ const DeviceModelDialog = ({ open, onOpenChange, onSuccess, deviceModel }: Devic
                 toast({
                     title: "Thành công",
                     description: `Cập nhật mẫu thiết bị ${data.modelName} thành công.`,
+                    variant: "success"
                 })
             } else {
                 await createDeviceModel(data)
                 toast({
                     title: "Thành công",
                     description: `Thêm mẫu thiết bị ${data.modelName} thành công.`,
+                    variant: "success"
                 })
             }
             onSuccess?.()

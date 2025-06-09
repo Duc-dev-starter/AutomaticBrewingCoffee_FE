@@ -172,12 +172,14 @@ const StoreDialog = ({ open, onOpenChange, onSuccess, store }: StoreDialogProps)
                 toast({
                     title: "Thành công",
                     description: "Cửa hàng đã được cập nhật.",
+                    variant: "success"
                 });
             } else {
                 await createStore(data);
                 toast({
                     title: "Thành công",
                     description: "Cửa hàng đã được tạo mới.",
+                    variant: "success"
                 });
             }
             onSuccess?.();

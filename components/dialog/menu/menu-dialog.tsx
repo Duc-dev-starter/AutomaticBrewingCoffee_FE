@@ -11,21 +11,14 @@ import { PlusCircle, Loader2, Edit } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { EBaseStatus, EBaseStatusViMap } from "@/enum/base";
 import { createMenu, updateMenu } from "@/services/menu";
-import { Kiosk } from "@/interfaces/kiosk";
-import { getKiosks } from "@/services/kiosk";
 import { getOrganizations } from "@/services/organization";
-import { getStores } from "@/services/store";
-import InfiniteScroll from "react-infinite-scroll-component";
 import { MenuDialogProps } from "@/types/dialog";
 import { ErrorResponse } from "@/types/error";
 import { menuSchema } from "@/schema/menu";
 import { Organization } from "@/interfaces/organization";
-import { Store } from "@/interfaces/store";
 
 const initialFormData = {
     organizationId: "",
-    storeId: "",
-    kioskId: "",
     name: "",
     description: "",
     status: EBaseStatus.Active,
@@ -35,11 +28,6 @@ const MenuDialog = ({ open, onOpenChange, onSuccess, menu }: MenuDialogProps) =>
     const { toast } = useToast();
     const [formData, setFormData] = useState(initialFormData);
     const [organizations, setOrganizations] = useState<Organization[]>([]);
-    const [stores, setStores] = useState<Store[]>([]);
-    const [kiosks, setKiosks] = useState<Kiosk[]>([]);
-    const [page, setPage] = useState(1);
-    const [hasMore, setHasMore] = useState(true);
-    const [noKiosks, setNoKiosks] = useState(false);
     const [errors, setErrors] = useState<Record<string, any>>({});
     const [loading, setLoading] = useState(false);
 
@@ -52,39 +40,6 @@ const MenuDialog = ({ open, onOpenChange, onSuccess, menu }: MenuDialogProps) =>
         }
     };
 
-    const fetchStores = async (organizationId: string) => {
-        try {
-            const response = await getStores({ organizationId });
-            setStores(response.items);
-        } catch (error) {
-            console.error("Lỗi khi lấy danh sách cửa hàng:", error);
-        }
-    };
-
-    const fetchKiosks = async (storeId: string, pageNumber: number) => {
-        try {
-            const response = await getKiosks({ storeId, page: pageNumber, size: 10, hasMenu: false });
-            if (response.items.length === 0 && pageNumber === 1) {
-                setNoKiosks(true);
-                setHasMore(false);
-            } else {
-                setNoKiosks(false);
-                if (pageNumber === 1) {
-                    setKiosks(response.items);
-                } else {
-                    setKiosks((prev) => [...prev, ...response.items]);
-                }
-                if (response.items.length < 10) {
-                    setHasMore(false);
-                }
-            }
-        } catch (error) {
-            console.error("Lỗi khi lấy danh sách kiosk:", error);
-            setNoKiosks(true);
-            setHasMore(false);
-        }
-    };
-
     useEffect(() => {
         if (open) {
             fetchOrganizations();
@@ -92,34 +47,9 @@ const MenuDialog = ({ open, onOpenChange, onSuccess, menu }: MenuDialogProps) =>
     }, [open]);
 
     useEffect(() => {
-        if (formData.organizationId) {
-            fetchStores(formData.organizationId);
-            setFormData((prev) => ({ ...prev, storeId: "", kioskId: "" }));
-        } else {
-            setStores([]);
-            setKiosks([]);
-            setHasMore(true);
-            setNoKiosks(false);
-        }
-    }, [formData.organizationId]);
-
-    useEffect(() => {
-        if (formData.storeId) {
-            fetchKiosks(formData.storeId, 1);
-            setFormData((prev) => ({ ...prev, kioskId: "" }));
-        } else {
-            setKiosks([]);
-            setHasMore(true);
-            setNoKiosks(false);
-        }
-    }, [formData.storeId]);
-
-    useEffect(() => {
         if (menu) {
             setFormData({
                 organizationId: menu.kiosk?.store?.organization.organizationId || "",
-                storeId: menu.kiosk?.storeId || "",
-                kioskId: menu.kioskId,
                 name: menu.name,
                 description: menu.description ?? "",
                 status: menu.status,
@@ -130,12 +60,7 @@ const MenuDialog = ({ open, onOpenChange, onSuccess, menu }: MenuDialogProps) =>
     useEffect(() => {
         if (!open) {
             setFormData(initialFormData);
-            setPage(1);
-            setKiosks([]);
-            setStores([]);
             setOrganizations([]);
-            setHasMore(true);
-            setNoKiosks(false);
         }
     }, [open]);
 
@@ -164,8 +89,8 @@ const MenuDialog = ({ open, onOpenChange, onSuccess, menu }: MenuDialogProps) =>
             const data = {
                 name: formData.name,
                 description: formData.description || undefined,
-                kioskId: formData.kioskId || undefined,
                 status: formData.status,
+                organizationId: formData.organizationId,
             };
             if (menu) {
                 await updateMenu(menu.menuId, data);
@@ -195,12 +120,6 @@ const MenuDialog = ({ open, onOpenChange, onSuccess, menu }: MenuDialogProps) =>
         } finally {
             setLoading(false);
         }
-    };
-
-    const loadMoreKiosks = async () => {
-        const nextPage = page + 1;
-        await fetchKiosks(formData.storeId, nextPage);
-        setPage(nextPage);
     };
 
     const isUpdate = !!menu;
@@ -248,67 +167,6 @@ const MenuDialog = ({ open, onOpenChange, onSuccess, menu }: MenuDialogProps) =>
                                 </SelectContent>
                             </Select>
                             {errors.organizationId && <p className="text-red-500 text-sm">{errors.organizationId}</p>}
-                        </div>
-
-                        {/* Chọn Store */}
-                        <div className="space-y-2">
-                            <Label htmlFor="storeId" className="asterisk">
-                                Cửa hàng
-                            </Label>
-                            <Select
-                                value={formData.storeId}
-                                onValueChange={(value) => handleChange("storeId", value)}
-                                disabled={loading || stores.length === 0 || !formData.organizationId}
-                            >
-                                <SelectTrigger id="storeId">
-                                    <SelectValue placeholder={stores.length === 0 ? "Không có cửa hàng" : "Chọn cửa hàng"} />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {stores.map((store) => (
-                                        <SelectItem key={store.storeId} value={store.storeId}>
-                                            {store.name}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            {errors.storeId && <p className="text-red-500 text-sm">{errors.storeId}</p>}
-                        </div>
-
-                        {/* Chọn Kiosk */}
-                        <div className="space-y-2">
-                            <Label htmlFor="kioskId" className="asterisk">
-                                Kiosk
-                            </Label>
-                            <Select
-                                value={formData.kioskId}
-                                onValueChange={(value) => handleChange("kioskId", value)}
-                                disabled={loading || noKiosks || !formData.storeId}
-                            >
-                                <SelectTrigger id="kioskId">
-                                    <SelectValue placeholder={noKiosks ? "Không có kiosk" : "Chọn kiosk"} />
-                                </SelectTrigger>
-                                <SelectContent className="max-h-[300px] overflow-y-auto">
-                                    {noKiosks ? (
-                                        <div className="p-2 text-center text-sm text-gray-500">Không có kiosk</div>
-                                    ) : (
-                                        <InfiniteScroll
-                                            dataLength={kiosks.length}
-                                            next={loadMoreKiosks}
-                                            hasMore={hasMore}
-                                            loader={<div className="p-2 text-center text-sm">Đang tải thêm...</div>}
-                                            scrollableTarget="select-content"
-                                            style={{ overflow: "hidden" }}
-                                        >
-                                            {kiosks.map((kiosk) => (
-                                                <SelectItem key={kiosk.kioskId} value={kiosk.kioskId}>
-                                                    {kiosk.location}
-                                                </SelectItem>
-                                            ))}
-                                        </InfiniteScroll>
-                                    )}
-                                </SelectContent>
-                            </Select>
-                            {errors.kioskId && <p className="text-red-500 text-sm">{errors.kioskId}</p>}
                         </div>
 
                         <div className="space-y-2">

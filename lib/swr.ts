@@ -1,6 +1,5 @@
 import useSWR, { KeyedMutator, SWRConfiguration } from "swr";
 import { useEffect } from "react";
-import { toast } from "@/hooks/use-toast";
 
 /**
  * Hook base đồng bộ cache giữa các tab bằng localStorage event.
@@ -20,8 +19,7 @@ export function useCrossTabSWR<T>(
             ...options,
             revalidateOnMount: true,
             revalidateOnFocus: false,
-            refreshInterval: 60 * 1000,
-            onError: (err) => toast({ title: "Lỗi", description: err.message })
+            //refreshInterval: 60 * 1000,
         }
     );
 

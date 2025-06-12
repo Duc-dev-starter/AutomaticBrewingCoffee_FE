@@ -52,7 +52,7 @@ export const columns = ({
             cell: ({ row }) => (
                 <ActionDropdown
                     item={row.original}
-                    onCopy={(item) => navigator.clipboard.writeText(item.kioskId)}
+                    onCopy={(item) => navigator.clipboard.writeText(item.menuId)}
                     onViewDetails={(item) => onViewDetails(item)}
                     onEdit={(item) => onEdit(item)}
                     onDelete={(item) => onDelete(item)}

@@ -49,7 +49,7 @@ const MenuDialog = ({ open, onOpenChange, onSuccess, menu }: MenuDialogProps) =>
     useEffect(() => {
         if (menu) {
             setFormData({
-                organizationId: menu.kiosk?.store?.organization.organizationId || "",
+                organizationId: menu.organization.organizationId || "",
                 name: menu.name,
                 description: menu.description ?? "",
                 status: menu.status,

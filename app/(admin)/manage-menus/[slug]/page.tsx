@@ -367,16 +367,8 @@ const MenuDetail = () => {
                                                             <p className="font-medium">ORD-{menu.menuId.substring(0, 8)}</p>
                                                         </div>
                                                         <div>
-                                                            <p className="text-sm text-muted-foreground">Mã kiosk:</p>
-                                                            <p className="font-medium">KIO-{menu.kioskId.substring(0, 8)}</p>
-                                                        </div>
-                                                        <div>
                                                             <p className="text-sm text-muted-foreground">Tên menu:</p>
                                                             <p className="font-medium">{menu.name}</p>
-                                                        </div>
-                                                        <div>
-                                                            <p className="text-sm text-muted-foreground">Địa chỉ kiosk:</p>
-                                                            <p className="font-medium">{menu.kiosk.location}</p>
                                                         </div>
                                                         <div>
                                                             <p className="text-sm text-muted-foreground">Mô tả:</p>

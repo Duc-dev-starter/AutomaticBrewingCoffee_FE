@@ -19,6 +19,7 @@ export interface DeviceType {
     description: string;
     deviceTypeId: string;
     status: EBaseStatus;
+    isMobileDevice: boolean;
     createdDate: string;
     updatedDate: string | null;
 }

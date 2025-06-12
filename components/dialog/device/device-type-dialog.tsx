@@ -8,6 +8,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { PlusCircle, Loader2, Edit } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { DeviceDialogProps } from "@/types/dialog";
@@ -20,6 +21,7 @@ const initialFormData = {
     name: "",
     description: "",
     status: EBaseStatus.Active,
+    isMobileDevice: false,
 };
 
 const DeviceTypeDialog = ({ open, onOpenChange, onSuccess, deviceType }: DeviceDialogProps) => {
@@ -28,28 +30,27 @@ const DeviceTypeDialog = ({ open, onOpenChange, onSuccess, deviceType }: DeviceD
     const [errors, setErrors] = useState<Record<string, any>>({});
     const [loading, setLoading] = useState(false);
 
-    // Populate form data when editing
     useEffect(() => {
         if (deviceType) {
             setFormData({
                 name: deviceType.name,
                 description: deviceType.description || "",
                 status: deviceType.status || EBaseStatus.Active,
+                isMobileDevice: deviceType.isMobileDevice ?? false,
             });
         }
     }, [deviceType]);
 
-    // Reset form data when dialog closes
     useEffect(() => {
         if (!open) {
             setFormData(initialFormData);
         }
     }, [open]);
 
-    const handleChange = (field: string, value: string) => {
+    const handleChange = (field: string, value: any) => {
         setFormData((prev) => ({
             ...prev,
-            [field]: value,
+            [field]: field === "isMobileDevice" ? value === "true" : value,
         }));
     };
 
@@ -71,20 +72,21 @@ const DeviceTypeDialog = ({ open, onOpenChange, onSuccess, deviceType }: DeviceD
                 name: formData.name,
                 description: formData.description || undefined,
                 status: formData.status,
+                isMobileDevice: formData.isMobileDevice,
             };
             if (deviceType) {
                 await updateDeviceType(deviceType.deviceTypeId, data);
                 toast({
                     title: "Thành công",
                     description: "Cập nhật loại thiết bị thành công",
-                    variant: "success"
+                    variant: "success",
                 });
             } else {
                 await createDeviceType(data);
                 toast({
                     title: "Thành công",
                     description: "Thêm loại thiết bị mới thành công",
-                    variant: "success"
+                    variant: "success",
                 });
             }
             onSuccess?.();
@@ -162,6 +164,32 @@ const DeviceTypeDialog = ({ open, onOpenChange, onSuccess, deviceType }: DeviceD
                         </div>
 
                         <div className="space-y-2">
+                            <Label htmlFor="isMobileDevice" className="asterisk">
+                                Là thiết bị di động
+                            </Label>
+                            <RadioGroup
+                                id="isMobileDevice"
+                                value={formData.isMobileDevice ? "true" : "false"}
+                                onValueChange={(value) => handleChange("isMobileDevice", value)}
+                                disabled={loading}
+                            >
+                                <div className="flex items-center space-x-4">
+                                    <div className="flex items-center space-x-2">
+                                        <RadioGroupItem value="true" id="isMobileDevice-true" />
+                                        <Label htmlFor="isMobileDevice-true">Có</Label>
+                                    </div>
+                                    <div className="flex items-center space-x-2">
+                                        <RadioGroupItem value="false" id="isMobileDevice-false" />
+                                        <Label htmlFor="isMobileDevice-false">Không</Label>
+                                    </div>
+                                </div>
+                            </RadioGroup>
+                            {errors.isMobileDevice && (
+                                <p className="text-red-500 text-sm">{errors.isMobileDevice}</p>
+                            )}
+                        </div>
+
+                        <div className="space-y-2">
                             <Label htmlFor="description">Mô tả</Label>
                             <Textarea
                                 id="description"
@@ -175,7 +203,12 @@ const DeviceTypeDialog = ({ open, onOpenChange, onSuccess, deviceType }: DeviceD
                     </div>
 
                     <DialogFooter>
-                        <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={() => onOpenChange(false)}
+                            disabled={loading}
+                        >
                             Hủy
                         </Button>
                         <Button type="submit" disabled={loading}>

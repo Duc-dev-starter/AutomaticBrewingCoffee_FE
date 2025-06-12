@@ -1,5 +1,5 @@
 import { DeviceType } from "@/interfaces/device";
-import { Calendar, Cpu, Power } from "lucide-react";
+import { Calendar, Check, Cpu, Power, X } from "lucide-react";
 import { type ColumnDef } from "@tanstack/react-table";
 import clsx from "clsx";
 import { formatDate, formatTime } from "@/utils/date";
@@ -44,6 +44,20 @@ export const columns = ({
             cell: ({ row }) => (
                 <div className="max-w-[300px] truncate text-center">
                     {truncateText(row.original.description, 10)}
+                </div>
+            ),
+            enableSorting: false,
+        },
+        {
+            id: "isMobileDevice",
+            header: "Thiết bị di động",
+            cell: ({ row }) => (
+                <div className="flex justify-center items-center h-full">
+                    {row.original.isMobileDevice ? (
+                        <Check className="text-green-500" />
+                    ) : (
+                        <X className="text-red-500" />
+                    )}
                 </div>
             ),
             enableSorting: false,

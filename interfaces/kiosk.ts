@@ -20,6 +20,7 @@ export interface Kiosk {
     kioskDevices: KioskDevice[];
     apiKey: string;
     webhooks?: Webhook[];
+    menuId?: string;
 }
 
 export interface KioskDevice {

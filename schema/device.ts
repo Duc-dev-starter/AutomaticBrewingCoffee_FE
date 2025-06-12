@@ -5,6 +5,9 @@ import { z } from "zod";
 export const deviceTypeSchema = z.object({
     name: z.string().trim().min(1, "Tên không được để trống.").max(100, "Tên không được quá 100 ký tự."),
     description: z.string().trim().max(450, "Mô tả không được quá 450 ký tự.").optional(),
+    isMobileDevice: z.boolean().refine((val) => val !== undefined, {
+        message: "Vui lòng chọn loại thiết bị.",
+    }),
     status: z.enum([EBaseStatus.Active, EBaseStatus.Inactive], { message: "Vui lòng chọn trạng thái cho loại thiết bị." }),
 });
 

@@ -1,8 +1,5 @@
-import { Calendar, Cpu, MoreHorizontal, Power } from "lucide-react";
-import { Badge } from "../ui/badge";
-import { format } from "date-fns";
+import { Cpu, } from "lucide-react";
 import { type ColumnDef } from "@tanstack/react-table";
-import clsx from "clsx";
 import { EBaseStatus, EBaseStatusViMap } from "@/enum/base";
 import { ActionDropdown, BaseFilterBadgesTable } from "../common";
 import { Menu } from "@/interfaces/menu";
@@ -23,15 +20,6 @@ export const columns = ({
                 const menuId = row.original.menuId || "";
                 const shortId = menuId.replace(/-/g, "").substring(0, 8);
                 return <div className="font-medium text-center">MEN-{shortId}</div>;
-            },
-            enableSorting: false,
-        }, {
-            id: "kioskId",
-            header: "Mã kiosk",
-            cell: ({ row }) => {
-                const kioskId = row.original.kioskId || "";
-                const shortId = kioskId.replace(/-/g, "").substring(0, 8);
-                return <div className="font-medium text-center">KIO-{shortId}</div>;
             },
             enableSorting: false,
         },

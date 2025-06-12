@@ -12,6 +12,7 @@ import { EBaseStatus } from "@/enum/base"
 import { createKiosk, updateKiosk } from "@/services/kiosk"
 import { getStores } from "@/services/store"
 import { getKioskVersions } from "@/services/kiosk"
+import { getMenus } from "@/services/menu" // Thêm import cho getMenus
 import { format, isAfter, startOfDay } from "date-fns"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
 import { CalendarIcon } from "lucide-react"
@@ -20,6 +21,7 @@ import { kioskSchema } from "@/schema/kiosk"
 import type { KioskDialogProps } from "@/types/dialog"
 import type { KioskVersion } from "@/interfaces/kiosk"
 import type { Store } from "@/interfaces/store"
+import type { Menu } from "@/interfaces/menu" // Thêm import cho interface Menu
 import { X, Cpu } from "lucide-react"
 import InfiniteScroll from "react-infinite-scroll-component"
 import type { ErrorResponse } from "@/types/error"
@@ -35,6 +37,7 @@ const initialFormData = {
     installedDate: "",
     position: "",
     warrantyTime: "",
+    menuId: "", // Thêm menuId với giá trị mặc định là ""
 }
 
 const KioskDialog = ({ open, onOpenChange, onSuccess, kiosk }: KioskDialogProps) => {
@@ -42,6 +45,7 @@ const KioskDialog = ({ open, onOpenChange, onSuccess, kiosk }: KioskDialogProps)
     const [formData, setFormData] = useState(initialFormData)
     const [kioskVersions, setKioskVersions] = useState<KioskVersion[]>([])
     const [stores, setStores] = useState<Store[]>([])
+    const [menus, setMenus] = useState<Menu[]>([]) // Thêm state cho menus
     const [validDevices, setValidDevices] = useState<Device[]>([])
     const [errors, setErrors] = useState<Record<string, string>>({})
     const [loading, setLoading] = useState(false)
@@ -54,7 +58,6 @@ const KioskDialog = ({ open, onOpenChange, onSuccess, kiosk }: KioskDialogProps)
     // Cập nhật formData dựa trên prop kiosk khi dialog mở
     useEffect(() => {
         if (open && kiosk) {
-            console.log(kiosk)
             setFormData({
                 kioskVersionId: kiosk.kioskVersionId || "",
                 storeId: kiosk.storeId || "",
@@ -65,28 +68,31 @@ const KioskDialog = ({ open, onOpenChange, onSuccess, kiosk }: KioskDialogProps)
                 installedDate: kiosk.installedDate ? format(new Date(kiosk.installedDate), "yyyy-MM-dd") : "",
                 position: kiosk.position || "",
                 warrantyTime: kiosk.warrantyTime ? format(new Date(kiosk.warrantyTime), "yyyy-MM-dd") : "",
+                menuId: kiosk.menuId || "", // Set menuId từ kiosk nếu có
             })
         } else if (open) {
             setFormData(initialFormData)
         }
     }, [open, kiosk])
 
-    // Fetch dữ liệu ban đầu (kiosk versions và stores)
+    // Fetch dữ liệu ban đầu (kiosk versions, stores, và menus)
     useEffect(() => {
         const fetchData = async () => {
             setFetching(true)
             try {
-                const [kioskVersionRes, storeRes] = await Promise.all([
+                const [kioskVersionRes, storeRes, menuRes] = await Promise.all([
                     getKioskVersions({ status: EBaseStatus.Active }),
                     getStores({ status: EBaseStatus.Active }),
+                    getMenus(), // Fetch danh sách menu
                 ])
                 setKioskVersions(kioskVersionRes.items)
                 setStores(storeRes.items)
+                setMenus(menuRes.items) // Set state cho menus
             } catch (error) {
                 const err = error as ErrorResponse
-                console.error("Lỗi khi lấy danh sách kiosk:", error)
+                console.error("Lỗi khi lấy dữ liệu:", error)
                 toast({
-                    title: "Lỗi khi lấy danh sách kiosk",
+                    title: "Lỗi khi lấy dữ liệu",
                     description: err.message,
                     variant: "destructive",
                 })
@@ -187,6 +193,7 @@ const KioskDialog = ({ open, onOpenChange, onSuccess, kiosk }: KioskDialogProps)
                 installedDate: new Date(formData.installedDate).toISOString(),
                 position: formData.position,
                 warrantyTime: new Date(formData.warrantyTime).toISOString(),
+                menuId: formData.menuId || undefined, // Gửi menuId nếu có, nếu không thì undefined
             }
             if (kiosk) {
                 await updateKiosk(kiosk.kioskId, data)
@@ -225,6 +232,25 @@ const KioskDialog = ({ open, onOpenChange, onSuccess, kiosk }: KioskDialogProps)
                     <DialogTitle>{kiosk ? "Chỉnh sửa kiosk" : "Thêm kiosk mới"}</DialogTitle>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
+                    <div className="grid gap-2 min-h-[4.5rem]">
+                        <Label htmlFor="menuId">Menu (tùy chọn)</Label>
+                        <Select
+                            value={formData.menuId}
+                            onValueChange={(value) => setFormData({ ...formData, menuId: value })}
+                            disabled={loading || fetching}
+                        >
+                            <SelectTrigger>
+                                <SelectValue placeholder="Chọn menu (nếu có)" />
+                            </SelectTrigger>
+                            <SelectContent>
+                                {menus.map((menu) => (
+                                    <SelectItem key={menu.menuId} value={menu.menuId}>
+                                        {menu.name}
+                                    </SelectItem>
+                                ))}
+                            </SelectContent>
+                        </Select>
+                    </div>
                     <div className="grid gap-2 min-h-[4.5rem]">
                         <Label htmlFor="kioskVersionId" className="asterisk">
                             Phiên bản kiosk
@@ -313,8 +339,7 @@ const KioskDialog = ({ open, onOpenChange, onSuccess, kiosk }: KioskDialogProps)
                                                     {validDevices.map((d) => (
                                                         <button
                                                             key={d.deviceId}
-                                                            className={`w-full text-left px-3 py-2 hover:bg-accent hover:text-accent-foreground rounded-sm flex items-center justify-between ${formData.deviceIds.includes(d.deviceId) ? "bg-accent/50" : ""
-                                                                }`}
+                                                            className={`w-full text-left px-3 py-2 hover:bg-accent hover:text-accent-foreground rounded-sm flex items-center justify-between ${formData.deviceIds.includes(d.deviceId) ? "bg-accent/50" : ""}`}
                                                             onClick={() => {
                                                                 if (!formData.deviceIds.includes(d.deviceId)) {
                                                                     setFormData({
@@ -437,7 +462,6 @@ const KioskDialog = ({ open, onOpenChange, onSuccess, kiosk }: KioskDialogProps)
                         </Select>
                         {errors.status && <p className="text-red-500 text-sm">{errors.status}</p>}
                     </div>
-
                     <div className="grid gap-2 min-h-[4.5rem]">
                         <Label htmlFor="installedDate" className="asterisk">
                             Ngày lắp đặt
@@ -462,14 +486,12 @@ const KioskDialog = ({ open, onOpenChange, onSuccess, kiosk }: KioskDialogProps)
                                         setFormData({
                                             ...formData,
                                             installedDate: date ? format(date, "yyyy-MM-dd") : "",
-                                            // Reset warranty time khi thay đổi installation date
                                             warrantyTime: "",
                                         })
                                     }
                                     locale={vi}
                                     initialFocus
                                     disabled={(date) => {
-                                        // Chỉ cho phép chọn từ hôm nay trở về quá khứ
                                         const today = startOfDay(new Date())
                                         return isAfter(startOfDay(date), today)
                                     }}
@@ -478,7 +500,6 @@ const KioskDialog = ({ open, onOpenChange, onSuccess, kiosk }: KioskDialogProps)
                         </Popover>
                         {errors.installedDate && <p className="text-red-500 text-sm">{errors.installedDate}</p>}
                     </div>
-
                     <div className="grid gap-2 min-h-[4.5rem]">
                         <Label htmlFor="warrantyTime" className="asterisk">
                             Thời gian bảo hành
@@ -513,7 +534,6 @@ const KioskDialog = ({ open, onOpenChange, onSuccess, kiosk }: KioskDialogProps)
                                     initialFocus
                                     disabled={(date) => {
                                         if (!formData.installedDate) return true
-                                        // Chỉ cho phép chọn từ ngày lắp đặt trở về tương lai
                                         const installedDate = startOfDay(new Date(formData.installedDate))
                                         return startOfDay(date) < installedDate
                                     }}

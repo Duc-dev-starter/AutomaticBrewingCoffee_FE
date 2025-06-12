@@ -32,7 +32,6 @@ const MenuDetailDialog = ({
                 </DialogHeader>
                 <div className="mt-4 space-y-3">
                     {renderField("Mã menu:", menu.menuId)}
-                    {renderField("Mã kiosk:", menu.kioskId)}
                     {renderField("Tên menu:", menu.name)}
                     {renderField("Mô tả:", menu.description || "Không có")}
                     {renderField("Trạng thái:", EBaseStatusViMap[menu.status] || "Không rõ")}

@@ -46,14 +46,16 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
                 const refreshToken = response.response.refreshToken;
                 toast({
                     title: "Đăng nhập thành công",
-                    description: `Chuẩn bị điều hướng sang dashboard`,
+                    description: `Chuẩn bị điều hướng`,
                 });
                 handleToken(accessToken, refreshToken);
                 const userResponse = await getCurrentUser();
                 if (userResponse?.isSuccess && userResponse.response) {
                     setAccount(userResponse.response);
                 }
-                router.push(Path.DASHBOARD);
+                const params = new URLSearchParams(window.location.search);
+                const redirect = params.get("redirect");
+                router.push(redirect || Path.DASHBOARD);
 
             } else {
                 setError("Email hoặc mật khẩu không chính xác");

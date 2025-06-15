@@ -29,5 +29,6 @@ export const Path = {
     MANAGE_ACCOUNTS: "/manage-accounts",
     MANAGE_SYNC_EVENT: "/manage-sync-events",
     MANAGE_SYNC_TASKS: "/manage-sync-tasks",
+    INVALID_REQUEST: "/invalid-request",
 };
 

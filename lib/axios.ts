@@ -55,7 +55,7 @@ axiosInstance.interceptors.response.use(
             const { data } = error.response;
 
             // Xử lý lỗi 401
-            if (error.response.status === HttpStatus.Unauthorized && !originalRequest._retry) {
+            if (error.response.status === HttpStatus.Unauthorized && !originalRequest._retry && error.response?.message?.includes("Mã làm mới đã hết hạn")) {
                 if (isRefreshing) {
                     return new Promise((resolve, reject) => {
                         failedQueue.push({ resolve, reject });
@@ -153,7 +153,7 @@ axiosInstance.interceptors.response.use(
                         toastService.show({
                             variant: "destructive",
                             title: "Hệ thống gặp trục trặc",
-                            description: `${data.message || data.Message}`,
+                            description: `${data.message || data.Message || "Server bị lỗi"}`,
                         })
                         break;
                 }

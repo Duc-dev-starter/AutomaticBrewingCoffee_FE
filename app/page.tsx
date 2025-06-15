@@ -5,10 +5,13 @@ import { useState, useEffect } from "react"
 import { Coffee, ChevronRight, Clock, Droplets, Thermometer, Award } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { motion } from "framer-motion"
+import { useAccountStore } from "@/stores/user"
+import { Path } from "@/constants/path"
 
 export default function Home() {
   const [mounted, setMounted] = useState(false)
   const [scrollY, setScrollY] = useState(0)
+  const { account } = useAccountStore()
 
   // Fix for initial loading issue - ensure component is mounted before rendering
   useEffect(() => {
@@ -98,11 +101,19 @@ export default function Home() {
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.6, delay: 0.6 }}
             >
-              <Link href="/login">
-                <Button size="lg" className="bg-white hover:bg-primary-100 text-primary font-medium">
-                  Đăng Nhập <ChevronRight className="ml-2 h-4 w-4" />
-                </Button>
-              </Link>
+              {account ? (
+                <Link href={Path.DASHBOARD}>
+                  <Button size="lg" className="bg-white hover:bg-primary-100 text-primary font-medium">
+                    Vào Dashboard <ChevronRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </Link>
+              ) : (
+                <Link href={Path.LOGIN}>
+                  <Button size="lg" className="bg-white hover:bg-primary-100 text-primary font-medium">
+                    Đăng Nhập <ChevronRight className="ml-2 h-4 w-4" />
+                  </Button>
+                </Link>
+              )}
             </motion.div>
           </div>
         </div>

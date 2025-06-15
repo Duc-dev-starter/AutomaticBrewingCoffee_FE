@@ -9,17 +9,17 @@ export const config = {
 
 const allowedPaths = Object.values(Path);
 
-
 const dynamicPathPrefixes = [
     Path.MANAGE_MENUS,
     Path.MANAGE_WORKFLOWS,
     Path.MANAGE_KIOSK_VERSIONS,
     Path.MANAGE_KIOSKS,
-    Path.UPDATE_WORKFLOW
+    Path.UPDATE_WORKFLOW,
 ];
 
 export function middleware(req: NextRequest) {
     const pathname = req.nextUrl.pathname;
+    const url = req.nextUrl.clone();
 
     const accessToken = req.cookies.get("accessToken")?.value;
     const refreshToken = req.cookies.get("refreshToken")?.value;
@@ -28,14 +28,24 @@ export function middleware(req: NextRequest) {
 
     if (!accessToken || !refreshToken) {
         if (!isPublicPath) {
-            // return NextResponse.redirect(new URL(Path.LOGIN, req.url));
+            url.pathname = Path.LOGIN;
+            url.searchParams.set("redirect", pathname);
+            return NextResponse.redirect(url);
         }
+        return NextResponse.next();
     }
 
-    const isAllowed = allowedPaths.includes(pathname) || dynamicPathPrefixes.some(prefix => pathname.startsWith(prefix));
+    if (accessToken && pathname === Path.LOGIN) {
+        url.pathname = Path.INVALID_REQUEST;
+        return NextResponse.redirect(url);
+    }
 
+    const isAllowed =
+        allowedPaths.includes(pathname) ||
+        dynamicPathPrefixes.some((prefix) => pathname.startsWith(prefix));
     if (!isAllowed) {
-        return NextResponse.rewrite(new URL(Path.NOT_FOUND, req.url));
+        url.pathname = Path.NOT_FOUND;
+        return NextResponse.rewrite(url);
     }
 
     return NextResponse.next();

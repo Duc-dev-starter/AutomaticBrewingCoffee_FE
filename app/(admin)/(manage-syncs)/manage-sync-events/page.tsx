@@ -114,16 +114,6 @@ const ManageSyncEvents = () => {
         setCurrentPage(1);
     }, [columnFilters]);
 
-    const visibleCount = useMemo(
-        () => table.getAllColumns().filter(col => col.getIsVisible()).length,
-        [table.getState().columnVisibility]
-    );
-
-    const totalCount = useMemo(
-        () => table.getAllColumns().length,
-        []
-    );
-
     return (
         <div className="w-full">
             <div className="flex flex-col space-y-4 p-4 sm:p-6">
@@ -183,9 +173,7 @@ const ManageSyncEvents = () => {
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button variant="outline">
-                                    Cột <span className="bg-gray-200 rounded-full px-2 pt-0.5 pb-1 text-xs">
-                                        {visibleCount}/{totalCount}
-                                    </span> <ChevronDownIcon className="h-4 w-4" />
+                                    Cột <ChevronDownIcon className="ml-2 h-4 w-4" />
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">

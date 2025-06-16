@@ -1,6 +1,7 @@
 "use client"
 
 import * as React from "react"
+import Cookies from "js-cookie"
 import { NavMain } from "./nav-main"
 import { NavUser } from "./nav-user"
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarRail } from "@/components/ui/sidebar"
@@ -10,7 +11,7 @@ import { Path } from "@/constants/path"
 import clsx from "clsx"
 import { useAccountStore } from "@/stores/user"
 
-function AdminSidebarComponent() {
+export function AdminSidebar() {
     const account = useAccountStore(state => state.account);
     console.log(account)
     const roleName = account?.roleName
@@ -18,7 +19,7 @@ function AdminSidebarComponent() {
 
     return (
         <Sidebar collapsible="icon" className="bg-white dark:bg-[#121212]">
-            <SidebarHeader className="py-4" >
+            <SidebarHeader className="py-4 " >
                 <Link
                     href={Path.DASHBOARD}
                     className={clsx(
@@ -43,5 +44,3 @@ function AdminSidebarComponent() {
         </Sidebar>
     )
 }
-
-export const AdminSidebar = React.memo(AdminSidebarComponent);

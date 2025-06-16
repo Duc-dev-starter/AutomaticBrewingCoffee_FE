@@ -1,9 +1,8 @@
 import { HttpStatus } from "@/enum/http";
 import axios from "axios";
 import { toastService } from "@/utils";
-import Cookies from "js-cookie";
+import Cookies from "js-cookie"
 import { refreshToken } from "@/services/auth";
-import { accessTokenAlmostExpired } from "@/utils/cookie";
 
 export const axiosInstance = axios.create({
     baseURL: process.env.NEXT_PUBLIC_API_BASE_URL,
@@ -12,7 +11,7 @@ export const axiosInstance = axios.create({
     },
     timeout: 300000,
     timeoutErrorMessage: `Connection is timeout exceeded`
-});
+})
 
 let isTokenExpired = false;
 let isRefreshing = false;
@@ -30,14 +29,7 @@ const processQueue = (error: any, token: string | null = null) => {
 };
 
 axiosInstance.interceptors.request.use(
-    async (config) => {
-        if (accessTokenAlmostExpired(120)) {
-            try {
-                await refreshToken();
-            } catch (err) {
-                console.error("Refresh token failed in request interceptor", err);
-            }
-        }
+    (config) => {
         const token = Cookies.get('accessToken');
         if (token) {
             config.headers.Authorization = `Bearer ${token}`;
@@ -51,38 +43,19 @@ axiosInstance.interceptors.request.use(
 
 axiosInstance.interceptors.response.use(
     (response) => {
-        if (
-            response.status === HttpStatus.Success ||
-            response.status === HttpStatus.Created ||
-            response.status === HttpStatus.Accepted
-        ) {
+        console.log(response);
+        if (response.status === HttpStatus.Success || response.status === HttpStatus.Created || response.status === HttpStatus.Accepted) {
             return response.data;
         }
     },
     async (error) => {
+        console.log(error.response);
         if (error.response) {
             const originalRequest = error.config;
             const { data } = error.response;
 
-            // Xử lý lỗi 401 khi login: Báo đăng nhập sai
-            if (
-                error.response.status === HttpStatus.Unauthorized &&
-                originalRequest?.url?.includes("/login")
-            ) {
-                toastService.show({
-                    title: "Đăng nhập thất bại",
-                    description: "Email hoặc mật khẩu không đúng.",
-                    variant: "destructive",
-                });
-                return Promise.reject(error);
-            }
-
-            // Xử lý lỗi 401 và refresh token (nếu cần)
-            if (
-                error.response.status === HttpStatus.Unauthorized &&
-                !originalRequest._retry &&
-                error.response?.message?.includes("mã làm mới")
-            ) {
+            // Xử lý lỗi 401
+            if (error.response.status === HttpStatus.Unauthorized && !originalRequest._retry && error.response?.message?.includes("Mã làm mới đã hết hạn")) {
                 if (isRefreshing) {
                     return new Promise((resolve, reject) => {
                         failedQueue.push({ resolve, reject });
@@ -112,21 +85,32 @@ axiosInstance.interceptors.response.use(
                             description: "Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.",
                         });
                         // window.location.href = '/login';
-                    }, 5000);
+                    }, 5000)
                     return Promise.reject(refreshError);
                 } finally {
                     isRefreshing = false;
                 }
-            } else {
+            }
+            else {
                 switch (error.response.status) {
                     case HttpStatus.Forbidden: {
                         if (!isTokenExpired) {
-                            isTokenExpired = true;
+                            isTokenExpired = true
                             toastService.show({
                                 variant: "destructive",
                                 title: "Hệ thống gặp trục trặc",
                                 description: `${data.message || data.Message}`,
-                            });
+                            })
+                            //   toast.error(data.message);
+                            //   setTimeout(() => {
+                            //     if (user) {
+                            //       window.location.href = PATHS.HOME
+                            //     } else {
+                            //       return;
+                            //     }
+                            //     localStorage.clear();
+                            //     isTokenExpired = false;
+                            //   }, 1300);
                         }
                         break;
                     }
@@ -136,7 +120,23 @@ axiosInstance.interceptors.response.use(
                             variant: "destructive",
                             title: "Hệ thống gặp trục trặc",
                             description: `${data.message || data.Message}`,
-                        });
+                        })
+                        // toast.error(data.message || data.Message);
+                        //     switch(user.role){
+                        //       case "member":
+                        //         window.location.href = Path.NOTFOUND;
+                        //         break;
+                        //       case "admin":
+                        //         window.location.href = '/admin/404';
+                        //         break;
+
+                        //       case "staff":
+                        //         window.location.href = "/staff/404";
+                        //         break;
+                        //       default:
+                        //         window.location.href = Path.HOME;
+                        //         break;
+                        //     }
                         break;
 
                     case HttpStatus.InternalServerError:
@@ -144,22 +144,24 @@ axiosInstance.interceptors.response.use(
                             variant: "destructive",
                             title: "Hệ thống gặp trục trặc",
                             description: `${data.message || data.Message || data}`,
-                        });
+                        })
+                        // window.location.href = WebPath.INTERNAL_SERVER_ERROR;
                         break;
 
                     default:
+                        console.log(data.message)
                         toastService.show({
                             variant: "destructive",
                             title: "Hệ thống gặp trục trặc",
                             description: `${data.message || data.Message || "Server bị lỗi"}`,
-                        });
+                        })
                         break;
                 }
             }
 
             return Promise.reject(error.response.data);
         } else {
-            // Network error
+            //   toast.error('Network error');
             return Promise.reject(error);
         }
     }

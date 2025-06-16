@@ -35,7 +35,7 @@ export function middleware(req: NextRequest) {
         return NextResponse.next();
     }
 
-    if (accessToken && pathname === Path.LOGIN) {
+    if (accessToken && refreshToken && pathname === Path.LOGIN) {
         url.pathname = Path.INVALID_REQUEST;
         return NextResponse.redirect(url);
     }

@@ -15,6 +15,7 @@ export interface Menu {
     name: string;
     description?: string;
     status: EBaseStatus;
+    organizationId: string;
     organization: Organization;
     menuProductMappings: MenuProductMapping[];
 }

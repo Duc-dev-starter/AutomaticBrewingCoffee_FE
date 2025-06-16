@@ -34,6 +34,9 @@ export const handleToken = (accessToken: string, refreshToken: string) => {
     const expiresInDaysAccessToken = expiresInMsAccessToken / (1000 * 60 * 60 * 24);
     const expiresInDaysRefreshToken = expiresInMsRefreshToken / (1000 * 60 * 60 * 24);
 
+    console.log("Access Token Expiry Days:", expiresInDaysAccessToken);
+    console.log("Refresh Token Expiry Days:", expiresInDaysRefreshToken);
+
     Cookies.set('accessToken', accessToken, { expires: expiresInDaysAccessToken, secure: true });
     Cookies.set('refreshToken', refreshToken, { expires: expiresInDaysRefreshToken, secure: true });
     Cookies.set('user', JSON.stringify(user), { expires: expiresInDaysRefreshToken, secure: true })
@@ -43,3 +46,23 @@ export const getAccessTokenFromCookie = (): string | null => {
     const token = Cookies.get("accessToken");
     return token || null;
 }
+
+export function accessTokenAlmostExpired(thresholdSeconds = 120): boolean {
+    const token = Cookies.get("accessToken");
+    if (!token) return true;
+    try {
+        const decoded: any = jwtDecode(token);
+        const now = Math.floor(Date.now() / 1000);
+        // Nếu còn ít hơn thresholdSeconds thì coi như sắp hết hạn
+        return decoded.exp - now < thresholdSeconds;
+    } catch {
+        return true;
+    }
+}
+
+
+export const clearAuthCookies = () => {
+    Cookies.remove('accessToken');
+    Cookies.remove('refreshToken');
+    Cookies.remove('user');
+};

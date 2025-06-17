@@ -1,5 +1,6 @@
 import { EProductSize, EProductStatus, EProductType } from "@/enum/product";
 import { MenuProductMapping } from "./menu";
+import { Category } from "./category";
 
 export interface Product {
     productId: string;
@@ -12,6 +13,8 @@ export interface Product {
     price: number;
     imageUrl: string;
     productParentName: string;
+    productCategoryId: string;
+    productCategory: Category
     status: EProductStatus
     createdDate: string;
     updatedDate: string;

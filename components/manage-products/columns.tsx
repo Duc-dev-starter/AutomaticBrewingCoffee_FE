@@ -2,7 +2,6 @@ import { Badge } from "../ui/badge";
 import { Calendar } from "lucide-react";
 import { ColumnDef } from "@tanstack/react-table";
 import { Product } from "@/interfaces/product";
-import clsx from "clsx";
 import { format } from "date-fns";
 import { EProductStatus, EProductStatusViMap, EProductTypeViMap } from "@/enum/product";
 import { formatCurrency } from "@/utils";
@@ -83,6 +82,16 @@ export const columns = ({
             cell: ({ row }) => {
                 return <div className="text-center">{formatCurrency(row.original.price)}</div>;
             },
+            enableSorting: false,
+        },
+        {
+            id: "productCategoryId",
+            header: "Tên danh mục",
+            cell: ({ row }) => (
+                <div className="text-center">
+                    {row.original.productCategory?.name || <span className="text-muted-foreground">Không có</span>}
+                </div>
+            ),
             enableSorting: false,
         },
         {

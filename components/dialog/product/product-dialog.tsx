@@ -1,23 +1,24 @@
-"use client"
+"use client";
 
-import type React from "react"
-
-import { useState, useEffect } from "react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
-import { Button } from "@/components/ui/button"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import { Textarea } from "@/components/ui/textarea"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { useToast } from "@/hooks/use-toast"
-import type { Product } from "@/interfaces/product"
-import { EProductStatus, EProductSize, EProductType } from "@/enum/product"
-import { createProduct, updateProduct, getProducts } from "@/services/product"
-import { productSchema } from "@/schema/product"
-import type { ProductDialogProps } from "@/types/dialog"
-import { Upload, X, LinkIcon, ImageIcon } from "lucide-react"
-import type { ErrorResponse } from "@/types/error"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import type React from "react";
+import { useState, useEffect } from "react";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { useToast } from "@/hooks/use-toast";
+import type { Product } from "@/interfaces/product";
+import { EProductStatus, EProductSize, EProductType } from "@/enum/product";
+import { createProduct, updateProduct, getProducts } from "@/services/product";
+import { productSchema } from "@/schema/product";
+import type { ProductDialogProps } from "@/types/dialog";
+import { Upload, X, LinkIcon, ImageIcon } from "lucide-react";
+import type { ErrorResponse } from "@/types/error";
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { getCategories } from "@/services/category";
+import { Category } from "@/interfaces/category";
 
 const initialFormData = {
     name: "",
@@ -30,40 +31,62 @@ const initialFormData = {
     imageBase64: "",
     imageUrl: "",
     isActive: true,
-}
+    productCategoryId: "",
+};
 
 const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialogProps) => {
-    const { toast } = useToast()
-    const [formData, setFormData] = useState(initialFormData)
-    const [errors, setErrors] = useState<Record<string, string>>({})
-    const [loading, setLoading] = useState(false)
-    const [fetching, setFetching] = useState(false)
-    const [products, setProducts] = useState<Product[]>([])
-    const [imagePreview, setImagePreview] = useState<string | null>(null)
-    const [imageTab, setImageTab] = useState<string>("upload")
+    const { toast } = useToast();
+    const [formData, setFormData] = useState(initialFormData);
+    const [errors, setErrors] = useState<Record<string, string>>({});
+    const [loading, setLoading] = useState(false);
+    const [fetching, setFetching] = useState(false);
+    const [products, setProducts] = useState<Product[]>([]);
+    const [categories, setCategories] = useState<Category[]>([]);
+    const [imagePreview, setImagePreview] = useState<string | null>(null);
+    const [imageTab, setImageTab] = useState<string>("upload");
 
     // Fetch products for parentId selection
     useEffect(() => {
         const fetchProducts = async () => {
-            setFetching(true)
+            setFetching(true);
             try {
-                const response = await getProducts({ page: 1, size: 100 })
-                setProducts(response.items)
+                const response = await getProducts({ page: 1, size: 100 });
+                setProducts(response.items);
             } catch (error) {
-                console.error("Lỗi khi tải sản phẩm:", error)
+                console.error("Lỗi khi tải sản phẩm:", error);
                 toast({
                     title: "Lỗi",
                     description: "Không thể tải danh sách sản phẩm.",
                     variant: "destructive",
-                })
+                });
             } finally {
-                setFetching(false)
+                setFetching(false);
             }
-        }
+        };
         if (open) {
-            fetchProducts()
+            fetchProducts();
         }
-    }, [open, toast])
+    }, [open, toast]);
+
+    // Fetch categories for productCategoryId selection
+    useEffect(() => {
+        const fetchCategories = async () => {
+            try {
+                const response = await getCategories({ page: 1, size: 100 });
+                setCategories(response.items);
+            } catch (error) {
+                console.error("Lỗi khi tải danh mục:", error);
+                toast({
+                    title: "Lỗi",
+                    description: "Không thể tải danh sách danh mục.",
+                    variant: "destructive",
+                });
+            }
+        };
+        if (open) {
+            fetchCategories();
+        }
+    }, [open, toast]);
 
     // Populate form data when editing
     useEffect(() => {
@@ -79,39 +102,41 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                 imageBase64: "",
                 imageUrl: product.imageUrl || "",
                 isActive: product.isActive,
-            })
-            setImagePreview(product.imageUrl || null)
-            setImageTab(product.imageUrl ? "url" : "upload")
-            setErrors({})
+                productCategoryId: product.productCategoryId || "",
+            });
+            setImagePreview(product.imageUrl || null);
+            setImageTab(product.imageUrl ? "url" : "upload");
+            setErrors({});
         } else {
-            setFormData(initialFormData)
-            setImagePreview(null)
-            setImageTab("upload")
+            setFormData(initialFormData);
+            setImagePreview(null);
+            setImageTab("upload");
         }
-    }, [product])
+    }, [product]);
 
     // Reset form data and errors when dialog closes
     useEffect(() => {
         if (!open) {
-            setFormData(initialFormData)
-            setErrors({})
-            setProducts([])
-            setImagePreview(null)
-            setImageTab("upload")
+            setFormData(initialFormData);
+            setErrors({});
+            setProducts([]);
+            setCategories([]);
+            setImagePreview(null);
+            setImageTab("upload");
         }
-    }, [open])
+    }, [open]);
 
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const file = e.target.files?.[0]
-        if (!file) return
+        const file = e.target.files?.[0];
+        if (!file) return;
 
         if (!file.type.startsWith("image/")) {
             toast({
                 title: "Lỗi",
                 description: "Vui lòng chọn file hình ảnh",
                 variant: "destructive",
-            })
-            return
+            });
+            return;
         }
 
         if (file.size > 2 * 1024 * 1024) {
@@ -119,34 +144,33 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                 title: "Lỗi",
                 description: "Kích thước file không được vượt quá 2MB",
                 variant: "destructive",
-            })
-            return
+            });
+            return;
         }
 
-        const reader = new FileReader()
+        const reader = new FileReader();
         reader.onload = () => {
-            const base64String = reader.result as string
-            setFormData({ ...formData, imageBase64: base64String, imageUrl: "" })
-            setImagePreview(base64String)
-        }
-        reader.readAsDataURL(file)
-    }
+            const base64String = reader.result as string;
+            setFormData({ ...formData, imageBase64: base64String, imageUrl: "" });
+            setImagePreview(base64String);
+        };
+        reader.readAsDataURL(file);
+    };
 
     const handleUrlChange = (url: string) => {
-        setFormData({ ...formData, imageUrl: url, imageBase64: "" })
-        setImagePreview(url)
-    }
+        setFormData({ ...formData, imageUrl: url, imageBase64: "" });
+        setImagePreview(url);
+    };
 
     const handleRemoveImage = () => {
-        setFormData({ ...formData, imageBase64: "", imageUrl: "" })
-        setImagePreview(null)
-    }
+        setFormData({ ...formData, imageBase64: "", imageUrl: "" });
+        setImagePreview(null);
+    };
 
     const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault()
-        e.stopPropagation()
+        e.preventDefault();
+        e.stopPropagation();
 
-        // Prepare data for validation
         const validationData = {
             name: formData.name,
             description: formData.description,
@@ -155,22 +179,24 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
             type: formData.type,
             status: formData.status,
             price: formData.price,
-            imageUrl: formData.imageUrl || formData.imageBase64, // Use either URL or base64 for validation
+            imageUrl: formData.imageUrl || formData.imageBase64,
             isActive: formData.isActive,
-        }
+            productCategoryId: formData.productCategoryId,
+        };
 
-        const validationResult = productSchema.safeParse(validationData)
+        const validationResult = productSchema.safeParse(validationData);
         if (!validationResult.success) {
-            console.error("Validation errors:", validationResult.error.errors)
-            const fieldErrors = validationResult.error.flatten().fieldErrors
+            console.error("Validation errors:", validationResult.error.errors);
+            const fieldErrors = validationResult.error.flatten().fieldErrors;
             setErrors(
                 Object.fromEntries(Object.entries(fieldErrors).map(([key, messages]) => [key, messages ? messages[0] : ""])),
-            )
-            return
+            );
+            console.log("Field errors:", fieldErrors);
+            return;
         }
 
-        setErrors({})
-        setLoading(true)
+        setErrors({});
+        setLoading(true);
         try {
             const data = {
                 name: formData.name,
@@ -183,43 +209,44 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                 imageBase64: formData.imageBase64 || undefined,
                 imageUrl: formData.imageUrl || undefined,
                 isActive: formData.isActive,
-            }
+                productCategoryId: formData.productCategoryId,
+            };
 
             if (product) {
-                await updateProduct(product.productId, data)
+                await updateProduct(product.productId, data);
                 toast({
                     title: "Thành công",
                     description: `Sản phẩm "${formData.name}" đã được cập nhật.`,
-                    variant: "success"
-                })
+                    variant: "success",
+                });
             } else {
-                await createProduct(data)
+                await createProduct(data);
                 toast({
                     title: "Thành công",
                     description: `Sản phẩm "${formData.name}" đã được tạo.`,
-                    variant: "success"
-                })
+                    variant: "success",
+                });
             }
-            onSuccess?.()
-            onOpenChange(false)
+            onSuccess?.();
+            onOpenChange(false);
         } catch (error) {
-            const err = error as ErrorResponse
-            console.error("Lỗi khi xử lý sản phẩm:", error)
+            const err = error as ErrorResponse;
+            console.error("Lỗi khi xử lý sản phẩm:", error);
             toast({
                 title: "Lỗi khi xử lý sản phẩm",
                 description: err.message,
                 variant: "destructive",
-            })
+            });
         } finally {
-            setLoading(false)
+            setLoading(false);
         }
-    }
+    };
 
     const handleKeyDown = (e: React.KeyboardEvent<HTMLFormElement>) => {
         if (e.key === "Enter" && !e.shiftKey) {
-            e.stopPropagation()
+            e.stopPropagation();
         }
-    }
+    };
 
     const handleTestImage = () => {
         if (!formData.imageUrl) {
@@ -227,28 +254,27 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                 title: "Lỗi",
                 description: "Vui lòng nhập URL hình ảnh",
                 variant: "destructive",
-            })
-            return
+            });
+            return;
         }
 
-        // Test if the URL is valid by loading the image
-        const img = new Image()
+        const img = new Image();
         img.onload = () => {
-            setImagePreview(formData.imageUrl)
+            setImagePreview(formData.imageUrl);
             toast({
                 title: "Thành công",
                 description: "URL hình ảnh hợp lệ",
-            })
-        }
+            });
+        };
         img.onerror = () => {
             toast({
                 title: "Lỗi",
                 description: "URL hình ảnh không hợp lệ hoặc không thể truy cập",
                 variant: "destructive",
-            })
-        }
-        img.src = formData.imageUrl
-    }
+            });
+        };
+        img.src = formData.imageUrl;
+    };
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -258,6 +284,7 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                 </DialogHeader>
                 <form onSubmit={handleSubmit} onKeyDown={handleKeyDown}>
                     <div className="space-y-4 py-4">
+                        {/* Hình ảnh sản phẩm */}
                         <div className="space-y-2">
                             <Label>Hình ảnh sản phẩm</Label>
                             <div className="flex items-start gap-4">
@@ -447,16 +474,16 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                                     {errors.status && <p className="text-red-500 text-sm">{errors.status}</p>}
                                 </div>
                                 <div className="flex-1 space-y-2">
-                                    <Label htmlFor="price">Giá (VNĐ)</Label>
+                                    <Label htmlFor="price" className="asterisk">Giá (VNĐ)</Label>
                                     <Input
                                         id="price"
                                         type="number"
                                         min="0"
                                         value={formData.price}
                                         onChange={(e) => {
-                                            const value = e.target.value
+                                            const value = e.target.value;
                                             if (value === "" || (/^\d+$/.test(value) && Number(value) >= 0)) {
-                                                setFormData({ ...formData, price: value })
+                                                setFormData({ ...formData, price: value });
                                             }
                                         }}
                                         placeholder="Nhập giá sản phẩm"
@@ -466,24 +493,50 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                                 </div>
                             </div>
 
-                            <div className="space-y-2">
-                                <Label htmlFor="isActive" className="asterisk">
-                                    Hoạt động
-                                </Label>
-                                <Select
-                                    value={formData.isActive.toString()}
-                                    onValueChange={(value) => setFormData({ ...formData, isActive: value === "true" })}
-                                    disabled={loading}
-                                >
-                                    <SelectTrigger>
-                                        <SelectValue placeholder="Chọn trạng thái hoạt động" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        <SelectItem value="true">Hoạt động</SelectItem>
-                                        <SelectItem value="false">Không hoạt động</SelectItem>
-                                    </SelectContent>
-                                </Select>
-                                {errors.isActive && <p className="text-red-500 text-sm">{errors.isActive}</p>}
+                            <div className="flex gap-4">
+                                <div className="flex-1 space-y-2">
+                                    <Label htmlFor="isActive" className="asterisk">
+                                        Hoạt động
+                                    </Label>
+                                    <Select
+                                        value={formData.isActive.toString()}
+                                        onValueChange={(value) => setFormData({ ...formData, isActive: value === "true" })}
+                                        disabled={loading}
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Chọn trạng thái hoạt động" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            <SelectItem value="true">Hoạt động</SelectItem>
+                                            <SelectItem value="false">Không hoạt động</SelectItem>
+                                        </SelectContent>
+                                    </Select>
+                                    {errors.isActive && <p className="text-red-500 text-sm">{errors.isActive}</p>}
+                                </div>
+
+                                <div className="flex-1  space-y-2">
+                                    <Label htmlFor="productCategoryId" className="asterisk">
+                                        Danh mục sản phẩm
+                                    </Label>
+                                    <Select
+                                        value={formData.productCategoryId}
+                                        onValueChange={(value) => setFormData({ ...formData, productCategoryId: value })}
+                                        disabled={loading}
+                                    >
+                                        <SelectTrigger>
+                                            <SelectValue placeholder="Chọn danh mục" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                            {categories.map((category) => (
+                                                <SelectItem key={category.productCategoryId} value={category.productCategoryId}>
+                                                    {category.name}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    {errors.productCategoryId && <p className="text-red-500 text-sm">{errors.productCategoryId}</p>}
+                                </div>
+
                             </div>
 
                             <div className="space-y-2">
@@ -497,6 +550,8 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                                 />
                                 {errors.description && <p className="text-red-500 text-sm">{errors.description}</p>}
                             </div>
+
+
                         </div>
                     </div>
                     <DialogFooter>
@@ -510,7 +565,7 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                 </form>
             </DialogContent>
         </Dialog>
-    )
-}
+    );
+};
 
-export default ProductDialog
+export default ProductDialog;

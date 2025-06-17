@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/compone
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { MapPin, Sparkles, CheckCircle2, AlertCircle, Save, X, Building2, Edit3, Zap, Monitor, Smartphone, ChevronDown } from "lucide-react";
+import { MapPin, Sparkles, CheckCircle2, AlertCircle, Save, X, Building2, Edit3, Zap, Monitor, Smartphone, ChevronDown, Circle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { DeviceDialogProps } from "@/types/dialog";
 import { createDeviceType, updateDeviceType } from "@/services/device";
@@ -14,7 +14,6 @@ import { EBaseStatus, EBaseStatusViMap } from "@/enum/base";
 import { ErrorResponse } from "@/types/error";
 import { deviceTypeSchema } from "@/schema/device";
 import { cn } from "@/lib/utils";
-import { Label } from "@/components/ui/label";
 
 const initialFormData = {
     name: "",
@@ -142,6 +141,7 @@ const DeviceTypeDialog = ({ open, onOpenChange, onSuccess, deviceType }: DeviceD
                 toast({
                     title: "🎉 Thành công",
                     description: isUpdate ? "Cập nhật loại thiết bị thành công" : "Thêm loại thiết bị mới thành công",
+                    variant: "success",
                 });
                 onSuccess?.();
                 onOpenChange(false);
@@ -218,8 +218,8 @@ const DeviceTypeDialog = ({ open, onOpenChange, onSuccess, deviceType }: DeviceD
                     <div className="space-y-3">
                         <div className="flex items-center space-x-2 mb-2">
                             <MapPin className="w-4 h-4 text-primary-300" />
-                            <label className="text-sm font-medium text-gray-700">
-                                Tên Loại Thiết Bị <span className="text-red-500">*</span>
+                            <label className="text-sm font-medium text-gray-700 asterisk">
+                                Tên Loại Thiết Bị
                             </label>
                         </div>
 
@@ -273,9 +273,10 @@ const DeviceTypeDialog = ({ open, onOpenChange, onSuccess, deviceType }: DeviceD
 
                     <div className="space-y-3">
                         <div className="flex items-center space-x-2 mb-2">
-                            <Label className="text-sm font-medium text-gray-700">
-                                Trạng thái <span className="text-red-500">*</span>
-                            </Label>
+                            <Circle className="w-4 h-4 text-primary-300" />
+                            <label className="text-sm font-medium text-gray-700 asterisk">
+                                Trạng thái
+                            </label>
                         </div>
                         <div className="relative">
                             <button
@@ -288,7 +289,7 @@ const DeviceTypeDialog = ({ open, onOpenChange, onSuccess, deviceType }: DeviceD
                                     !statusDropdownOpen && "border-gray-200 hover:border-gray-300",
                                 )}
                             >
-                                <span className="text-base">{EBaseStatusViMap[formData.status as keyof typeof EBaseStatusViMap]}</span>
+                                <span className="text-sm">{EBaseStatusViMap[formData.status as keyof typeof EBaseStatusViMap]}</span>
                                 <ChevronDown
                                     className={cn("w-4 h-4 text-gray-500 transition-transform", statusDropdownOpen && "rotate-180")}
                                 />
@@ -305,7 +306,7 @@ const DeviceTypeDialog = ({ open, onOpenChange, onSuccess, deviceType }: DeviceD
                                                 setStatusDropdownOpen(false)
                                             }}
                                             className={cn(
-                                                "w-full px-4 py-3 text-left hover:bg-primary-50 transition-colors text-base",
+                                                "w-full px-4 py-3 text-left hover:bg-primary-50 transition-colors text-sm",
                                                 formData.status === key && "bg-primary-100 text-primary-700 font-medium",
                                             )}
                                         >
@@ -320,9 +321,10 @@ const DeviceTypeDialog = ({ open, onOpenChange, onSuccess, deviceType }: DeviceD
                     {/* Mobile Device Field - Custom Radio */}
                     <div className="space-y-3">
                         <div className="flex items-center space-x-2 mb-2">
-                            <Label className="text-sm font-medium text-gray-700">
-                                Loại thiết bị <span className="text-red-500">*</span>
-                            </Label>
+                            <Monitor className="w-4 h-4 text-primary-300" />
+                            <label className="text-sm font-medium text-gray-700 asterisk">
+                                Loại thiết bị
+                            </label>
                         </div>
                         <div className="grid grid-cols-2 gap-3">
                             <button
@@ -345,8 +347,8 @@ const DeviceTypeDialog = ({ open, onOpenChange, onSuccess, deviceType }: DeviceD
                                     <Monitor className="w-5 h-5" />
                                 </div>
                                 <div className="text-left">
-                                    <div className="font-medium text-gray-900">Máy tính</div>
-                                    <div className="text-xs text-gray-500">Desktop, Laptop</div>
+                                    <div className="font-medium text-gray-900">Máy phân phát</div>
+                                    <div className="text-xs text-gray-500">Máy thả ly, Máy làm đá</div>
                                 </div>
                             </button>
 

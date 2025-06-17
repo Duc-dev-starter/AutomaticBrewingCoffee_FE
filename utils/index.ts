@@ -4,7 +4,7 @@ import { Roles } from "@/enum/role";
 type ToastOptions = {
     title: string;
     description?: string;
-    variant?: "default" | "destructive";
+    variant?: "default" | "destructive" | "success" | "info" | "warning";
 };
 
 

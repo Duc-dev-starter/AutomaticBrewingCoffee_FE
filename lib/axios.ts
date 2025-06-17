@@ -83,6 +83,7 @@ axiosInstance.interceptors.response.use(
                         toastService.show({
                             title: "Hệ thống gặp trục trặc",
                             description: "Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.",
+                            variant: "warning"
                         });
                         // window.location.href = '/login';
                     }, 5000)

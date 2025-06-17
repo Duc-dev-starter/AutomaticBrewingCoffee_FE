@@ -17,6 +17,7 @@ import type { ErrorResponse } from "@/types/error"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { CategoryDialogProps } from "@/types/dialog"
 import { categorySchema } from "@/schema/category"
+import { fileToBase64 } from "@/utils/file"
 
 const initialFormData = {
     name: "",
@@ -138,18 +139,6 @@ const CategoryDialog = ({ open, onOpenChange, onSuccess, category }: CategoryDia
             })
         }
         img.src = formData.imageUrl
-    }
-
-    const fileToBase64 = (file: File): Promise<string> => {
-        return new Promise((resolve, reject) => {
-            const reader = new FileReader()
-            reader.onload = () => {
-                const base64String = reader.result as string
-                resolve(base64String)
-            }
-            reader.onerror = (error) => reject(error)
-            reader.readAsDataURL(file)
-        })
     }
 
     const handleSubmit = async (e: React.FormEvent) => {

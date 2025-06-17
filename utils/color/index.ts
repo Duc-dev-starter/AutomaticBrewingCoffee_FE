@@ -47,8 +47,6 @@ export const getProductStatusColor = (status: EProductStatus) => {
 // Xác định màu sắc cho loại sản phẩm
 export const getProductTypeColor = (type: EProductType) => {
     switch (type) {
-        case EProductType.Single:
-            return "bg-blue-500"
         case EProductType.Parent:
             return "bg-purple-500"
         case EProductType.Child:

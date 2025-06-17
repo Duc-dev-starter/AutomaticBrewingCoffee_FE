@@ -42,6 +42,9 @@ export const Api = {
     STORES: '/stores',
 
     // SYNC
-    SYNCS: '/syncs'
+    SYNCS: '/syncs',
+
+    // CATEGORY
+    CATEGORIES: '/product-categories',
 
 }

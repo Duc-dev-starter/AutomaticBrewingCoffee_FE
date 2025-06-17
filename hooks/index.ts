@@ -13,6 +13,7 @@ import { useOrganizations } from './use-organization'
 import { useMenus } from './use-menus'
 import { useProducts } from './use-products'
 import { useSyncEvents, useSyncTasks } from './sync'
+import { useCategories } from './use-categories'
 
 export {
     useDebounce, useDeviceTypes, useKioskTypes, useIsMobile, useToast, useScrollPosition, useDeviceModels, useDevices,
@@ -27,5 +28,6 @@ export {
     useKiosks,
     useProducts,
     useSyncEvents,
-    useSyncTasks
+    useSyncTasks,
+    useCategories
 }

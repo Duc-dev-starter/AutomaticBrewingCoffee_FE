@@ -7,6 +7,7 @@ import { Workflow } from "@/interfaces/workflow";
 import { LocationType } from "@/interfaces/location";
 import { Organization } from "@/interfaces/organization";
 import { Store } from "@/interfaces/store";
+import { Category } from "@/interfaces/category";
 
 type BaseDialogProps = {
     open: boolean;
@@ -56,4 +57,8 @@ export type StoreDialogProps = BaseDialogProps & {
 
 export type WebhookDialogProps = BaseDialogProps & {
     kioskId: string;
+}
+
+export type CategoryDialogProps = BaseDialogProps & {
+    category?: Category | null;
 }

@@ -116,6 +116,7 @@ const menuSections: MenuSection[] = [
             { title: "Quản lý tổ chức", url: Path.MANAGE_ORGANIZATIONS, icon: DollarSign },
             { title: "Quản lý tài khoản", url: Path.MANAGE_ACCOUNTS, icon: User },
             { title: "Quản lý sản phẩm", url: Path.MANAGE_PRODUCTS, icon: Box },
+            { title: "Quản lý danh mục", url: Path.MANAGE_CATEGORIES, icon: Box },
             { title: "Quản lý cửa hàng", url: Path.MANAGE_STORES, icon: Store },
             { title: "Quản lý menu", url: Path.MANAGE_MENUS, icon: Menu },
             { title: "Quản lý location", url: Path.MANAGE_LOCATION_TYPES, icon: Menu },

@@ -33,7 +33,7 @@ const AddProductToMenuDialog = ({ open, onOpenChange, onSuccess, menuId, existin
         if (open) {
             const fetchProducts = async () => {
                 try {
-                    const response = await getProducts();
+                    const response = await getProducts({ productType: "parent" });
                     const filteredProducts = response.items.filter(
                         (product: Product) => !existingProductIds.includes(product.productId)
                     );

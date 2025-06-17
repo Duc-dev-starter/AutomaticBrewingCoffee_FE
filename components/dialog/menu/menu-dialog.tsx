@@ -193,7 +193,7 @@ const MenuDialog = ({ open, onOpenChange, onSuccess, menu }: MenuDialogProps) =>
                             </button>
                             {organizationDropdownOpen && (
                                 <div className="absolute top-full left-0 right-0 mt-1 bg-white border-2 border-primary-200 rounded-md shadow-xl z-50 max-h-[200px] overflow-y-auto">
-                                    {organizations.map((org: Organization) => (
+                                    {organizations.map((org) => (
                                         <button
                                             key={org.organizationId}
                                             type="button"

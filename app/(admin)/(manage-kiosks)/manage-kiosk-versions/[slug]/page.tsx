@@ -63,7 +63,7 @@ const KioskVersionDetailPage = () => {
                 const deviceModelsData = await getDeviceModels()
                 setDeviceModels(deviceModelsData.items)
 
-                const productsData = await getProducts()
+                const productsData = await getProducts({ productType: "child" })
                 setProducts(productsData.items)
             } catch (error: unknown) {
                 const err = error as ErrorResponse

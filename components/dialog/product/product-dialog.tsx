@@ -24,7 +24,7 @@ const initialFormData = {
     description: "",
     parentId: "",
     size: EProductSize.M,
-    type: EProductType.Single,
+    type: EProductType.Parent,
     status: EProductStatus.Selling,
     price: "",
     imageBase64: "",
@@ -418,7 +418,6 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                                             <SelectValue placeholder="Chọn loại sản phẩm" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            <SelectItem value={EProductType.Single}>Đơn</SelectItem>
                                             <SelectItem value={EProductType.Parent}>Cha</SelectItem>
                                             <SelectItem value={EProductType.Child}>Con</SelectItem>
                                         </SelectContent>

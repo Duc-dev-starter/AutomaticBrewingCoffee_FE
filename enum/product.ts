@@ -5,7 +5,6 @@ export enum EProductSize {
 }
 
 export enum EProductType {
-    Single = "Single",
     Parent = "Parent",
     Child = "Child"
 }
@@ -27,7 +26,6 @@ export const EProductSizeViMap: Record<string, string> = {
 };
 
 export const EProductTypeViMap: Record<string, string> = {
-    [EProductType.Single]: "Đơn",
     [EProductType.Parent]: "Cha",
     [EProductType.Child]: "Con",
 };

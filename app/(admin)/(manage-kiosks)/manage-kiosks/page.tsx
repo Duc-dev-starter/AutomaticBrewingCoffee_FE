@@ -88,6 +88,16 @@ const ManageKiosks = () => {
     }, [error, toast]);
 
     useEffect(() => {
+        // Prefetch trang tiếp theo nếu còn trang
+        if (data?.totalPages && currentPage < data.totalPages) {
+            useKiosks({
+                ...params,
+                page: currentPage + 1,
+            });
+        }
+    }, [currentPage, data?.totalPages, params]);
+
+    useEffect(() => {
         table.getColumn("location")?.setFilterValue(debouncedSearchValue || undefined);
         table.getColumn("status")?.setFilterValue(statusFilter || undefined);
     }, [debouncedSearchValue, statusFilter]);
@@ -373,7 +383,7 @@ const ManageKiosks = () => {
                             ))}
                         </TableHeader>
                         <TableBody>
-                            {isLoading ? (
+                            {(!data && isLoading) ? (
                                 Array.from({ length: pageSize }).map((_, index) => (
                                     <TableRow key={`skeleton-${index}`} className="animate-pulse">
                                         {columns({ onViewDetails: () => { }, onEdit: () => { }, onDelete: () => { }, onSync: () => { }, onWebhook: () => { }, onExport: () => { } }).map((column, cellIndex) => (

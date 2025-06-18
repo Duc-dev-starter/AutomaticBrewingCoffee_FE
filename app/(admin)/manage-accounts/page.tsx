@@ -76,6 +76,16 @@ const ManageAccounts = () => {
         }
     }, [error, toast]);
 
+    useEffect(() => {
+        // Prefetch trang tiếp theo nếu còn trang
+        if (data?.totalPages && currentPage < data.totalPages) {
+            useAccounts({
+                ...params,
+                page: currentPage + 1,
+            });
+        }
+    }, [currentPage, data?.totalPages, params]);
+
 
     const handleViewDetails = useCallback((account: Account) => {
         setDetailAccount(account);
@@ -267,7 +277,7 @@ const ManageAccounts = () => {
                             ))}
                         </TableHeader>
                         <TableBody>
-                            {isLoading ? (
+                            {(!data && isLoading) ? (
                                 Array.from({ length: pageSize }).map((_, index) => (
                                     <TableRow key={`skeleton-${index}`} className="animate-pulse">
                                         {columns({ onViewDetails: () => { }, handleToggle: () => { } }).map((column, cellIndex) => (

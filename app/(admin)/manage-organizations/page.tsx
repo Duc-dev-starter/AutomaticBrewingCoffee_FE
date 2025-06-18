@@ -92,6 +92,17 @@ const ManageOrganizations = () => {
         }
     }, [error, toast]);
 
+    useEffect(() => {
+        // Prefetch trang tiếp theo nếu còn trang
+        if (data?.totalPages && currentPage < data.totalPages) {
+            useOrganizations({
+                ...params,
+                page: currentPage + 1,
+            });
+        }
+    }, [currentPage, data?.totalPages, params]);
+
+
     const handleSuccess = () => {
         mutate();
         setDialogOpen(false)
@@ -299,7 +310,7 @@ const ManageOrganizations = () => {
                             ))}
                         </TableHeader>
                         <TableBody>
-                            {isLoading ? (
+                            {(!data && isLoading) ? (
                                 Array.from({ length: pageSize }).map((_, index) => (
                                     <TableRow key={`skeleton-${index}`} className="animate-pulse">
                                         {columns({ onViewDetails: () => { }, onEdit: () => { }, onDelete: () => { } }).map(

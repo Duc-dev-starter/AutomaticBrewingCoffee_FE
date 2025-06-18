@@ -67,6 +67,17 @@ const ManageSyncTasks = () => {
         }
     }, [error, toast]);
 
+
+    useEffect(() => {
+        // Prefetch trang tiếp theo nếu còn trang
+        if (data?.totalPages && currentPage < data.totalPages) {
+            useSyncTasks({
+                ...params,
+                page: currentPage + 1,
+            });
+        }
+    }, [currentPage, data?.totalPages, params]);
+
     useEffect(() => {
         table.getColumn("kioskId")?.setFilterValue(debouncedSearchValue || undefined);
         table.getColumn("isSynced")?.setFilterValue(syncFilter === "" ? undefined : syncFilter === "true");
@@ -204,7 +215,7 @@ const ManageSyncTasks = () => {
                             ))}
                         </TableHeader>
                         <TableBody>
-                            {isLoading ? (
+                            {(!data && isLoading) ? (
                                 Array.from({ length: pageSize }).map((_, index) => (
                                     <TableRow key={`skeleton-${index}`} className="animate-pulse">
                                         {columnsDef.map((_, cellIndex) => (

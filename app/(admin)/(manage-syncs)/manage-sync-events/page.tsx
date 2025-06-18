@@ -68,6 +68,16 @@ const ManageSyncEvents = () => {
     }, [error, toast]);
 
     useEffect(() => {
+        // Prefetch trang tiếp theo nếu còn trang
+        if (data?.totalPages && currentPage < data.totalPages) {
+            useSyncEvents({
+                ...params,
+                page: currentPage + 1,
+            });
+        }
+    }, [currentPage, data?.totalPages, params]);
+
+    useEffect(() => {
         table.getColumn("entityId")?.setFilterValue(debouncedSearchValue || undefined);
         table.getColumn("syncEventType")?.setFilterValue(typeFilter || undefined);
     }, [debouncedSearchValue, typeFilter]);
@@ -210,7 +220,7 @@ const ManageSyncEvents = () => {
                             ))}
                         </TableHeader>
                         <TableBody>
-                            {isLoading ? (
+                            {(!data && isLoading) ? (
                                 Array.from({ length: pageSize }).map((_, index) => (
                                     <TableRow key={`skeleton-${index}`} className="animate-pulse">
                                         {columnsDef.map((_, cellIndex) => (

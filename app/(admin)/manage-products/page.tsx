@@ -73,6 +73,26 @@ const ManageProducts = () => {
     const { data, error, isLoading, mutate } = useProducts(params);
 
     useEffect(() => {
+        if (error) {
+            toast({
+                title: "Lỗi khi lấy danh sách sản phẩm",
+                description: error.message || "Đã xảy ra lỗi không xác định",
+                variant: "destructive",
+            });
+        }
+    }, [error, toast]);
+
+    useEffect(() => {
+        // Prefetch trang tiếp theo nếu còn trang
+        if (data?.totalPages && currentPage < data.totalPages) {
+            useProducts({
+                ...params,
+                page: currentPage + 1,
+            });
+        }
+    }, [currentPage, data?.totalPages, params]);
+
+    useEffect(() => {
         table.getColumn("name")?.setFilterValue(debouncedSearchValue || undefined);
         table.getColumn("status")?.setFilterValue(statusFilter || undefined);
         table.getColumn("type")?.setFilterValue(productTypeFilter || undefined);
@@ -330,7 +350,7 @@ const ManageProducts = () => {
                             ))}
                         </TableHeader>
                         <TableBody>
-                            {isLoading ? (
+                            {(!data && isLoading) ? (
                                 Array.from({ length: pageSize }).map((_, index) => (
                                     <TableRow key={`skeleton-${index}`} className="animate-pulse">
                                         {columns({ onViewDetails: () => { }, onEdit: () => { }, onDelete: () => { }, onClone: () => { } }).map((column, cellIndex) => (

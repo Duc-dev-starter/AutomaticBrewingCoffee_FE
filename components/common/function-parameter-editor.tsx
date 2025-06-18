@@ -92,19 +92,31 @@ const FunctionParameterEditor: React.FC<FunctionParameterEditorProps> = ({
         return parameterObject
     }
 
-    useEffect(() => {
-        if (deviceFunctionId && functionParameters.length > 0) {
-            const parameterObject = generateParameterObject()
-            const parameterJson = JSON.stringify(parameterObject, null, 2)
-            onChange(parameterJson)
-        } else {
-            onChange("{}")
-        }
-    }, [deviceFunctionId, functionParameters.length])
 
     if (!deviceFunctionId || functionParameters.length === 0) {
         return <JsonEditorComponent value={value} onChange={onChange} disabled={disabled} height="250px" />
     }
+
+    useEffect(() => {
+        if (!value || value === "{}" || !isValidJson(value)) {
+            if (deviceFunctionId && functionParameters.length > 0) {
+                const parameterObject = generateParameterObject();
+                const parameterJson = JSON.stringify(parameterObject, null, 2);
+                onChange(parameterJson);
+            } else {
+                onChange("{}");
+            }
+        }
+    }, [deviceFunctionId, functionParameters.length, value, onChange]);
+
+    const isValidJson = (str: string) => {
+        try {
+            JSON.parse(str);
+            return true;
+        } catch {
+            return false;
+        }
+    };
 
     return (
         <div className="space-y-4">

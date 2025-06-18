@@ -2,7 +2,7 @@
 "use client"
 
 import type React from "react"
-import { useEffect, useState, useRef } from "react"
+import { useEffect, useState, useRef, useMemo } from "react"
 import AceEditor from "react-ace"
 import "ace-builds/src-noconflict/mode-json"
 import "ace-builds/src-noconflict/theme-cloud9_day"
@@ -42,20 +42,12 @@ const JsonEditorComponent: React.FC<JsonEditorComponentProps> = ({
     height = "300px",
     functionParameters = [],
 }) => {
-    const [selectedTab, setSelectedTab] = useState("ui")
-    const [json, setJson] = useState(() => {
-        try {
-            return value ? JSON.parse(value) : {}
-        } catch {
-            return {}
-        }
-    })
-    const [stringView, setStringView] = useState("")
-    const [selectedType, setSelectedType] = useState<string>("text")
-    const [error, setError] = useState<string | null>(null)
-    const [validationErrors, setValidationErrors] = useState<Record<string, string>>({})
-    const [forceUpdate, setForceUpdate] = useState(0)
-    const aceEditorRef = useRef<any>(null)
+    const [selectedTab, setSelectedTab] = useState("ui");
+    const [error, setError] = useState<string | null>(null);
+    const [validationErrors, setValidationErrors] = useState<Record<string, string>>({});
+    const [selectedType, setSelectedType] = useState("text");
+    const [stringView, setStringView] = useState("");
+    const aceEditorRef = useRef<any>(null);
 
     const availableTypes = [
         { value: "text", label: "Text" },
@@ -64,16 +56,13 @@ const JsonEditorComponent: React.FC<JsonEditorComponentProps> = ({
         { value: "boolean", label: "Boolean" },
     ]
 
-    useEffect(() => {
+    const parsedJson = useMemo(() => {
         try {
-            const parsed = value ? JSON.parse(value) : {}
-            setJson(parsed)
-            setError(null)
-            validateAllParameters(parsed)
+            return value ? JSON.parse(value) : {};
         } catch {
-            setError("Dữ liệu JSON không hợp lệ")
+            return {};
         }
-    }, [value])
+    }, [value]);
 
     // Validate all parameters against their constraints
     const validateAllParameters = (data: any) => {
@@ -96,7 +85,6 @@ const JsonEditorComponent: React.FC<JsonEditorComponentProps> = ({
     const validateParameterValue = (value: any, param: FunctionParameter) => {
         const type = param.type.toLowerCase()
 
-        // Type validation first
         if (type === "integer" || type === "int") {
             if (!Number.isInteger(value)) {
                 return { isValid: false, error: "Giá trị phải là số nguyên" }
@@ -111,7 +99,6 @@ const JsonEditorComponent: React.FC<JsonEditorComponentProps> = ({
             }
         }
 
-        // Min/Max validation for numeric types
         if ((type === "integer" || type === "int" || type === "double" || type === "float") && typeof value === "number") {
             if (param.min !== undefined && param.min !== null && param.min !== "") {
                 const minValue = Number.parseFloat(param.min)
@@ -162,7 +149,7 @@ const JsonEditorComponent: React.FC<JsonEditorComponentProps> = ({
 
             editor.completers = [customCompleter]
         }
-    }, [functionParameters, forceUpdate])
+    }, [functionParameters])
 
     const validateValueByType = (val: string, type: string) => {
         if (!val.trim()) return { isValid: true }
@@ -223,7 +210,6 @@ const JsonEditorComponent: React.FC<JsonEditorComponentProps> = ({
             }
 
             const jsonString = JSON.stringify(jsonValue)
-            setJson(jsonValue)
             onChange(jsonString)
             setError(null)
         } else {
@@ -233,33 +219,24 @@ const JsonEditorComponent: React.FC<JsonEditorComponentProps> = ({
 
     const handleJsonChange = (newValue: string) => {
         try {
-            const parsed = JSON.parse(newValue)
-            const originalKeys = Object.keys(json)
-            const newKeys = Object.keys(parsed)
+            const parsed = JSON.parse(newValue);
+            const originalKeys = Object.keys(parsedJson);
+            const newKeys = Object.keys(parsed);
 
-            const keysChanged = originalKeys.length !== newKeys.length || !originalKeys.every((key) => newKeys.includes(key))
-
-            if (keysChanged) {
-                setError("Không được phép thay đổi tên parameter (key)")
-                setTimeout(() => {
-                    setError(null)
-                    setJson({ ...json })
-                }, 2000)
-                return
+            if (originalKeys.length !== newKeys.length || !originalKeys.every((key) => newKeys.includes(key))) {
+                setError("Không được phép thay đổi tên parameter (key)");
+                setTimeout(() => setError(null), 2000);
+                return;
             }
 
-            setJson(parsed)
-            onChange(JSON.stringify(parsed, null, 2))
-            setError(null)
-            validateAllParameters(parsed)
+            onChange(JSON.stringify(parsed, null, 2));
+            setError(null);
+            validateAllParameters(parsed);
         } catch {
-            setError("JSON không hợp lệ")
-            setTimeout(() => {
-                setError(null)
-                setJson({ ...json })
-            }, 2000)
+            setError("JSON không hợp lệ");
+            setTimeout(() => setError(null), 2000);
         }
-    }
+    };
 
     // Component for parameter value input with validation
     const ParameterValueInput: React.FC<{
@@ -270,7 +247,6 @@ const JsonEditorComponent: React.FC<JsonEditorComponentProps> = ({
     }> = ({ paramKey, value, param, onChange }) => {
         const hasError = validationErrors[paramKey]
 
-        // Nếu parameter có options, sử dụng Select thay vì Command
         if (param && param.options && param.options.length > 0) {
             return (
                 <div className="flex items-center gap-2">
@@ -313,7 +289,6 @@ const JsonEditorComponent: React.FC<JsonEditorComponentProps> = ({
             )
         }
 
-        // Regular input cho parameters không có options
         const isNumeric = param && ["integer", "int", "double", "float"].includes(param.type.toLowerCase())
         const placeholder = isNumeric && param ? `${param.min || "∞"} - ${param.max || "∞"}` : param?.description || ""
 
@@ -365,8 +340,7 @@ const JsonEditorComponent: React.FC<JsonEditorComponentProps> = ({
                                         const newItem = JSON.parse(e.target.value)
                                         const newData = [...data]
                                         newData[index] = newItem
-                                        const newJson = Array.isArray(json) ? newData : { ...json, [index]: newData }
-                                        setJson(newJson)
+                                        const newJson = Array.isArray(parsedJson) ? newData : { ...parsedJson, [index]: newData }
                                         onChange(JSON.stringify(newJson, null, 2))
                                     } catch {
                                         setError("Giá trị không hợp lệ")
@@ -376,7 +350,7 @@ const JsonEditorComponent: React.FC<JsonEditorComponentProps> = ({
                                 disabled={disabled}
                             />
                         )}
-                    </div>,
+                    </div>
                 )
             })
         } else if (typeof data === "object" && data !== null) {
@@ -413,8 +387,7 @@ const JsonEditorComponent: React.FC<JsonEditorComponentProps> = ({
                                     value={value}
                                     param={param}
                                     onChange={(newValue) => {
-                                        const newJson = { ...json, [key]: newValue }
-                                        setJson(newJson)
+                                        const newJson = { ...parsedJson, [key]: newValue }
                                         onChange(JSON.stringify(newJson, null, 2))
                                     }}
                                 />
@@ -426,7 +399,7 @@ const JsonEditorComponent: React.FC<JsonEditorComponentProps> = ({
                                 {hasError}
                             </div>
                         )}
-                    </div>,
+                    </div>
                 )
             })
         }
@@ -467,8 +440,8 @@ const JsonEditorComponent: React.FC<JsonEditorComponentProps> = ({
 
                 <TabsContent value="ui" className="mt-0">
                     <div className="bg-gray-50 p-4 text-sm rounded border overflow-auto" style={{ height }}>
-                        {Object.keys(json).length > 0 ? (
-                            <div className="space-y-1">{renderUIView(json)}</div>
+                        {Object.keys(parsedJson).length > 0 ? (
+                            <div className="space-y-1">{renderUIView(parsedJson)}</div>
                         ) : (
                             <div className="text-gray-500 text-center py-8">Chưa có dữ liệu để hiển thị</div>
                         )}
@@ -481,9 +454,9 @@ const JsonEditorComponent: React.FC<JsonEditorComponentProps> = ({
                             ref={aceEditorRef}
                             mode="json"
                             theme="cloud9_day"
-                            value={JSON.stringify(json, null, 2)}
+                            value={value}
                             onChange={handleJsonChange}
-                            name={`json-editor-${forceUpdate}`}
+                            name="json-editor"
                             editorProps={{ $blockScrolling: true }}
                             setOptions={{
                                 enableBasicAutocompletion: true,

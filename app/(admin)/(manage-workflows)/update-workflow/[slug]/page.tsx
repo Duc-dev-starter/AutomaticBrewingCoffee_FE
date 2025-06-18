@@ -457,6 +457,7 @@ const UpdateWorkflow = () => {
                 type: formData.type,
                 productId: formData.productId,
                 steps: formData.steps,
+                kioskVersionId: selectedKioskVersion,
             } as Partial<Workflow>
 
             await updateWorkflow(slug, data)

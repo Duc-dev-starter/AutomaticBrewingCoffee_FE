@@ -67,15 +67,15 @@ const ManageSyncEvents = () => {
         }
     }, [error, toast]);
 
-    useEffect(() => {
-        // Prefetch trang tiếp theo nếu còn trang
-        if (data?.totalPages && currentPage < data.totalPages) {
-            useSyncEvents({
-                ...params,
-                page: currentPage + 1,
-            });
-        }
-    }, [currentPage, data?.totalPages, params]);
+    // useEffect(() => {
+    //     // Prefetch trang tiếp theo nếu còn trang
+    //     if (data?.totalPages && currentPage < data.totalPages) {
+    //         useSyncEvents({
+    //             ...params,
+    //             page: currentPage + 1,
+    //         });
+    //     }
+    // }, [currentPage, data?.totalPages, params]);
 
     useEffect(() => {
         table.getColumn("entityId")?.setFilterValue(debouncedSearchValue || undefined);

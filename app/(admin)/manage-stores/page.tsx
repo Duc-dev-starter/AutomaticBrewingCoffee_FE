@@ -81,15 +81,15 @@ const ManageStores = () => {
         }
     }, [error, toast]);
 
-    useEffect(() => {
-        // Prefetch trang tiếp theo nếu còn trang
-        if (data?.totalPages && currentPage < data.totalPages) {
-            useStores({
-                ...params,
-                page: currentPage + 1,
-            });
-        }
-    }, [currentPage, data?.totalPages, params]);
+    // useEffect(() => {
+    //     // Prefetch trang tiếp theo nếu còn trang
+    //     if (data?.totalPages && currentPage < data.totalPages) {
+    //         useStores({
+    //             ...params,
+    //             page: currentPage + 1,
+    //         });
+    //     }
+    // }, [currentPage, data?.totalPages, params]);
 
     const handleSuccess = () => {
         mutate();

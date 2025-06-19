@@ -19,7 +19,7 @@ import {
     DropdownMenuCheckboxItem,
     DropdownMenuContent,
     DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu"
+} from "@/components/ui/dropdown-menu";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { PlusCircle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
@@ -78,15 +78,15 @@ const ManageDeviceModels = () => {
         }
     }, [error, toast]);
 
-    useEffect(() => {
-        // Prefetch trang tiếp theo nếu còn trang
-        if (data?.totalPages && currentPage < data.totalPages) {
-            useDeviceModels({
-                ...params,
-                page: currentPage + 1,
-            });
-        }
-    }, [currentPage, data?.totalPages, params]);
+    // useEffect(() => {
+    //     // Prefetch trang tiếp theo nếu còn trang
+    //     if (data?.totalPages && currentPage < data.totalPages) {
+    //         useDeviceModels({
+    //             ...params,
+    //             page: currentPage + 1,
+    //         });
+    //     }
+    // }, [currentPage, data?.totalPages, params]);
 
     useEffect(() => {
         table.getColumn("modelName")?.setFilterValue(debouncedSearchValue || undefined);

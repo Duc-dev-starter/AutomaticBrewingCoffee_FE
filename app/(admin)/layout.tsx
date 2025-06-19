@@ -56,6 +56,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 toast({
                     title: "Đang kết nối lại SignalR...",
                     description: "Mất kết nối, đang thử lại...",
+                    variant: "warning",
                 });
             });
 

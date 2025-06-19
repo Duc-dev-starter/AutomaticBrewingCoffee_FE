@@ -55,7 +55,9 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
                 }
                 const params = new URLSearchParams(window.location.search);
                 const redirect = params.get("redirect");
-                router.push(redirect || Path.DASHBOARD);
+                setTimeout(() => {
+                    router.push(redirect || Path.DASHBOARD);
+                }, 100);
 
             } else {
                 setError("Email hoặc mật khẩu không chính xác");

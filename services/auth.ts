@@ -74,6 +74,9 @@ export const logout = async () => {
         Cookies.remove(cookieName);
     });
 
+    if (typeof window !== 'undefined') {
+        localStorage.clear();
+    }
     window.location.href = '/login';
 };
 

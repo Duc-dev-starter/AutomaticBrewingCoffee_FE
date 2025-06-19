@@ -18,6 +18,7 @@ import { Path } from "@/constants/path"
 import { ThemeSelector } from "./theme-selector"
 import { logout } from "@/services/auth"
 import { Account } from "@/interfaces/account"
+import { useAccountStore } from "@/stores/user"
 
 export function NavUser({
     account,
@@ -25,6 +26,10 @@ export function NavUser({
     account: Account | null
 }) {
     const { isMobile } = useSidebar()
+    const handleLogout = () => {
+        logout();
+        useAccountStore.getState().clearAccount();
+    };
 
     if (account === null) {
         return (
@@ -114,7 +119,7 @@ export function NavUser({
                             </DropdownMenuItem>
                         </DropdownMenuGroup>
                         <DropdownMenuSeparator />
-                        <DropdownMenuItem onClick={logout} className="cursor-pointer hover:bg-red-50 dark:hover:bg-red-900/20 focus:bg-red-50 dark:focus:bg-red-900/20">
+                        <DropdownMenuItem onClick={handleLogout} className="cursor-pointer hover:bg-red-50 dark:hover:bg-red-900/20 focus:bg-red-50 dark:focus:bg-red-900/20">
                             <LogOut className="mr-2 h-4 w-4 text-red-500" />
                             <p className="text-red-600 dark:text-red-400">Đăng xuất</p>
                         </DropdownMenuItem>

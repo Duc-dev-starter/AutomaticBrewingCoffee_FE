@@ -6,6 +6,6 @@ export const registerWebhook = async (payload: { kioskId: string, webhookUrl: st
 }
 
 export const updateWebhook = async (webhookId: string, payload: { webhookUrl: string }) => {
-    const response = await BaseService.post({ url: `/webhooks/${webhookId}`, payload });
+    const response = await BaseService.put({ url: `/webhooks/${webhookId}`, payload });
     return response;
 }

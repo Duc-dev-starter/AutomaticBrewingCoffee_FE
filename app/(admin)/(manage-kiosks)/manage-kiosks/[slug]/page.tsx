@@ -42,6 +42,9 @@ import type { Device } from "@/interfaces/device"
 import { getDevicesToReplace } from "@/services/device"
 import { DeviceStatusGroup } from "@/components/common/device-status-group"
 import { ErrorResponse } from "@/types/error"
+import { Webhook } from "@/interfaces/webhook"
+import { updateWebhook } from "@/services/webhook"
+import { Input } from "@/components/ui/input"
 
 const KioskDetailPage = () => {
     const { slug } = useParams()
@@ -61,6 +64,9 @@ const KioskDetailPage = () => {
     const [selectedKioskDeviceForOnhub, setSelectedKioskDeviceForOnhub] = useState<any>(null);
     const [onhubData, setOnhubData] = useState<any>(null);
     const [loadingOnhub, setLoadingOnhub] = useState<boolean>(false);
+    const [isUpdateWebhookDialogOpen, setIsUpdateWebhookDialogOpen] = useState<boolean>(false)
+    const [selectedWebhook, setSelectedWebhook] = useState<any>(null)
+    const [newWebhookUrl, setNewWebhookUrl] = useState<string>("")
 
     const fetchKioskData = async () => {
         try {
@@ -111,6 +117,13 @@ const KioskDetailPage = () => {
         }
     };
 
+    const openUpdateWebhookDialog = (webhook: Webhook) => {
+        setSelectedWebhook(webhook)
+        setNewWebhookUrl(webhook.webhookUrl)
+        setIsUpdateWebhookDialogOpen(true)
+    }
+
+
     const openOnhubDialog = (kioskDevice: KioskDevice) => {
         setSelectedKioskDeviceForOnhub(kioskDevice);
         setIsOnhubDialogOpen(true);
@@ -151,6 +164,7 @@ const KioskDetailPage = () => {
             toast({
                 title: "Thành công",
                 description: "Thiết bị đã được thay thế thành công.",
+                variant: "success",
             })
 
             // Refresh data
@@ -178,6 +192,43 @@ const KioskDetailPage = () => {
                 <span className="ml-2 text-lg">Đang tải dữ liệu...</span>
             </div>
         )
+    }
+
+    const handleUpdateWebhook = async () => {
+        if (!selectedWebhook || !newWebhookUrl) return
+
+        try {
+            await updateWebhook(selectedWebhook.webhookId, { webhookUrl: newWebhookUrl })
+            toast({
+                title: "Thành công",
+                description: "Webhook đã được cập nhật.",
+                variant: "success",
+            })
+
+            setKiosk((prev) => {
+                if (!prev) return prev
+                return {
+                    ...prev,
+                    webhooks: (prev.webhooks ?? []).map((wh) =>
+                        wh.webhookId === selectedWebhook.webhookId
+                            ? { ...wh, webhookUrl: newWebhookUrl }
+                            : wh
+                    ),
+                }
+            })
+        } catch (error) {
+            const err = error as ErrorResponse
+            console.error("Error updating webhook:", error)
+            toast({
+                title: "Lỗi",
+                description: err.message,
+                variant: "destructive",
+            })
+        } finally {
+            setIsUpdateWebhookDialogOpen(false)
+            setSelectedWebhook(null)
+            setNewWebhookUrl("")
+        }
     }
 
     if (!kiosk) {
@@ -399,6 +450,13 @@ const KioskDetailPage = () => {
                                                             <Copy className="h-4 w-4 mr-2" />
                                                             Sao chép URL
                                                         </Button>
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            onClick={() => openUpdateWebhookDialog(webhook)}
+                                                        >
+                                                            Cập nhật
+                                                        </Button>
                                                     </div>
                                                 </div>
                                             </div>
@@ -552,6 +610,35 @@ const KioskDetailPage = () => {
 
                     <DialogFooter>
                         <Button onClick={() => setIsOnhubDialogOpen(false)}>Đóng</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            <Dialog open={isUpdateWebhookDialogOpen} onOpenChange={setIsUpdateWebhookDialogOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Cập nhật Webhook</DialogTitle>
+                        <DialogDescription>
+                            Nhập URL mới cho webhook "{selectedWebhook?.webhookType}".
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="py-4">
+                        <Input
+                            value={newWebhookUrl}
+                            onChange={(e) => setNewWebhookUrl(e.target.value)}
+                            placeholder="Nhập URL mới"
+                        />
+                    </div>
+                    <DialogFooter>
+                        <Button
+                            variant="outline"
+                            onClick={() => setIsUpdateWebhookDialogOpen(false)}
+                        >
+                            Hủy
+                        </Button>
+                        <Button onClick={handleUpdateWebhook}>
+                            Lưu
+                        </Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>

@@ -32,7 +32,7 @@ import { deleteKioskType } from "@/services/kiosk";
 import { ErrorResponse } from "@/types/error";
 import { useDebounce, useKioskTypes, useToast } from "@/hooks";
 const KioskTypeDialog = React.lazy(() => import("@/components/dialog/kiosk").then(module => ({ default: module.KioskTypeDialog })));
-const KioskTypeDetailDialog = React.lazy(() => import("@/components/dialog/device").then(module => ({ default: module.KioskTypeDetailDialog })));
+const KioskTypeDetailDialog = React.lazy(() => import("@/components/dialog/kiosk").then(module => ({ default: module.KioskTypeDetailDialog })));
 const ConfirmDeleteDialog = React.lazy(() => import("@/components/common").then(module => ({ default: module.ConfirmDeleteDialog })));
 
 const ManageKioskTypes = () => {

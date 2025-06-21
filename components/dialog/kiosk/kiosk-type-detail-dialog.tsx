@@ -11,7 +11,7 @@ import { Badge } from "@/components/ui/badge";
 import { Info, Monitor, Calendar, FileText } from "lucide-react";
 import clsx from "clsx";
 import { getBaseStatusColor } from "@/utils/color";
-import { DeviceDialogProps, KioskDialogProps } from "@/types/dialog";
+import { KioskDialogProps } from "@/types/dialog";
 import { EBaseStatusViMap } from "@/enum/base";
 
 

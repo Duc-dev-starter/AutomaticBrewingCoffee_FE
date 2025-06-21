@@ -13,10 +13,10 @@ import { ErrorResponse } from "@/types/error";
 
 const WebhookDialog = ({ open, onOpenChange, kioskId }: WebhookDialogProps) => {
     const { toast } = useToast();
-    const [menuUrl, setMenuUrl] = useState("");
-    const [paymentUrl, setPaymentUrl] = useState("");
-    const [menuLoading, setMenuLoading] = useState(false);
-    const [paymentLoading, setPaymentLoading] = useState(false);
+    const [synchronizedUrl, setSynchronizedUrl] = useState("");
+    const [executeUrl, setExecuteUrl] = useState("");
+    const [synchronizedLoading, setSynchronizedLoading] = useState(false);
+    const [executeLoading, setExecuteLoading] = useState(false);
 
     const handleSave = async (type: EWebhookType, url: string) => {
         if (!url) {
@@ -27,7 +27,7 @@ const WebhookDialog = ({ open, onOpenChange, kioskId }: WebhookDialogProps) => {
             });
             return;
         }
-        const setLoading = type === EWebhookType.MenuSynchronized ? setMenuLoading : setPaymentLoading;
+        const setLoading = type === EWebhookType.SynchronizedData ? setSynchronizedLoading : setExecuteLoading;
         setLoading(true);
         try {
             const response = await registerWebhook({
@@ -40,10 +40,10 @@ const WebhookDialog = ({ open, onOpenChange, kioskId }: WebhookDialogProps) => {
                 description: response.message,
                 variant: "success"
             });
-            if (type === EWebhookType.MenuSynchronized) {
-                setMenuUrl("");
-            } else if (type === EWebhookType.PaymentCallback) {
-                setPaymentUrl("");
+            if (type === EWebhookType.SynchronizedData) {
+                setSynchronizedUrl("");
+            } else if (type === EWebhookType.ExecuteProduct) {
+                setExecuteUrl("");
             }
         } catch (error) {
             const err = error as ErrorResponse;
@@ -66,38 +66,38 @@ const WebhookDialog = ({ open, onOpenChange, kioskId }: WebhookDialogProps) => {
                 </DialogHeader>
                 <div className="space-y-6">
                     <div className="space-y-2">
-                        <Label htmlFor="menuUrl">Webhook URL cho MenuSynchronized</Label>
+                        <Label htmlFor="synchronizedUrl">Webhook URL cho SynchronizedData</Label>
                         <div className="flex items-center gap-2">
                             <Input
-                                id="menuUrl"
-                                value={menuUrl}
-                                onChange={(e) => setMenuUrl(e.target.value)}
-                                placeholder="Nhập URL cho MenuSynchronized"
+                                id="synchronizedUrl"
+                                value={synchronizedUrl}
+                                onChange={(e) => setSynchronizedUrl(e.target.value)}
+                                placeholder="Nhập URL cho SynchronizedData"
                                 className="flex-grow"
                             />
                             <Button
-                                onClick={() => handleSave(EWebhookType.MenuSynchronized, menuUrl)}
-                                disabled={menuLoading || !menuUrl}
+                                onClick={() => handleSave(EWebhookType.SynchronizedData, synchronizedUrl)}
+                                disabled={synchronizedLoading || !synchronizedUrl}
                             >
-                                {menuLoading ? "Đang lưu..." : "Save"}
+                                {synchronizedLoading ? "Đang lưu..." : "Save"}
                             </Button>
                         </div>
                     </div>
                     <div className="space-y-2">
-                        <Label htmlFor="paymentUrl">Webhook URL cho PaymentCallback</Label>
+                        <Label htmlFor="executeUrl">Webhook URL cho ExecuteProduct</Label>
                         <div className="flex items-center gap-2">
                             <Input
-                                id="paymentUrl"
-                                value={paymentUrl}
-                                onChange={(e) => setPaymentUrl(e.target.value)}
-                                placeholder="Nhập URL cho PaymentCallback"
+                                id="executeUrl"
+                                value={executeUrl}
+                                onChange={(e) => setExecuteUrl(e.target.value)}
+                                placeholder="Nhập URL cho ExecuteProduct"
                                 className="flex-grow"
                             />
                             <Button
-                                onClick={() => handleSave(EWebhookType.PaymentCallback, paymentUrl)}
-                                disabled={paymentLoading || !paymentUrl}
+                                onClick={() => handleSave(EWebhookType.ExecuteProduct, executeUrl)}
+                                disabled={executeLoading || !executeUrl}
                             >
-                                {paymentLoading ? "Đang lưu..." : "Save"}
+                                {executeLoading ? "Đang lưu..." : "Save"}
                             </Button>
                         </div>
                     </div>

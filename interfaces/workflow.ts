@@ -1,4 +1,4 @@
-import { EWorkflowStepType, EWorkflowType } from "@/enum/workflow";
+import { EWorkflowType } from "@/enum/workflow";
 import { Product } from "./product";
 import { DeviceModel } from "./device";
 

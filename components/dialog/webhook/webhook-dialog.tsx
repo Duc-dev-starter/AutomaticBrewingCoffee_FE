@@ -4,7 +4,13 @@ import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useToast } from "@/hooks/use-toast";
 import { registerWebhook } from "@/services/webhook";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import {
+    Dialog,
+    DialogContent,
+    DialogHeader,
+    DialogTitle,
+    DialogFooter,
+} from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { EWebhookType } from "@/enum/webhook";
@@ -13,10 +19,14 @@ import { ErrorResponse } from "@/types/error";
 
 const WebhookDialog = ({ open, onOpenChange, kioskId }: WebhookDialogProps) => {
     const { toast } = useToast();
+
     const [synchronizedUrl, setSynchronizedUrl] = useState("");
     const [executeUrl, setExecuteUrl] = useState("");
+    const [retrieveUrl, setRetrieveUrl] = useState("");
+
     const [synchronizedLoading, setSynchronizedLoading] = useState(false);
     const [executeLoading, setExecuteLoading] = useState(false);
+    const [retrieveLoading, setRetrieveLoading] = useState(false);
 
     const handleSave = async (type: EWebhookType, url: string) => {
         if (!url) {
@@ -27,7 +37,21 @@ const WebhookDialog = ({ open, onOpenChange, kioskId }: WebhookDialogProps) => {
             });
             return;
         }
-        const setLoading = type === EWebhookType.SynchronizedData ? setSynchronizedLoading : setExecuteLoading;
+
+        let setLoading: (loading: boolean) => void;
+
+        switch (type) {
+            case EWebhookType.SynchronizedData:
+                setLoading = setSynchronizedLoading;
+                break;
+            case EWebhookType.ExecuteProduct:
+                setLoading = setExecuteLoading;
+                break;
+            case EWebhookType.RetrieveDevice:
+                setLoading = setRetrieveLoading;
+                break;
+        }
+
         setLoading(true);
         try {
             const response = await registerWebhook({
@@ -35,15 +59,23 @@ const WebhookDialog = ({ open, onOpenChange, kioskId }: WebhookDialogProps) => {
                 webhookUrl: url,
                 webhookType: type,
             });
+
             toast({
                 title: "Thành công",
                 description: response.message,
-                variant: "success"
+                variant: "success",
             });
-            if (type === EWebhookType.SynchronizedData) {
-                setSynchronizedUrl("");
-            } else if (type === EWebhookType.ExecuteProduct) {
-                setExecuteUrl("");
+
+            switch (type) {
+                case EWebhookType.SynchronizedData:
+                    setSynchronizedUrl("");
+                    break;
+                case EWebhookType.ExecuteProduct:
+                    setExecuteUrl("");
+                    break;
+                case EWebhookType.RetrieveDevice:
+                    setRetrieveUrl("");
+                    break;
             }
         } catch (error) {
             const err = error as ErrorResponse;
@@ -64,9 +96,12 @@ const WebhookDialog = ({ open, onOpenChange, kioskId }: WebhookDialogProps) => {
                 <DialogHeader>
                     <DialogTitle>Đăng ký Webhook cho Kiosk</DialogTitle>
                 </DialogHeader>
+
                 <div className="space-y-6">
                     <div className="space-y-2">
-                        <Label htmlFor="synchronizedUrl">Webhook URL cho SynchronizedData</Label>
+                        <Label htmlFor="synchronizedUrl">
+                            Webhook URL cho <strong>SynchronizedData</strong>
+                        </Label>
                         <div className="flex items-center gap-2">
                             <Input
                                 id="synchronizedUrl"
@@ -76,15 +111,20 @@ const WebhookDialog = ({ open, onOpenChange, kioskId }: WebhookDialogProps) => {
                                 className="flex-grow"
                             />
                             <Button
-                                onClick={() => handleSave(EWebhookType.SynchronizedData, synchronizedUrl)}
+                                onClick={() =>
+                                    handleSave(EWebhookType.SynchronizedData, synchronizedUrl)
+                                }
                                 disabled={synchronizedLoading || !synchronizedUrl}
                             >
                                 {synchronizedLoading ? "Đang lưu..." : "Save"}
                             </Button>
                         </div>
                     </div>
+
                     <div className="space-y-2">
-                        <Label htmlFor="executeUrl">Webhook URL cho ExecuteProduct</Label>
+                        <Label htmlFor="executeUrl">
+                            Webhook URL cho <strong>ExecuteProduct</strong>
+                        </Label>
                         <div className="flex items-center gap-2">
                             <Input
                                 id="executeUrl"
@@ -94,14 +134,40 @@ const WebhookDialog = ({ open, onOpenChange, kioskId }: WebhookDialogProps) => {
                                 className="flex-grow"
                             />
                             <Button
-                                onClick={() => handleSave(EWebhookType.ExecuteProduct, executeUrl)}
+                                onClick={() =>
+                                    handleSave(EWebhookType.ExecuteProduct, executeUrl)
+                                }
                                 disabled={executeLoading || !executeUrl}
                             >
                                 {executeLoading ? "Đang lưu..." : "Save"}
                             </Button>
                         </div>
                     </div>
+
+                    <div className="space-y-2">
+                        <Label htmlFor="retrieveUrl">
+                            Webhook URL cho <strong>RetrieveDevice</strong>
+                        </Label>
+                        <div className="flex items-center gap-2">
+                            <Input
+                                id="retrieveUrl"
+                                value={retrieveUrl}
+                                onChange={(e) => setRetrieveUrl(e.target.value)}
+                                placeholder="Nhập URL cho RetrieveDevice"
+                                className="flex-grow"
+                            />
+                            <Button
+                                onClick={() =>
+                                    handleSave(EWebhookType.RetrieveDevice, retrieveUrl)
+                                }
+                                disabled={retrieveLoading || !retrieveUrl}
+                            >
+                                {retrieveLoading ? "Đang lưu..." : "Save"}
+                            </Button>
+                        </div>
+                    </div>
                 </div>
+
                 <DialogFooter className="mt-4">
                     <Button variant="outline" onClick={() => onOpenChange(false)}>
                         Đóng
@@ -112,4 +178,4 @@ const WebhookDialog = ({ open, onOpenChange, kioskId }: WebhookDialogProps) => {
     );
 };
 
-export default WebhookDialog
+export default WebhookDialog;

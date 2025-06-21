@@ -1,4 +1,5 @@
 export enum EWebhookType {
-    SynchronizedData = "0",
-    ExecuteProduct = "1",
+    SynchronizedData = "SynchronizedData",
+    ExecuteProduct = "ExecuteProduct",
+    RetrieveDevice = "RetrieveDevice",
 }

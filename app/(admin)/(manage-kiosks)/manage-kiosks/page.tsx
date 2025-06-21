@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState, useMemo } from "react";
+import React, { useCallback, useEffect, useState, useMemo } from "react";
 import { ChevronDownIcon } from "@radix-ui/react-icons";
 import {
     type ColumnFiltersState,
@@ -23,21 +23,22 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { PlusCircle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ConfirmDeleteDialog, BaseStatusFilter, ExportButton, NoResultsRow, Pagination, RefreshButton, SearchInput } from "@/components/common";
+import { BaseStatusFilter, ExportButton, NoResultsRow, Pagination, RefreshButton, SearchInput } from "@/components/common";
 import { deleteKiosk, syncKiosk } from "@/services/kiosk";
 import { Kiosk } from "@/interfaces/kiosk";
 import { multiSelectFilter } from "@/utils/table";
 import { columns } from "@/components/manage-kiosks/columns";
-import { KioskDetailDialog, KioskDialog } from "@/components/dialog/kiosk";
 import { BaseFilterBadges } from "@/components/common/base-filter-badges";
 import { useRouter } from "next/navigation";
-import WebhookDialog from "@/components/dialog/webhook/webhook-dialog";
 import { ErrorResponse } from "@/types/error";
 import axios from "axios";
 import Cookies from "js-cookie"
 import { useDebounce, useKiosks, useToast } from "@/hooks";
 import { Path } from "@/constants/path";
-
+const KioskDialog = React.lazy(() => import("@/components/dialog/kiosk").then(module => ({ default: module.KioskDialog })));
+const KioskDetailDialog = React.lazy(() => import("@/components/dialog/kiosk").then(module => ({ default: module.KioskDetailDialog })));
+const WebhookDialog = React.lazy(() => import("@/components/dialog/webhook").then(module => ({ default: module.WebhookDialog })));
+const ConfirmDeleteDialog = React.lazy(() => import("@/components/common").then(module => ({ default: module.ConfirmDeleteDialog })));
 
 const ManageKiosks = () => {
     const router = useRouter();
@@ -443,32 +444,44 @@ const ManageKiosks = () => {
                     totalPages={data?.totalPages || 1}
                 />
             </div>
-            <KioskDialog
-                open={dialogOpen}
-                onOpenChange={setDialogOpen}
-                onSuccess={handleSuccess}
-                kiosk={selectedKiosk}
-            />
-            <KioskDetailDialog
-                open={detailDialogOpen}
-                onOpenChange={(open) => {
-                    setDetailDialogOpen(open);
-                    if (!open) setDetailKiosk(null);
-                }}
-                kiosk={detailKiosk}
-            />
-            <ConfirmDeleteDialog
-                open={deleteDialogOpen}
-                onOpenChange={setDeleteDialogOpen}
-                description={`Bạn có chắc chắn muốn xóa kiosk tại "${kioskToDelete?.location}"? Hành động này không thể hoàn tác.`}
-                onConfirm={confirmDelete}
-                onCancel={() => setKioskToDelete(null)}
-            />
-            <WebhookDialog
-                open={webhookDialogOpen}
-                onOpenChange={setWebhookDialogOpen}
-                kioskId={selectedKioskId || ""}
-            />
+
+            <React.Suspense fallback={<div>Đang tải...</div>}>
+                <KioskDialog
+                    open={dialogOpen}
+                    onOpenChange={setDialogOpen}
+                    onSuccess={handleSuccess}
+                    kiosk={selectedKiosk}
+                />
+            </React.Suspense>
+
+            <React.Suspense fallback={<div>Đang tải...</div>}>
+                <KioskDetailDialog
+                    open={detailDialogOpen}
+                    onOpenChange={(open) => {
+                        setDetailDialogOpen(open);
+                        if (!open) setDetailKiosk(null);
+                    }}
+                    kiosk={detailKiosk}
+                />
+            </React.Suspense>
+
+            <React.Suspense fallback={<div>Đang tải...</div>}>
+                <ConfirmDeleteDialog
+                    open={deleteDialogOpen}
+                    onOpenChange={setDeleteDialogOpen}
+                    description={`Bạn có chắc chắn muốn xóa kiosk tại "${kioskToDelete?.location}"? Hành động này không thể hoàn tác.`}
+                    onConfirm={confirmDelete}
+                    onCancel={() => setKioskToDelete(null)}
+                />
+            </React.Suspense>
+
+            <React.Suspense fallback={<div>Đang tải...</div>}>
+                <WebhookDialog
+                    open={webhookDialogOpen}
+                    onOpenChange={setWebhookDialogOpen}
+                    kioskId={selectedKioskId || ""}
+                />
+            </React.Suspense>
         </div>
     );
 };

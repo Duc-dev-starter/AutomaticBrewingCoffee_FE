@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { ChevronDownIcon } from "@radix-ui/react-icons";
 import {
     type ColumnFiltersState,
@@ -25,9 +25,10 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { SyncTask } from "@/interfaces/sync";
 import { ExportButton, NoResultsRow, Pagination, RefreshButton, SearchInput } from "@/components/common";
 import { syncTaskColumns } from "@/components/manage-syncs/columns";
-import { SyncTaskDetailDialog } from "@/components/dialog/sync";
 import { useDebounce, useSyncTasks, useToast } from "@/hooks";
 import { multiSelectFilter } from "@/utils/table";
+const SyncTaskDetailDialog = React.lazy(() => import("@/components/dialog/sync").then(module => ({ default: module.SyncTaskDetailDialog })));
+
 
 const ManageSyncTasks = () => {
     const { toast } = useToast();
@@ -251,14 +252,17 @@ const ManageSyncTasks = () => {
                     totalPages={data?.totalPages || 1}
                 />
             </div>
-            <SyncTaskDetailDialog
-                open={detailDialogOpen}
-                onOpenChange={(open) => {
-                    setDetailDialogOpen(open);
-                    if (!open) setDetailSyncTask(null);
-                }}
-                syncTask={detailSyncTask}
-            />
+
+            <React.Suspense fallback={<div>Đang tải...</div>}>
+                <SyncTaskDetailDialog
+                    open={detailDialogOpen}
+                    onOpenChange={(open) => {
+                        setDetailDialogOpen(open);
+                        if (!open) setDetailSyncTask(null);
+                    }}
+                    syncTask={detailSyncTask}
+                />
+            </React.Suspense>
         </div>
     );
 };

@@ -1,6 +1,6 @@
 "use client"
 
-import { useCallback, useEffect, useState, useRef, useMemo } from "react"
+import React, { useCallback, useEffect, useState, useRef, useMemo } from "react"
 import { ChevronDownIcon } from "@radix-ui/react-icons"
 import {
     type ColumnFiltersState,
@@ -24,7 +24,6 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { PlusCircle } from "lucide-react"
 import { Skeleton } from "@/components/ui/skeleton"
 import {
-    ConfirmDeleteDialog,
     BaseStatusFilter,
     ExportButton,
     NoResultsRow,
@@ -36,10 +35,12 @@ import { deleteOrganization } from "@/services/organization"
 import type { Organization } from "@/interfaces/organization"
 import { multiSelectFilter } from "@/utils/table"
 import { columns } from "@/components/manage-organizations/columns"
-import { OrganizationDetailDialog, OrganizationDialog } from "@/components/dialog/organization"
 import { BaseFilterBadges } from "@/components/common/base-filter-badges"
 import { ErrorResponse } from "@/types/error"
 import { useDebounce, useOrganizations, useToast } from "@/hooks"
+const OrganizationDialog = React.lazy(() => import("@/components/dialog/organization").then(module => ({ default: module.OrganizationDialog })));
+const OrganizationDetailDialog = React.lazy(() => import("@/components/dialog/organization").then(module => ({ default: module.OrganizationDetailDialog })));
+const ConfirmDeleteDialog = React.lazy(() => import("@/components/common").then(module => ({ default: module.ConfirmDeleteDialog })));
 
 const ManageOrganizations = () => {
     const { toast } = useToast()
@@ -378,27 +379,36 @@ const ManageOrganizations = () => {
                     totalPages={data?.totalPages || 1}
                 />
             </div>
-            <OrganizationDialog
-                open={dialogOpen}
-                onOpenChange={setDialogOpen}
-                onSuccess={handleSuccess}
-                organization={selectedOrganization}
-            />
-            <OrganizationDetailDialog
-                open={detailDialogOpen}
-                onOpenChange={(open) => {
-                    setDetailDialogOpen(open)
-                    if (!open) setDetailOrganization(null)
-                }}
-                organization={detailOrganization}
-            />
-            <ConfirmDeleteDialog
-                open={deleteDialogOpen}
-                onOpenChange={setDeleteDialogOpen}
-                description={`Bạn có chắc chắn muốn xóa tổ chức "${organizationToDelete?.name}"? Hành động này không thể hoàn tác.`}
-                onConfirm={confirmDelete}
-                onCancel={() => setOrganizationToDelete(null)}
-            />
+
+            <React.Suspense fallback={<div>Đang tải...</div>}>
+                <OrganizationDialog
+                    open={dialogOpen}
+                    onOpenChange={setDialogOpen}
+                    onSuccess={handleSuccess}
+                    organization={selectedOrganization}
+                />
+            </React.Suspense>
+
+            <React.Suspense fallback={<div>Đang tải...</div>}>
+                <OrganizationDetailDialog
+                    open={detailDialogOpen}
+                    onOpenChange={(open) => {
+                        setDetailDialogOpen(open)
+                        if (!open) setDetailOrganization(null)
+                    }}
+                    organization={detailOrganization}
+                />
+            </React.Suspense>
+
+            <React.Suspense fallback={<div>Đang tải...</div>}>
+                <ConfirmDeleteDialog
+                    open={deleteDialogOpen}
+                    onOpenChange={setDeleteDialogOpen}
+                    description={`Bạn có chắc chắn muốn xóa tổ chức "${organizationToDelete?.name}"? Hành động này không thể hoàn tác.`}
+                    onConfirm={confirmDelete}
+                    onCancel={() => setOrganizationToDelete(null)}
+                />
+            </React.Suspense>
         </div>
     )
 }

@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState, useMemo } from "react";
+import React, { useCallback, useEffect, useState, useMemo } from "react";
 import { ChevronDownIcon } from "@radix-ui/react-icons";
 import {
     type ColumnFiltersState,
@@ -23,14 +23,16 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { PlusCircle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { BaseStatusFilter, ConfirmDeleteDialog, ExportButton, NoResultsRow, Pagination, RefreshButton, SearchInput } from "@/components/common";
+import { BaseStatusFilter, ExportButton, NoResultsRow, Pagination, RefreshButton, SearchInput } from "@/components/common";
 import { multiSelectFilter } from "@/utils/table";
 import { Category } from "@/interfaces/category";
 import { columns } from "@/components/manage-categories/columns";
 import { deleteCategory } from "@/services/category";
 import { ErrorResponse } from "@/types/error";
 import { useDebounce, useCategories, useToast } from "@/hooks";
-import { CategoryDetailDialog, CategoryDialog } from "@/components/dialog/category";
+const CategoryDialog = React.lazy(() => import("@/components/dialog/category").then(module => ({ default: module.CategoryDialog })));
+const CategoryDetailDialog = React.lazy(() => import("@/components/dialog/category").then(module => ({ default: module.CategoryDetailDialog })));
+const ConfirmDeleteDialog = React.lazy(() => import("@/components/common").then(module => ({ default: module.ConfirmDeleteDialog })));
 
 const ManageCategories = () => {
     const { toast } = useToast();
@@ -344,27 +346,36 @@ const ManageCategories = () => {
                     totalPages={data?.totalPages || 1}
                 />
             </div>
-            <CategoryDialog
-                open={dialogOpen}
-                onOpenChange={setDialogOpen}
-                onSuccess={handleSuccess}
-                category={selectedCategory}
-            />
-            <CategoryDetailDialog
-                open={detailDialogOpen}
-                onOpenChange={(open) => {
-                    setDetailDialogOpen(open);
-                    if (!open) setDetailCategory(null);
-                }}
-                category={detailCategory}
-            />
-            <ConfirmDeleteDialog
-                open={deleteDialogOpen}
-                onOpenChange={setDeleteDialogOpen}
-                description={`Bạn có chắc chắn muốn xóa danh mục "${categoryToDelete?.name}"? Hành động này không thể hoàn tác.`}
-                onConfirm={confirmDelete}
-                onCancel={() => setCategoryToDelete(null)}
-            />
+
+            <React.Suspense fallback={<div>Đang tải...</div>}>
+                <CategoryDialog
+                    open={dialogOpen}
+                    onOpenChange={setDialogOpen}
+                    onSuccess={handleSuccess}
+                    category={selectedCategory}
+                />
+            </React.Suspense>
+
+            <React.Suspense fallback={<div>Đang tải...</div>}>
+                <CategoryDetailDialog
+                    open={detailDialogOpen}
+                    onOpenChange={(open) => {
+                        setDetailDialogOpen(open);
+                        if (!open) setDetailCategory(null);
+                    }}
+                    category={detailCategory}
+                />
+            </React.Suspense>
+
+            <React.Suspense fallback={<div>Đang tải...</div>}>
+                <ConfirmDeleteDialog
+                    open={deleteDialogOpen}
+                    onOpenChange={setDeleteDialogOpen}
+                    description={`Bạn có chắc chắn muốn xóa danh mục "${categoryToDelete?.name}"? Hành động này không thể hoàn tác.`}
+                    onConfirm={confirmDelete}
+                    onCancel={() => setCategoryToDelete(null)}
+                />
+            </React.Suspense>
         </div>
     );
 };

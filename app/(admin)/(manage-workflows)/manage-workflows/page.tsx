@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState, useRef, useMemo } from "react";
+import React, { useCallback, useEffect, useState, useRef, useMemo } from "react";
 import { ChevronDownIcon } from "@radix-ui/react-icons";
 import {
     type ColumnFiltersState,
@@ -26,13 +26,13 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { columns } from "@/components/manage-workflows/columns";
 import { Workflow } from "@/interfaces/workflow";
 import { getWorkflows, deleteWorkflow } from "@/services/workflow";
-import useDebounce from "@/hooks/use-debounce";
-import { ConfirmDeleteDialog, BaseStatusFilter, ExportButton, NoResultsRow, Pagination, RefreshButton, SearchInput } from "@/components/common";
+import { BaseStatusFilter, ExportButton, NoResultsRow, Pagination, RefreshButton, SearchInput } from "@/components/common";
 import { multiSelectFilter } from "@/utils/table";
-import { useToast } from "@/hooks/use-toast";
 import { FilterBadges } from "@/components/manage-workflows/filter-badges";
 import { useRouter } from "next/navigation";
 import { ErrorResponse } from "@/types/error";
+import { useDebounce, useToast } from "@/hooks";
+const ConfirmDeleteDialog = React.lazy(() => import("@/components/common").then(module => ({ default: module.ConfirmDeleteDialog })));
 
 const ManageWorkflows = () => {
     const { toast } = useToast();
@@ -358,13 +358,16 @@ const ManageWorkflows = () => {
                     totalPages={totalPages}
                 />
             </div>
-            <ConfirmDeleteDialog
-                open={deleteDialogOpen}
-                onOpenChange={setDeleteDialogOpen}
-                description={`Bạn có chắc chắn muốn xóa quy trình "${workflowToDelete?.name}"? Hành động này không thể hoàn tác.`}
-                onConfirm={confirmDelete}
-                onCancel={() => setWorkflowToDelete(null)}
-            />
+
+            <React.Suspense fallback={<div>Đang tải...</div>}>
+                <ConfirmDeleteDialog
+                    open={deleteDialogOpen}
+                    onOpenChange={setDeleteDialogOpen}
+                    description={`Bạn có chắc chắn muốn xóa quy trình "${workflowToDelete?.name}"? Hành động này không thể hoàn tác.`}
+                    onConfirm={confirmDelete}
+                    onCancel={() => setWorkflowToDelete(null)}
+                />
+            </React.Suspense>
         </div>
     );
 };

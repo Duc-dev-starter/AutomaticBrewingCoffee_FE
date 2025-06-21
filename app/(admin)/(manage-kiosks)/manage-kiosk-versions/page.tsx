@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState, useRef, useMemo } from "react";
+import React, { useCallback, useEffect, useState, useRef, useMemo } from "react";
 import { ChevronDownIcon } from "@radix-ui/react-icons";
 import {
     type ColumnFiltersState,
@@ -23,17 +23,18 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { PlusCircle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { BaseStatusFilter, ConfirmDeleteDialog, ExportButton, NoResultsRow, Pagination, RefreshButton, SearchInput } from "@/components/common";
+import { BaseStatusFilter, ExportButton, NoResultsRow, Pagination, RefreshButton, SearchInput } from "@/components/common";
 import { multiSelectFilter } from "@/utils/table";
 import { FilterBadges } from "@/components/manage-devices/filter-badges";
 import { columns } from "@/components/manage-kiosks/manage-kiosk-versions/columns";
 import { KioskVersion } from "@/interfaces/kiosk";
 import { deleteKioskVersion } from "@/services/kiosk";
-import { KioskVersionDialog } from "@/components/dialog/kiosk";
 import { useRouter } from "next/navigation";
 import { ErrorResponse } from "@/types/error";
 import { useDebounce, useKioskVersions, useToast } from "@/hooks";
 import { Path } from "@/constants/path";
+const KioskVersionDialog = React.lazy(() => import("@/components/dialog/kiosk").then(module => ({ default: module.KioskVersionDialog })));
+const ConfirmDeleteDialog = React.lazy(() => import("@/components/common").then(module => ({ default: module.ConfirmDeleteDialog })));
 
 const ManageKioskVersions = () => {
     const router = useRouter();

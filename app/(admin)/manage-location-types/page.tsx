@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState, useRef, useMemo } from "react";
+import React, { useCallback, useEffect, useState, useRef, useMemo } from "react";
 import { ChevronDownIcon } from "@radix-ui/react-icons";
 import {
     type ColumnFiltersState,
@@ -23,14 +23,17 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { PlusCircle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { BaseStatusFilter, ConfirmDeleteDialog, ExportButton, NoResultsRow, Pagination, RefreshButton, SearchInput } from "@/components/common";
+import { BaseStatusFilter, ExportButton, NoResultsRow, Pagination, RefreshButton, SearchInput } from "@/components/common";
 import { multiSelectFilter } from "@/utils/table";
 import { LocationType } from "@/interfaces/location";
 import { columns } from "@/components/manage-locations/columns";
 import { deleteLocationType } from "@/services/locationType";
-import { LocationTypeDetailDialog, LocationTypeDialog } from "@/components/dialog/locationType";
 import { ErrorResponse } from "@/types/error";
 import { useDebounce, useLocationTypes, useToast } from "@/hooks";
+const LocationTypeDialog = React.lazy(() => import("@/components/dialog/locationType").then(module => ({ default: module.LocationTypeDialog })));
+const LocationTypeDetailDialog = React.lazy(() => import("@/components/dialog/locationType").then(module => ({ default: module.LocationTypeDetailDialog })));
+const ConfirmDeleteDialog = React.lazy(() => import("@/components/common").then(module => ({ default: module.ConfirmDeleteDialog })));
+
 
 const ManageLocationTypes = () => {
     const { toast } = useToast();
@@ -347,27 +350,36 @@ const ManageLocationTypes = () => {
                     totalPages={data?.totalPages || 1}
                 />
             </div>
-            <LocationTypeDialog
-                open={dialogOpen}
-                onOpenChange={setDialogOpen}
-                onSuccess={handleSuccess}
-                locationType={selectedLocationType}
-            />
-            <LocationTypeDetailDialog
-                open={detailDialogOpen}
-                onOpenChange={(open) => {
-                    setDetailDialogOpen(open);
-                    if (!open) setDetailLocation(null);
-                }}
-                locationType={detailLocation}
-            />
-            <ConfirmDeleteDialog
-                open={deleteDialogOpen}
-                onOpenChange={setDeleteDialogOpen}
-                description={`Bạn có chắc chắn muốn xóa location "${locationTypeToDelete?.name}"? Hành động này không thể hoàn tác.`}
-                onConfirm={confirmDelete}
-                onCancel={() => setLocationTypeToDelete(null)}
-            />
+
+            <React.Suspense fallback={<div>Đang tải...</div>}>
+                <LocationTypeDialog
+                    open={dialogOpen}
+                    onOpenChange={setDialogOpen}
+                    onSuccess={handleSuccess}
+                    locationType={selectedLocationType}
+                />
+            </React.Suspense>
+
+            <React.Suspense fallback={<div>Đang tải...</div>}>
+                <LocationTypeDetailDialog
+                    open={detailDialogOpen}
+                    onOpenChange={(open) => {
+                        setDetailDialogOpen(open);
+                        if (!open) setDetailLocation(null);
+                    }}
+                    locationType={detailLocation}
+                />
+            </React.Suspense>
+
+            <React.Suspense fallback={<div>Đang tải...</div>}>
+                <ConfirmDeleteDialog
+                    open={deleteDialogOpen}
+                    onOpenChange={setDeleteDialogOpen}
+                    description={`Bạn có chắc chắn muốn xóa location "${locationTypeToDelete?.name}"? Hành động này không thể hoàn tác.`}
+                    onConfirm={confirmDelete}
+                    onCancel={() => setLocationTypeToDelete(null)}
+                />
+            </React.Suspense>
         </div>
     );
 };

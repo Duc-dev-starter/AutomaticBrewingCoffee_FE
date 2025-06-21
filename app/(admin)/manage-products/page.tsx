@@ -1,5 +1,5 @@
 "use client";
-import { useCallback, useEffect, useState, useRef, useMemo } from "react";
+import React, { useCallback, useEffect, useState, useMemo } from "react";
 import { ChevronDownIcon } from "@radix-ui/react-icons";
 import {
     type ColumnFiltersState,
@@ -23,15 +23,17 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { PlusCircle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { columns } from "@/components/manage-products/columns";
-import { ConfirmDeleteDialog, ExportButton, NoResultsRow, Pagination, RefreshButton, SearchInput } from "@/components/common";
-import { getProducts, deleteProduct, cloneProduct } from "@/services/product";
+import { ExportButton, NoResultsRow, Pagination, RefreshButton, SearchInput } from "@/components/common";
+import { deleteProduct, cloneProduct } from "@/services/product";
 import { Product } from "@/interfaces/product";
 import { multiSelectFilter } from "@/utils/table";
-import { ProductDialog, ProductDetailDialog } from "@/components/dialog/product";
 import { ProductFilter } from "@/components/manage-products/filter";
 import { FilterBadges } from "@/components/manage-products/filter-badges";
 import { ErrorResponse } from "@/types/error";
 import { useDebounce, useProducts, useToast } from "@/hooks";
+const ProductDialog = React.lazy(() => import("@/components/dialog/product").then(module => ({ default: module.ProductDialog })));
+const ProductDetailDialog = React.lazy(() => import("@/components/dialog/product").then(module => ({ default: module.ProductDetailDialog })));
+const ConfirmDeleteDialog = React.lazy(() => import("@/components/common").then(module => ({ default: module.ConfirmDeleteDialog })));
 
 const ManageProducts = () => {
     const { toast } = useToast();
@@ -415,27 +417,36 @@ const ManageProducts = () => {
                     totalPages={data?.totalPages || 1}
                 />
             </div>
-            <ProductDialog
-                open={dialogOpen}
-                onOpenChange={setDialogOpen}
-                onSuccess={handleSuccess}
-                product={selectedProduct}
-            />
-            <ProductDetailDialog
-                open={detailDialogOpen}
-                onOpenChange={(open) => {
-                    setDetailDialogOpen(open);
-                    if (!open) setDetailProduct(null);
-                }}
-                product={detailProduct}
-            />
-            <ConfirmDeleteDialog
-                open={deleteDialogOpen}
-                onOpenChange={setDeleteDialogOpen}
-                description={`Bạn có chắc chắn muốn xóa sản phẩm "${productToDelete?.name}"? Hành động này không thể hoàn tác.`}
-                onConfirm={confirmDelete}
-                onCancel={() => setProductToDelete(null)}
-            />
+
+            <React.Suspense fallback={<div>Đang tải...</div>}>
+                <ProductDialog
+                    open={dialogOpen}
+                    onOpenChange={setDialogOpen}
+                    onSuccess={handleSuccess}
+                    product={selectedProduct}
+                />
+            </React.Suspense>
+
+            <React.Suspense fallback={<div>Đang tải...</div>}>
+                <ProductDetailDialog
+                    open={detailDialogOpen}
+                    onOpenChange={(open) => {
+                        setDetailDialogOpen(open);
+                        if (!open) setDetailProduct(null);
+                    }}
+                    product={detailProduct}
+                />
+            </React.Suspense>
+
+            <React.Suspense fallback={<div>Đang tải...</div>}>
+                <ConfirmDeleteDialog
+                    open={deleteDialogOpen}
+                    onOpenChange={setDeleteDialogOpen}
+                    description={`Bạn có chắc chắn muốn xóa sản phẩm "${productToDelete?.name}"? Hành động này không thể hoàn tác.`}
+                    onConfirm={confirmDelete}
+                    onCancel={() => setProductToDelete(null)}
+                />
+            </React.Suspense>
         </div>
     );
 };

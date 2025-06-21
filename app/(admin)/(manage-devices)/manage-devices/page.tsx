@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { ChevronDownIcon } from "@radix-ui/react-icons";
 import {
     type ColumnFiltersState,
@@ -25,12 +25,14 @@ import { PlusCircle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Device } from "@/interfaces/device";
 import { deleteDevice } from "@/services/device";
-import { ConfirmDeleteDialog, ExportButton, NoResultsRow, Pagination, RefreshButton, SearchInput } from "@/components/common";
+import { ExportButton, NoResultsRow, Pagination, RefreshButton, SearchInput } from "@/components/common";
 import { multiSelectFilter } from "@/utils/table";
-import { DeviceDetailDialog, DeviceDialog } from "@/components/dialog/device";
 import { ErrorResponse } from "@/types/error";
 import { columns, DeviceFilter, FilterBadges } from "@/components/manage-devices";
 import { useDevices, useDebounce, useToast } from "@/hooks";
+const DeviceDialog = React.lazy(() => import("@/components/dialog/device").then(module => ({ default: module.DeviceDialog })));
+const DeviceDetailDialog = React.lazy(() => import("@/components/dialog/device").then(module => ({ default: module.DeviceDetailDialog })));
+const ConfirmDeleteDialog = React.lazy(() => import("@/components/common").then(module => ({ default: module.ConfirmDeleteDialog })));
 
 const ManageDevices = () => {
     const { toast } = useToast();
@@ -365,27 +367,35 @@ const ManageDevices = () => {
                     totalPages={data?.totalPages || 1}
                 />
             </div>
-            <DeviceDialog
-                open={dialogOpen}
-                onOpenChange={setDialogOpen}
-                onSuccess={handleSuccess}
-                device={selectedDevice}
-            />
-            <DeviceDetailDialog
-                open={detailDialogOpen}
-                onOpenChange={(open) => {
-                    setDetailDialogOpen(open);
-                    if (!open) setDetailDevice(null);
-                }}
-                device={detailDevice}
-            />
-            <ConfirmDeleteDialog
-                open={deleteDialogOpen}
-                onOpenChange={setDeleteDialogOpen}
-                description={`Bạn có chắc chắn muốn xóa thiết bị "${deviceToDelete?.name}"? Hành động này không thể hoàn tác.`}
-                onConfirm={confirmDelete}
-                onCancel={() => setDeviceToDelete(null)}
-            />
+            <React.Suspense fallback={<div>Đang tải...</div>}>
+                <DeviceDialog
+                    open={dialogOpen}
+                    onOpenChange={setDialogOpen}
+                    onSuccess={handleSuccess}
+                    device={selectedDevice}
+                />
+            </React.Suspense>
+
+            <React.Suspense fallback={<div>Đang tải...</div>}>
+                <DeviceDetailDialog
+                    open={detailDialogOpen}
+                    onOpenChange={(open) => {
+                        setDetailDialogOpen(open);
+                        if (!open) setDetailDevice(null);
+                    }}
+                    device={detailDevice}
+                />
+            </React.Suspense>
+
+            <React.Suspense fallback={<div>Đang tải...</div>}>
+                <ConfirmDeleteDialog
+                    open={deleteDialogOpen}
+                    onOpenChange={setDeleteDialogOpen}
+                    description={`Bạn có chắc chắn muốn xóa thiết bị "${deviceToDelete?.name}"? Hành động này không thể hoàn tác.`}
+                    onConfirm={confirmDelete}
+                    onCancel={() => setDeviceToDelete(null)}
+                />
+            </React.Suspense>
         </div>
     );
 };

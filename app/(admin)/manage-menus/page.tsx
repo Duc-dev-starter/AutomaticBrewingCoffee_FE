@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState, useMemo } from "react";
+import React, { useCallback, useEffect, useState, useMemo } from "react";
 import { ChevronDownIcon } from "@radix-ui/react-icons";
 import {
     type ColumnFiltersState,
@@ -23,27 +23,24 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { PlusCircle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { ConfirmDeleteDialog, BaseStatusFilter, ExportButton, NoResultsRow, Pagination, RefreshButton, SearchInput } from "@/components/common";
+import { BaseStatusFilter, ExportButton, NoResultsRow, Pagination, RefreshButton, SearchInput } from "@/components/common";
 import { deleteMenu } from "@/services/menu";
 import { Menu } from "@/interfaces/menu";
 import { multiSelectFilter } from "@/utils/table";
 import { useDebounce, useMenus, useToast } from "@/hooks"
-
 import { columns } from "@/components/manage-menus/columns";
-
 import { useRouter } from "next/navigation";
 import { ErrorResponse } from "@/types/error";
-import { MenuDetailDialog, MenuDialog } from "@/components/dialog/menu";
 import { Path } from "@/constants/path";
+const MenuDialog = React.lazy(() => import("@/components/dialog/menu").then(module => ({ default: module.MenuDialog })));
+const MenuDetailDialog = React.lazy(() => import("@/components/dialog/menu").then(module => ({ default: module.MenuDetailDialog })));
+const ConfirmDeleteDialog = React.lazy(() => import("@/components/common").then(module => ({ default: module.ConfirmDeleteDialog })));
 
 const ManageMenus = () => {
     const { toast } = useToast();
     const [pageSize, setPageSize] = useState(10);
     const [currentPage, setCurrentPage] = useState(1);
-
     const [statusFilter, setStatusFilter] = useState<string>("");
-
-
     const [sorting, setSorting] = useState<SortingState>([{ id: "createdDate", desc: true }]);
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
     const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
@@ -351,27 +348,36 @@ const ManageMenus = () => {
                     totalPages={data?.totalPages || 1}
                 />
             </div>
-            <MenuDialog
-                open={dialogOpen}
-                onOpenChange={setDialogOpen}
-                onSuccess={handleSuccess}
-                menu={selectedMenu}
-            />
-            <MenuDetailDialog
-                open={detailDialogOpen}
-                onOpenChange={(open) => {
-                    setDetailDialogOpen(open);
-                    if (!open) setDetailMenu(null);
-                }}
-                menu={detailMenu}
-            />
-            <ConfirmDeleteDialog
-                open={deleteDialogOpen}
-                onOpenChange={setDeleteDialogOpen}
-                description={`Bạn có chắc chắn muốn xóa menu "${menuToDelete?.name}"? Hành động này không thể hoàn tác.`}
-                onConfirm={confirmDelete}
-                onCancel={() => setMenuToDelete(null)}
-            />
+
+            <React.Suspense fallback={<div>Đang tải...</div>}>
+                <MenuDialog
+                    open={dialogOpen}
+                    onOpenChange={setDialogOpen}
+                    onSuccess={handleSuccess}
+                    menu={selectedMenu}
+                />
+            </React.Suspense>
+
+            <React.Suspense fallback={<div>Đang tải...</div>}>
+                <MenuDetailDialog
+                    open={detailDialogOpen}
+                    onOpenChange={(open) => {
+                        setDetailDialogOpen(open);
+                        if (!open) setDetailMenu(null);
+                    }}
+                    menu={detailMenu}
+                />
+            </React.Suspense>
+
+            <React.Suspense fallback={<div>Đang tải...</div>}>
+                <ConfirmDeleteDialog
+                    open={deleteDialogOpen}
+                    onOpenChange={setDeleteDialogOpen}
+                    description={`Bạn có chắc chắn muốn xóa menu "${menuToDelete?.name}"? Hành động này không thể hoàn tác.`}
+                    onConfirm={confirmDelete}
+                    onCancel={() => setMenuToDelete(null)}
+                />
+            </React.Suspense>
         </div>
     );
 };

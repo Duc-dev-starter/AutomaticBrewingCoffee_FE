@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState, useMemo } from "react";
+import React, { useCallback, useEffect, useState, useMemo } from "react";
 import { ChevronDownIcon } from "@radix-ui/react-icons";
 import {
     type ColumnFiltersState,
@@ -22,14 +22,15 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Skeleton } from "@/components/ui/skeleton";
-import { BaseStatusFilter, ConfirmBanUnbanDialog, ExportButton, NoResultsRow, Pagination, RefreshButton, SearchInput } from "@/components/common";
+import { BaseStatusFilter, ExportButton, NoResultsRow, Pagination, RefreshButton, SearchInput } from "@/components/common";
 import { multiSelectFilter } from "@/utils/table";
 import { ErrorResponse } from "@/types/error";
 import { columns } from "@/components/manage-accounts/columns";
 import { Account } from "@/interfaces/account";
 import { banAccount, unbanAccount } from "@/services/auth";
-import { AccountDetailDialog } from "@/components/dialog/account";
 import { useAccounts, useDebounce, useToast } from "@/hooks";
+const ConfirmBanUnbanDialog = React.lazy(() => import("@/components/common").then(module => ({ default: module.ConfirmBanUnbanDialog })));
+const AccountDetailDialog = React.lazy(() => import("@/components/dialog/account").then(module => ({ default: module.AccountDetailDialog })));
 
 const ManageAccounts = () => {
     const { toast } = useToast();
@@ -326,22 +327,27 @@ const ManageAccounts = () => {
                     totalPages={data?.totalPages || 1}
                 />
             </div>
-            <AccountDetailDialog
-                open={detailDialogOpen}
-                onOpenChange={(open) => {
-                    setDetailDialogOpen(open);
-                    if (!open) setDetailAccount(null);
-                }}
-                account={detailAccount}
-            />
 
-            <ConfirmBanUnbanDialog
-                open={deleteDialogOpen}
-                onOpenChange={setDeleteDialogOpen}
-                onConfirm={confirmBanOrUnban}
-                item={accountToBanOrUnban}
-                action={accountToBanOrUnban?.isBanned ? "unban" : "ban"}
-            />
+            <React.Suspense fallback={<div>Đang tải...</div>}>
+                <AccountDetailDialog
+                    open={detailDialogOpen}
+                    onOpenChange={(open) => {
+                        setDetailDialogOpen(open);
+                        if (!open) setDetailAccount(null);
+                    }}
+                    account={detailAccount}
+                />
+            </React.Suspense>
+
+            <React.Suspense fallback={<div>Đang tải...</div>}>
+                <ConfirmBanUnbanDialog
+                    open={deleteDialogOpen}
+                    onOpenChange={setDeleteDialogOpen}
+                    onConfirm={confirmBanOrUnban}
+                    item={accountToBanOrUnban}
+                    action={accountToBanOrUnban?.isBanned ? "unban" : "ban"}
+                />
+            </React.Suspense>
         </div>
     );
 };

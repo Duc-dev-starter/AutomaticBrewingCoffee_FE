@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState, useRef, useMemo } from "react";
+import React, { useCallback, useEffect, useState, useRef, useMemo } from "react";
 import { ChevronDownIcon } from "@radix-ui/react-icons";
 import {
     type ColumnFiltersState,
@@ -25,13 +25,15 @@ import { PlusCircle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Store } from "@/interfaces/store";
 import { deleteStore } from "@/services/store";
-import { BaseStatusFilter, ConfirmDeleteDialog, ExportButton, NoResultsRow, Pagination, RefreshButton, SearchInput } from "@/components/common";
+import { BaseStatusFilter, ExportButton, NoResultsRow, Pagination, RefreshButton, SearchInput } from "@/components/common";
 import { multiSelectFilter } from "@/utils/table";
 import { columns } from "@/components/manage-stores/columns";
 import { BaseFilterBadges } from "@/components/common/base-filter-badges";
-import { StoreDetailDialog, StoreDialog } from "@/components/dialog/store";
 import { ErrorResponse } from "@/types/error";
 import { useDebounce, useStores, useToast } from "@/hooks";
+const StoreDialog = React.lazy(() => import("@/components/dialog/store").then(module => ({ default: module.StoreDialog })));
+const StoreDetailDialog = React.lazy(() => import("@/components/dialog/store").then(module => ({ default: module.StoreDetailDialog })));
+const ConfirmDeleteDialog = React.lazy(() => import("@/components/common").then(module => ({ default: module.ConfirmDeleteDialog })));
 
 const ManageStores = () => {
     const { toast } = useToast();
@@ -357,27 +359,36 @@ const ManageStores = () => {
                     totalPages={data?.totalPages || 1}
                 />
             </div>
-            <StoreDialog
-                open={dialogOpen}
-                onOpenChange={setDialogOpen}
-                onSuccess={handleSuccess}
-                store={selectedStore}
-            />
-            <StoreDetailDialog
-                open={detailDialogOpen}
-                onOpenChange={(open) => {
-                    setDetailDialogOpen(open);
-                    if (!open) setDetailStore(null);
-                }}
-                store={detailStore}
-            />
-            <ConfirmDeleteDialog
-                open={deleteDialogOpen}
-                onOpenChange={setDeleteDialogOpen}
-                description={`Bạn có chắc chắn muốn xóa cửa hàng "${storeToDelete?.name}"? Hành động này không thể hoàn tác.`}
-                onConfirm={confirmDelete}
-                onCancel={() => setStoreToDelete(null)}
-            />
+
+            <React.Suspense fallback={<div>Đang tải...</div>}>
+                <StoreDialog
+                    open={dialogOpen}
+                    onOpenChange={setDialogOpen}
+                    onSuccess={handleSuccess}
+                    store={selectedStore}
+                />
+            </React.Suspense>
+
+            <React.Suspense fallback={<div>Đang tải...</div>}>
+                <StoreDetailDialog
+                    open={detailDialogOpen}
+                    onOpenChange={(open) => {
+                        setDetailDialogOpen(open);
+                        if (!open) setDetailStore(null);
+                    }}
+                    store={detailStore}
+                />
+            </React.Suspense>
+
+            <React.Suspense fallback={<div>Đang tải...</div>}>
+                <ConfirmDeleteDialog
+                    open={deleteDialogOpen}
+                    onOpenChange={setDeleteDialogOpen}
+                    description={`Bạn có chắc chắn muốn xóa cửa hàng "${storeToDelete?.name}"? Hành động này không thể hoàn tác.`}
+                    onConfirm={confirmDelete}
+                    onCancel={() => setStoreToDelete(null)}
+                />
+            </React.Suspense>
         </div>
     );
 };

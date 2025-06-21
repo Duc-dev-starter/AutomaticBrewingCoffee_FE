@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo, useCallback } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { ChevronDownIcon } from "@radix-ui/react-icons";
 import {
     type ColumnFiltersState,
@@ -24,14 +24,16 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { PlusCircle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { DeviceType } from "@/interfaces/device";
-import { BaseStatusFilter, ConfirmDeleteDialog, ExportButton, NoResultsRow, Pagination, RefreshButton, SearchInput } from "@/components/common";
+import { BaseStatusFilter, ExportButton, NoResultsRow, Pagination, RefreshButton, SearchInput } from "@/components/common";
 import { multiSelectFilter } from "@/utils/table";
 import { deleteDeviceType } from "@/services/device";
 import { columns } from "@/components/manage-devices/manage-device-types/columns";
 import { BaseFilterBadges } from "@/components/common/base-filter-badges";
-import { DeviceTypeDetailDialog, DeviceTypeDialog } from "@/components/dialog/device";
 import { ErrorResponse } from "@/types/error";
 import { useDebounce, useDeviceTypes, useToast } from "@/hooks";
+const DeviceTypeDialog = React.lazy(() => import("@/components/dialog/device").then(module => ({ default: module.DeviceTypeDialog })));
+const DeviceTypeDetailDialog = React.lazy(() => import("@/components/dialog/device").then(module => ({ default: module.DeviceTypeDetailDialog })));
+const ConfirmDeleteDialog = React.lazy(() => import("@/components/common").then(module => ({ default: module.ConfirmDeleteDialog })));
 
 const ManageDeviceTypes = () => {
     const { toast } = useToast();
@@ -361,27 +363,33 @@ const ManageDeviceTypes = () => {
                     totalPages={data?.totalPages || 1}
                 />
             </div>
-            <DeviceTypeDialog
-                open={dialogOpen}
-                onOpenChange={setDialogOpen}
-                onSuccess={handleSuccess}
-                deviceType={selectedDeviceType}
-            />
-            <DeviceTypeDetailDialog
-                open={detailDialogOpen}
-                onOpenChange={(open) => {
-                    setDetailDialogOpen(open);
-                    if (!open) setDetailDeviceType(null);
-                }}
-                deviceType={detailDeviceType}
-            />
-            <ConfirmDeleteDialog
-                open={deleteDialogOpen}
-                onOpenChange={setDeleteDialogOpen}
-                description={`Bạn có chắc chắn muốn xóa loại thiết bị "${deviceTypeToDelete?.name}"? Hành động này không thể hoàn tác.`}
-                onConfirm={confirmDelete}
-                onCancel={() => setTypeDeviceToDelete(null)}
-            />
+            <React.Suspense fallback={<div>Đang tải...</div>}>
+                <DeviceTypeDialog
+                    open={dialogOpen}
+                    onOpenChange={setDialogOpen}
+                    onSuccess={handleSuccess}
+                    deviceType={selectedDeviceType}
+                />
+            </React.Suspense>
+            <React.Suspense fallback={<div>Đang tải...</div>}>
+                <DeviceTypeDetailDialog
+                    open={detailDialogOpen}
+                    onOpenChange={(open) => {
+                        setDetailDialogOpen(open);
+                        if (!open) setDetailDeviceType(null);
+                    }}
+                    deviceType={detailDeviceType}
+                />
+            </React.Suspense>
+            <React.Suspense fallback={<div>Đang tải...</div>}>
+                <ConfirmDeleteDialog
+                    open={deleteDialogOpen}
+                    onOpenChange={setDeleteDialogOpen}
+                    description={`Bạn có chắc chắn muốn xóa loại thiết bị "${deviceTypeToDelete?.name}"? Hành động này không thể hoàn tác.`}
+                    onConfirm={confirmDelete}
+                    onCancel={() => setTypeDeviceToDelete(null)}
+                />
+            </React.Suspense>
         </div>
     );
 };

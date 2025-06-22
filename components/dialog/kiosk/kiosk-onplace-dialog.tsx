@@ -1,0 +1,71 @@
+"use client"
+
+import { Loader2 } from "lucide-react"
+import { Dialog, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button"
+
+interface OnplaceDialogProps {
+    isOpen: boolean
+    onOpenChange: (open: boolean) => void
+    data: any | null
+    loading: boolean
+    deviceName: string
+}
+
+export const OnplaceDialog = ({ isOpen, onOpenChange, data, loading, deviceName }: OnplaceDialogProps) => {
+    return (
+        <Dialog open={isOpen} onOpenChange={onOpenChange}>
+            <DialogContent>
+                <DialogHeader>
+                    <DialogTitle>Thông tin OnPlace</DialogTitle>
+                    <DialogDescription>
+                        Thông tin onPlace của thiết bị "{deviceName}".
+                    </DialogDescription>
+                </DialogHeader>
+
+                {loading ? (
+                    <div className="flex items-center justify-center p-4">
+                        <Loader2 className="h-8 w-8 animate-spin" />
+                    </div>
+                ) : data ? (
+                    <div className="space-y-4">
+                        <div>
+                            <h4 className="font-medium">Device ID</h4>
+                            <p>{data.deviceId}</p>
+                        </div>
+                        <div>
+                            <h4 className="font-medium">Device Model ID</h4>
+                            <p>{data.deviceModelId}</p>
+                        </div>
+                        <div>
+                            <h4 className="font-medium">Serial Number</h4>
+                            <p>{data.serialNumber}</p>
+                        </div>
+                        <div>
+                            <h4 className="font-medium">Name</h4>
+                            <p>{data.name}</p>
+                        </div>
+                        <div>
+                            <h4 className="font-medium">Description</h4>
+                            <p>{data.description}</p>
+                        </div>
+                        <div>
+                            <h4 className="font-medium">Working Status</h4>
+                            <p>{data.workingStatus}</p>
+                        </div>
+                        <div>
+                            <h4 className="font-medium">Status</h4>
+                            <pre>{JSON.stringify(data.status, null, 2)}</pre>
+                        </div>
+                    </div>
+                ) : (
+                    <p>Không có thông tin OnPlace cho thiết bị này.</p>
+                )}
+
+                <DialogFooter>
+                    <Button onClick={() => onOpenChange(false)}>Đóng</Button>
+                </DialogFooter>
+            </DialogContent>
+        </Dialog>
+    )
+}

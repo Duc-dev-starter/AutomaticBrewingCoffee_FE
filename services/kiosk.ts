@@ -133,3 +133,7 @@ export const getOnhub = async (kioskDeviceId: string) => {
     return response;
 }
 
+export const getOnplace = async (kioskDeviceId: string, deviceModelId: string) => {
+    const response = await BaseService.get({ url: `${Api.KIOSKS}/${kioskDeviceId}${Api.DEVICES}/on-place?DeviceModelId=${deviceModelId}` });
+    return response;
+}

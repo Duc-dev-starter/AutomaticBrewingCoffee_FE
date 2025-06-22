@@ -23,7 +23,7 @@ import {
 } from "lucide-react"
 import clsx from "clsx"
 import { getBaseStatusColor } from "@/utils/color"
-import { getKiosk, getOnhub } from "@/services/kiosk"
+import { getKiosk, getOnhub, getOnplace } from "@/services/kiosk"
 import { replaceDeviceByKioskId } from "@/services/kiosk"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/hooks/use-toast"
@@ -45,6 +45,7 @@ import { ErrorResponse } from "@/types/error"
 import { Webhook } from "@/interfaces/webhook"
 import { updateWebhook } from "@/services/webhook"
 import { Input } from "@/components/ui/input"
+import { OnplaceDialog } from "@/components/dialog/kiosk"
 
 const KioskDetailPage = () => {
     const { slug } = useParams()
@@ -67,6 +68,10 @@ const KioskDetailPage = () => {
     const [isUpdateWebhookDialogOpen, setIsUpdateWebhookDialogOpen] = useState<boolean>(false)
     const [selectedWebhook, setSelectedWebhook] = useState<any>(null)
     const [newWebhookUrl, setNewWebhookUrl] = useState<string>("")
+    const [isOnplaceDialogOpen, setIsOnplaceDialogOpen] = useState<boolean>(false);
+    const [selectedKioskDeviceForOnplace, setSelectedKioskDeviceForOnplace] = useState<KioskDevice | null>(null);
+    const [onplaceData, setOnplaceData] = useState<any>(null);
+    const [loadingOnplace, setLoadingOnplace] = useState<boolean>(false);
 
     const fetchKioskData = async () => {
         try {
@@ -129,6 +134,37 @@ const KioskDetailPage = () => {
         setIsOnhubDialogOpen(true);
         setOnhubData(null);
         fetchOnhubData(kioskDevice.kioskDeviceMappingId);
+    };
+
+    const openOnplaceDialog = async (kioskDevice: KioskDevice) => {
+        setSelectedKioskDeviceForOnplace(kioskDevice);
+        setIsOnplaceDialogOpen(true);
+        setOnplaceData(null);
+        setLoadingOnplace(true);
+        try {
+            if (!kiosk?.kioskId) {
+                toast({
+                    title: "Lỗi",
+                    description: "Không tìm thấy kioskId.",
+                    variant: "destructive",
+                });
+                setOnplaceData(null);
+                return;
+            }
+            const data = await getOnplace(kiosk.kioskId, kioskDevice.device.deviceModelId);
+            setOnplaceData(data);
+        } catch (error) {
+            const err = error as ErrorResponse;
+            console.error("Error fetching onplace data:", error);
+            toast({
+                title: "Lỗi",
+                description: err.message,
+                variant: "destructive",
+            });
+            setOnplaceData(null);
+        } finally {
+            setLoadingOnplace(false);
+        }
     };
 
     const openReplaceDialog = async (kioskDevice: KioskDevice) => {
@@ -482,6 +518,7 @@ const KioskDetailPage = () => {
                                     kioskDevices={kiosk.kioskDevices}
                                     openReplaceDialog={openReplaceDialog}
                                     openOnhubDialog={openOnhubDialog}
+                                    openOnplaceDialog={openOnplaceDialog}
                                 />
                             ) : (
                                 <div className="text-center py-8 text-muted-foreground">
@@ -558,6 +595,14 @@ const KioskDetailPage = () => {
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
+
+            <OnplaceDialog
+                isOpen={isOnplaceDialogOpen}
+                onOpenChange={setIsOnplaceDialogOpen}
+                data={onplaceData}
+                loading={loadingOnplace}
+                deviceName={selectedKioskDeviceForOnplace?.device.name || ''}
+            />
 
 
             <Dialog open={isOnhubDialogOpen} onOpenChange={setIsOnhubDialogOpen}>

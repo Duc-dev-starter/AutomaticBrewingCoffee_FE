@@ -16,8 +16,9 @@ interface DeviceStatusGroupProps {
     kioskDevices: any[];
     openReplaceDialog: (kioskDevice: any) => void;
     openOnhubDialog: (kioskDevice: any) => void;
+    openOnplaceDialog: (kioskDevice: any) => void;
 }
-export const DeviceStatusGroup = ({ kioskDevices, openReplaceDialog, openOnhubDialog }: DeviceStatusGroupProps) => {
+export const DeviceStatusGroup = ({ kioskDevices, openReplaceDialog, openOnhubDialog, openOnplaceDialog }: DeviceStatusGroupProps) => {
     // Group devices by status
     const groupedDevices = kioskDevices.reduce(
         (acc, device) => {
@@ -93,6 +94,10 @@ export const DeviceStatusGroup = ({ kioskDevices, openReplaceDialog, openOnhubDi
                                                     <DropdownMenuItem onClick={() => openOnhubDialog(kioskDevice)}>
                                                         <Info className="mr-2 h-4 w-4" />
                                                         Xem thông tin OnHub
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem onClick={() => openOnplaceDialog(kioskDevice)}>
+                                                        <Info className="mr-2 h-4 w-4" />
+                                                        Xem thông tin Onplace
                                                     </DropdownMenuItem>
                                                 </DropdownMenuContent>
                                             </DropdownMenu>

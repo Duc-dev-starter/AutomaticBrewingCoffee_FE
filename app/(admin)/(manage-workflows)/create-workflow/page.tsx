@@ -654,12 +654,16 @@ const CreateWorkflow = () => {
                                         <SelectContent id="product-scroll-content" className="max-h-[300px]">
                                             <ScrollArea id="product-scroll-area" className="h-[200px]">
                                                 <InfiniteScroll
-                                                    dataLength={products.length}
+                                                    dataLength={products.length + 1} // +1 để tính cả "Không chọn sản phẩm"
                                                     next={loadMoreProducts}
-                                                    hasMore={hasMoreProducts && !loadingProducts}
+                                                    hasMore={hasMore}
                                                     loader={<div className="p-2 text-center text-sm">Đang tải thêm...</div>}
                                                     scrollableTarget="product-scroll-area"
+                                                    style={{ overflow: "hidden" }}
                                                 >
+                                                    <SelectItem value="null">
+                                                        <span className="text-gray-500 italic">Không chọn sản phẩm</span>
+                                                    </SelectItem>
                                                     {products.map((product) => (
                                                         <SelectItem key={product.productId} value={product.productId}>
                                                             {product.name}

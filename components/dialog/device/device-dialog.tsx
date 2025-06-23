@@ -18,6 +18,7 @@ import { deviceSchema } from "@/schema/device";
 import { cn } from "@/lib/utils";
 import InfiniteScroll from "react-infinite-scroll-component";
 import { useDebounce } from "@/hooks";
+import { DeviceStatusSelect } from "@/components/manage-devices";
 
 const initialFormData = {
     deviceModelId: "",
@@ -241,7 +242,7 @@ const DeviceDialog = ({ open, onOpenChange, onSuccess, device }: DeviceDialogPro
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-[800px] p-0 border-0 bg-white backdrop-blur-xl shadow-2xl max-h-[90vh] overflow-y-auto hide-scrollbar">
+            <DialogContent className="sm:max-w-[650px] p-0 border-0 bg-white backdrop-blur-xl shadow-2xl max-h-[90vh] overflow-y-auto hide-scrollbar">
                 <DialogTitle className="sr-only">{isUpdate ? "Cập nhật Thiết Bị" : "Tạo Thiết Bị Mới"}</DialogTitle>
                 <DialogDescription className="sr-only">Biểu mẫu để thêm hoặc cập nhật thiết bị.</DialogDescription>
                 <div className="relative overflow-hidden bg-primary-100 rounded-tl-2xl rounded-tr-2xl">
@@ -297,7 +298,6 @@ const DeviceDialog = ({ open, onOpenChange, onSuccess, device }: DeviceDialogPro
                             )}
                         </div>
 
-                        {/* Mẫu Thiết Bị */}
                         <div className="space-y-3">
                             <div className="flex items-center space-x-2 mb-2">
                                 <Boxes className="w-4 h-4 text-primary-300" />
@@ -308,10 +308,8 @@ const DeviceDialog = ({ open, onOpenChange, onSuccess, device }: DeviceDialogPro
                                 onValueChange={(value) => handleChange("deviceModelId", value)}
                                 disabled={loading}
                             >
-                                <SelectTrigger className="h-12 text-base px-4 border-2 bg-white/80 backdrop-blur-sm">
-                                    <SelectValue placeholder="Chọn mẫu sản phẩm">
-                                        {selectedDeviceModel ? selectedDeviceModel.modelName : "Chọn mẫu sản phẩm"}
-                                    </SelectValue>
+                                <SelectTrigger className="h-12 text-sm px-4 border-2 bg-white/80 backdrop-blur-sm">
+                                    <SelectValue placeholder="Chọn mẫu sản phẩm" />
                                 </SelectTrigger>
                                 <SelectContent>
                                     <div className="p-2">
@@ -340,9 +338,7 @@ const DeviceDialog = ({ open, onOpenChange, onSuccess, device }: DeviceDialogPro
                                     </div>
                                 </SelectContent>
                             </Select>
-                            {submitted && errors.deviceModelId && (
-                                <p className="text-red-500 text-xs mt-1">{errors.deviceModelId}</p>
-                            )}
+                            {submitted && errors.deviceModelId && <p className="text-red-500 text-xs mt-1">{errors.deviceModelId}</p>}
                         </div>
                     </div>
 
@@ -375,9 +371,7 @@ const DeviceDialog = ({ open, onOpenChange, onSuccess, device }: DeviceDialogPro
                                     <AlertCircle className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-red-400 animate-in zoom-in-50" />
                                 )}
                             </div>
-                            {submitted && errors.serialNumber && (
-                                <p className="text-red-500 text-xs mt-1">{errors.serialNumber}</p>
-                            )}
+                            {submitted && errors.serialNumber && <p className="text-red-500 text-xs mt-1">{errors.serialNumber}</p>}
                         </div>
 
                         {/* Trạng thái */}
@@ -386,25 +380,12 @@ const DeviceDialog = ({ open, onOpenChange, onSuccess, device }: DeviceDialogPro
                                 <Circle className="w-4 h-4 text-primary-300" />
                                 <label className="text-sm font-medium text-gray-700 asterisk">Trạng thái</label>
                             </div>
-                            <Select
+                            <DeviceStatusSelect
                                 value={formData.status}
-                                onValueChange={(value) => handleChange("status", value as EDeviceStatus)}
+                                onValueChange={(value) => handleChange("status", value)}
                                 disabled={loading}
-                            >
-                                <SelectTrigger className="h-12 text-base px-4 border-2 bg-white/80 backdrop-blur-sm">
-                                    <SelectValue placeholder="Chọn trạng thái" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {Object.entries(EDeviceStatusViMap).map(([key, label]) => (
-                                        <SelectItem key={key} value={key} className="text-sm">
-                                            {label}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            {submitted && errors.status && (
-                                <p className="text-red-500 text-xs mt-1">{errors.status}</p>
-                            )}
+                            />
+                            {submitted && errors.status && <p className="text-red-500 text-xs mt-1">{errors.status}</p>}
                         </div>
                     </div>
 
@@ -437,13 +418,11 @@ const DeviceDialog = ({ open, onOpenChange, onSuccess, device }: DeviceDialogPro
                                 {formData.description.length}/450
                             </span>
                         </div>
-                        {submitted && errors.description && (
-                            <p className="text-red-500 text-xs mt-1">{errors.description}</p>
-                        )}
+                        {submitted && errors.description && <p className="text-red-500 text-xs mt-1">{errors.description}</p>}
                     </div>
 
                     {/* Nút điều khiển */}
-                    <div className="flex justify-between items-center pt-2">
+                    <div className="flex justify-between items-center">
                         <div className="flex items-center space-x-2 text-xs text-gray-400">
                             <Zap className="w-3 h-3" />
                             <span>Ctrl+Enter để lưu • Esc để đóng</span>

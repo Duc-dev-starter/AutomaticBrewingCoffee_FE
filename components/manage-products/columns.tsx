@@ -58,15 +58,15 @@ export const columns = ({
             accessorKey: "name",
             cell: ({ row }) => <div className="text-center">{row.original.name}</div>,
         },
-        {
-            id: "size",
-            header: "Size",
-            cell: ({ row }) => {
-                const size = row.original.size;
-                return <SizeBadge size={size} />
-            },
-            enableSorting: false,
-        },
+        // {
+        //     id: "size",
+        //     header: "Size",
+        //     cell: ({ row }) => {
+        //         const size = row.original.size;
+        //         return <SizeBadge size={size} />
+        //     },
+        //     enableSorting: false,
+        // },
         {
             id: "type",
             header: "Loại sản phẩm",

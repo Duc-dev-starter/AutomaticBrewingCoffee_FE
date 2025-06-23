@@ -1,47 +1,55 @@
-import { useState, useEffect, useCallback, useRef } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+"use client";
+
+import { useState, useEffect, useRef, useCallback } from "react";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { EBaseStatus } from "@/enum/base";
+import { PlusCircle, Loader2, Edit, CheckCircle2, AlertCircle, Zap, Save, Building2, Circle, Edit3, Monitor, MapPin, Phone } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { EBaseStatus, EBaseStatusViMap } from "@/enum/base";
 import { createStore, updateStore } from "@/services/store";
 import { getOrganizations } from "@/services/organization";
-import { StoreDialogProps } from "@/types/dialog";
-import { Organization } from "@/interfaces/organization";
-import { LocationType } from "@/interfaces/location";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Loader2 } from "lucide-react";
 import { getLocationTypes } from "@/services/locationType";
+import { StoreDialogProps } from "@/types/dialog";
 import { ErrorResponse } from "@/types/error";
 import { storeSchema } from "@/schema/stores";
+import { Organization } from "@/interfaces/organization";
+import { LocationType } from "@/interfaces/location";
+import { cn } from "@/lib/utils";
+import { ScrollArea } from "@/components/ui/scroll-area";
+
+const initialFormData = {
+    organizationId: "",
+    name: "",
+    description: "",
+    contactPhone: "",
+    locationAddress: "",
+    status: EBaseStatus.Active,
+    locationTypeId: "",
+};
 
 const StoreDialog = ({ open, onOpenChange, onSuccess, store }: StoreDialogProps) => {
     const { toast } = useToast();
-    const [formData, setFormData] = useState({
-        name: "",
-        description: "",
-        contactPhone: "",
-        locationAddress: "",
-        status: EBaseStatus.Active,
-        locationTypeId: "",
-        organizationId: "",
-    });
-    const [errors, setErrors] = useState<Record<string, any>>({});
-    const [loading, setLoading] = useState(false);
+    const [formData, setFormData] = useState(initialFormData);
     const [organizations, setOrganizations] = useState<Organization[]>([]);
     const [locationTypes, setLocationTypes] = useState<LocationType[]>([]);
+    const [errors, setErrors] = useState<Record<string, any>>({});
+    const [loading, setLoading] = useState(false);
+    const [validFields, setValidFields] = useState<Record<string, boolean>>({});
+    const [submitted, setSubmitted] = useState(false);
     const [orgPage, setOrgPage] = useState(1);
     const [locPage, setLocPage] = useState(1);
     const [hasMoreOrgs, setHasMoreOrgs] = useState(true);
     const [hasMoreLocs, setHasMoreLocs] = useState(true);
     const [isLoadingOrgs, setIsLoadingOrgs] = useState(false);
     const [isLoadingLocs, setIsLoadingLocs] = useState(false);
-
+    const nameInputRef = useRef<HTMLInputElement>(null);
     const orgObserver = useRef<IntersectionObserver>();
     const locObserver = useRef<IntersectionObserver>();
+
+    const isUpdate = !!store;
 
     const lastOrgElementRef = useCallback(
         (node: HTMLDivElement) => {
@@ -71,6 +79,16 @@ const StoreDialog = ({ open, onOpenChange, onSuccess, store }: StoreDialogProps)
         [isLoadingLocs, hasMoreLocs]
     );
 
+    useEffect(() => {
+        if (open) {
+            fetchOrganizations();
+            fetchLocationTypes();
+            if (nameInputRef.current) {
+                setTimeout(() => nameInputRef.current?.focus(), 200);
+            }
+        }
+    }, [open, orgPage, locPage]);
+
     const fetchOrganizations = useCallback(async () => {
         try {
             setIsLoadingOrgs(true);
@@ -78,12 +96,8 @@ const StoreDialog = ({ open, onOpenChange, onSuccess, store }: StoreDialogProps)
             setOrganizations((prev) => [...prev, ...response.items]);
             setHasMoreOrgs(response.items.length === 20);
         } catch (error) {
-            console.error("Error fetching organizations:", error);
-            toast({
-                title: "Lỗi",
-                description: "Không thể tải danh sách tổ chức.",
-                variant: "destructive",
-            });
+            console.error("Lỗi khi lấy danh sách tổ chức:", error);
+            toast({ title: "Lỗi", description: "Không thể tải danh sách tổ chức.", variant: "destructive" });
         } finally {
             setIsLoadingOrgs(false);
         }
@@ -96,45 +110,33 @@ const StoreDialog = ({ open, onOpenChange, onSuccess, store }: StoreDialogProps)
             setLocationTypes((prev) => [...prev, ...response.items]);
             setHasMoreLocs(response.items.length === 20);
         } catch (error) {
-            console.error("Error fetching location types:", error);
-            toast({
-                title: "Lỗi",
-                description: "Không thể tải danh sách loại địa điểm.",
-                variant: "destructive",
-            });
+            console.error("Lỗi khi lấy danh sách loại địa điểm:", error);
+            toast({ title: "Lỗi", description: "Không thể tải danh sách loại địa điểm.", variant: "destructive" });
         } finally {
             setIsLoadingLocs(false);
         }
     }, [locPage, toast]);
 
     useEffect(() => {
-        if (open) {
-            fetchOrganizations();
-            fetchLocationTypes();
-        }
-    }, [orgPage, locPage, open, fetchOrganizations, fetchLocationTypes]);
-
-    useEffect(() => {
         if (store) {
             setFormData({
-                name: store.name,
-                description: store.description,
-                contactPhone: store.contactPhone,
-                locationAddress: store.locationAddress,
-                status: store.status,
-                locationTypeId: store.locationTypeId,
                 organizationId: store.organization?.organizationId || "",
+                name: store.name,
+                description: store.description ?? "",
+                contactPhone: store.contactPhone || "",
+                locationAddress: store.locationAddress || "",
+                status: store.status,
+                locationTypeId: store.locationTypeId || "",
+            });
+            setValidFields({
+                name: store.name.trim().length >= 1,
+                description: (store.description || "").length <= 450,
+                contactPhone: store.contactPhone?.trim().length >= 1,
+                locationAddress: store.locationAddress?.trim().length >= 1,
             });
         } else {
-            setFormData({
-                name: "",
-                description: "",
-                contactPhone: "",
-                locationAddress: "",
-                status: EBaseStatus.Active,
-                locationTypeId: "",
-                organizationId: "",
-            });
+            setFormData(initialFormData);
+            setValidFields({});
             setOrganizations([]);
             setLocationTypes([]);
             setOrgPage(1);
@@ -142,16 +144,71 @@ const StoreDialog = ({ open, onOpenChange, onSuccess, store }: StoreDialogProps)
             setHasMoreOrgs(true);
             setHasMoreLocs(true);
         }
-    }, [store]);
+    }, [store, open]);
+
+    useEffect(() => {
+        if (!open) {
+            setFormData(initialFormData);
+            setOrganizations([]);
+            setLocationTypes([]);
+            setSubmitted(false);
+            setErrors({});
+        }
+    }, [open]);
+
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (!open) return;
+            if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+                e.preventDefault();
+                handleSubmit(e as any);
+            }
+        };
+        document.addEventListener("keydown", handleKeyDown);
+        return () => document.removeEventListener("keydown", handleKeyDown);
+    }, [open, formData]);
+
+    const validateField = (field: string, value: string) => {
+        const newValidFields = { ...validFields };
+        switch (field) {
+            case "name":
+                newValidFields.name = value.trim().length >= 1;
+                break;
+            case "description":
+                newValidFields.description = value.length <= 450;
+                break;
+            case "contactPhone":
+                newValidFields.contactPhone = value.trim().length >= 1;
+                break;
+            case "locationAddress":
+                newValidFields.locationAddress = value.trim().length >= 1;
+                break;
+        }
+        setValidFields(newValidFields);
+    };
+
+    const handleChange = (field: string, value: any) => {
+        if (field === "description" && typeof value === "string" && value.length > 450) {
+            value = value.substring(0, 450);
+        }
+        setFormData((prev) => ({ ...prev, [field]: value }));
+        if (field === "name" || field === "description" || field === "contactPhone" || field === "locationAddress") {
+            validateField(field, value);
+        }
+        if (errors[field]) {
+            setErrors((prev) => ({ ...prev, [field]: "" }));
+        }
+    };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        e.stopPropagation();
+        setSubmitted(true);
 
         const validationResult = storeSchema.safeParse(formData);
         if (!validationResult.success) {
             const { fieldErrors } = validationResult.error.flatten();
             setErrors(fieldErrors);
+            toast({ title: "Lỗi", description: "Vui lòng kiểm tra lại thông tin", variant: "destructive" });
             return;
         }
 
@@ -169,28 +226,17 @@ const StoreDialog = ({ open, onOpenChange, onSuccess, store }: StoreDialogProps)
             };
             if (store) {
                 await updateStore(store.storeId, data);
-                toast({
-                    title: "Thành công",
-                    description: "Cửa hàng đã được cập nhật.",
-                    variant: "success"
-                });
+                toast({ title: "Thành công", description: "Cập nhật cửa hàng thành công", variant: "success" });
             } else {
                 await createStore(data);
-                toast({
-                    title: "Thành công",
-                    description: "Cửa hàng đã được tạo mới.",
-                    variant: "success"
-                });
+                toast({ title: "Thành công", description: "Thêm cửa hàng mới thành công", variant: "success" });
             }
             onSuccess?.();
+            onOpenChange(false);
         } catch (error) {
             const err = error as ErrorResponse;
             console.error("Lỗi khi xử lý cửa hàng:", error);
-            toast({
-                title: "Lỗi khi xử lý cửa hàng",
-                description: err.message,
-                variant: "destructive",
-            });
+            toast({ title: "Lỗi khi xử lý cửa hàng", description: err.message, variant: "destructive" });
         } finally {
             setLoading(false);
         }
@@ -198,74 +244,67 @@ const StoreDialog = ({ open, onOpenChange, onSuccess, store }: StoreDialogProps)
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent>
-                <DialogHeader>
-                    <DialogTitle>{store ? "Chỉnh sửa cửa hàng" : "Thêm cửa hàng mới"}</DialogTitle>
-                </DialogHeader>
-                <form onSubmit={handleSubmit} className="space-y-6 py-4">
-                    <div className="space-y-4">
-                        <div className="space-y-2">
-                            <Label htmlFor="name" className="asterisk">
-                                Tên cửa hàng
-                            </Label>
-                            <Input
-                                id="name"
-                                value={formData.name}
-                                onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                            />
-                            {errors.name && <p className="text-red-500 text-sm">{errors.name}</p>}
-                        </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="contactPhone">Số điện thoại</Label>
-                            <Input
-                                id="contactPhone"
-                                value={formData.contactPhone}
-                                onChange={(e) => setFormData({ ...formData, contactPhone: e.target.value })}
-                            />
-                            {errors.contactPhone && <p className="text-red-500 text-sm">{errors.contactPhone}</p>}
+            <DialogContent className="sm:max-w-[650px] p-0 border-0 bg-white backdrop-blur-xl shadow-2xl max-h-[90vh] overflow-y-auto hide-scrollbar">
+                <div className="relative overflow-hidden bg-primary-100 rounded-tl-2xl rounded-tr-2xl">
+                    <div className="relative px-8 py-6 border-b border-primary-300">
+                        <div className="flex items-center space-x-4">
+                            <div className="w-14 h-14 bg-gradient-to-r from-primary-400 to-primary-500 rounded-2xl flex items-center justify-center shadow-lg">
+                                {isUpdate ? <Edit className="w-7 h-7 text-primary-100" /> : <PlusCircle className="w-7 h-7 text-primary-100" />}
+                            </div>
+                            <div>
+                                <h1 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+                                    {isUpdate ? "Cập nhật Cửa Hàng" : "Tạo Cửa Hàng Mới"}
+                                </h1>
+                                <p className="text-gray-500">{isUpdate ? "Chỉnh sửa thông tin cửa hàng" : "Thêm cửa hàng mới vào hệ thống"}</p>
+                            </div>
                         </div>
                     </div>
+                </div>
+
+                <div className="px-8 py-8 pt-2 space-y-8">
                     <div className="grid grid-cols-2 gap-4">
-                        <div className="grid gap-2">
-                            <Label htmlFor="locationAddress" className="asterisk">
-                                Địa chỉ
-                            </Label>
-                            <Input
-                                id="locationAddress"
-                                value={formData.locationAddress}
-                                onChange={(e) => setFormData({ ...formData, locationAddress: e.target.value })}
-                            />
-                            {errors.locationAddress && <p className="text-red-500 text-sm">{errors.locationAddress}</p>}
+                        {/* Tên Cửa Hàng */}
+                        <div className="space-y-3">
+                            <div className="flex items-center space-x-2 mb-2">
+                                <Monitor className="w-4 h-4 text-primary-300" />
+                                <label className="text-sm font-medium text-gray-700 asterisk">Tên Cửa Hàng</label>
+                            </div>
+                            <div className="relative group">
+                                <Input
+                                    ref={nameInputRef}
+                                    placeholder="Nhập tên cửa hàng"
+                                    value={formData.name}
+                                    onChange={(e) => handleChange("name", e.target.value)}
+                                    disabled={loading}
+                                    className={cn(
+                                        "h-12 text-base px-4 border-2 transition-all duration-300 bg-white/80 backdrop-blur-sm pr-10",
+                                        errors.name && "border-red-300 bg-red-50/50"
+                                    )}
+                                />
+                                {!errors.name && formData.name && (
+                                    <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-green-500 animate-in zoom-in-50" />
+                                )}
+                                {errors.name && (
+                                    <AlertCircle className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-red-400 animate-in zoom-in-50" />
+                                )}
+                            </div>
+                            {errors.name && (
+                                <p className="text-red-500 text-xs mt-1">{errors.name}</p>
+                            )}
                         </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="status" className="asterisk">
-                                Trạng thái
-                            </Label>
-                            <Select
-                                value={formData.status}
-                                onValueChange={(value) => setFormData({ ...formData, status: value as EBaseStatus })}
-                            >
-                                <SelectTrigger>
-                                    <SelectValue placeholder="Chọn trạng thái" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value={EBaseStatus.Active}>Hoạt động</SelectItem>
-                                    <SelectItem value={EBaseStatus.Inactive}>Không hoạt động</SelectItem>
-                                </SelectContent>
-                            </Select>
-                            {errors.status && <p className="text-red-500 text-sm">{errors.status}</p>}
-                        </div>
-                    </div>
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="grid gap-2">
-                            <Label htmlFor="organizationId" className="asterisk">
-                                Tổ chức
-                            </Label>
+
+                        {/* Tổ chức */}
+                        <div className="space-y-3">
+                            <div className="flex items-center space-x-2 mb-2">
+                                <Building2 className="w-4 h-4 text-primary-300" />
+                                <label className="text-sm font-medium text-gray-700 asterisk">Tổ chức</label>
+                            </div>
                             <Select
                                 value={formData.organizationId}
-                                onValueChange={(value) => setFormData({ ...formData, organizationId: value })}
+                                onValueChange={(value) => handleChange("organizationId", value)}
+                                disabled={loading || organizations.length === 0}
                             >
-                                <SelectTrigger>
+                                <SelectTrigger className="h-12 text-base px-4 border-2 bg-white/80 backdrop-blur-sm">
                                     <SelectValue placeholder="Chọn tổ chức" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -287,17 +326,52 @@ const StoreDialog = ({ open, onOpenChange, onSuccess, store }: StoreDialogProps)
                                     </ScrollArea>
                                 </SelectContent>
                             </Select>
-                            {errors.organizationId && <p className="text-red-500 text-sm">{errors.organizationId}</p>}
+                            {errors.organizationId && (
+                                <p className="text-red-500 text-xs mt-1">{errors.organizationId}</p>
+                            )}
                         </div>
-                        <div className="grid gap-2">
-                            <Label htmlFor="locationTypeId" className="asterisk">
-                                Loại địa điểm
-                            </Label>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                        {/* Trạng thái */}
+                        <div className="space-y-3">
+                            <div className="flex items-center space-x-2 mb-2">
+                                <Circle className="w-4 h-4 text-primary-300" />
+                                <label className="text-sm font-medium text-gray-700 asterisk">Trạng thái</label>
+                            </div>
+                            <Select
+                                value={formData.status}
+                                onValueChange={(value) => handleChange("status", value as EBaseStatus)}
+                                disabled={loading}
+                            >
+                                <SelectTrigger className="h-12 text-base px-4 border-2 bg-white/80 backdrop-blur-sm">
+                                    <SelectValue placeholder="Chọn trạng thái" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {Object.entries(EBaseStatusViMap).map(([key, label]) => (
+                                        <SelectItem key={key} value={key} className="text-sm">
+                                            {label}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            {errors.status && (
+                                <p className="text-red-500 text-xs mt-1">{errors.status}</p>
+                            )}
+                        </div>
+
+                        {/* Loại Địa Điểm */}
+                        <div className="space-y-3">
+                            <div className="flex items-center space-x-2 mb-2">
+                                <MapPin className="w-4 h-4 text-primary-300" />
+                                <label className="text-sm font-medium text-gray-700 asterisk">Loại Địa Điểm</label>
+                            </div>
                             <Select
                                 value={formData.locationTypeId}
-                                onValueChange={(value) => setFormData({ ...formData, locationTypeId: value })}
+                                onValueChange={(value) => handleChange("locationTypeId", value)}
+                                disabled={loading || locationTypes.length === 0}
                             >
-                                <SelectTrigger>
+                                <SelectTrigger className="h-12 text-base px-4 border-2 bg-white/80 backdrop-blur-sm">
                                     <SelectValue placeholder="Chọn loại địa điểm" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -319,26 +393,146 @@ const StoreDialog = ({ open, onOpenChange, onSuccess, store }: StoreDialogProps)
                                     </ScrollArea>
                                 </SelectContent>
                             </Select>
-                            {errors.locationTypeId && <p className="text-red-500 text-sm">{errors.locationTypeId}</p>}
+                            {errors.locationTypeId && (
+                                <p className="text-red-500 text-xs mt-1">{errors.locationTypeId}</p>
+                            )}
                         </div>
                     </div>
-                    <div className="grid gap-2">
-                        <Label htmlFor="description">Mô tả</Label>
-                        <Textarea
-                            id="description"
-                            value={formData.description}
-                            onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                        />
+
+                    <div className="grid grid-cols-2 gap-4">
+                        {/* Số Điện Thoại */}
+                        <div className="space-y-3">
+                            <div className="flex items-center space-x-2 mb-2">
+                                <Phone className="w-4 h-4 text-primary-300" />
+                                <label className="text-sm font-medium text-gray-700 asterisk">Số Điện Thoại</label>
+                            </div>
+                            <div className="relative group">
+                                <Input
+                                    placeholder="Nhập số điện thoại"
+                                    value={formData.contactPhone}
+                                    onChange={(e) => handleChange("contactPhone", e.target.value)}
+                                    disabled={loading}
+                                    className={cn(
+                                        "h-12 text-base px-4 border-2 transition-all duration-300 bg-white/80 backdrop-blur-sm pr-10",
+                                        errors.contactPhone && "border-red-300 bg-red-50/50"
+                                    )}
+                                />
+                                {!errors.contactPhone && formData.contactPhone && (
+                                    <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-green-500 animate-in zoom-in-50" />
+                                )}
+                                {errors.contactPhone && (
+                                    <AlertCircle className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-red-400 animate-in zoom-in-50" />
+                                )}
+                            </div>
+                            {errors.contactPhone && (
+                                <p className="text-red-500 text-xs mt-1">{errors.contactPhone}</p>
+                            )}
+                        </div>
+
+                        {/* Địa Chỉ */}
+                        <div className="space-y-3">
+                            <div className="flex items-center space-x-2 mb-2">
+                                <MapPin className="w-4 h-4 text-primary-300" />
+                                <label className="text-sm font-medium text-gray-700 asterisk">Địa Chỉ</label>
+                            </div>
+                            <div className="relative group">
+                                <Input
+                                    placeholder="Nhập địa chỉ"
+                                    value={formData.locationAddress}
+                                    onChange={(e) => handleChange("locationAddress", e.target.value)}
+                                    disabled={loading}
+                                    className={cn(
+                                        "h-12 text-base px-4 border-2 transition-all duration-300 bg-white/80 backdrop-blur-sm pr-10",
+                                        errors.locationAddress && "border-red-300 bg-red-50/50"
+                                    )}
+                                />
+                                {!errors.locationAddress && formData.locationAddress && (
+                                    <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-green-500 animate-in zoom-in-50" />
+                                )}
+                                {errors.locationAddress && (
+                                    <AlertCircle className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-red-400 animate-in zoom-in-50" />
+                                )}
+                            </div>
+                            {errors.locationAddress && (
+                                <p className="text-red-500 text-xs mt-1">{errors.locationAddress}</p>
+                            )}
+                        </div>
                     </div>
-                </form>
-                <DialogFooter>
-                    <Button variant="outline" onClick={() => onOpenChange(false)}>
-                        Hủy
-                    </Button>
-                    <Button onClick={handleSubmit} disabled={loading}>
-                        {loading ? "Đang xử lý..." : "Lưu"}
-                    </Button>
-                </DialogFooter>
+
+                    {/* Mô tả */}
+                    <div className="space-y-3">
+                        <div className="flex items-center space-x-2 mb-2">
+                            <Edit3 className="w-4 h-4 text-primary-300" />
+                            <label className="text-sm font-medium text-gray-700">Mô tả</label>
+                        </div>
+                        <div className="relative group">
+                            <Textarea
+                                placeholder="Nhập mô tả cửa hàng"
+                                value={formData.description}
+                                onChange={(e) => handleChange("description", e.target.value)}
+                                disabled={loading}
+                                className={cn(
+                                    "min-h-[100px] text-base p-4 border-2 transition-all duration-300 bg-white/80 backdrop-blur-sm resize-none",
+                                    errors.description && "border-red-300 bg-red-50/50"
+                                )}
+                            />
+                            {!errors.description && formData.description && (
+                                <CheckCircle2 className="absolute right-3 top-3 w-5 h-5 text-green-500 animate-in zoom-in-50" />
+                            )}
+                            {errors.description && (
+                                <AlertCircle className="absolute right-3 top-3 w-5 h-5 text-red-400 animate-in zoom-in-50" />
+                            )}
+                        </div>
+                        <div className="flex justify-between items-center text-xs">
+                            <span className={cn("transition-colors", formData.description.length > 400 ? "text-orange-500" : "text-gray-400")}>
+                                {formData.description.length}/450
+                            </span>
+                        </div>
+                        {errors.description && (
+                            <p className="text-red-500 text-xs mt-1">{errors.description}</p>
+                        )}
+                    </div>
+
+                    {/* Nút điều khiển */}
+                    <div className="flex justify-between items-center pt-2">
+                        <div className="flex items-center space-x-2 text-xs text-gray-400">
+                            <Zap className="w-3 h-3" />
+                            <span>Ctrl+Enter để lưu • Esc để đóng</span>
+                        </div>
+                        <div className="flex space-x-3">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => onOpenChange(false)}
+                                disabled={loading}
+                                className="h-11 px-6 border-2 border-gray-300 hover:bg-gray-50 transition-all duration-200"
+                            >
+                                Hủy
+                            </Button>
+                            <Button
+                                type="button"
+                                onClick={handleSubmit}
+                                disabled={loading}
+                                className={cn(
+                                    "h-11 px-8 bg-primary text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105",
+                                    loading && "opacity-60 cursor-not-allowed hover:scale-100"
+                                )}
+                            >
+                                {loading ? (
+                                    <>
+                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                        Đang xử lý...
+                                    </>
+                                ) : (
+                                    <>
+                                        <Save className="mr-2 w-4 h-4" />
+                                        {isUpdate ? "Cập nhật" : "Tạo"}
+                                    </>
+                                )}
+                            </Button>
+                        </div>
+                    </div>
+                </div>
             </DialogContent>
         </Dialog>
     );

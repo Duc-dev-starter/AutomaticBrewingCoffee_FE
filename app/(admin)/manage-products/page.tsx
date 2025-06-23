@@ -293,13 +293,13 @@ const ManageProducts = () => {
                                             {column.id === "productId" ? "Mã sản phẩm" :
                                                 column.id == "imageUrl" ? "Hình ảnh" :
                                                     column.id === "name" ? "Tên sản phẩm" :
-                                                        column.id === "size" ? "Size" :
-                                                            column.id === "type" ? "Loại sản phẩm" :
-                                                                column.id === "price" ? "Giá" :
-                                                                    column.id === "status" ? "Trạng thái" :
-                                                                        column.id === "createdDate" ? "Ngày tạo" :
-                                                                            column.id === "updatedDate" ? "Ngày cập nhật" :
-                                                                                column.id === "actions" ? "Hành động" : column.id
+                                                        // column.id === "size" ? "Size" :
+                                                        column.id === "type" ? "Loại sản phẩm" :
+                                                            column.id === "price" ? "Giá" :
+                                                                column.id === "status" ? "Trạng thái" :
+                                                                    column.id === "createdDate" ? "Ngày tạo" :
+                                                                        column.id === "updatedDate" ? "Ngày cập nhật" :
+                                                                            column.id === "actions" ? "Hành động" : column.id
                                             }
                                         </DropdownMenuCheckboxItem>
                                     ))}
@@ -365,8 +365,8 @@ const ManageProducts = () => {
                                                     <Skeleton className="h-5 w-40 mx-auto" />
                                                 ) : column.id === "size" ? (
                                                     <Skeleton className="h-5 w-20 mx-auto" />
-                                                ) : column.id === "type" ? (
-                                                    <Skeleton className="h-5 w-20 mx-auto" />
+                                                    // ) : column.id === "type" ? (
+                                                    //     <Skeleton className="h-5 w-20 mx-auto" />
                                                 ) : column.id === "price" ? (
                                                     <Skeleton className="h-5 w-28 mx-auto" />
                                                 ) : column.id === "status" ? (

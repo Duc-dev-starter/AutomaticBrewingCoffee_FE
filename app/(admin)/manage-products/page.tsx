@@ -418,7 +418,7 @@ const ManageProducts = () => {
                 />
             </div>
 
-            <React.Suspense fallback={<div>Đang tải...</div>}>
+            <React.Suspense fallback={<div className="hidden">Đang tải...</div>}>
                 <ProductDialog
                     open={dialogOpen}
                     onOpenChange={setDialogOpen}
@@ -427,7 +427,7 @@ const ManageProducts = () => {
                 />
             </React.Suspense>
 
-            <React.Suspense fallback={<div>Đang tải...</div>}>
+            <React.Suspense fallback={<div className="hidden">Đang tải...</div>}>
                 <ProductDetailDialog
                     open={detailDialogOpen}
                     onOpenChange={(open) => {
@@ -438,7 +438,7 @@ const ManageProducts = () => {
                 />
             </React.Suspense>
 
-            <React.Suspense fallback={<div>Đang tải...</div>}>
+            <React.Suspense fallback={<div className="hidden">Đang tải...</div>}>
                 <ConfirmDeleteDialog
                     open={deleteDialogOpen}
                     onOpenChange={setDeleteDialogOpen}

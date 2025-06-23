@@ -349,7 +349,7 @@ const ManageMenus = () => {
                 />
             </div>
 
-            <React.Suspense fallback={<div>Đang tải...</div>}>
+            <React.Suspense fallback={<div className="hidden">Đang tải...</div>}>
                 <MenuDialog
                     open={dialogOpen}
                     onOpenChange={setDialogOpen}
@@ -358,7 +358,7 @@ const ManageMenus = () => {
                 />
             </React.Suspense>
 
-            <React.Suspense fallback={<div>Đang tải...</div>}>
+            <React.Suspense fallback={<div className="hidden">Đang tải...</div>}>
                 <MenuDetailDialog
                     open={detailDialogOpen}
                     onOpenChange={(open) => {
@@ -369,7 +369,7 @@ const ManageMenus = () => {
                 />
             </React.Suspense>
 
-            <React.Suspense fallback={<div>Đang tải...</div>}>
+            <React.Suspense fallback={<div className="hidden">Đang tải...</div>}>
                 <ConfirmDeleteDialog
                     open={deleteDialogOpen}
                     onOpenChange={setDeleteDialogOpen}

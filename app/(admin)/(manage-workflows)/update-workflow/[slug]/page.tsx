@@ -549,13 +549,13 @@ const UpdateWorkflow = () => {
                                 />
                             </SelectTrigger>
                             <SelectContent className="max-h-[300px]">
-                                <ScrollArea className="h-[200px]">
+                                <ScrollArea id="kiosk-version-scroll-area" className="h-[200px]">
                                     <InfiniteScroll
                                         dataLength={kioskVersions.length}
                                         next={loadMoreKioskVersions}
                                         hasMore={hasMoreKioskVersion}
                                         loader={<div className="p-2 text-center text-sm">Đang tải thêm...</div>}
-                                        scrollableTarget="select-content"
+                                        scrollableTarget="kiosk-version-scroll-area"
                                         style={{ overflow: "hidden" }}
                                     >
                                         {kioskVersions.map((version) => (
@@ -680,11 +680,7 @@ const UpdateWorkflow = () => {
                                                     scrollableTarget="select-content"
                                                     style={{ overflow: "hidden" }}
                                                 >
-                                                    {products.map((product) => (
-                                                        <SelectItem key={product.productId} value={product.productId}>
-                                                            {product.name}
-                                                        </SelectItem>
-                                                    ))}
+                                                    {/* Các SelectItem */}
                                                 </InfiniteScroll>
                                             </ScrollArea>
                                         </SelectContent>

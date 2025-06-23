@@ -351,7 +351,7 @@ const ManageLocationTypes = () => {
                 />
             </div>
 
-            <React.Suspense fallback={<div>Đang tải...</div>}>
+            <React.Suspense fallback={<div className="hidden">Đang tải...</div>}>
                 <LocationTypeDialog
                     open={dialogOpen}
                     onOpenChange={setDialogOpen}
@@ -360,7 +360,7 @@ const ManageLocationTypes = () => {
                 />
             </React.Suspense>
 
-            <React.Suspense fallback={<div>Đang tải...</div>}>
+            <React.Suspense fallback={<div className="hidden">Đang tải...</div>}>
                 <LocationTypeDetailDialog
                     open={detailDialogOpen}
                     onOpenChange={(open) => {
@@ -371,7 +371,7 @@ const ManageLocationTypes = () => {
                 />
             </React.Suspense>
 
-            <React.Suspense fallback={<div>Đang tải...</div>}>
+            <React.Suspense fallback={<div className="hidden">Đang tải...</div>}>
                 <ConfirmDeleteDialog
                     open={deleteDialogOpen}
                     onOpenChange={setDeleteDialogOpen}

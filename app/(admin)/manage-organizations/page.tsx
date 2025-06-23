@@ -380,7 +380,7 @@ const ManageOrganizations = () => {
                 />
             </div>
 
-            <React.Suspense fallback={<div>Đang tải...</div>}>
+            <React.Suspense fallback={<div className="hidden">Đang tải...</div>}>
                 <OrganizationDialog
                     open={dialogOpen}
                     onOpenChange={setDialogOpen}
@@ -389,7 +389,7 @@ const ManageOrganizations = () => {
                 />
             </React.Suspense>
 
-            <React.Suspense fallback={<div>Đang tải...</div>}>
+            <React.Suspense fallback={<div className="hidden">Đang tải...</div>}>
                 <OrganizationDetailDialog
                     open={detailDialogOpen}
                     onOpenChange={(open) => {
@@ -400,7 +400,7 @@ const ManageOrganizations = () => {
                 />
             </React.Suspense>
 
-            <React.Suspense fallback={<div>Đang tải...</div>}>
+            <React.Suspense fallback={<div className="hidden">Đang tải...</div>}>
                 <ConfirmDeleteDialog
                     open={deleteDialogOpen}
                     onOpenChange={setDeleteDialogOpen}

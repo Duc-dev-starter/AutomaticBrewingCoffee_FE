@@ -642,7 +642,7 @@ const CreateWorkflow = () => {
                                     </Label>
                                     <Select
                                         value={formData.productId || ""}
-                                        onValueChange={(value) => handleChange("productId", value || null)} // Ensure null if empty
+                                        onValueChange={(value) => handleChange("productId", value || null)}
                                         disabled={loading || loadingProducts && products.length === 0}
                                     >
                                         <SelectTrigger
@@ -652,13 +652,13 @@ const CreateWorkflow = () => {
                                             <SelectValue placeholder={loadingProducts && products.length === 0 ? "Đang tải sản phẩm..." : "Chọn sản phẩm"} />
                                         </SelectTrigger>
                                         <SelectContent id="product-scroll-content" className="max-h-[300px]">
-                                            <ScrollArea className="h-[200px]">
+                                            <ScrollArea id="product-scroll-area" className="h-[200px]">
                                                 <InfiniteScroll
                                                     dataLength={products.length}
                                                     next={loadMoreProducts}
                                                     hasMore={hasMoreProducts && !loadingProducts}
                                                     loader={<div className="p-2 text-center text-sm">Đang tải thêm...</div>}
-                                                    scrollableTarget="product-scroll-content"
+                                                    scrollableTarget="product-scroll-area"
                                                 >
                                                     {products.map((product) => (
                                                         <SelectItem key={product.productId} value={product.productId}>
@@ -752,7 +752,7 @@ const CreateWorkflow = () => {
                                     >
                                         {formData.steps.map((step, index) => (
                                             <AccordionItem
-                                                key={index} // Sử dụng index làm key nếu step không có ID ổn định và thứ tự có thể thay đổi
+                                                key={index}
                                                 value={index.toString()}
                                                 className={`border rounded-md overflow-hidden bg-white dark:bg-gray-800 ${errors.steps?.[index] ? 'border-red-500' : 'border-gray-200 dark:border-gray-700'}`}
                                             >
@@ -890,13 +890,13 @@ const CreateWorkflow = () => {
                                                                 </SelectTrigger>
                                                                 <SelectContent id={`device-model-scroll-content-${index}`} className="max-h-[300px]">
                                                                     {selectedKioskVersion && (
-                                                                        <ScrollArea className="h-[200px]">
+                                                                        <ScrollArea id={`device-model-scroll-area-${index}`} className="h-[200px]">
                                                                             <InfiniteScroll
                                                                                 dataLength={deviceModels.length}
-                                                                                next={() => fetchDeviceModels(deviceModelPage + 1)} // fetchDeviceModels đã memoized
+                                                                                next={() => fetchDeviceModels(deviceModelPage + 1)}
                                                                                 hasMore={hasMoreDeviceModels && !loadingDeviceModels}
                                                                                 loader={<div className="p-2 text-center text-sm">Đang tải thêm...</div>}
-                                                                                scrollableTarget={`device-model-scroll-content-${index}`}
+                                                                                scrollableTarget={`device-model-scroll-area-${index}`}
                                                                             >
                                                                                 {deviceModels.map((deviceModel) => (
                                                                                     <SelectItem key={deviceModel.deviceModelId} value={deviceModel.deviceModelId}>

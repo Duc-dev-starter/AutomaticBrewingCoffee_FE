@@ -253,7 +253,7 @@ const ManageSyncTasks = () => {
                 />
             </div>
 
-            <React.Suspense fallback={<div>Đang tải...</div>}>
+            <React.Suspense fallback={<div className="hidden">Đang tải...</div>}>
                 <SyncTaskDetailDialog
                     open={detailDialogOpen}
                     onOpenChange={(open) => {

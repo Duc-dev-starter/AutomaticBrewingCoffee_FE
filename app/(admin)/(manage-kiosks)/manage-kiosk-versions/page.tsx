@@ -361,19 +361,25 @@ const ManageKioskVersions = () => {
                     totalPages={data?.totalPages || 1}
                 />
             </div>
-            <KioskVersionDialog
-                open={dialogOpen}
-                onOpenChange={setDialogOpen}
-                onSuccess={handleSuccess}
-                kioskVersion={selectedKioskVersion}
-            />
-            <ConfirmDeleteDialog
-                open={deleteDialogOpen}
-                onOpenChange={setDeleteDialogOpen}
-                description={`Bạn có chắc chắn muốn xóa phiên bản kiosk "${kioskVersionToDelete?.versionTitle}"? Hành động này không thể hoàn tác.`}
-                onConfirm={confirmDelete}
-                onCancel={() => setKioskVersionToDelete(null)}
-            />
+
+            <React.Suspense fallback={<div className="hidden">Đang tải...</div>}>
+                <KioskVersionDialog
+                    open={dialogOpen}
+                    onOpenChange={setDialogOpen}
+                    onSuccess={handleSuccess}
+                    kioskVersion={selectedKioskVersion}
+                />
+            </React.Suspense>
+
+            <React.Suspense fallback={<div className="hidden">Đang tải...</div>}>
+                <ConfirmDeleteDialog
+                    open={deleteDialogOpen}
+                    onOpenChange={setDeleteDialogOpen}
+                    description={`Bạn có chắc chắn muốn xóa phiên bản kiosk "${kioskVersionToDelete?.versionTitle}"? Hành động này không thể hoàn tác.`}
+                    onConfirm={confirmDelete}
+                    onCancel={() => setKioskVersionToDelete(null)}
+                />
+            </React.Suspense>
         </div>
     );
 };

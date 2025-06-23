@@ -445,7 +445,7 @@ const ManageKiosks = () => {
                 />
             </div>
 
-            <React.Suspense fallback={<div>Đang tải...</div>}>
+            <React.Suspense fallback={<div className="hidden">Đang tải...</div>}>
                 <KioskDialog
                     open={dialogOpen}
                     onOpenChange={setDialogOpen}
@@ -454,7 +454,7 @@ const ManageKiosks = () => {
                 />
             </React.Suspense>
 
-            <React.Suspense fallback={<div>Đang tải...</div>}>
+            <React.Suspense fallback={<div className="hidden">Đang tải...</div>}>
                 <KioskDetailDialog
                     open={detailDialogOpen}
                     onOpenChange={(open) => {
@@ -465,7 +465,7 @@ const ManageKiosks = () => {
                 />
             </React.Suspense>
 
-            <React.Suspense fallback={<div>Đang tải...</div>}>
+            <React.Suspense fallback={<div className="hidden">Đang tải...</div>}>
                 <ConfirmDeleteDialog
                     open={deleteDialogOpen}
                     onOpenChange={setDeleteDialogOpen}
@@ -475,7 +475,7 @@ const ManageKiosks = () => {
                 />
             </React.Suspense>
 
-            <React.Suspense fallback={<div>Đang tải...</div>}>
+            <React.Suspense fallback={<div className="hidden">Đang tải...</div>}>
                 <WebhookDialog
                     open={webhookDialogOpen}
                     onOpenChange={setWebhookDialogOpen}

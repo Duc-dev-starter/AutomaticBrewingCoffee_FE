@@ -367,7 +367,8 @@ const ManageDevices = () => {
                     totalPages={data?.totalPages || 1}
                 />
             </div>
-            <React.Suspense fallback={<div>Đang tải...</div>}>
+
+            <React.Suspense fallback={<div className="hidden">Đang tải...</div>}>
                 <DeviceDialog
                     open={dialogOpen}
                     onOpenChange={setDialogOpen}
@@ -376,7 +377,7 @@ const ManageDevices = () => {
                 />
             </React.Suspense>
 
-            <React.Suspense fallback={<div>Đang tải...</div>}>
+            <React.Suspense fallback={<div className="hidden">Đang tải...</div>}>
                 <DeviceDetailDialog
                     open={detailDialogOpen}
                     onOpenChange={(open) => {
@@ -387,7 +388,7 @@ const ManageDevices = () => {
                 />
             </React.Suspense>
 
-            <React.Suspense fallback={<div>Đang tải...</div>}>
+            <React.Suspense fallback={<div className="hidden">Đang tải...</div>}>
                 <ConfirmDeleteDialog
                     open={deleteDialogOpen}
                     onOpenChange={setDeleteDialogOpen}

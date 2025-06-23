@@ -364,7 +364,7 @@ const ManageDeviceModels = () => {
                     totalPages={data?.totalPages || 1}
                 />
             </div>
-            <React.Suspense fallback={<div>Đang tải...</div>}>
+            <React.Suspense fallback={<div className="hidden">Đang tải...</div>}>
                 <DeviceModelDialog
                     open={dialogOpen}
                     onOpenChange={setDialogOpen}
@@ -373,7 +373,7 @@ const ManageDeviceModels = () => {
                 />
             </React.Suspense>
 
-            <React.Suspense fallback={<div>Đang tải...</div>}>
+            <React.Suspense fallback={<div className="hidden">Đang tải...</div>}>
                 <DeviceModelDetailDialog
                     open={detailDialogOpen}
                     onOpenChange={(open) => {

@@ -362,27 +362,36 @@ const ManageKioskTypes = () => {
                     totalPages={data?.totalPages || 1}
                 />
             </div>
-            <KioskTypeDialog
-                open={dialogOpen}
-                onOpenChange={setDialogOpen}
-                onSuccess={handleSuccess}
-                kioskType={selectedKioskType}
-            />
-            <KioskTypeDetailDialog
-                open={detailDialogOpen}
-                onOpenChange={(open) => {
-                    setDetailDialogOpen(open);
-                    if (!open) setDetailKioskType(null);
-                }}
-                kioskType={detailKioskType}
-            />
-            <ConfirmDeleteDialog
-                open={deleteDialogOpen}
-                onOpenChange={setDeleteDialogOpen}
-                description={`Bạn có chắc chắn muốn xóa loại kiosk "${kioskTypeToDelete?.name}"? Hành động này không thể hoàn tác.`}
-                onConfirm={confirmDelete}
-                onCancel={() => setTypeKioskToDelete(null)}
-            />
+
+            <React.Suspense fallback={<div className="hidden">Đang tải...</div>}>
+                <KioskTypeDialog
+                    open={dialogOpen}
+                    onOpenChange={setDialogOpen}
+                    onSuccess={handleSuccess}
+                    kioskType={selectedKioskType}
+                />
+            </React.Suspense>
+
+            <React.Suspense fallback={<div className="hidden">Đang tải...</div>}>
+                <KioskTypeDetailDialog
+                    open={detailDialogOpen}
+                    onOpenChange={(open) => {
+                        setDetailDialogOpen(open);
+                        if (!open) setDetailKioskType(null);
+                    }}
+                    kioskType={detailKioskType}
+                />
+            </React.Suspense>
+
+            <React.Suspense fallback={<div className="hidden">Đang tải...</div>}>
+                <ConfirmDeleteDialog
+                    open={deleteDialogOpen}
+                    onOpenChange={setDeleteDialogOpen}
+                    description={`Bạn có chắc chắn muốn xóa loại kiosk "${kioskTypeToDelete?.name}"? Hành động này không thể hoàn tác.`}
+                    onConfirm={confirmDelete}
+                    onCancel={() => setTypeKioskToDelete(null)}
+                />
+            </React.Suspense>
         </div>
     );
 };

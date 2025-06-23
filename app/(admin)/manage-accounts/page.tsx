@@ -328,7 +328,7 @@ const ManageAccounts = () => {
                 />
             </div>
 
-            <React.Suspense fallback={<div>Đang tải...</div>}>
+            <React.Suspense fallback={<div className="hidden">Đang tải...</div>}>
                 <AccountDetailDialog
                     open={detailDialogOpen}
                     onOpenChange={(open) => {
@@ -339,7 +339,7 @@ const ManageAccounts = () => {
                 />
             </React.Suspense>
 
-            <React.Suspense fallback={<div>Đang tải...</div>}>
+            <React.Suspense fallback={<div className="hidden">Đang tải...</div>}>
                 <ConfirmBanUnbanDialog
                     open={deleteDialogOpen}
                     onOpenChange={setDeleteDialogOpen}

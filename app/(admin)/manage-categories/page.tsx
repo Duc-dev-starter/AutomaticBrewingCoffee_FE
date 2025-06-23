@@ -389,7 +389,7 @@ const ManageCategories = () => {
                 />
             </div>
 
-            <React.Suspense fallback={<div>Đang tải...</div>}>
+            <React.Suspense fallback={<div className="hidden">Đang tải...</div>}>
                 <CategoryDialog
                     open={dialogOpen}
                     onOpenChange={setDialogOpen}
@@ -398,7 +398,7 @@ const ManageCategories = () => {
                 />
             </React.Suspense>
 
-            <React.Suspense fallback={<div>Đang tải...</div>}>
+            <React.Suspense fallback={<div className="hidden">Đang tải...</div>}>
                 <CategoryDetailDialog
                     open={detailDialogOpen}
                     onOpenChange={(open) => {
@@ -409,7 +409,7 @@ const ManageCategories = () => {
                 />
             </React.Suspense>
 
-            <React.Suspense fallback={<div>Đang tải...</div>}>
+            <React.Suspense fallback={<div className="hidden">Đang tải...</div>}>
                 <ConfirmDeleteDialog
                     open={deleteDialogOpen}
                     onOpenChange={setDeleteDialogOpen}

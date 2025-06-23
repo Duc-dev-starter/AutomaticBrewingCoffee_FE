@@ -360,7 +360,7 @@ const ManageStores = () => {
                 />
             </div>
 
-            <React.Suspense fallback={<div>Đang tải...</div>}>
+            <React.Suspense fallback={<div className="hidden">Đang tải...</div>}>
                 <StoreDialog
                     open={dialogOpen}
                     onOpenChange={setDialogOpen}
@@ -369,7 +369,7 @@ const ManageStores = () => {
                 />
             </React.Suspense>
 
-            <React.Suspense fallback={<div>Đang tải...</div>}>
+            <React.Suspense fallback={<div className="hidden">Đang tải...</div>}>
                 <StoreDetailDialog
                     open={detailDialogOpen}
                     onOpenChange={(open) => {
@@ -380,7 +380,7 @@ const ManageStores = () => {
                 />
             </React.Suspense>
 
-            <React.Suspense fallback={<div>Đang tải...</div>}>
+            <React.Suspense fallback={<div className="hidden">Đang tải...</div>}>
                 <ConfirmDeleteDialog
                     open={deleteDialogOpen}
                     onOpenChange={setDeleteDialogOpen}

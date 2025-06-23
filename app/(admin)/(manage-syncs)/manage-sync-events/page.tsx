@@ -258,7 +258,7 @@ const ManageSyncEvents = () => {
                 />
             </div>
 
-            <React.Suspense fallback={<div>Đang tải...</div>}>
+            <React.Suspense fallback={<div className="hidden">Đang tải...</div>}>
                 <SyncEventDetailDialog
                     open={detailDialogOpen}
                     onOpenChange={(open) => {

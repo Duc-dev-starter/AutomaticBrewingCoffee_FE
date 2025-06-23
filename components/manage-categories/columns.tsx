@@ -66,6 +66,16 @@ export const columns = ({
             enableSorting: false,
         },
         {
+            id: "displayOrder",
+            header: "Thứ tự",
+            cell: ({ row }) => (
+                <div className="text-center">
+                    {row.original.displayOrder || "Không có"}
+                </div>
+            ),
+            enableSorting: false,
+        },
+        {
             id: "status",
             header: "Trạng thái",
             cell: ({ row }) => {

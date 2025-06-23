@@ -6,4 +6,5 @@ export interface Category {
     description: string;
     imageUrl: string;
     status: EBaseStatus;
+    displayOrder: number;
 }

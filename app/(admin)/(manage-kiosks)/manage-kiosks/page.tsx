@@ -163,7 +163,7 @@ const ManageKiosks = () => {
             const err = error as ErrorResponse;
             console.error("Lỗi khi xóa loại kiosk:", err);
             toast({
-                title: "Lỗi khi đồng bộ loại kiosk",
+                title: "Lỗi khi đồng bộ kiosk",
                 description: err.message,
                 variant: "destructive",
             }

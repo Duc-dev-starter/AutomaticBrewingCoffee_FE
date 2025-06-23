@@ -62,7 +62,7 @@ export const DeviceStatusGroup = ({ kioskDevices, openReplaceDialog, openOnhubDi
                                 <Package className="mr-2 h-5 w-5" />
                                 {EDeviceStatusViMap[status] || status}
                             </div>
-                            <Badge className={clsx("ml-2", getStatusColor(status))}>{groupedDevices[status].length}</Badge>
+                            <Badge className={clsx("ml-2", getStatusColor(status))}>Số mẫu thiết bị:{groupedDevices[status].length}</Badge>
                         </CardTitle>
                     </CardHeader>
                     <CardContent>

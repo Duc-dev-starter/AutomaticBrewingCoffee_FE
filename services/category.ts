@@ -29,3 +29,8 @@ export const deleteCategory = async (id: string) => {
     const response = await BaseService.delete({ url: `${Api.CATEGORIES}/${id}` })
     return response;
 }
+
+export const reorderCategory = async (payload: { dragProductCategoryId: string, targetProductCategoryId: string, insertAfter: boolean }) => {
+    const response = await BaseService.put({ url: `${Api.CATEGORIES}/reorder`, payload });
+    return response;
+}

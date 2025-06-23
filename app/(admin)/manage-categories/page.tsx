@@ -27,9 +27,11 @@ import { BaseStatusFilter, ExportButton, NoResultsRow, Pagination, RefreshButton
 import { multiSelectFilter } from "@/utils/table";
 import { Category } from "@/interfaces/category";
 import { columns } from "@/components/manage-categories/columns";
-import { deleteCategory } from "@/services/category";
+import { deleteCategory, reorderCategory } from "@/services/category";
 import { ErrorResponse } from "@/types/error";
 import { useDebounce, useCategories, useToast } from "@/hooks";
+import { DragDropContext, Droppable, Draggable, DropResult } from "react-beautiful-dnd";
+
 const CategoryDialog = React.lazy(() => import("@/components/dialog/category").then(module => ({ default: module.CategoryDialog })));
 const CategoryDetailDialog = React.lazy(() => import("@/components/dialog/category").then(module => ({ default: module.CategoryDetailDialog })));
 const ConfirmDeleteDialog = React.lazy(() => import("@/components/common").then(module => ({ default: module.ConfirmDeleteDialog })));
@@ -40,7 +42,7 @@ const ManageCategories = () => {
     const [currentPage, setCurrentPage] = useState<number>(1);
     const [statusFilter, setStatusFilter] = useState<string>("");
 
-    const [sorting, setSorting] = useState<SortingState>([{ id: "createdDate", desc: true }]);
+    const [sorting, setSorting] = useState<SortingState>([{ id: "displayOrder", desc: false }]);
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
     const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
     const [rowSelection, setRowSelection] = useState({});
@@ -80,16 +82,6 @@ const ManageCategories = () => {
             });
         }
     }, [error, toast]);
-
-    // useEffect(() => {
-    //     // Prefetch trang tiếp theo nếu còn trang
-    //     if (data?.totalPages && currentPage < data.totalPages) {
-    //         useCategories({
-    //             ...params,
-    //             page: currentPage + 1,
-    //         });
-    //     }
-    // }, [currentPage, data?.totalPages, params]);
 
     const handleSuccess = () => {
         mutate();
@@ -199,6 +191,40 @@ const ManageCategories = () => {
         []
     );
 
+    const onDragEnd = async (result: DropResult) => {
+        if (!result.destination) return;
+
+        const items = Array.from(data?.items || []);
+        const [reorderedItem] = items.splice(result.source.index, 1);
+        items.splice(result.destination.index, 0, reorderedItem);
+
+        const dragId = reorderedItem.productCategoryId;
+        const targetIndex = result.destination.index;
+        const targetId = items[targetIndex + (targetIndex > result.source.index ? -1 : 1)]?.productCategoryId;
+        const insertAfter = result.destination.index > result.source.index;
+
+        try {
+            await reorderCategory({
+                dragProductCategoryId: dragId,
+                targetProductCategoryId: targetId,
+                insertAfter,
+            });
+            toast({
+                title: "Thành công",
+                description: "Thứ tự danh mục đã được cập nhật.",
+            });
+            mutate();
+        } catch (error) {
+            const err = error as ErrorResponse;
+            toast({
+                title: "Lỗi khi thay đổi thứ tự",
+                description: err.message,
+                variant: "destructive",
+            });
+            mutate();
+        }
+    };
+
     return (
         <div className="w-full">
             <div className="flex flex-col space-y-4 p-4 sm:p-6">
@@ -292,48 +318,64 @@ const ManageCategories = () => {
                                 </TableRow>
                             ))}
                         </TableHeader>
-                        <TableBody>
-                            {(!data && isLoading) ? (
-                                Array.from({ length: pageSize }).map((_, index) => (
-                                    <TableRow key={`skeleton-${index}`} className="animate-pulse">
-                                        {columns({ onViewDetails: () => { }, onEdit: () => { }, onDelete: () => { } }).map((column, cellIndex) => (
-                                            <TableCell key={`skeleton-cell-${cellIndex}`}>
-                                                {column.id === "productCategoryId" ? (
-                                                    <Skeleton className="h-5 w-24 mx-auto" />
-                                                ) : column.id === "name" ? (
-                                                    <div className="flex items-center gap-2 justify-center">
-                                                        <Skeleton className="h-4 w-4 rounded-full" />
-                                                        <Skeleton className="h-5 w-40" />
-                                                    </div>
-                                                ) : column.id === "description" ? (
-                                                    <Skeleton className="h-5 w-32 mx-auto" />
-                                                ) : column.id === "status" ? (
-                                                    <Skeleton className="h-6 w-24 rounded-full mx-auto" />
-                                                ) : column.id === "actions" ? (
-                                                    <div className="flex justify-center">
-                                                        <Skeleton className="h-8 w-8 rounded-full" />
-                                                    </div>
-                                                ) : (
-                                                    <Skeleton className="h-5 w-full" />
-                                                )}
-                                            </TableCell>
-                                        ))}
-                                    </TableRow>
-                                ))
-                            ) : data?.items?.length ? (
-                                table.getRowModel().rows.map((row) => (
-                                    <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
-                                        {row.getVisibleCells().map((cell) => (
-                                            <TableCell key={cell.id}>
-                                                {flexRender(cell.column.columnDef.cell, cell.getContext())}
-                                            </TableCell>
-                                        ))}
-                                    </TableRow>
-                                ))
-                            ) : (
-                                <NoResultsRow columns={columns({ onViewDetails: () => { }, onEdit: () => { }, onDelete: () => { } })} />
-                            )}
-                        </TableBody>
+                        <DragDropContext onDragEnd={onDragEnd}>
+                            <Droppable droppableId="categories">
+                                {(provided) => (
+                                    <TableBody {...provided.droppableProps} ref={provided.innerRef}>
+                                        {(!data && isLoading) ? (
+                                            Array.from({ length: pageSize }).map((_, index) => (
+                                                <TableRow key={`skeleton-${index}`} className="animate-pulse">
+                                                    {columns({ onViewDetails: () => { }, onEdit: () => { }, onDelete: () => { } }).map((column, cellIndex) => (
+                                                        <TableCell key={`skeleton-cell-${cellIndex}`}>
+                                                            {column.id === "productCategoryId" ? (
+                                                                <Skeleton className="h-5 w-24 mx-auto" />
+                                                            ) : column.id === "name" ? (
+                                                                <div className="flex items-center gap-2 justify-center">
+                                                                    <Skeleton className="h-4 w-4 rounded-full" />
+                                                                    <Skeleton className="h-5 w-40" />
+                                                                </div>
+                                                            ) : column.id === "description" ? (
+                                                                <Skeleton className="h-5 w-32 mx-auto" />
+                                                            ) : column.id === "status" ? (
+                                                                <Skeleton className="h-6 w-24 rounded-full mx-auto" />
+                                                            ) : column.id === "actions" ? (
+                                                                <div className="flex justify-center">
+                                                                    <Skeleton className="h-8 w-8 rounded-full" />
+                                                                </div>
+                                                            ) : (
+                                                                <Skeleton className="h-5 w-full" />
+                                                            )}
+                                                        </TableCell>
+                                                    ))}
+                                                </TableRow>
+                                            ))
+                                        ) : data?.items?.length ? (
+                                            table.getRowModel().rows.map((row, index) => (
+                                                <Draggable key={row.id} draggableId={row.id} index={index}>
+                                                    {(provided) => (
+                                                        <TableRow
+                                                            ref={provided.innerRef}
+                                                            {...provided.draggableProps}
+                                                            {...provided.dragHandleProps}
+                                                            data-state={row.getIsSelected() && "selected"}
+                                                        >
+                                                            {row.getVisibleCells().map((cell) => (
+                                                                <TableCell key={cell.id}>
+                                                                    {flexRender(cell.column.columnDef.cell, cell.getContext())}
+                                                                </TableCell>
+                                                            ))}
+                                                        </TableRow>
+                                                    )}
+                                                </Draggable>
+                                            ))
+                                        ) : (
+                                            <NoResultsRow columns={columns({ onViewDetails: () => { }, onEdit: () => { }, onDelete: () => { } })} />
+                                        )}
+                                        {provided.placeholder}
+                                    </TableBody>
+                                )}
+                            </Droppable>
+                        </DragDropContext>
                     </Table>
                 </div>
                 <Pagination

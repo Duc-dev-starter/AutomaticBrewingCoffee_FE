@@ -668,19 +668,26 @@ const UpdateWorkflow = () => {
                                             />
                                         </SelectTrigger>
                                         <SelectContent className="max-h-[300px]">
-                                            <ScrollArea className="h-[200px]">
-                                                <SelectItem value="null">
-                                                    <span className="text-gray-500 italic">Không chọn sản phẩm</span>
-                                                </SelectItem>
+                                            <ScrollArea id="product-scroll-area" className="h-[200px]">
                                                 <InfiniteScroll
-                                                    dataLength={products.length}
+                                                    dataLength={products.length + 1} // +1 để tính cả "Không chọn sản phẩm"
                                                     next={loadMoreProducts}
                                                     hasMore={hasMore}
                                                     loader={<div className="p-2 text-center text-sm">Đang tải thêm...</div>}
-                                                    scrollableTarget="select-content"
+                                                    scrollableTarget="product-scroll-area"
                                                     style={{ overflow: "hidden" }}
                                                 >
-                                                    {/* Các SelectItem */}
+                                                    <SelectItem value="null">
+                                                        <span className="text-gray-500 italic">Không chọn sản phẩm</span>
+                                                    </SelectItem>
+                                                    {products.map((product) => (
+                                                        <SelectItem key={product.productId} value={product.productId}>
+                                                            {product.name}
+                                                        </SelectItem>
+                                                    ))}
+                                                    {!loadingProducts && products.length === 0 && (
+                                                        <div className="p-2 text-center text-sm text-gray-500">Không có sản phẩm.</div>
+                                                    )}
                                                 </InfiniteScroll>
                                             </ScrollArea>
                                         </SelectContent>

@@ -92,8 +92,8 @@ export const syncTaskColumns = ({
             ),
         },
         {
-            id: "createdAt",
-            accessorKey: "createdAt",
+            id: "createdDate",
+            accessorKey: "createdDate",
             header: "Ngày tạo",
             cell: ({ row }) => (
                 <div className="flex items-center justify-center">

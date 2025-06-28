@@ -46,7 +46,7 @@ export const addProductToMenu = async (payload: { menuId: string, productId: str
 }
 
 export const removeProductFromMenu = async (menuId: string, productId: string) => {
-    const response = await BaseService.delete({ url: `${Api.MENUS}/${menuId}/${Api.MENU_PRODUCTS}/${productId}` })
+    const response = await BaseService.delete({ url: `${Api.MENUS}/${menuId}${Api.MENU_PRODUCTS}/${productId}` })
     return response;
 }
 

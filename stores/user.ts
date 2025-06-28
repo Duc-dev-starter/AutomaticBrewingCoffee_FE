@@ -18,7 +18,7 @@ export const useAccountStore = create<AccountStore>()(
         }),
         {
             name: 'account-storage',
-            storage: createJSONStorage(() => localStorage),
+            storage: createJSONStorage(() => sessionStorage),
         }
     )
 );

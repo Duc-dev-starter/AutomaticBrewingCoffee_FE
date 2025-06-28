@@ -38,7 +38,7 @@ const ManageSyncTasks = () => {
     const [searchValue, setSearchValue] = useState<string>("");
     const debouncedSearchValue = useDebounce(searchValue, 500);
 
-    const [sorting, setSorting] = useState<SortingState>([{ id: "createdAt", desc: true }]);
+    const [sorting, setSorting] = useState<SortingState>([{ id: "createdDate", desc: true }]);
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
     const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
     const [rowSelection, setRowSelection] = useState({});

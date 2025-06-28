@@ -14,7 +14,8 @@ export interface Product {
     imageUrl: string;
     productParentName: string;
     productCategoryId: string;
-    productCategory: Category
+    productCategory: Category;
+    isHasWorkflow: boolean;
     status: EProductStatus
     createdDate: string;
     updatedDate: string;

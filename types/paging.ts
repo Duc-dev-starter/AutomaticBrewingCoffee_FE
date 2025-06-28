@@ -14,6 +14,7 @@ export interface PagingParams {
     hasMenu?: boolean;
     kioskVersionId?: string;
     organizationId?: string;
+    isHasWorkflow?: boolean;
     storeId?: string;
 }
 

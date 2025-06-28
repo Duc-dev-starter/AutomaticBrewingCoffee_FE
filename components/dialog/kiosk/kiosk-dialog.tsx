@@ -1,10 +1,9 @@
 "use client"
 
-import { useState, useEffect } from "react"
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"
+import { useState, useEffect, useRef } from "react"
+import { Dialog, DialogContent } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useToast } from "@/hooks/use-toast"
 import type { Device } from "@/interfaces/device"
@@ -12,21 +11,22 @@ import { EBaseStatus } from "@/enum/base"
 import { createKiosk, updateKiosk } from "@/services/kiosk"
 import { getStores } from "@/services/store"
 import { getKioskVersions } from "@/services/kiosk"
-import { getMenus } from "@/services/menu" // Thêm import cho getMenus
+import { getMenus } from "@/services/menu"
 import { format, isAfter, startOfDay } from "date-fns"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { CalendarIcon } from "lucide-react"
+import { CalendarIcon, X, Cpu, MapPin, Settings, Clock, CheckCircle2, AlertCircle, Save, Zap } from "lucide-react"
 import { vi } from "date-fns/locale"
 import { kioskSchema } from "@/schema/kiosk"
 import type { KioskDialogProps } from "@/types/dialog"
 import type { KioskVersion } from "@/interfaces/kiosk"
 import type { Store } from "@/interfaces/store"
-import type { Menu } from "@/interfaces/menu" // Thêm import cho interface Menu
-import { X, Cpu } from "lucide-react"
+import type { Menu } from "@/interfaces/menu"
 import InfiniteScroll from "react-infinite-scroll-component"
 import type { ErrorResponse } from "@/types/error"
 import { getValidDevicesInKiosk } from "@/services/kiosk"
 import { EnhancedCalendar } from "@/components/common/enhanced-calendar"
+import { cn } from "@/lib/utils"
+import { useDebounce } from "@/hooks"
 
 const initialFormData = {
     kioskVersionId: "",
@@ -37,7 +37,7 @@ const initialFormData = {
     installedDate: "",
     position: "",
     warrantyTime: "",
-    menuId: "", // Thêm menuId với giá trị mặc định là ""
+    menuId: "",
 }
 
 const KioskDialog = ({ open, onOpenChange, onSuccess, kiosk }: KioskDialogProps) => {
@@ -45,7 +45,7 @@ const KioskDialog = ({ open, onOpenChange, onSuccess, kiosk }: KioskDialogProps)
     const [formData, setFormData] = useState(initialFormData)
     const [kioskVersions, setKioskVersions] = useState<KioskVersion[]>([])
     const [stores, setStores] = useState<Store[]>([])
-    const [menus, setMenus] = useState<Menu[]>([]) // Thêm state cho menus
+    const [menus, setMenus] = useState<Menu[]>([])
     const [validDevices, setValidDevices] = useState<Device[]>([])
     const [errors, setErrors] = useState<Record<string, string>>({})
     const [loading, setLoading] = useState(false)
@@ -54,40 +54,57 @@ const KioskDialog = ({ open, onOpenChange, onSuccess, kiosk }: KioskDialogProps)
     const [devicePage, setDevicePage] = useState(1)
     const [hasMoreDevices, setHasMoreDevices] = useState(true)
     const [isDeviceDropdownOpen, setIsDeviceDropdownOpen] = useState(false)
+    const [submitted, setSubmitted] = useState(false)
+    const [validFields, setValidFields] = useState<Record<string, boolean>>({})
+    const [focusedField, setFocusedField] = useState<string | null>(null)
+    const locationInputRef = useRef<HTMLInputElement>(null)
 
-    // Cập nhật formData dựa trên prop kiosk khi dialog mở
+    // Thêm các state cho tìm kiếm
+    const [menuSearchQuery, setMenuSearchQuery] = useState("")
+    const [kioskVersionSearchQuery, setKioskVersionSearchQuery] = useState("")
+    const [storeSearchQuery, setStoreSearchQuery] = useState("")
+
+    const debouncedMenuSearchQuery = useDebounce(menuSearchQuery, 300)
+    const debouncedKioskVersionSearchQuery = useDebounce(kioskVersionSearchQuery, 300)
+    const debouncedStoreSearchQuery = useDebounce(storeSearchQuery, 300)
+
+    const isUpdate = !!kiosk
+
     useEffect(() => {
         if (open && kiosk) {
             setFormData({
                 kioskVersionId: kiosk.kioskVersionId || "",
                 storeId: kiosk.storeId || "",
-                // @ts-ignore
-                deviceIds: kiosk.deviceIds || [],
+                deviceIds: kiosk.kioskDevices.map((kd) => kd.deviceId),
                 location: kiosk.location || "",
                 status: kiosk.status || EBaseStatus.Active,
                 installedDate: kiosk.installedDate ? format(new Date(kiosk.installedDate), "yyyy-MM-dd") : "",
                 position: kiosk.position || "",
                 warrantyTime: kiosk.warrantyTime ? format(new Date(kiosk.warrantyTime), "yyyy-MM-dd") : "",
-                menuId: kiosk.menuId || "", // Set menuId từ kiosk nếu có
+                menuId: kiosk.menuId || "",
+            })
+            setValidFields({
+                location: kiosk.location?.trim().length >= 1,
+                position: kiosk.position?.trim().length >= 1,
             })
         } else if (open) {
             setFormData(initialFormData)
+            setValidFields({})
         }
     }, [open, kiosk])
 
-    // Fetch dữ liệu ban đầu (kiosk versions, stores, và menus)
     useEffect(() => {
         const fetchData = async () => {
             setFetching(true)
             try {
                 const [kioskVersionRes, storeRes, menuRes] = await Promise.all([
-                    getKioskVersions({ status: EBaseStatus.Active }),
-                    getStores({ status: EBaseStatus.Active }),
-                    getMenus(), // Fetch danh sách menu
+                    getKioskVersions({ status: EBaseStatus.Active, filterBy: "versionTitle", filterQuery: debouncedKioskVersionSearchQuery }),
+                    getStores({ status: EBaseStatus.Active, filterBy: "name", filterQuery: debouncedStoreSearchQuery }),
+                    getMenus({ filterBy: "name", filterQuery: debouncedMenuSearchQuery }),
                 ])
                 setKioskVersions(kioskVersionRes.items)
                 setStores(storeRes.items)
-                setMenus(menuRes.items) // Set state cho menus
+                setMenus(menuRes.items)
             } catch (error) {
                 const err = error as ErrorResponse
                 console.error("Lỗi khi lấy dữ liệu:", error)
@@ -105,15 +122,14 @@ const KioskDialog = ({ open, onOpenChange, onSuccess, kiosk }: KioskDialogProps)
             setErrors({})
             setIsDeviceDropdownOpen(false)
         }
-    }, [open, toast])
+    }, [open, toast, debouncedKioskVersionSearchQuery, debouncedStoreSearchQuery, debouncedMenuSearchQuery])
 
-    // Fetch thiết bị hợp lệ khi kioskVersionId thay đổi
     useEffect(() => {
         if (formData.kioskVersionId) {
             const fetchValidDevices = async () => {
                 setFetching(true)
                 try {
-                    const response = await getValidDevicesInKiosk(formData.kioskVersionId, { page: 1, size: 10 })
+                    const response = await getValidDevicesInKiosk(formData.kioskVersionId, { page: 1, size: 10, filterBy: "name", filterQuery: deviceSearchQuery })
                     setValidDevices(response.items)
                     setHasMoreDevices(response.items.length === 10)
                     setDevicePage(1)
@@ -134,9 +150,8 @@ const KioskDialog = ({ open, onOpenChange, onSuccess, kiosk }: KioskDialogProps)
             setValidDevices([])
             setHasMoreDevices(true)
         }
-    }, [formData.kioskVersionId, toast])
+    }, [formData.kioskVersionId, toast, deviceSearchQuery])
 
-    // Load thêm thiết bị hợp lệ
     const loadMoreDevices = async () => {
         if (fetching || !hasMoreDevices || !formData.kioskVersionId) return
 
@@ -146,8 +161,8 @@ const KioskDialog = ({ open, onOpenChange, onSuccess, kiosk }: KioskDialogProps)
             const response = await getValidDevicesInKiosk(formData.kioskVersionId, {
                 page: nextPage,
                 size: 10,
-                filterBy: deviceSearchQuery ? "name" : undefined,
-                filterQuery: deviceSearchQuery || undefined,
+                filterBy: "name",
+                filterQuery: deviceSearchQuery,
             })
 
             if (response.items.length > 0) {
@@ -170,8 +185,35 @@ const KioskDialog = ({ open, onOpenChange, onSuccess, kiosk }: KioskDialogProps)
         }
     }
 
-    // Xử lý submit form
+    const validateField = (field: string, value: string) => {
+        const newValidFields = { ...validFields }
+        switch (field) {
+            case "location":
+            case "position":
+                newValidFields[field] = value.trim().length >= 1
+                break
+        }
+        setValidFields(newValidFields)
+    }
+
+    const handleChange = (field: string, value: string) => {
+        setFormData((prev) => ({ ...prev, [field]: value }))
+        if (field === "location" || field === "position") {
+            validateField(field, value)
+        }
+        if (errors[field]) {
+            setErrors((prev) => ({ ...prev, [field]: "" }))
+        }
+    }
+
+    const handleKeyDown = (e: React.KeyboardEvent) => {
+        if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+            handleSubmit()
+        }
+    }
+
     const handleSubmit = async () => {
+        setSubmitted(true)
         const validationResult = kioskSchema.safeParse(formData)
         if (!validationResult.success) {
             const fieldErrors = validationResult.error.flatten().fieldErrors
@@ -193,21 +235,19 @@ const KioskDialog = ({ open, onOpenChange, onSuccess, kiosk }: KioskDialogProps)
                 installedDate: new Date(formData.installedDate).toISOString(),
                 position: formData.position,
                 warrantyTime: new Date(formData.warrantyTime).toISOString(),
-                menuId: formData.menuId || undefined, // Gửi menuId nếu có, nếu không thì undefined
+                menuId: formData.menuId || undefined,
             }
             if (kiosk) {
                 await updateKiosk(kiosk.kioskId, data)
                 toast({
                     title: "Thành công",
                     description: `Kiosk tại "${formData.location}" đã được cập nhật.`,
-                    variant: "success"
                 })
             } else {
                 await createKiosk(data)
                 toast({
                     title: "Thành công",
                     description: `Kiosk tại "${formData.location}" đã được tạo.`,
-                    variant: "success"
                 })
             }
             onSuccess?.()
@@ -227,79 +267,143 @@ const KioskDialog = ({ open, onOpenChange, onSuccess, kiosk }: KioskDialogProps)
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto hide-scrollbar">
-                <DialogHeader>
-                    <DialogTitle>{kiosk ? "Chỉnh sửa kiosk" : "Thêm kiosk mới"}</DialogTitle>
-                </DialogHeader>
-                <div className="grid gap-4 py-4">
-                    <div className="grid gap-2 min-h-[4.5rem]">
-                        <Label htmlFor="menuId">Menu (tùy chọn)</Label>
-                        <Select
-                            value={formData.menuId}
-                            onValueChange={(value) => setFormData({ ...formData, menuId: value })}
-                            disabled={loading || fetching}
-                        >
-                            <SelectTrigger>
-                                <SelectValue placeholder="Chọn menu (nếu có)" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {menus.map((menu) => (
-                                    <SelectItem key={menu.menuId} value={menu.menuId}>
-                                        {menu.name}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
+            <DialogContent
+                className="sm:max-w-[650px] p-0 border-0 bg-white backdrop-blur-xl shadow-2xl max-h-[90vh] overflow-y-auto hide-scrollbar"
+                onKeyDown={handleKeyDown}
+            >
+                <div className="relative overflow-hidden bg-primary-100 rounded-tl-2xl rounded-tr-2xl">
+                    <div className="relative px-8 py-6 border-b border-primary-300">
+                        <div className="flex items-center space-x-4">
+                            <div className="w-14 h-14 bg-gradient-to-r from-primary-400 to-primary-500 rounded-2xl flex items-center justify-center shadow-lg">
+                                {isUpdate ? <Settings className="w-7 h-7 text-primary-100" /> : <Cpu className="w-7 h-7 text-primary-100" />}
+                            </div>
+                            <div>
+                                <h1 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+                                    {isUpdate ? "Cập nhật Kiosk" : "Tạo Kiosk Mới"}
+                                </h1>
+                                <p className="text-gray-500">{isUpdate ? "Chỉnh sửa thông tin kiosk" : "Thêm kiosk mới vào hệ thống"}</p>
+                            </div>
+                        </div>
                     </div>
-                    <div className="grid gap-2 min-h-[4.5rem]">
-                        <Label htmlFor="kioskVersionId" className="asterisk">
-                            Phiên bản kiosk
-                        </Label>
-                        <Select
-                            value={formData.kioskVersionId}
-                            onValueChange={(value) => setFormData({ ...formData, kioskVersionId: value })}
-                            disabled={loading || fetching}
-                        >
-                            <SelectTrigger>
-                                <SelectValue placeholder="Chọn phiên bản kiosk" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {kioskVersions.map((kv) => (
-                                    <SelectItem key={kv.kioskVersionId} value={kv.kioskVersionId}>
-                                        {kv.versionTitle}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                        {errors.kioskVersionId && <p className="text-red-500 text-sm">{errors.kioskVersionId}</p>}
+                </div>
+
+                <div className="px-8 py-8 pt-2 space-y-8">
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-3">
+                            <div className="flex items-center space-x-2 mb-2">
+                                <Settings className="w-4 h-4 text-primary-300" />
+                                <label className="text-sm font-medium text-gray-700">Menu (tùy chọn)</label>
+                            </div>
+                            <Select
+                                value={formData.menuId}
+                                onValueChange={(value) => handleChange("menuId", value)}
+                                disabled={loading || fetching}
+                            >
+                                <SelectTrigger className="h-12 text-sm px-4 border-2 bg-white/80 backdrop-blur-sm">
+                                    <SelectValue placeholder="Chọn menu (nếu có)" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <div className="p-2">
+                                        <Input
+                                            placeholder="Tìm kiếm menu..."
+                                            className="h-10 text-xs px-3"
+                                            value={menuSearchQuery}
+                                            onChange={(e) => setMenuSearchQuery(e.target.value)}
+                                            disabled={loading}
+                                        />
+                                    </div>
+                                    <div className="max-h-[200px] overflow-y-auto">
+                                        {menus.map((menu) => (
+                                            <SelectItem key={menu.menuId} value={menu.menuId}>
+                                                {menu.name}
+                                            </SelectItem>
+                                        ))}
+                                    </div>
+                                </SelectContent>
+                            </Select>
+                        </div>
+
+                        <div className="space-y-3">
+                            <div className="flex items-center space-x-2 mb-2">
+                                <Cpu className="w-4 h-4 text-primary-300" />
+                                <label className="text-sm font-medium text-gray-700 asterisk">Phiên bản kiosk</label>
+                            </div>
+                            <Select
+                                value={formData.kioskVersionId}
+                                onValueChange={(value) => handleChange("kioskVersionId", value)}
+                                disabled={loading || fetching}
+                            >
+                                <SelectTrigger className="h-12 text-sm px-4 border-2 bg-white/80 backdrop-blur-sm">
+                                    <SelectValue placeholder="Chọn phiên bản kiosk" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <div className="p-2">
+                                        <Input
+                                            placeholder="Tìm kiếm phiên bản kiosk..."
+                                            className="h-10 text-xs px-3"
+                                            value={kioskVersionSearchQuery}
+                                            onChange={(e) => setKioskVersionSearchQuery(e.target.value)}
+                                            disabled={loading}
+                                        />
+                                    </div>
+                                    <div className="max-h-[200px] overflow-y-auto">
+                                        {kioskVersions.map((kv) => (
+                                            <SelectItem key={kv.kioskVersionId} value={kv.kioskVersionId}>
+                                                {kv.versionTitle}
+                                            </SelectItem>
+                                        ))}
+                                    </div>
+                                </SelectContent>
+                            </Select>
+                            {submitted && errors.kioskVersionId && (
+                                <p className="text-red-500 text-xs mt-1">{errors.kioskVersionId}</p>
+                            )}
+                        </div>
                     </div>
-                    <div className="grid gap-2 min-h-[4.5rem]">
-                        <Label htmlFor="storeId" className="asterisk">
-                            Cửa hàng
-                        </Label>
-                        <Select
-                            value={formData.storeId}
-                            onValueChange={(value) => setFormData({ ...formData, storeId: value })}
-                            disabled={loading || fetching}
-                        >
-                            <SelectTrigger>
-                                <SelectValue placeholder="Chọn cửa hàng" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {stores.map((s) => (
-                                    <SelectItem key={s.storeId} value={s.storeId}>
-                                        {s.name}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                        {errors.storeId && <p className="text-red-500 text-sm">{errors.storeId}</p>}
-                    </div>
-                    <div className="grid gap-2 min-h-[4.5rem]">
-                        <Label htmlFor="deviceIds" className="asterisk">
-                            Thiết bị
-                        </Label>
-                        <div className="flex flex-col gap-2">
+
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-3">
+                            <div className="flex items-center space-x-2 mb-2">
+                                <MapPin className="w-4 h-4 text-primary-300" />
+                                <label className="text-sm font-medium text-gray-700 asterisk">Cửa hàng</label>
+                            </div>
+                            <Select
+                                value={formData.storeId}
+                                onValueChange={(value) => handleChange("storeId", value)}
+                                disabled={loading || fetching}
+                            >
+                                <SelectTrigger className="h-12 text-sm px-4 border-2 bg-white/80 backdrop-blur-sm">
+                                    <SelectValue placeholder="Chọn cửa hàng" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <div className="p-2">
+                                        <Input
+                                            placeholder="Tìm kiếm cửa hàng..."
+                                            className="h-10 text-xs px-3"
+                                            value={storeSearchQuery}
+                                            onChange={(e) => setStoreSearchQuery(e.target.value)}
+                                            disabled={loading}
+                                        />
+                                    </div>
+                                    <div className="max-h-[200px] overflow-y-auto">
+                                        {stores.map((s) => (
+                                            <SelectItem key={s.storeId} value={s.storeId}>
+                                                {s.name}
+                                            </SelectItem>
+                                        ))}
+                                    </div>
+                                </SelectContent>
+                            </Select>
+                            {submitted && errors.storeId && (
+                                <p className="text-red-500 text-xs mt-1">{errors.storeId}</p>
+                            )}
+                        </div>
+
+                        <div className="space-y-3">
+                            <div className="flex items-center space-x-2 mb-2">
+                                <Cpu className="w-4 h-4 text-primary-300" />
+                                <label className="text-sm font-medium text-gray-700 asterisk">Thiết bị</label>
+                            </div>
                             <div className="relative">
                                 <div className="flex items-center border rounded-md focus-within:ring-1 focus-within:ring-ring">
                                     <Input
@@ -382,7 +486,7 @@ const KioskDialog = ({ open, onOpenChange, onSuccess, kiosk }: KioskDialogProps)
                                 )}
                             </div>
                             {formData.deviceIds.length > 0 && (
-                                <div className="border rounded-md p-2 space-y-2">
+                                <div className="border rounded-md p-2 space-y-2 mt-2">
                                     <div className="text-sm font-medium">Thiết bị đã chọn ({formData.deviceIds.length})</div>
                                     <ul className="space-y-2">
                                         {formData.deviceIds.map((deviceId) => {
@@ -414,45 +518,90 @@ const KioskDialog = ({ open, onOpenChange, onSuccess, kiosk }: KioskDialogProps)
                                     </ul>
                                 </div>
                             )}
+                            {submitted && errors.deviceIds && (
+                                <p className="text-red-500 text-xs mt-1">{errors.deviceIds}</p>
+                            )}
                         </div>
-                        {errors.deviceIds && <p className="text-red-500 text-sm">{errors.deviceIds}</p>}
                     </div>
-                    <div className="grid gap-2 min-h-[4.5rem]">
-                        <Label htmlFor="location" className="">
-                            Địa chỉ
-                        </Label>
-                        <Input
-                            id="location"
-                            value={formData.location}
-                            onChange={(e) => setFormData({ ...formData, location: e.target.value })}
-                            placeholder="Nhập địa chỉ kiosk"
-                            disabled={loading}
-                        />
-                        {errors.location && <p className="text-red-500 text-sm">{errors.location}</p>}
+
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-3">
+                            <div className="flex items-center space-x-2 mb-2">
+                                <MapPin className="w-4 h-4 text-primary-300" />
+                                <label className="text-sm font-medium text-gray-700">Địa chỉ</label>
+                            </div>
+                            <div className="relative group">
+                                <Input
+                                    ref={locationInputRef}
+                                    placeholder="Nhập địa chỉ kiosk"
+                                    value={formData.location}
+                                    onChange={(e) => handleChange("location", e.target.value)}
+                                    onFocus={() => setFocusedField("location")}
+                                    onBlur={() => setFocusedField(null)}
+                                    disabled={loading}
+                                    className={cn(
+                                        "h-12 text-base px-4 border-2 transition-all duration-300 bg-white/80 backdrop-blur-sm pr-10",
+                                        focusedField === "location" && "border-primary-300 ring-4 ring-primary-100 shadow-lg scale-[1.02]",
+                                        validFields.location && "border-green-400 bg-green-50/50",
+                                        !validFields.location && formData.location && "border-red-300 bg-red-50/50"
+                                    )}
+                                />
+                                {validFields.location && (
+                                    <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-green-500 animate-in zoom-in-50" />
+                                )}
+                                {!validFields.location && formData.location && (
+                                    <AlertCircle className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-red-400 animate-in zoom-in-50" />
+                                )}
+                            </div>
+                            {submitted && errors.location && (
+                                <p className="text-red-500 text-xs mt-1">{errors.location}</p>
+                            )}
+                        </div>
+
+                        <div className="space-y-3">
+                            <div className="flex items-center space-x-2 mb-2">
+                                <Settings className="w-4 h-4 text-primary-300" />
+                                <label className="text-sm font-medium text-gray-700 asterisk">Vị trí</label>
+                            </div>
+                            <div className="relative group">
+                                <Input
+                                    placeholder="Nhập vị trí kiosk"
+                                    value={formData.position}
+                                    onChange={(e) => handleChange("position", e.target.value)}
+                                    onFocus={() => setFocusedField("position")}
+                                    onBlur={() => setFocusedField(null)}
+                                    disabled={loading}
+                                    className={cn(
+                                        "h-12 text-base px-4 border-2 transition-all duration-300 bg-white/80 backdrop-blur-sm pr-10",
+                                        focusedField === "position" && "border-primary-300 ring-4 ring-primary-100 shadow-lg scale-[1.02]",
+                                        validFields.position && "border-green-400 bg-green-50/50",
+                                        !validFields.position && formData.position && "border-red-300 bg-red-50/50"
+                                    )}
+                                />
+                                {validFields.position && (
+                                    <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-green-500 animate-in zoom-in-50" />
+                                )}
+                                {!validFields.position && formData.position && (
+                                    <AlertCircle className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-red-400 animate-in zoom-in-50" />
+                                )}
+                            </div>
+                            {submitted && errors.position && (
+                                <p className="text-red-500 text-xs mt-1">{errors.position}</p>
+                            )}
+                        </div>
                     </div>
-                    <div className="grid gap-2 min-h-[4.5rem]">
-                        <Label htmlFor="position" className="asterisk">
-                            Vị trí
-                        </Label>
-                        <Input
-                            id="position"
-                            value={formData.position}
-                            onChange={(e) => setFormData({ ...formData, position: e.target.value })}
-                            placeholder="Nhập vị trí kiosk"
-                            disabled={loading}
-                        />
-                        {errors.position && <p className="text-red-500 text-sm">{errors.position}</p>}
-                    </div>
-                    <div className="grid gap-2 min-h-[4.5rem]">
-                        <Label htmlFor="status" className="asterisk">
-                            Trạng thái
-                        </Label>
+
+                    <div className="space-y-3">
+                        <div className="flex items-center space-x-2 mb-2">
+                            <Clock className="w-4 h-4 text-primary-300" />
+                            <label className="text-sm font-medium text-gray-700 asterisk">Trạng thái</label>
+                        </div>
                         <Select
                             value={formData.status}
-                            onValueChange={(value) => setFormData({ ...formData, status: value as EBaseStatus })}
+                            onValueChange={(value) => handleChange("status", value as EBaseStatus)}
                             disabled={loading}
                         >
-                            <SelectTrigger>
+                            <SelectTrigger className="h-12 text-sm px-4 border-2 bg-white/80 backdrop-blur-sm w-full">
                                 <SelectValue placeholder="Chọn trạng thái" />
                             </SelectTrigger>
                             <SelectContent>
@@ -460,97 +609,129 @@ const KioskDialog = ({ open, onOpenChange, onSuccess, kiosk }: KioskDialogProps)
                                 <SelectItem value={EBaseStatus.Inactive}>Không hoạt động</SelectItem>
                             </SelectContent>
                         </Select>
-                        {errors.status && <p className="text-red-500 text-sm">{errors.status}</p>}
+                        {submitted && errors.status && (
+                            <p className="text-red-500 text-xs mt-1">{errors.status}</p>
+                        )}
                     </div>
-                    <div className="grid gap-2 min-h-[4.5rem]">
-                        <Label htmlFor="installedDate" className="asterisk">
-                            Ngày lắp đặt
-                            <span className="text-xs text-muted-foreground ml-2">(Từ hôm nay trở về quá khứ)</span>
-                        </Label>
-                        <Popover>
-                            <PopoverTrigger asChild>
-                                <Button variant="outline" className="w-full justify-start text-left font-normal" disabled={loading}>
-                                    <CalendarIcon className="mr-2 h-4 w-4 text-muted-foreground" />
-                                    {formData.installedDate ? (
-                                        format(new Date(formData.installedDate), "dd/MM/yyyy")
-                                    ) : (
-                                        <span>Chọn ngày lắp đặt</span>
-                                    )}
-                                </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0" align="start">
-                                <EnhancedCalendar
-                                    mode="single"
-                                    selected={formData.installedDate ? new Date(formData.installedDate) : undefined}
-                                    onSelect={(date) =>
-                                        setFormData({
-                                            ...formData,
-                                            installedDate: date ? format(date, "yyyy-MM-dd") : "",
-                                            warrantyTime: "",
-                                        })
-                                    }
-                                    locale={vi}
-                                    initialFocus
-                                    disabled={(date) => {
-                                        const today = startOfDay(new Date())
-                                        return isAfter(startOfDay(date), today)
-                                    }}
-                                />
-                            </PopoverContent>
-                        </Popover>
-                        {errors.installedDate && <p className="text-red-500 text-sm">{errors.installedDate}</p>}
+
+                    <div className="grid grid-cols-2 gap-4">
+                        <div className="space-y-3">
+                            <div className="flex items-center space-x-2 mb-2">
+                                <Clock className="w-4 h-4 text-primary-300" />
+                                <label className="text-sm font-medium text-gray-700 asterisk">Ngày lắp đặt</label>
+                            </div>
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                    <Button variant="outline" className="w-full justify-start text-left font-normal h-12" disabled={loading}>
+                                        <CalendarIcon className="mr-2 h-4 w-4 text-muted-foreground" />
+                                        {formData.installedDate ? (
+                                            format(new Date(formData.installedDate), "dd/MM/yyyy")
+                                        ) : (
+                                            <span>Chọn ngày lắp đặt</span>
+                                        )}
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0" align="start">
+                                    <EnhancedCalendar
+                                        mode="single"
+                                        selected={formData.installedDate ? new Date(formData.installedDate) : undefined}
+                                        onSelect={(date) =>
+                                            setFormData({
+                                                ...formData,
+                                                installedDate: date ? format(date, "yyyy-MM-dd") : "",
+                                                warrantyTime: "",
+                                            })
+                                        }
+                                        locale={vi}
+                                        initialFocus
+                                        disabled={(date) => {
+                                            const today = startOfDay(new Date())
+                                            return isAfter(startOfDay(date), today)
+                                        }}
+                                    />
+                                </PopoverContent>
+                            </Popover>
+                            {submitted && errors.installedDate && (
+                                <p className="text-red-500 text-xs mt-1">{errors.installedDate}</p>
+                            )}
+                        </div>
+
+                        <div className="space-y-3">
+                            <div className="flex items-center space-x-2 mb-2">
+                                <Clock className="w-4 h-4 text-primary-300" />
+                                <label className="text-sm font-medium text-gray-700 asterisk">Thời gian bảo hành</label>
+                            </div>
+                            <Popover>
+                                <PopoverTrigger asChild>
+                                    <Button
+                                        variant="outline"
+                                        className="w-full justify-start text-left font-normal h-12"
+                                        disabled={loading || !formData.installedDate}
+                                    >
+                                        <CalendarIcon className="mr-2 h-4 w-4 text-muted-foreground" />
+                                        {formData.warrantyTime ? (
+                                            format(new Date(formData.warrantyTime), "dd/MM/yyyy")
+                                        ) : (
+                                            <span>Chọn ngày bảo hành</span>
+                                        )}
+                                    </Button>
+                                </PopoverTrigger>
+                                <PopoverContent className="w-auto p-0" align="start">
+                                    <EnhancedCalendar
+                                        mode="single"
+                                        selected={formData.warrantyTime ? new Date(formData.warrantyTime) : undefined}
+                                        onSelect={(date) =>
+                                            setFormData({
+                                                ...formData,
+                                                warrantyTime: date ? format(date, "yyyy-MM-dd") : "",
+                                            })
+                                        }
+                                        locale={vi}
+                                        initialFocus
+                                        disabled={(date) => {
+                                            if (!formData.installedDate) return true
+                                            const installedDate = startOfDay(new Date(formData.installedDate))
+                                            return startOfDay(date) < installedDate
+                                        }}
+                                    />
+                                </PopoverContent>
+                            </Popover>
+                            {submitted && errors.warrantyTime && (
+                                <p className="text-red-500 text-xs mt-1">{errors.warrantyTime}</p>
+                            )}
+                        </div>
                     </div>
-                    <div className="grid gap-2 min-h-[4.5rem]">
-                        <Label htmlFor="warrantyTime" className="asterisk">
-                            Thời gian bảo hành
-                            <span className="text-xs text-muted-foreground ml-2">(Từ ngày lắp đặt trở về tương lai)</span>
-                        </Label>
-                        <Popover>
-                            <PopoverTrigger asChild>
-                                <Button
-                                    variant="outline"
-                                    className="w-full justify-start text-left font-normal"
-                                    disabled={loading || !formData.installedDate}
-                                >
-                                    <CalendarIcon className="mr-2 h-4 w-4 text-muted-foreground" />
-                                    {formData.warrantyTime ? (
-                                        format(new Date(formData.warrantyTime), "dd/MM/yyyy")
-                                    ) : (
-                                        <span>Chọn ngày bảo hành</span>
-                                    )}
-                                </Button>
-                            </PopoverTrigger>
-                            <PopoverContent className="w-auto p-0" align="start">
-                                <EnhancedCalendar
-                                    mode="single"
-                                    selected={formData.warrantyTime ? new Date(formData.warrantyTime) : undefined}
-                                    onSelect={(date) =>
-                                        setFormData({
-                                            ...formData,
-                                            warrantyTime: date ? format(date, "yyyy-MM-dd") : "",
-                                        })
-                                    }
-                                    locale={vi}
-                                    initialFocus
-                                    disabled={(date) => {
-                                        if (!formData.installedDate) return true
-                                        const installedDate = startOfDay(new Date(formData.installedDate))
-                                        return startOfDay(date) < installedDate
-                                    }}
-                                />
-                            </PopoverContent>
-                        </Popover>
-                        {errors.warrantyTime && <p className="text-red-500 text-sm">{errors.warrantyTime}</p>}
+
+                    <div className="flex justify-between items-center pt-2">
+                        <div className="flex items-center space-x-2 text-xs text-gray-400">
+                            <Zap className="w-3 h-3" />
+                            <span>Ctrl+Enter để lưu • Esc để đóng</span>
+                        </div>
+                        <div className="flex space-x-3">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => onOpenChange(false)}
+                                disabled={loading}
+                                className="h-11 px-6 border-2 border-gray-300 hover:bg-gray-50 transition-all duration-200"
+                            >
+                                Hủy
+                            </Button>
+                            <Button
+                                type="button"
+                                onClick={handleSubmit}
+                                disabled={loading || fetching}
+                                className={cn(
+                                    "h-11 px-8 bg-primary text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105",
+                                    loading && "opacity-60 cursor-not-allowed hover:scale-100"
+                                )}
+                            >
+                                <Save className="mr-2 w-4 h-4" />
+                                {isUpdate ? "Cập nhật" : "Tạo"}
+                            </Button>
+                        </div>
                     </div>
                 </div>
-                <DialogFooter>
-                    <Button variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
-                        Hủy
-                    </Button>
-                    <Button onClick={handleSubmit} disabled={loading || fetching}>
-                        {kiosk ? "Cập nhật" : "Thêm"}
-                    </Button>
-                </DialogFooter>
             </DialogContent>
         </Dialog>
     )

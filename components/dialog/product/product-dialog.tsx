@@ -1,8 +1,8 @@
 "use client";
 
 import type React from "react";
-import { useState, useEffect } from "react";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+import { useState, useEffect, useRef } from "react";
+import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -14,11 +14,12 @@ import { EProductStatus, EProductSize, EProductType } from "@/enum/product";
 import { createProduct, updateProduct, getProducts } from "@/services/product";
 import { productSchema } from "@/schema/product";
 import type { ProductDialogProps } from "@/types/dialog";
-import { Upload, X, LinkIcon, ImageIcon } from "lucide-react";
+import { Upload, X, LinkIcon, ImageIcon, CheckCircle2, AlertCircle, Save, Zap, PlusCircle, Edit, Monitor, DollarSign, Tag, Box, List, Check, Slash } from "lucide-react";
 import type { ErrorResponse } from "@/types/error";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getCategories } from "@/services/category";
 import { Category } from "@/interfaces/category";
+import { cn } from "@/lib/utils";
 
 const initialFormData = {
     name: "",
@@ -44,6 +45,12 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
     const [categories, setCategories] = useState<Category[]>([]);
     const [imagePreview, setImagePreview] = useState<string | null>(null);
     const [imageTab, setImageTab] = useState<string>("upload");
+    const [submitted, setSubmitted] = useState(false);
+    const [validFields, setValidFields] = useState<Record<string, boolean>>({});
+    const [focusedField, setFocusedField] = useState<string | null>(null);
+    const nameInputRef = useRef<HTMLInputElement>(null);
+
+    const isUpdate = !!product;
 
     // Fetch products for parentId selection
     useEffect(() => {
@@ -106,11 +113,16 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
             });
             setImagePreview(product.imageUrl || null);
             setImageTab(product.imageUrl ? "url" : "upload");
+            setValidFields({
+                name: product.name.trim().length >= 1,
+                price: product.price > 0,
+            });
             setErrors({});
         } else {
             setFormData(initialFormData);
             setImagePreview(null);
             setImageTab("upload");
+            setValidFields({});
         }
     }, [product]);
 
@@ -123,8 +135,53 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
             setCategories([]);
             setImagePreview(null);
             setImageTab("upload");
+            setSubmitted(false);
+            setFocusedField(null);
         }
     }, [open]);
+
+    // Auto-focus name field when dialog opens
+    useEffect(() => {
+        if (open && nameInputRef.current) {
+            setTimeout(() => nameInputRef.current?.focus(), 200);
+        }
+    }, [open]);
+
+    // Ctrl+Enter shortcut for submission
+    useEffect(() => {
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (!open) return;
+            if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+                e.preventDefault();
+                handleSubmit(new Event("submit") as any);
+            }
+        };
+        document.addEventListener("keydown", handleKeyDown);
+        return () => document.removeEventListener("keydown", handleKeyDown);
+    }, [open, formData]);
+
+    const validateField = (field: string, value: string) => {
+        const newValidFields = { ...validFields };
+        switch (field) {
+            case "name":
+                newValidFields.name = value.trim().length >= 1;
+                break;
+            case "price":
+                newValidFields.price = Number(value) > 0;
+                break;
+        }
+        setValidFields(newValidFields);
+    };
+
+    const handleChange = (field: string, value: any) => {
+        setFormData((prev) => ({ ...prev, [field]: value }));
+        if (field === "name" || field === "price") {
+            validateField(field, value);
+        }
+        if (errors[field]) {
+            setErrors((prev) => ({ ...prev, [field]: "" }));
+        }
+    };
 
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         const file = e.target.files?.[0];
@@ -151,25 +208,28 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
         const reader = new FileReader();
         reader.onload = () => {
             const base64String = reader.result as string;
-            setFormData({ ...formData, imageBase64: base64String, imageUrl: "" });
+            handleChange("imageBase64", base64String);
+            handleChange("imageUrl", "");
             setImagePreview(base64String);
         };
         reader.readAsDataURL(file);
     };
 
     const handleUrlChange = (url: string) => {
-        setFormData({ ...formData, imageUrl: url, imageBase64: "" });
+        handleChange("imageUrl", url);
+        handleChange("imageBase64", "");
         setImagePreview(url);
     };
 
     const handleRemoveImage = () => {
-        setFormData({ ...formData, imageBase64: "", imageUrl: "" });
+        handleChange("imageBase64", "");
+        handleChange("imageUrl", "");
         setImagePreview(null);
     };
 
-    const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
+    const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
-        e.stopPropagation();
+        setSubmitted(true);
 
         const validationData = {
             name: formData.name,
@@ -186,12 +246,10 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
 
         const validationResult = productSchema.safeParse(validationData);
         if (!validationResult.success) {
-            console.error("Validation errors:", validationResult.error.errors);
             const fieldErrors = validationResult.error.flatten().fieldErrors;
             setErrors(
                 Object.fromEntries(Object.entries(fieldErrors).map(([key, messages]) => [key, messages ? messages[0] : ""])),
             );
-            console.log("Field errors:", fieldErrors);
             return;
         }
 
@@ -217,14 +275,12 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                 toast({
                     title: "Thành công",
                     description: `Sản phẩm "${formData.name}" đã được cập nhật.`,
-                    variant: "success",
                 });
             } else {
                 await createProduct(data);
                 toast({
                     title: "Thành công",
                     description: `Sản phẩm "${formData.name}" đã được tạo.`,
-                    variant: "success",
                 });
             }
             onSuccess?.();
@@ -239,12 +295,6 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
             });
         } finally {
             setLoading(false);
-        }
-    };
-
-    const handleKeyDown = (e: React.KeyboardEvent<HTMLFormElement>) => {
-        if (e.key === "Enter" && !e.shiftKey) {
-            e.stopPropagation();
         }
     };
 
@@ -278,85 +328,61 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-y-auto hide-scrollbar">
-                <DialogHeader>
-                    <DialogTitle>{product ? "Chỉnh sửa sản phẩm" : "Thêm sản phẩm mới"}</DialogTitle>
-                </DialogHeader>
-                <form onSubmit={handleSubmit} onKeyDown={handleKeyDown}>
-                    <div className="space-y-4 py-4">
-                        {/* Hình ảnh sản phẩm */}
-                        <div className="space-y-2">
-                            <Label>Hình ảnh sản phẩm</Label>
-                            <div className="flex items-start gap-4">
-                                <div className="w-24 h-24 border rounded-md overflow-hidden flex-shrink-0">
-                                    <img
-                                        src={imagePreview || "/placeholder.svg"}
-                                        alt="Product Image"
-                                        className="w-full h-full object-cover"
-                                    />
-                                </div>
-                                <div className="flex-1">
-                                    <Tabs value={imageTab} onValueChange={setImageTab} className="w-full">
-                                        <TabsList className="grid grid-cols-2 mb-2">
-                                            <TabsTrigger value="upload" disabled={loading}>
-                                                <Upload className="h-4 w-4 mr-2" />
-                                                Tải lên
-                                            </TabsTrigger>
-                                            <TabsTrigger value="url" disabled={loading}>
-                                                <LinkIcon className="h-4 w-4 mr-2" />
-                                                URL
-                                            </TabsTrigger>
-                                        </TabsList>
-                                        <TabsContent value="upload" className="space-y-2">
-                                            <div className="flex gap-2">
-                                                <Button type="button" variant="outline" size="sm" className="relative" disabled={loading}>
-                                                    <input
-                                                        id="image"
-                                                        type="file"
-                                                        accept="image/*"
-                                                        className="absolute inset-0 opacity-0 cursor-pointer"
-                                                        onChange={handleImageChange}
-                                                        disabled={loading}
-                                                    />
-                                                    <Upload className="h-4 w-4 mr-1" />
-                                                    Chọn file
-                                                </Button>
-                                                {imagePreview && imageTab === "upload" && (
-                                                    <Button
-                                                        type="button"
-                                                        variant="outline"
-                                                        size="sm"
-                                                        onClick={handleRemoveImage}
-                                                        disabled={loading}
-                                                    >
-                                                        <X className="h-4 w-4 mr-1" />
-                                                        Xóa
-                                                    </Button>
-                                                )}
-                                            </div>
-                                            <p className="text-xs text-muted-foreground">Hỗ trợ JPG, PNG. Tối đa 2MB.</p>
-                                        </TabsContent>
-                                        <TabsContent value="url" className="space-y-2">
-                                            <div className="flex gap-2">
-                                                <Input
-                                                    placeholder="Nhập URL hình ảnh"
-                                                    value={formData.imageUrl}
-                                                    onChange={(e) => handleUrlChange(e.target.value)}
+            <DialogContent className="sm:max-w-[650px] p-0 border-0 bg-white backdrop-blur-xl shadow-2xl max-h-[90vh] overflow-y-auto hide-scrollbar">
+                <div className="relative overflow-hidden bg-primary-100 rounded-tl-2xl rounded-tr-2xl">
+                    <div className="relative px-8 py-6 border-b border-primary-300">
+                        <div className="flex items-center space-x-4">
+                            <div className="w-14 h-14 bg-gradient-to-r from-primary-400 to-primary-500 rounded-2xl flex items-center justify-center shadow-lg">
+                                {isUpdate ? <Edit className="w-7 h-7 text-primary-100" /> : <PlusCircle className="w-7 h-7 text-primary-100" />}
+                            </div>
+                            <div>
+                                <h1 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
+                                    {isUpdate ? "Cập nhật Sản Phẩm" : "Tạo Sản Phẩm Mới"}
+                                </h1>
+                                <p className="text-gray-500">{isUpdate ? "Chỉnh sửa thông tin sản phẩm" : "Thêm sản phẩm mới vào hệ thống"}</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <form onSubmit={handleSubmit} className="px-8 py-8 pt-2 space-y-8">
+                    <div className="space-y-2">
+                        <Label className="text-sm font-medium text-gray-700">Hình ảnh sản phẩm</Label>
+                        <div className="flex items-start gap-4">
+                            <div className="w-24 h-24 border rounded-md overflow-hidden flex-shrink-0">
+                                <img
+                                    src={imagePreview || "/placeholder.svg"}
+                                    alt="Product Image"
+                                    className="w-full h-full object-cover"
+                                />
+                            </div>
+                            <div className="flex-1">
+                                <Tabs value={imageTab} onValueChange={setImageTab} className="w-full">
+                                    <TabsList className="grid grid-cols-2 mb-2">
+                                        <TabsTrigger value="upload" disabled={loading}>
+                                            <Upload className="h-4 w-4 mr-2" />
+                                            Tải lên
+                                        </TabsTrigger>
+                                        <TabsTrigger value="url" disabled={loading}>
+                                            <LinkIcon className="h-4 w-4 mr-2" />
+                                            URL
+                                        </TabsTrigger>
+                                    </TabsList>
+                                    <TabsContent value="upload" className="space-y-2">
+                                        <div className="flex gap-2">
+                                            <Button type="button" variant="outline" size="sm" className="relative" disabled={loading}>
+                                                <input
+                                                    id="image"
+                                                    type="file"
+                                                    accept="image/*"
+                                                    className="absolute inset-0 opacity-0 cursor-pointer"
+                                                    onChange={handleImageChange}
                                                     disabled={loading}
-                                                    className="flex-1"
                                                 />
-                                                <Button
-                                                    type="button"
-                                                    variant="outline"
-                                                    size="sm"
-                                                    onClick={handleTestImage}
-                                                    disabled={loading || !formData.imageUrl}
-                                                >
-                                                    <ImageIcon className="h-4 w-4 mr-1" />
-                                                    Kiểm tra
-                                                </Button>
-                                            </div>
-                                            {imagePreview && imageTab === "url" && (
+                                                <Upload className="h-4 w-4 mr-1" />
+                                                Chọn file
+                                            </Button>
+                                            {imagePreview && imageTab === "upload" && (
                                                 <Button
                                                     type="button"
                                                     variant="outline"
@@ -368,200 +394,336 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                                                     Xóa
                                                 </Button>
                                             )}
-                                            <p className="text-xs text-muted-foreground">Nhập URL hình ảnh từ internet.</p>
-                                        </TabsContent>
-                                    </Tabs>
-                                    {errors.imageUrl && <p className="text-red-500 text-sm mt-1">{errors.imageUrl}</p>}
-                                </div>
+                                        </div>
+                                        <p className="text-xs text-muted-foreground">Hỗ trợ JPG, PNG. Tối đa 2MB.</p>
+                                    </TabsContent>
+                                    <TabsContent value="url" className="space-y-2">
+                                        <div className="flex gap-2">
+                                            <Input
+                                                placeholder="Nhập URL hình ảnh"
+                                                value={formData.imageUrl}
+                                                onChange={(e) => handleUrlChange(e.target.value)}
+                                                disabled={loading}
+                                                className="flex-1"
+                                            />
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={handleTestImage}
+                                                disabled={loading || !formData.imageUrl}
+                                            >
+                                                <ImageIcon className="h-4 w-4 mr-1" />
+                                                Kiểm tra
+                                            </Button>
+                                        </div>
+                                        {imagePreview && imageTab === "url" && (
+                                            <Button
+                                                type="button"
+                                                variant="outline"
+                                                size="sm"
+                                                onClick={handleRemoveImage}
+                                                disabled={loading}
+                                            >
+                                                <X className="h-4 w-4 mr-1" />
+                                                Xóa
+                                            </Button>
+                                        )}
+                                        <p className="text-xs text-muted-foreground">Nhập URL hình ảnh từ internet.</p>
+                                    </TabsContent>
+                                </Tabs>
+                                {errors.imageUrl && <p className="text-red-500 text-sm mt-1">{errors.imageUrl}</p>}
                             </div>
-                        </div>
-
-                        <div className="space-y-4">
-                            <div className="flex gap-4">
-                                <div className="flex-1 space-y-2">
-                                    <Label htmlFor="name" className="asterisk">
-                                        Tên sản phẩm
-                                    </Label>
-                                    <Input
-                                        id="name"
-                                        value={formData.name}
-                                        onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-                                        placeholder="Nhập tên sản phẩm"
-                                        disabled={loading}
-                                    />
-                                    {errors.name && <p className="text-red-500 text-sm">{errors.name}</p>}
-                                </div>
-                                <div className="flex-1 space-y-2">
-                                    <Label htmlFor="parentId">Sản phẩm cha</Label>
-                                    <Select
-                                        value={formData.parentId}
-                                        onValueChange={(value) => setFormData({ ...formData, parentId: value })}
-                                        disabled={loading || fetching}
-                                    >
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Chọn sản phẩm cha (tùy chọn)" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {products.map((p) => (
-                                                <SelectItem key={p.productId} value={p.productId}>
-                                                    {p.name}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                    {errors.parentId && <p className="text-red-500 text-sm">{errors.parentId}</p>}
-                                </div>
-                            </div>
-
-                            <div className="flex gap-4">
-                                <div className="flex-1 space-y-2">
-                                    <Label htmlFor="size" className="asterisk">
-                                        Size
-                                    </Label>
-                                    <Select
-                                        value={formData.size}
-                                        onValueChange={(value) => setFormData({ ...formData, size: value as EProductSize })}
-                                        disabled={loading}
-                                    >
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Chọn size" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value={EProductSize.M}>Trung</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                    {errors.size && <p className="text-red-500 text-sm">{errors.size}</p>}
-                                </div>
-                                <div className="flex-1 space-y-2">
-                                    <Label htmlFor="type" className="asterisk">
-                                        Loại sản phẩm
-                                    </Label>
-                                    <Select
-                                        value={formData.type}
-                                        onValueChange={(value) => setFormData({ ...formData, type: value as EProductType })}
-                                        disabled={loading}
-                                    >
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Chọn loại sản phẩm" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value={EProductType.Parent}>Cha</SelectItem>
-                                            <SelectItem value={EProductType.Child}>Con</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                    {errors.type && <p className="text-red-500 text-sm">{errors.type}</p>}
-                                </div>
-                            </div>
-
-                            <div className="flex gap-4">
-                                <div className="flex-1 space-y-2">
-                                    <Label htmlFor="status" className="asterisk">
-                                        Trạng thái
-                                    </Label>
-                                    <Select
-                                        value={formData.status}
-                                        onValueChange={(value) => setFormData({ ...formData, status: value as EProductStatus })}
-                                        disabled={loading}
-                                    >
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Chọn trạng thái" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value={EProductStatus.Selling}>Đang bán</SelectItem>
-                                            <SelectItem value={EProductStatus.UnSelling}>Ngừng bán</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                    {errors.status && <p className="text-red-500 text-sm">{errors.status}</p>}
-                                </div>
-                                <div className="flex-1 space-y-2">
-                                    <Label htmlFor="price" className="asterisk">Giá (VNĐ)</Label>
-                                    <Input
-                                        id="price"
-                                        type="number"
-                                        min="0"
-                                        value={formData.price}
-                                        onChange={(e) => {
-                                            const value = e.target.value;
-                                            if (value === "" || (/^\d+$/.test(value) && Number(value) >= 0)) {
-                                                setFormData({ ...formData, price: value });
-                                            }
-                                        }}
-                                        placeholder="Nhập giá sản phẩm"
-                                        disabled={loading}
-                                    />
-                                    {errors.price && <p className="text-red-500 text-sm">{errors.price}</p>}
-                                </div>
-                            </div>
-
-                            <div className="flex gap-4">
-                                <div className="flex-1 space-y-2">
-                                    <Label htmlFor="isActive" className="asterisk">
-                                        Hoạt động
-                                    </Label>
-                                    <Select
-                                        value={formData.isActive.toString()}
-                                        onValueChange={(value) => setFormData({ ...formData, isActive: value === "true" })}
-                                        disabled={loading}
-                                    >
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Chọn trạng thái hoạt động" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            <SelectItem value="true">Hoạt động</SelectItem>
-                                            <SelectItem value="false">Không hoạt động</SelectItem>
-                                        </SelectContent>
-                                    </Select>
-                                    {errors.isActive && <p className="text-red-500 text-sm">{errors.isActive}</p>}
-                                </div>
-
-                                <div className="flex-1  space-y-2">
-                                    <Label htmlFor="productCategoryId" className="asterisk">
-                                        Danh mục sản phẩm
-                                    </Label>
-                                    <Select
-                                        value={formData.productCategoryId}
-                                        onValueChange={(value) => setFormData({ ...formData, productCategoryId: value })}
-                                        disabled={loading}
-                                    >
-                                        <SelectTrigger>
-                                            <SelectValue placeholder="Chọn danh mục" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {categories.map((category) => (
-                                                <SelectItem key={category.productCategoryId} value={category.productCategoryId}>
-                                                    {category.name}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                    {errors.productCategoryId && <p className="text-red-500 text-sm">{errors.productCategoryId}</p>}
-                                </div>
-
-                            </div>
-
-                            <div className="space-y-2">
-                                <Label htmlFor="description">Mô tả</Label>
-                                <Textarea
-                                    id="description"
-                                    value={formData.description}
-                                    onChange={(e) => setFormData({ ...formData, description: e.target.value })}
-                                    placeholder="Nhập mô tả sản phẩm (tùy chọn)"
-                                    disabled={loading}
-                                />
-                                {errors.description && <p className="text-red-500 text-sm">{errors.description}</p>}
-                            </div>
-
-
                         </div>
                     </div>
-                    <DialogFooter>
-                        <Button type="button" variant="outline" onClick={() => onOpenChange(false)} disabled={loading}>
-                            Hủy
-                        </Button>
-                        <Button type="submit" disabled={loading || fetching}>
-                            {product ? "Cập nhật" : "Thêm"}
-                        </Button>
-                    </DialogFooter>
+
+                    <div className="grid grid-cols-2 gap-4">
+                        {/* Tên Sản Phẩm */}
+                        <div className="space-y-3">
+                            <div className="flex items-center space-x-2 mb-2">
+                                <Monitor className="w-4 h-4 text-primary-300" />
+                                <label className="text-sm font-medium text-gray-700 asterisk">Tên Sản Phẩm</label>
+                            </div>
+                            <div className="relative group">
+                                <Input
+                                    ref={nameInputRef}
+                                    placeholder="Nhập tên sản phẩm"
+                                    value={formData.name}
+                                    onChange={(e) => handleChange("name", e.target.value)}
+                                    onFocus={() => setFocusedField("name")}
+                                    onBlur={() => setFocusedField(null)}
+                                    disabled={loading}
+                                    className={cn(
+                                        "h-12 text-base px-4 border-2 transition-all duration-300 bg-white/80 backdrop-blur-sm pr-10",
+                                        focusedField === "name" && "border-primary-300 ring-4 ring-primary-100 shadow-lg scale-[1.02]",
+                                        validFields.name && "border-green-400 bg-green-50/50",
+                                        !validFields.name && formData.name && "border-red-300 bg-red-50/50"
+                                    )}
+                                />
+                                {validFields.name && (
+                                    <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-green-500 animate-in zoom-in-50" />
+                                )}
+                                {!validFields.name && formData.name && (
+                                    <AlertCircle className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-red-400 animate-in zoom-in-50" />
+                                )}
+                            </div>
+                            {submitted && errors.name && (
+                                <p className="text-red-500 text-xs mt-1">{errors.name}</p>
+                            )}
+                        </div>
+
+                        {/* Sản Phẩm Cha */}
+                        <div className="space-y-3">
+                            <div className="flex items-center space-x-2 mb-2">
+                                <Box className="w-4 h-4 text-primary-300" />
+                                <label className="text-sm font-medium text-gray-700">Sản Phẩm Cha</label>
+                            </div>
+                            <Select
+                                value={formData.parentId}
+                                onValueChange={(value) => handleChange("parentId", value)}
+                                disabled={loading || fetching}
+                            >
+                                <SelectTrigger className="h-12 text-sm px-4 border-2 bg-white/80 backdrop-blur-sm">
+                                    <SelectValue placeholder="Chọn sản phẩm cha (tùy chọn)" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {products.map((p) => (
+                                        <SelectItem key={p.productId} value={p.productId}>
+                                            {p.name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            {submitted && errors.parentId && (
+                                <p className="text-red-500 text-xs mt-1">{errors.parentId}</p>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                        {/* Size */}
+                        <div className="space-y-3">
+                            <div className="flex items-center space-x-2 mb-2">
+                                <Tag className="w-4 h-4 text-primary-300" />
+                                <label className="text-sm font-medium text-gray-700 asterisk">Size</label>
+                            </div>
+                            <Select
+                                value={formData.size}
+                                onValueChange={(value) => handleChange("size", value as EProductSize)}
+                                disabled={loading}
+                            >
+                                <SelectTrigger className="h-12 text-sm px-4 border-2 bg-white/80 backdrop-blur-sm">
+                                    <SelectValue placeholder="Chọn size" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value={EProductSize.M}>Trung</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            {submitted && errors.size && (
+                                <p className="text-red-500 text-xs mt-1">{errors.size}</p>
+                            )}
+                        </div>
+
+                        {/* Loại Sản Phẩm */}
+                        <div className="space-y-3">
+                            <div className="flex items-center space-x-2 mb-2">
+                                <List className="w-4 h-4 text-primary-300" />
+                                <label className="text-sm font-medium text-gray-700 asterisk">Loại Sản Phẩm</label>
+                            </div>
+                            <Select
+                                value={formData.type}
+                                onValueChange={(value) => handleChange("type", value as EProductType)}
+                                disabled={loading}
+                            >
+                                <SelectTrigger className="h-12 text-sm px-4 border-2 bg-white/80 backdrop-blur-sm">
+                                    <SelectValue placeholder="Chọn loại sản phẩm" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value={EProductType.Parent}>Cha</SelectItem>
+                                    <SelectItem value={EProductType.Child}>Con</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            {submitted && errors.type && (
+                                <p className="text-red-500 text-xs mt-1">{errors.type}</p>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                        {/* Trạng Thái */}
+                        <div className="space-y-3">
+                            <div className="flex items-center space-x-2 mb-2">
+                                <Check className="w-4 h-4 text-primary-300" />
+                                <label className="text-sm font-medium text-gray-700 asterisk">Trạng Thái</label>
+                            </div>
+                            <Select
+                                value={formData.status}
+                                onValueChange={(value) => handleChange("status", value as EProductStatus)}
+                                disabled={loading}
+                            >
+                                <SelectTrigger className="h-12 text-sm px-4 border-2 bg-white/80 backdrop-blur-sm">
+                                    <SelectValue placeholder="Chọn trạng thái" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value={EProductStatus.Selling}>Đang bán</SelectItem>
+                                    <SelectItem value={EProductStatus.UnSelling}>Ngừng bán</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            {submitted && errors.status && (
+                                <p className="text-red-500 text-xs mt-1">{errors.status}</p>
+                            )}
+                        </div>
+
+                        {/* Giá */}
+                        <div className="space-y-3">
+                            <div className="flex items-center space-x-2 mb-2">
+                                <DollarSign className="w-4 h-4 text-primary-300" />
+                                <label className="text-sm font-medium text-gray-700 asterisk">Giá (VNĐ)</label>
+                            </div>
+                            <div className="relative group">
+                                <Input
+                                    type="number"
+                                    min="0"
+                                    value={formData.price}
+                                    onChange={(e) => {
+                                        const value = e.target.value;
+                                        if (value === "" || (/^\d+$/.test(value) && Number(value) >= 0)) {
+                                            handleChange("price", value);
+                                        }
+                                    }}
+                                    placeholder="Nhập giá sản phẩm"
+                                    disabled={loading}
+                                    className={cn(
+                                        "h-12 text-base px-4 border-2 transition-all duration-300 bg-white/80 backdrop-blur-sm pr-10",
+                                        errors.price && "border-red-300 bg-red-50/50"
+                                    )}
+                                />
+                                {validFields.price && (
+                                    <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-green-500 animate-in zoom-in-50" />
+                                )}
+                                {!validFields.price && formData.price && (
+                                    <AlertCircle className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-red-400 animate-in zoom-in-50" />
+                                )}
+                            </div>
+                            {submitted && errors.price && (
+                                <p className="text-red-500 text-xs mt-1">{errors.price}</p>
+                            )}
+                        </div>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-4">
+                        {/* Hoạt Động */}
+                        <div className="space-y-3">
+                            <div className="flex items-center space-x-2 mb-2">
+                                <Slash className="w-4 h-4 text-primary-300" />
+                                <label className="text-sm font-medium text-gray-700 asterisk">Hoạt Động</label>
+                            </div>
+                            <Select
+                                value={formData.isActive.toString()}
+                                onValueChange={(value) => handleChange("isActive", value === "true")}
+                                disabled={loading}
+                            >
+                                <SelectTrigger className="h-12 text-sm px-4 border-2 bg-white/80 backdrop-blur-sm">
+                                    <SelectValue placeholder="Chọn trạng thái hoạt động" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    <SelectItem value="true">Hoạt động</SelectItem>
+                                    <SelectItem value="false">Không hoạt động</SelectItem>
+                                </SelectContent>
+                            </Select>
+                            {submitted && errors.isActive && (
+                                <p className="text-red-500 text-xs mt-1">{errors.isActive}</p>
+                            )}
+                        </div>
+
+                        {/* Danh Mục Sản Phẩm */}
+                        <div className="space-y-3">
+                            <div className="flex items-center space-x-2 mb-2">
+                                <List className="w-4 h-4 text-primary-300" />
+                                <label className="text-sm font-medium text-gray-700 asterisk">Danh Mục Sản Phẩm</label>
+                            </div>
+                            <Select
+                                value={formData.productCategoryId}
+                                onValueChange={(value) => handleChange("productCategoryId", value)}
+                                disabled={loading}
+                            >
+                                <SelectTrigger className="h-12 text-sm px-4 border-2 bg-white/80 backdrop-blur-sm">
+                                    <SelectValue placeholder="Chọn danh mục" />
+                                </SelectTrigger>
+                                <SelectContent>
+                                    {categories.map((category) => (
+                                        <SelectItem key={category.productCategoryId} value={category.productCategoryId}>
+                                            {category.name}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            {submitted && errors.productCategoryId && (
+                                <p className="text-red-500 text-xs mt-1">{errors.productCategoryId}</p>
+                            )}
+                        </div>
+                    </div>
+
+                    {/* Mô tả */}
+                    <div className="space-y-3">
+                        <div className="flex items-center space-x-2 mb-2">
+                            <Edit className="w-4 h-4 text-primary-300" />
+                            <label className="text-sm font-medium text-gray-700">Mô tả</label>
+                        </div>
+                        <div className="relative group">
+                            <Textarea
+                                placeholder="Nhập mô tả sản phẩm"
+                                value={formData.description}
+                                onChange={(e) => handleChange("description", e.target.value)}
+                                onFocus={() => setFocusedField("description")}
+                                onBlur={() => setFocusedField(null)}
+                                disabled={loading}
+                                className={cn(
+                                    "min-h-[100px] text-base p-4 border-2 transition-all duration-300 bg-white/80 backdrop-blur-sm resize-none",
+                                    focusedField === "description" && "border-primary-300 ring-4 ring-primary-100 shadow-lg scale-[1.01]"
+                                )}
+                            />
+                        </div>
+                        {submitted && errors.description && (
+                            <p className="text-red-500 text-xs mt-1">{errors.description}</p>
+                        )}
+                    </div>
+
+                    {/* Nút điều khiển */}
+                    <div className="flex justify-between items-center pt-2">
+                        <div className="flex items-center space-x-2 text-xs text-gray-400">
+                            <Zap className="w-3 h-3" />
+                            <span>Ctrl+Enter để lưu • Esc để đóng</span>
+                        </div>
+                        <div className="flex space-x-3">
+                            <Button
+                                type="button"
+                                variant="outline"
+                                onClick={() => onOpenChange(false)}
+                                disabled={loading}
+                                className="h-11 px-6 border-2 border-gray-300 hover:bg-gray-50 transition-all duration-200"
+                            >
+                                Hủy
+                            </Button>
+                            <Button
+                                type="submit"
+                                disabled={loading || fetching}
+                                className={cn(
+                                    "h-11 px-8 bg-primary text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105",
+                                    loading && "opacity-60 cursor-not-allowed hover:scale-100"
+                                )}
+                            >
+                                {loading ? (
+                                    "Đang xử lý..."
+                                ) : (
+                                    <>
+                                        <Save className="mr-2 w-4 h-4" />
+                                        {isUpdate ? "Cập nhật" : "Tạo"}
+                                    </>
+                                )}
+                            </Button>
+                        </div>
+                    </div>
                 </form>
             </DialogContent>
         </Dialog>

@@ -296,10 +296,12 @@ const ManageProducts = () => {
                                                         // column.id === "size" ? "Size" :
                                                         column.id === "type" ? "Loại sản phẩm" :
                                                             column.id === "price" ? "Giá" :
-                                                                column.id === "status" ? "Trạng thái" :
-                                                                    column.id === "createdDate" ? "Ngày tạo" :
-                                                                        column.id === "updatedDate" ? "Ngày cập nhật" :
-                                                                            column.id === "actions" ? "Hành động" : column.id
+                                                                column.id === "productCategoryId" ? "Danh mục" :
+                                                                    column.id === "isHasWorkflow" ? "Có quy trình" :
+                                                                        column.id === "status" ? "Trạng thái" :
+                                                                            column.id === "createdDate" ? "Ngày tạo" :
+                                                                                column.id === "updatedDate" ? "Ngày cập nhật" :
+                                                                                    column.id === "actions" ? "Hành động" : column.id
                                             }
                                         </DropdownMenuCheckboxItem>
                                     ))}
@@ -368,6 +370,10 @@ const ManageProducts = () => {
                                                     // ) : column.id === "type" ? (
                                                     //     <Skeleton className="h-5 w-20 mx-auto" />
                                                 ) : column.id === "price" ? (
+                                                    <Skeleton className="h-5 w-28 mx-auto" />
+                                                ) : column.id === "productCategoryId" ? (
+                                                    <Skeleton className="h-5 w-28 mx-auto" />
+                                                ) : column.id === "isHasWorkflow" ? (
                                                     <Skeleton className="h-5 w-28 mx-auto" />
                                                 ) : column.id === "status" ? (
                                                     <Skeleton className="h-6 w-24 rounded-full mx-auto" />

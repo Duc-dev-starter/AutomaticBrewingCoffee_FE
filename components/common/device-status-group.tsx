@@ -62,7 +62,6 @@ export const DeviceStatusGroup = ({ kioskDevices, openReplaceDialog, openOnhubDi
                                 <Package className="mr-2 h-5 w-5" />
                                 {EDeviceStatusViMap[status] || status}
                             </div>
-                            <Badge className={clsx("ml-2", getStatusColor(status))}>Số mẫu thiết bị:{groupedDevices[status].length}</Badge>
                         </CardTitle>
                     </CardHeader>
                     <CardContent>
@@ -125,6 +124,22 @@ export const DeviceStatusGroup = ({ kioskDevices, openReplaceDialog, openOnhubDi
 
                                         <div className="flex justify-between items-center">
                                             <div className="flex items-center text-sm">
+                                                <Tag className="h-3 w-3 mr-1 text-muted-foreground" />
+                                                <span className="text-muted-foreground">Model thiết bị:</span>
+                                            </div>
+                                            <div className="font-medium text-sm">{kioskDevice.device.deviceModel?.modelName || "N/A"}</div>
+                                        </div>
+
+                                        <div className="flex justify-between items-center">
+                                            <div className="flex items-center text-sm">
+                                                <Tag className="h-3 w-3 mr-1 text-muted-foreground" />
+                                                <span className="text-muted-foreground">Loại thiết bị:</span>
+                                            </div>
+                                            <div className="font-medium text-sm">{kioskDevice.device.deviceModel?.deviceType?.name || "N/A"}</div>
+                                        </div>
+
+                                        <div className="flex justify-between items-center">
+                                            <div className="flex items-center text-sm">
                                                 <Calendar className="h-3 w-3 mr-1 text-muted-foreground" />
                                                 <span className="text-muted-foreground">Ngày tạo:</span>
                                             </div>
@@ -137,7 +152,7 @@ export const DeviceStatusGroup = ({ kioskDevices, openReplaceDialog, openOnhubDi
 
                                         <div className="flex justify-between items-center">
                                             <div className="flex items-center text-sm">
-                                                <Calendar className="h-3 w-3 mr-1 text-muted-foreground" />
+                                                <Calendar className="h-3 w-3 mr-1 text-white" />
                                                 <span className="text-muted-foreground">Ngày cập nhật:</span>
                                             </div>
                                             <div className="font-medium text-sm">

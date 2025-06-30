@@ -1,4 +1,4 @@
-import { EProductSize, EProductStatus, EProductType } from "@/enum/product";
+import { EBaseUnit, EIngredientType, EProductSize, EProductStatus, EProductType } from "@/enum/product";
 import { MenuProductMapping } from "./menu";
 import { Category } from "./category";
 
@@ -19,6 +19,7 @@ export interface Product {
     status: EProductStatus
     createdDate: string;
     updatedDate: string;
+    productAttributes: ProductAttribute[];
 }
 
 export interface ProductInMenu extends Product {
@@ -30,4 +31,23 @@ export interface SupportProduct {
     kioskVersionId: string
     productId: string
     product: Product
+}
+
+
+export interface ProductAttributeOption {
+    name: string;
+    value: number;
+    unit: EBaseUnit;
+    displayOrder: number;
+    description: string;
+}
+
+export interface ProductAttribute {
+    label: string;
+    ingredientType: EIngredientType;
+    description: string;
+    displayOrder: number;
+    defaultAmount: number;
+    unit: EBaseUnit;
+    attributeOptions: ProductAttributeOption[];
 }

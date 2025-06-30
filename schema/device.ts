@@ -11,7 +11,6 @@ export const deviceTypeSchema = z.object({
     status: z.enum([EBaseStatus.Active, EBaseStatus.Inactive], { message: "Vui lòng chọn trạng thái cho loại thiết bị." }),
 });
 
-
 export const deviceModelSchema = z.object({
     modelName: z.string().trim().min(1, "Tên mẫu thiết bị là bắt buộc"),
     manufacturer: z.string().trim().min(1, "Nhà sản xuất là bắt buộc"),
@@ -20,6 +19,7 @@ export const deviceModelSchema = z.object({
     deviceFunctions: z.array(
         z.object({
             name: z.string().trim().min(1, "Tên chức năng là bắt buộc"),
+            label: z.string().trim().min(1, "Nhãn là bắt buộc"),
             status: z.nativeEnum(EBaseStatus),
             functionParameters: z.array(
                 z.object({
@@ -33,7 +33,20 @@ export const deviceModelSchema = z.object({
                 })
             ).optional(),
         })
-    ).optional(),
+    ),
+    deviceIngredients: z.array(
+        z.object({
+            label: z.string().trim().min(1, "Label là bắt buộc"),
+            ingredientType: z.string().trim().min(1, "Loại thành phần là bắt buộc"),
+            description: z.string().trim().optional(),
+            maxCapacity: z.number().min(0, "Dung lượng tối đa phải lớn hơn hoặc bằng 0"),
+            minCapacity: z.number().min(0, "Dung lượng tối thiểu phải lớn hơn hoặc bằng 0"),
+            warningPercent: z.number().min(0).max(100, "Phần trăm cảnh báo phải từ 0 đến 100"),
+            unit: z.string().trim().min(1, "Đơn vị là bắt buộc"),
+            isRenewable: z.boolean(),
+            status: z.nativeEnum(EBaseStatus),
+        })
+    ),
 });
 
 export const deviceSchema = z.object({

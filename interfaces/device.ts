@@ -34,12 +34,26 @@ export interface DeviceModel {
     createdDate: string;
     updatedDate: string | null;
     deviceFunctions: DeviceFunction[];
+    deviceIngredients: DeviceIngredient[];
 }
 
 export interface DeviceFunction {
     name: string;
     deviceFunctionId?: string;
+    label: string;
     functionParameters: FunctionParameters[];
+    status: EBaseStatus;
+}
+
+export interface DeviceIngredient {
+    label: string;
+    ingredientType: string;
+    description: string | null;
+    maxCapacity: number;
+    minCapacity: number;
+    warningPercent: number;
+    unit: string;
+    isRenewable: boolean;
     status: EBaseStatus;
 }
 

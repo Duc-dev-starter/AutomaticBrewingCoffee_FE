@@ -7,11 +7,11 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { PlusCircle, Loader2, Edit, Plus, Settings2, CheckCircle2, AlertCircle, Save, Zap, Monitor, Factory, Cpu, Circle } from "lucide-react"
+import { PlusCircle, Loader2, Edit, Plus, Settings2, CheckCircle2, AlertCircle, Save, Zap, Monitor, Factory, Cpu, Circle, Layers } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { createDeviceModel, updateDeviceModel, getDeviceTypes } from "@/services/device"
 import type { DeviceDialogProps } from "@/types/dialog"
-import type { DeviceFunction, DeviceType } from "@/interfaces/device"
+import type { DeviceFunction, DeviceType, DeviceIngredient } from "@/interfaces/device"
 import InfiniteScroll from "react-infinite-scroll-component"
 import { EBaseStatus, EBaseStatusViMap } from "@/enum/base"
 import type { ErrorResponse } from "@/types/error"
@@ -19,6 +19,7 @@ import { deviceModelSchema } from "@/schema/device"
 import { EFunctionParameterType } from "@/enum/device"
 import { DeviceFunctionCard } from "@/components/common/device-function-card"
 import { cn } from "@/lib/utils"
+import { EBaseUnit, EBaseUnitViMap } from "@/enum/product"
 
 const initialFormData = {
     modelName: "",
@@ -26,6 +27,7 @@ const initialFormData = {
     deviceTypeId: "",
     status: EBaseStatus.Active,
     deviceFunctions: [] as DeviceFunction[],
+    deviceIngredients: [] as DeviceIngredient[],
 }
 
 const DeviceModelDialog = ({ open, onOpenChange, onSuccess, deviceModel }: DeviceDialogProps) => {
@@ -77,6 +79,7 @@ const DeviceModelDialog = ({ open, onOpenChange, onSuccess, deviceModel }: Devic
                 deviceTypeId: deviceModel.deviceTypeId || "",
                 status: deviceModel.status || EBaseStatus.Active,
                 deviceFunctions: deviceModel.deviceFunctions || [],
+                deviceIngredients: deviceModel.deviceIngredients || [],
             })
             setValidFields({
                 modelName: deviceModel.modelName?.trim().length >= 1,
@@ -142,6 +145,7 @@ const DeviceModelDialog = ({ open, onOpenChange, onSuccess, deviceModel }: Devic
                 ...prev.deviceFunctions,
                 {
                     name: "",
+                    label: "",
                     functionParameters: [],
                     status: EBaseStatus.Active,
                 },
@@ -204,6 +208,44 @@ const DeviceModelDialog = ({ open, onOpenChange, onSuccess, deviceModel }: Devic
         })
     }
 
+    const addDeviceIngredient = () => {
+        setFormData((prev) => ({
+            ...prev,
+            deviceIngredients: [
+                ...prev.deviceIngredients,
+                {
+                    label: "",
+                    ingredientType: "",
+                    description: "",
+                    maxCapacity: 0,
+                    minCapacity: 0,
+                    warningPercent: 0,
+                    unit: EBaseUnit.Piece,
+                    isRenewable: false,
+                    status: EBaseStatus.Active,
+                },
+            ],
+        }))
+    }
+
+    const removeDeviceIngredient = (index: number) => {
+        setFormData((prev) => ({
+            ...prev,
+            deviceIngredients: prev.deviceIngredients.filter((_, i) => i !== index),
+        }))
+    }
+
+    const handleDeviceIngredientChange = (index: number, field: string, value: any) => {
+        setFormData((prev) => {
+            const updatedIngredients = [...prev.deviceIngredients]
+            updatedIngredients[index] = {
+                ...updatedIngredients[index],
+                [field]: value,
+            }
+            return { ...prev, deviceIngredients: updatedIngredients }
+        })
+    }
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault()
         e.stopPropagation()
@@ -214,6 +256,8 @@ const DeviceModelDialog = ({ open, onOpenChange, onSuccess, deviceModel }: Devic
             manufacturer: formData.manufacturer,
             deviceTypeId: formData.deviceTypeId,
             status: formData.status,
+            deviceFunctions: formData.deviceFunctions,
+            deviceIngredients: formData.deviceIngredients,
         })
         if (!validationResult.success) {
             const { fieldErrors } = validationResult.error.flatten()
@@ -227,9 +271,10 @@ const DeviceModelDialog = ({ open, onOpenChange, onSuccess, deviceModel }: Devic
             const data = {
                 modelName: formData.modelName,
                 status: formData.status,
-                manufacturer: formData.manufacturer,
+                manufacturergrounds: formData.manufacturer,
                 deviceTypeId: formData.deviceTypeId,
-                deviceFunctions: formData.deviceFunctions.length > 0 ? formData.deviceFunctions : undefined,
+                deviceFunctions: formData.deviceFunctions,
+                deviceIngredients: formData.deviceIngredients,
             }
             if (deviceModel) {
                 await updateDeviceModel(deviceModel.deviceModelId, data)
@@ -418,7 +463,6 @@ const DeviceModelDialog = ({ open, onOpenChange, onSuccess, deviceModel }: Devic
                             <div className="flex items-center gap-2">
                                 <Settings2 className="h-5 w-5 text-primary-300" />
                                 <Label className="text-base font-semibold">Chức Năng Thiết Bị</Label>
-                                <span className="text-sm text-muted-foreground">(tùy chọn)</span>
                             </div>
                             <Button type="button" variant="outline" onClick={addDeviceFunction} disabled={loading}>
                                 <Plus className="h-4 w-4 mr-2" />
@@ -450,6 +494,162 @@ const DeviceModelDialog = ({ open, onOpenChange, onSuccess, deviceModel }: Devic
                                     />
                                 ))}
                             </div>
+                        )}
+                        {submitted && errors.deviceFunctions && (
+                            <p className="text-red-500 text-xs mt-1">{errors.deviceFunctions}</p>
+                        )}
+                    </div>
+
+                    <div className="space-y-4">
+                        <div className="flex items-center justify-between">
+                            <div className="flex items-center gap-2">
+                                <Layers className="h-5 w-5 text-primary-300" />
+                                <Label className="text-base font-semibold">Nguyên Liệu Thiết Bị</Label>
+                            </div>
+                            <Button type="button" variant="outline" onClick={addDeviceIngredient} disabled={loading}>
+                                <Plus className="h-4 w-4 mr-2" />
+                                Thêm nguyên liệu
+                            </Button>
+                        </div>
+
+                        {formData.deviceIngredients.length === 0 ? (
+                            <div className="text-center py-8 border-2 border-dashed rounded-lg bg-muted/20">
+                                <Layers className="h-12 w-12 mx-auto text-muted-foreground mt-2" />
+                                <p className="text-muted-foreground mt-4 mb-4">Chưa có Nguyên Liệu nào được thêm</p>
+                                <Button type="button" variant="outline" onClick={addDeviceIngredient} disabled={loading}>
+                                    <Plus className="h-4 w-4 mr-2" />
+                                    Thêm nguyên liệu đầu tiên
+                                </Button>
+                            </div>
+                        ) : (
+                            <div className="space-y-4">
+                                {formData.deviceIngredients.map((ingredient, index) => (
+                                    <div key={index} className="p-4 border rounded-lg bg-white shadow-sm">
+                                        <div className="grid grid-cols-2 gap-4">
+                                            <div>
+                                                <Label>Label</Label>
+                                                <Input
+                                                    value={ingredient.label}
+                                                    onChange={(e) => handleDeviceIngredientChange(index, "label", e.target.value)}
+                                                    placeholder="Nhập label"
+                                                    disabled={loading}
+                                                />
+                                            </div>
+                                            <div>
+                                                <Label>Loại nguyên liệu</Label>
+                                                <Input
+                                                    value={ingredient.ingredientType}
+                                                    onChange={(e) => handleDeviceIngredientChange(index, "ingredientType", e.target.value)}
+                                                    placeholder="Nhập loại nguyên liệu"
+                                                    disabled={loading}
+                                                />
+                                            </div>
+                                            <div>
+                                                <Label>Mô tả</Label>
+                                                <Input
+                                                    value={ingredient.description || ""}
+                                                    onChange={(e) => handleDeviceIngredientChange(index, "description", e.target.value)}
+                                                    placeholder="Nhập mô tả (tùy chọn)"
+                                                    disabled={loading}
+                                                />
+                                            </div>
+                                            <div>
+                                                <Label>Dung lượng tối đa</Label>
+                                                <Input
+                                                    type="number"
+                                                    value={ingredient.maxCapacity}
+                                                    onChange={(e) => handleDeviceIngredientChange(index, "maxCapacity", Number(e.target.value))}
+                                                    placeholder="Nhập dung lượng tối đa"
+                                                    disabled={loading}
+                                                />
+                                            </div>
+                                            <div>
+                                                <Label>Dung lượng tối thiểu</Label>
+                                                <Input
+                                                    type="number"
+                                                    value={ingredient.minCapacity}
+                                                    onChange={(e) => handleDeviceIngredientChange(index, "minCapacity", Number(e.target.value))}
+                                                    placeholder="Nhập dung lượng tối thiểu"
+                                                    disabled={loading}
+                                                />
+                                            </div>
+                                            <div>
+                                                <Label>Phần trăm cảnh báo</Label>
+                                                <Input
+                                                    type="number"
+                                                    value={ingredient.warningPercent}
+                                                    onChange={(e) => handleDeviceIngredientChange(index, "warningPercent", Number(e.target.value))}
+                                                    placeholder="Nhập phần trăm cảnh báo"
+                                                    disabled={loading}
+                                                />
+                                            </div>
+                                            <div>
+                                                <Label>Đơn vị</Label>
+                                                <Select
+                                                    value={ingredient.unit}
+                                                    onValueChange={(value) => handleDeviceIngredientChange(index, "unit", value)}
+                                                    disabled={loading}
+                                                >
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder="Chọn đơn vị" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {Object.entries(EBaseUnitViMap).map(([key, value]) => (
+                                                            <SelectItem key={key} value={key}>
+                                                                {value}
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+                                            <div>
+                                                <Label>Có thể làm mới</Label>
+                                                <Select
+                                                    value={ingredient.isRenewable ? "true" : "false"}
+                                                    onValueChange={(value) => handleDeviceIngredientChange(index, "isRenewable", value === "true")}
+                                                    disabled={loading}
+                                                >
+                                                    <SelectTrigger>
+                                                        <SelectValue />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value="true">Có</SelectItem>
+                                                        <SelectItem value="false">Không</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+                                            <div>
+                                                <Label>Trạng thái</Label>
+                                                <Select
+                                                    value={ingredient.status}
+                                                    onValueChange={(value) => handleDeviceIngredientChange(index, "status", value)}
+                                                    disabled={loading}
+                                                >
+                                                    <SelectTrigger>
+                                                        <SelectValue />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {Object.entries(EBaseStatusViMap).map(([key, value]) => (
+                                                            <SelectItem key={key} value={key}>{value}</SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+                                        </div>
+                                        <Button
+                                            variant="destructive"
+                                            className="mt-4"
+                                            onClick={() => removeDeviceIngredient(index)}
+                                            disabled={loading}
+                                        >
+                                            Xóa
+                                        </Button>
+                                    </div>
+                                ))}
+                            </div>
+                        )}
+                        {submitted && errors.deviceIngredients && (
+                            <p className="text-red-500 text-xs mt-1">{errors.deviceIngredients}</p>
                         )}
                     </div>
 

@@ -10,7 +10,7 @@ import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import type { Product, ProductAttribute } from "@/interfaces/product";
-import { EProductStatus, EProductSize, EProductType, EIngredientType, EBaseUnit } from "@/enum/product";
+import { EProductStatus, EProductSize, EProductType, EIngredientType, EBaseUnit, EAttributteOption } from "@/enum/product";
 import { createProduct, updateProduct, getProducts } from "@/services/product";
 import { productSchema } from "@/schema/product";
 import type { ProductDialogProps } from "@/types/dialog";
@@ -227,7 +227,7 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
             newAttributes[attrIndex].attributeOptions.push({
                 name: "",
                 value: 0,
-                unit: EBaseUnit.Grams,
+                unit: EAttributteOption.Percent,
                 displayOrder: newAttributes[attrIndex].attributeOptions.length,
                 description: "",
             });

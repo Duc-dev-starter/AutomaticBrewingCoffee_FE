@@ -1,4 +1,4 @@
-import { EBaseUnit, EIngredientType, EProductSize, EProductStatus, EProductType } from "@/enum/product";
+import { EAttributteOption, EBaseUnit, EIngredientType, EProductSize, EProductStatus, EProductType } from "@/enum/product";
 import { MenuProductMapping } from "./menu";
 import { Category } from "./category";
 
@@ -37,7 +37,7 @@ export interface SupportProduct {
 export interface ProductAttributeOption {
     name: string;
     value: number;
-    unit: EBaseUnit;
+    unit: EAttributteOption;
     displayOrder: number;
     description: string;
 }

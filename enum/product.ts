@@ -65,3 +65,7 @@ export const EIngredientTypeViMap: Record<EIngredientType, string> = {
     [EIngredientType.Milk]: "Sữa",
     [EIngredientType.Cup]: "Cốc",
 };
+
+export enum EAttributteOption {
+    Percent = "Percent",
+}

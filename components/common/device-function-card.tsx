@@ -21,6 +21,7 @@ interface DeviceFunctionCardProps {
     onAddParameter: (functionIndex: number) => void
     onRemoveParameter: (functionIndex: number, paramIndex: number) => void
     onUpdateParameter: (functionIndex: number, paramIndex: number, field: string, value: any) => void
+    errors: Record<string, any>
 }
 
 export function DeviceFunctionCard({
@@ -31,6 +32,7 @@ export function DeviceFunctionCard({
     onAddParameter,
     onRemoveParameter,
     onUpdateParameter,
+    errors,
 }: DeviceFunctionCardProps) {
     const [isOpen, setIsOpen] = useState(true)
 
@@ -75,15 +77,19 @@ export function DeviceFunctionCard({
                                 onChange={(e) => onUpdate(index, "name", e.target.value)}
                                 placeholder="Nhập tên chức năng"
                             />
+                            {errors.name && <p className="text-red-500 text-xs">{errors.name}</p>}
                         </div>
 
-                        <Label htmlFor={`func-label-${index}`}>Label</Label>
-                        <Input
-                            id={`func-label-${index}`}
-                            value={func.label || ""}
-                            onChange={(e) => onUpdate(index, "label", e.target.value)}
-                            placeholder="Ví dụ: Bật đèn, Tắt máy..."
-                        />
+                        <div className="space-y-2">
+                            <Label htmlFor={`func-label-${index}`}>Label</Label>
+                            <Input
+                                id={`func-label-${index}`}
+                                value={func.label || ""}
+                                onChange={(e) => onUpdate(index, "label", e.target.value)}
+                                placeholder="Ví dụ: Bật đèn, Tắt máy..."
+                            />
+                            {errors.label && <p className="text-red-500 text-xs">{errors.label}</p>}
+                        </div>
 
                         {/* Function Status */}
                         <div className="space-y-2">
@@ -103,6 +109,7 @@ export function DeviceFunctionCard({
                                     ))}
                                 </SelectContent>
                             </Select>
+                            {errors.status && <p className="text-red-500 text-xs">{errors.status}</p>}
                         </div>
 
                         {/* Function Parameters */}
@@ -159,6 +166,9 @@ export function DeviceFunctionCard({
                                                             }
                                                             placeholder="Nhập tên tham số"
                                                         />
+                                                        {errors.functionParameters?.[paramIndex]?.name && (
+                                                            <p className="text-red-500 text-xs">{errors.functionParameters[paramIndex].name}</p>
+                                                        )}
                                                     </div>
 
                                                     {/* Parameter Type */}
@@ -181,6 +191,9 @@ export function DeviceFunctionCard({
                                                                 ))}
                                                             </SelectContent>
                                                         </Select>
+                                                        {errors.functionParameters?.[paramIndex]?.type && (
+                                                            <p className="text-red-500 text-xs">{errors.functionParameters[paramIndex].type}</p>
+                                                        )}
                                                     </div>
                                                 </div>
 
@@ -221,6 +234,9 @@ export function DeviceFunctionCard({
                                                                 placeholder="Nhập giá trị mặc định"
                                                             />
                                                         )}
+                                                        {errors.functionParameters?.[paramIndex]?.default && (
+                                                            <p className="text-red-500 text-xs">{errors.functionParameters[paramIndex].default}</p>
+                                                        )}
                                                     </div>
 
                                                     {/* Description */}
@@ -234,6 +250,9 @@ export function DeviceFunctionCard({
                                                             }
                                                             placeholder="Nhập mô tả"
                                                         />
+                                                        {errors.functionParameters?.[paramIndex]?.description && (
+                                                            <p className="text-red-500 text-xs">{errors.functionParameters[paramIndex].description}</p>
+                                                        )}
                                                     </div>
                                                 </div>
 
@@ -250,6 +269,9 @@ export function DeviceFunctionCard({
                                                                 }
                                                                 placeholder="Tùy chọn"
                                                             />
+                                                            {errors.functionParameters?.[paramIndex]?.min && (
+                                                                <p className="text-red-500 text-xs">{errors.functionParameters[paramIndex].min}</p>
+                                                            )}
                                                         </div>
                                                         <div className="space-y-2">
                                                             <Label htmlFor={`param-max-${index}-${paramIndex}`}>Giá trị tối đa</Label>
@@ -261,17 +283,25 @@ export function DeviceFunctionCard({
                                                                 }
                                                                 placeholder="Tùy chọn"
                                                             />
+                                                            {errors.functionParameters?.[paramIndex]?.max && (
+                                                                <p className="text-red-500 text-xs">{errors.functionParameters[paramIndex].max}</p>
+                                                            )}
                                                         </div>
                                                     </div>
                                                 )}
 
                                                 {/* Dynamic Options Input */}
-                                                <DynamicOptionsInput
-                                                    label="Tùy chọn"
-                                                    value={param.options}
-                                                    onChange={(options) => onUpdateParameter(index, paramIndex, "options", options)}
-                                                    placeholder="Nhập tùy chọn và nhấn Enter hoặc nút +"
-                                                />
+                                                <div className="space-y-2">
+                                                    <DynamicOptionsInput
+                                                        label="Tùy chọn"
+                                                        value={param.options}
+                                                        onChange={(options) => onUpdateParameter(index, paramIndex, "options", options)}
+                                                        placeholder="Nhập tùy chọn và nhấn Enter hoặc nút +"
+                                                    />
+                                                    {errors.functionParameters?.[paramIndex]?.options && (
+                                                        <p className="text-red-500 text-xs">{errors.functionParameters[paramIndex].options}</p>
+                                                    )}
+                                                </div>
                                             </CardContent>
                                         </Card>
                                     ))}

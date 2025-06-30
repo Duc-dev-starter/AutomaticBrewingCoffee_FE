@@ -1,5 +1,6 @@
 import { EBaseStatus } from "@/enum/base";
 import { EDeviceStatus, EFunctionParameterType } from "@/enum/device";
+import { EIngredientType } from "@/enum/product";
 import { z } from "zod";
 
 export const deviceTypeSchema = z.object({
@@ -32,12 +33,12 @@ export const deviceModelSchema = z.object({
                     default: z.string().trim().min(1, "Giá trị mặc định là bắt buộc"),
                 })
             ).optional(),
-        })
-    ),
+        }),
+    ).min(1, "Phải có ít nhất một chức năng thiết bị"),
     deviceIngredients: z.array(
         z.object({
             label: z.string().trim().min(1, "Label là bắt buộc"),
-            ingredientType: z.string().trim().min(1, "Loại thành phần là bắt buộc"),
+            ingredientType: z.nativeEnum(EIngredientType),
             description: z.string().trim().optional(),
             maxCapacity: z.number().min(0, "Dung lượng tối đa phải lớn hơn hoặc bằng 0"),
             minCapacity: z.number().min(0, "Dung lượng tối thiểu phải lớn hơn hoặc bằng 0"),
@@ -46,7 +47,7 @@ export const deviceModelSchema = z.object({
             isRenewable: z.boolean(),
             status: z.nativeEnum(EBaseStatus),
         })
-    ),
+    ).min(1, "Phải có ít nhất một thành phần thiết bị"),
 });
 
 export const deviceSchema = z.object({

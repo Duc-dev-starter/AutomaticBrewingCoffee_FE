@@ -19,7 +19,25 @@ import { deviceModelSchema } from "@/schema/device"
 import { EFunctionParameterType } from "@/enum/device"
 import { DeviceFunctionCard } from "@/components/common/device-function-card"
 import { cn } from "@/lib/utils"
-import { EBaseUnit, EBaseUnitViMap } from "@/enum/product"
+import { EBaseUnit, EBaseUnitViMap, EIngredientTypeViMap } from "@/enum/product"
+
+// Hàm parse lỗi từ Zod
+const parseErrors = (fieldErrors: Record<string, string[]>) => {
+    const parsedErrors: Record<string, any> = {}
+    for (const [key, value] of Object.entries(fieldErrors)) {
+        const keys = key.split('.')
+        let current = parsedErrors
+        keys.forEach((k, i) => {
+            if (i === keys.length - 1) {
+                current[k] = value[0]
+            } else {
+                if (!current[k]) current[k] = {}
+                current = current[k]
+            }
+        })
+    }
+    return parsedErrors
+}
 
 const initialFormData = {
     modelName: "",
@@ -261,8 +279,10 @@ const DeviceModelDialog = ({ open, onOpenChange, onSuccess, deviceModel }: Devic
             deviceIngredients: formData.deviceIngredients,
         })
         if (!validationResult.success) {
-            const { fieldErrors } = validationResult.error.flatten()
-            setErrors(fieldErrors)
+            const fieldErrors = validationResult.error.flatten().fieldErrors
+            const parsedErrors = parseErrors(fieldErrors)
+            setErrors(parsedErrors)
+            console.error("Validation errors:", parsedErrors)
             return
         }
 
@@ -277,6 +297,7 @@ const DeviceModelDialog = ({ open, onOpenChange, onSuccess, deviceModel }: Devic
                 deviceFunctions: formData.deviceFunctions,
                 deviceIngredients: formData.deviceIngredients,
             }
+            console.log("Form data before validation:", formData);
             if (deviceModel) {
                 await updateDeviceModel(deviceModel.deviceModelId, data)
                 toast({
@@ -460,7 +481,7 @@ const DeviceModelDialog = ({ open, onOpenChange, onSuccess, deviceModel }: Devic
                     </div>
 
                     <div className="space-y-4">
-                        <div className="flex items-center justify-between NOTHING">
+                        <div className="flex items-center justify-between">
                             <div className="flex items-center gap-2">
                                 <Settings2 className="h-5 w-5 text-primary-300" />
                                 <Label className="text-base font-semibold">Chức Năng Thiết Bị</Label>
@@ -492,11 +513,12 @@ const DeviceModelDialog = ({ open, onOpenChange, onSuccess, deviceModel }: Devic
                                         onAddParameter={addFunctionParameter}
                                         onRemoveParameter={removeFunctionParameter}
                                         onUpdateParameter={handleFunctionParameterChange}
+                                        errors={errors.deviceFunctions?.[index] || {}}
                                     />
                                 ))}
                             </div>
                         )}
-                        {submitted && errors.deviceFunctions && (
+                        {submitted && typeof errors.deviceFunctions === 'string' && (
                             <p className="text-red-500 text-xs mt-1">{errors.deviceFunctions}</p>
                         )}
                     </div>
@@ -527,7 +549,7 @@ const DeviceModelDialog = ({ open, onOpenChange, onSuccess, deviceModel }: Devic
                                 {formData.deviceIngredients.map((ingredient, index) => (
                                     <div key={index} className="p-4 border rounded-lg bg-white shadow-sm">
                                         <div className="grid grid-cols-2 gap-4">
-                                            <div>
+                                            <div className="space-y-2">
                                                 <Label>Label</Label>
                                                 <Input
                                                     value={ingredient.label}
@@ -535,17 +557,36 @@ const DeviceModelDialog = ({ open, onOpenChange, onSuccess, deviceModel }: Devic
                                                     placeholder="Nhập label"
                                                     disabled={loading}
                                                 />
+                                                {submitted && errors.deviceIngredients?.[index]?.label && (
+                                                    <p className="text-red-500 text-xs">{errors.deviceIngredients[index].label}</p>
+                                                )}
                                             </div>
-                                            <div>
+                                            <div className="space-y-2">
                                                 <Label>Loại nguyên liệu</Label>
-                                                <Input
-                                                    value={ingredient.ingredientType}
-                                                    onChange={(e) => handleDeviceIngredientChange(index, "ingredientType", e.target.value)}
-                                                    placeholder="Nhập loại nguyên liệu"
-                                                    disabled={loading}
-                                                />
+                                                <div className="space-y-2">
+                                                    <Label>Loại nguyên liệu</Label>
+                                                    <Select
+                                                        value={ingredient.ingredientType}
+                                                        onValueChange={(value) => handleDeviceIngredientChange(index, "ingredientType", value)}
+                                                        disabled={loading}
+                                                    >
+                                                        <SelectTrigger>
+                                                            <SelectValue placeholder="Chọn loại nguyên liệu" />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            {Object.entries(EIngredientTypeViMap).map(([key, value]) => (
+                                                                <SelectItem key={key} value={key}>
+                                                                    {value}
+                                                                </SelectItem>
+                                                            ))}
+                                                        </SelectContent>
+                                                    </Select>
+                                                    {submitted && errors.deviceIngredients?.[index]?.ingredientType && (
+                                                        <p className="text-red-500 text-xs">{errors.deviceIngredients[index].ingredientType}</p>
+                                                    )}
+                                                </div>
                                             </div>
-                                            <div>
+                                            <div className="space-y-2">
                                                 <Label>Mô tả</Label>
                                                 <Input
                                                     value={ingredient.description || ""}
@@ -553,8 +594,11 @@ const DeviceModelDialog = ({ open, onOpenChange, onSuccess, deviceModel }: Devic
                                                     placeholder="Nhập mô tả (tùy chọn)"
                                                     disabled={loading}
                                                 />
+                                                {submitted && errors.deviceIngredients?.[index]?.description && (
+                                                    <p className="text-red-500 text-xs">{errors.deviceIngredients[index].description}</p>
+                                                )}
                                             </div>
-                                            <div>
+                                            <div className="space-y-2">
                                                 <Label>Dung lượng tối đa</Label>
                                                 <Input
                                                     type="number"
@@ -563,8 +607,11 @@ const DeviceModelDialog = ({ open, onOpenChange, onSuccess, deviceModel }: Devic
                                                     placeholder="Nhập dung lượng tối đa"
                                                     disabled={loading}
                                                 />
+                                                {submitted && errors.deviceIngredients?.[index]?.maxCapacity && (
+                                                    <p className="text-red-500 text-xs">{errors.deviceIngredients[index].maxCapacity}</p>
+                                                )}
                                             </div>
-                                            <div>
+                                            <div className="space-y-2">
                                                 <Label>Dung lượng tối thiểu</Label>
                                                 <Input
                                                     type="number"
@@ -573,8 +620,11 @@ const DeviceModelDialog = ({ open, onOpenChange, onSuccess, deviceModel }: Devic
                                                     placeholder="Nhập dung lượng tối thiểu"
                                                     disabled={loading}
                                                 />
+                                                {submitted && errors.deviceIngredients?.[index]?.minCapacity && (
+                                                    <p className="text-red-500 text-xs">{errors.deviceIngredients[index].minCapacity}</p>
+                                                )}
                                             </div>
-                                            <div>
+                                            <div className="space-y-2">
                                                 <Label>Phần trăm cảnh báo</Label>
                                                 <Input
                                                     type="number"
@@ -583,8 +633,11 @@ const DeviceModelDialog = ({ open, onOpenChange, onSuccess, deviceModel }: Devic
                                                     placeholder="Nhập phần trăm cảnh báo"
                                                     disabled={loading}
                                                 />
+                                                {submitted && errors.deviceIngredients?.[index]?.warningPercent && (
+                                                    <p className="text-red-500 text-xs">{errors.deviceIngredients[index].warningPercent}</p>
+                                                )}
                                             </div>
-                                            <div>
+                                            <div className="space-y-2">
                                                 <Label>Đơn vị</Label>
                                                 <Select
                                                     value={ingredient.unit}
@@ -602,8 +655,11 @@ const DeviceModelDialog = ({ open, onOpenChange, onSuccess, deviceModel }: Devic
                                                         ))}
                                                     </SelectContent>
                                                 </Select>
+                                                {submitted && errors.deviceIngredients?.[index]?.unit && (
+                                                    <p className="text-red-500 text-xs">{errors.deviceIngredients[index].unit}</p>
+                                                )}
                                             </div>
-                                            <div>
+                                            <div className="space-y-2">
                                                 <Label>Có thể làm mới</Label>
                                                 <Select
                                                     value={ingredient.isRenewable ? "true" : "false"}
@@ -618,8 +674,11 @@ const DeviceModelDialog = ({ open, onOpenChange, onSuccess, deviceModel }: Devic
                                                         <SelectItem value="false">Không</SelectItem>
                                                     </SelectContent>
                                                 </Select>
+                                                {submitted && errors.deviceIngredients?.[index]?.isRenewable && (
+                                                    <p className="text-red-500 text-xs">{errors.deviceIngredients[index].isRenewable}</p>
+                                                )}
                                             </div>
-                                            <div>
+                                            <div className="space-y-2">
                                                 <Label>Trạng thái</Label>
                                                 <Select
                                                     value={ingredient.status}
@@ -635,8 +694,11 @@ const DeviceModelDialog = ({ open, onOpenChange, onSuccess, deviceModel }: Devic
                                                         ))}
                                                     </SelectContent>
                                                 </Select>
+                                                {submitted && errors.deviceIngredients?.[index]?.status && (
+                                                    <p className="text-red-500 text-xs">{errors.deviceIngredients[index].status}</p>
+                                                )}
                                             </div>
-                                            <div>
+                                            <div className="space-y-2">
                                                 <Label>Là chính</Label>
                                                 <Select
                                                     value={ingredient.isPrimary ? "true" : "false"}
@@ -651,7 +713,11 @@ const DeviceModelDialog = ({ open, onOpenChange, onSuccess, deviceModel }: Devic
                                                         <SelectItem value="false">Không</SelectItem>
                                                     </SelectContent>
                                                 </Select>
+                                                {submitted && errors.deviceIngredients?.[index]?.isPrimary && (
+                                                    <p className="text-red-500 text-xs">{errors.deviceIngredients[index].isPrimary}</p>
+                                                )}
                                             </div>
+
                                         </div>
                                         <Button
                                             variant="destructive"
@@ -665,7 +731,7 @@ const DeviceModelDialog = ({ open, onOpenChange, onSuccess, deviceModel }: Devic
                                 ))}
                             </div>
                         )}
-                        {submitted && errors.deviceIngredients && (
+                        {submitted && typeof errors.deviceIngredients === 'string' && (
                             <p className="text-red-500 text-xs mt-1">{errors.deviceIngredients}</p>
                         )}
                     </div>

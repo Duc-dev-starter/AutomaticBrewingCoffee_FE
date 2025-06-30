@@ -9,8 +9,8 @@ import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
-import type { Product } from "@/interfaces/product";
-import { EProductStatus, EProductSize, EProductType } from "@/enum/product";
+import type { Product, ProductAttribute } from "@/interfaces/product";
+import { EProductStatus, EProductSize, EProductType, EIngredientType, EBaseUnit } from "@/enum/product";
 import { createProduct, updateProduct, getProducts } from "@/services/product";
 import { productSchema } from "@/schema/product";
 import type { ProductDialogProps } from "@/types/dialog";
@@ -33,6 +33,7 @@ const initialFormData = {
     imageUrl: "",
     isActive: true,
     productCategoryId: "",
+    productAttributes: [] as ProductAttribute[],
 };
 
 const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialogProps) => {
@@ -52,7 +53,6 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
 
     const isUpdate = !!product;
 
-    // Fetch products for parentId selection
     useEffect(() => {
         const fetchProducts = async () => {
             setFetching(true);
@@ -75,7 +75,6 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
         }
     }, [open, toast]);
 
-    // Fetch categories for productCategoryId selection
     useEffect(() => {
         const fetchCategories = async () => {
             try {
@@ -95,7 +94,6 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
         }
     }, [open, toast]);
 
-    // Populate form data when editing
     useEffect(() => {
         if (product) {
             setFormData({
@@ -110,6 +108,7 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                 imageUrl: product.imageUrl || "",
                 isActive: product.isActive,
                 productCategoryId: product.productCategoryId || "",
+                productAttributes: product.productAttributes || [],
             });
             setImagePreview(product.imageUrl || null);
             setImageTab(product.imageUrl ? "url" : "upload");
@@ -126,7 +125,6 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
         }
     }, [product]);
 
-    // Reset form data and errors when dialog closes
     useEffect(() => {
         if (!open) {
             setFormData(initialFormData);
@@ -140,14 +138,12 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
         }
     }, [open]);
 
-    // Auto-focus name field when dialog opens
     useEffect(() => {
         if (open && nameInputRef.current) {
             setTimeout(() => nameInputRef.current?.focus(), 200);
         }
     }, [open]);
 
-    // Ctrl+Enter shortcut for submission
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
             if (!open) return;
@@ -181,6 +177,74 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
         if (errors[field]) {
             setErrors((prev) => ({ ...prev, [field]: "" }));
         }
+    };
+
+    const addProductAttribute = () => {
+        setFormData((prev) => ({
+            ...prev,
+            productAttributes: [
+                ...prev.productAttributes,
+                {
+                    label: "",
+                    ingredientType: EIngredientType.Coffee,
+                    description: "",
+                    displayOrder: prev.productAttributes.length,
+                    defaultAmount: 0,
+                    unit: EBaseUnit.Grams,
+                    attributeOptions: [],
+                },
+            ],
+        }));
+    };
+
+    const updateProductAttribute = (index: number, field: string, value: any) => {
+        setFormData((prev) => {
+            const newAttributes = [...prev.productAttributes];
+            newAttributes[index] = { ...newAttributes[index], [field]: value };
+            return { ...prev, productAttributes: newAttributes };
+        });
+    };
+
+    const removeProductAttribute = (index: number) => {
+        setFormData((prev) => ({
+            ...prev,
+            productAttributes: prev.productAttributes.filter((_, i) => i !== index),
+        }));
+    };
+
+    const addAttributeOption = (attrIndex: number) => {
+        setFormData((prev) => {
+            const newAttributes = [...prev.productAttributes];
+            newAttributes[attrIndex].attributeOptions.push({
+                name: "",
+                value: 0,
+                unit: EBaseUnit.Grams,
+                displayOrder: newAttributes[attrIndex].attributeOptions.length,
+                description: "",
+            });
+            return { ...prev, productAttributes: newAttributes };
+        });
+    };
+
+    const updateAttributeOption = (attrIndex: number, optIndex: number, field: string, value: any) => {
+        setFormData((prev) => {
+            const newAttributes = [...prev.productAttributes];
+            newAttributes[attrIndex].attributeOptions[optIndex] = {
+                ...newAttributes[attrIndex].attributeOptions[optIndex],
+                [field]: value,
+            };
+            return { ...prev, productAttributes: newAttributes };
+        });
+    };
+
+    const removeAttributeOption = (attrIndex: number, optIndex: number) => {
+        setFormData((prev) => {
+            const newAttributes = [...prev.productAttributes];
+            newAttributes[attrIndex].attributeOptions = newAttributes[attrIndex].attributeOptions.filter(
+                (_, i) => i !== optIndex
+            );
+            return { ...prev, productAttributes: newAttributes };
+        });
     };
 
     const handleImageChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -227,6 +291,34 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
         setImagePreview(null);
     };
 
+    const handleTestImage = () => {
+        if (!formData.imageUrl) {
+            toast({
+                title: "Lỗi",
+                description: "Vui lòng nhập URL hình ảnh",
+                variant: "destructive",
+            });
+            return;
+        }
+
+        const img = new Image();
+        img.onload = () => {
+            setImagePreview(formData.imageUrl);
+            toast({
+                title: "Thành công",
+                description: "URL hình ảnh hợp lệ",
+            });
+        };
+        img.onerror = () => {
+            toast({
+                title: "Lỗi",
+                description: "URL hình ảnh không hợp lệ hoặc không thể truy cập",
+                variant: "destructive",
+            });
+        };
+        img.src = formData.imageUrl;
+    };
+
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         setSubmitted(true);
@@ -242,13 +334,14 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
             imageUrl: formData.imageUrl || formData.imageBase64,
             isActive: formData.isActive,
             productCategoryId: formData.productCategoryId,
+            productAttributes: formData.productAttributes,
         };
 
         const validationResult = productSchema.safeParse(validationData);
         if (!validationResult.success) {
             const fieldErrors = validationResult.error.flatten().fieldErrors;
             setErrors(
-                Object.fromEntries(Object.entries(fieldErrors).map(([key, messages]) => [key, messages ? messages[0] : ""])),
+                Object.fromEntries(Object.entries(fieldErrors).map(([key, messages]) => [key, messages ? messages[0] : ""]))
             );
             return;
         }
@@ -268,6 +361,7 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                 imageUrl: formData.imageUrl || undefined,
                 isActive: formData.isActive,
                 productCategoryId: formData.productCategoryId,
+                productAttributes: formData.productAttributes.length > 0 ? formData.productAttributes : undefined,
             };
 
             if (product) {
@@ -296,34 +390,6 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
         } finally {
             setLoading(false);
         }
-    };
-
-    const handleTestImage = () => {
-        if (!formData.imageUrl) {
-            toast({
-                title: "Lỗi",
-                description: "Vui lòng nhập URL hình ảnh",
-                variant: "destructive",
-            });
-            return;
-        }
-
-        const img = new Image();
-        img.onload = () => {
-            setImagePreview(formData.imageUrl);
-            toast({
-                title: "Thành công",
-                description: "URL hình ảnh hợp lệ",
-            });
-        };
-        img.onerror = () => {
-            toast({
-                title: "Lỗi",
-                description: "URL hình ảnh không hợp lệ hoặc không thể truy cập",
-                variant: "destructive",
-            });
-        };
-        img.src = formData.imageUrl;
     };
 
     return (
@@ -438,7 +504,6 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
-                        {/* Tên Sản Phẩm */}
                         <div className="space-y-3">
                             <div className="flex items-center space-x-2 mb-2">
                                 <Monitor className="w-4 h-4 text-primary-300" />
@@ -471,8 +536,6 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                                 <p className="text-red-500 text-xs mt-1">{errors.name}</p>
                             )}
                         </div>
-
-                        {/* Sản Phẩm Cha */}
                         <div className="space-y-3">
                             <div className="flex items-center space-x-2 mb-2">
                                 <Box className="w-4 h-4 text-primary-300" />
@@ -501,7 +564,6 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
-                        {/* Size */}
                         <div className="space-y-3">
                             <div className="flex items-center space-x-2 mb-2">
                                 <Tag className="w-4 h-4 text-primary-300" />
@@ -523,8 +585,6 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                                 <p className="text-red-500 text-xs mt-1">{errors.size}</p>
                             )}
                         </div>
-
-                        {/* Loại Sản Phẩm */}
                         <div className="space-y-3">
                             <div className="flex items-center space-x-2 mb-2">
                                 <List className="w-4 h-4 text-primary-300" />
@@ -550,7 +610,6 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
-                        {/* Trạng Thái */}
                         <div className="space-y-3">
                             <div className="flex items-center space-x-2 mb-2">
                                 <Check className="w-4 h-4 text-primary-300" />
@@ -573,8 +632,6 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                                 <p className="text-red-500 text-xs mt-1">{errors.status}</p>
                             )}
                         </div>
-
-                        {/* Giá */}
                         <div className="space-y-3">
                             <div className="flex items-center space-x-2 mb-2">
                                 <DollarSign className="w-4 h-4 text-primary-300" />
@@ -612,7 +669,6 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">
-                        {/* Hoạt Động */}
                         <div className="space-y-3">
                             <div className="flex items-center space-x-2 mb-2">
                                 <Slash className="w-4 h-4 text-primary-300" />
@@ -635,8 +691,6 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                                 <p className="text-red-500 text-xs mt-1">{errors.isActive}</p>
                             )}
                         </div>
-
-                        {/* Danh Mục Sản Phẩm */}
                         <div className="space-y-3">
                             <div className="flex items-center space-x-2 mb-2">
                                 <List className="w-4 h-4 text-primary-300" />
@@ -664,7 +718,6 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                         </div>
                     </div>
 
-                    {/* Mô tả */}
                     <div className="space-y-3">
                         <div className="flex items-center space-x-2 mb-2">
                             <Edit className="w-4 h-4 text-primary-300" />
@@ -689,7 +742,120 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                         )}
                     </div>
 
-                    {/* Nút điều khiển */}
+                    <div className="space-y-3">
+                        <div className="flex items-center space-x-2 mb-2">
+                            <Tag className="w-4 h-4 text-primary-300" />
+                            <label className="text-sm font-medium text-gray-700">Thuộc tính sản phẩm</label>
+                        </div>
+                        {formData.productAttributes.length === 0 && (
+                            <p className="text-gray-500 text-sm">Chưa có thuộc tính nào.</p>
+                        )}
+                        {formData.productAttributes.map((attr, attrIndex) => (
+                            <div key={attrIndex} className="border p-4 rounded-md space-y-4">
+                                <div className="grid grid-cols-2 gap-4">
+                                    <div>
+                                        <Label>Nhãn</Label>
+                                        <Input
+                                            value={attr.label}
+                                            onChange={(e) => updateProductAttribute(attrIndex, "label", e.target.value)}
+                                            placeholder="Nhập nhãn"
+                                        />
+                                    </div>
+                                    <div>
+                                        <Label>Loại nguyên liệu</Label>
+                                        <Select
+                                            value={attr.ingredientType}
+                                            onValueChange={(value) => updateProductAttribute(attrIndex, "ingredientType", value as EIngredientType)}
+                                        >
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Chọn loại" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {Object.values(EIngredientType).map((type) => (
+                                                    <SelectItem key={type} value={type}>{type}</SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                    <div>
+                                        <Label>Mô tả</Label>
+                                        <Input
+                                            value={attr.description}
+                                            onChange={(e) => updateProductAttribute(attrIndex, "description", e.target.value)}
+                                            placeholder="Nhập mô tả"
+                                        />
+                                    </div>
+                                    <div>
+                                        <Label>Thứ tự hiển thị</Label>
+                                        <Input
+                                            type="number"
+                                            value={attr.displayOrder}
+                                            onChange={(e) => updateProductAttribute(attrIndex, "displayOrder", Number(e.target.value))}
+                                        />
+                                    </div>
+                                    <div>
+                                        <Label>Số lượng mặc định</Label>
+                                        <Input
+                                            type="number"
+                                            value={attr.defaultAmount}
+                                            onChange={(e) => updateProductAttribute(attrIndex, "defaultAmount", Number(e.target.value))}
+                                        />
+                                    </div>
+                                    <div>
+                                        <Label>Đơn vị</Label>
+                                        <Select
+                                            value={attr.unit}
+                                            onValueChange={(value) => updateProductAttribute(attrIndex, "unit", value as EBaseUnit)}
+                                        >
+                                            <SelectTrigger>
+                                                <SelectValue placeholder="Chọn đơn vị" />
+                                            </SelectTrigger>
+                                            <SelectContent>
+                                                {Object.values(EBaseUnit).map((unit) => (
+                                                    <SelectItem key={unit} value={unit}>{unit}</SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                    </div>
+                                </div>
+                                <div className="space-y-2">
+                                    <Label>Tùy chọn thuộc tính</Label>
+                                    {attr.attributeOptions.map((option, optIndex) => (
+                                        <div key={optIndex} className="flex space-x-2">
+                                            <Input
+                                                value={option.name}
+                                                onChange={(e) => updateAttributeOption(attrIndex, optIndex, "name", e.target.value)}
+                                                placeholder="Tên tùy chọn"
+                                            />
+                                            <Input
+                                                type="number"
+                                                value={option.value}
+                                                onChange={(e) => updateAttributeOption(attrIndex, optIndex, "value", Number(e.target.value))}
+                                                placeholder="Giá trị"
+                                            />
+                                            <Button
+                                                variant="destructive"
+                                                size="sm"
+                                                onClick={() => removeAttributeOption(attrIndex, optIndex)}
+                                            >
+                                                Xóa
+                                            </Button>
+                                        </div>
+                                    ))}
+                                    <Button variant="outline" size="sm" onClick={() => addAttributeOption(attrIndex)}>
+                                        Thêm tùy chọn
+                                    </Button>
+                                </div>
+                                <Button variant="destructive" size="sm" onClick={() => removeProductAttribute(attrIndex)}>
+                                    Xóa thuộc tính
+                                </Button>
+                            </div>
+                        ))}
+                        <Button variant="outline" onClick={addProductAttribute}>
+                            Thêm thuộc tính
+                        </Button>
+                    </div>
+
                     <div className="flex justify-between items-center pt-2">
                         <div className="flex items-center space-x-2 text-xs text-gray-400">
                             <Zap className="w-3 h-3" />

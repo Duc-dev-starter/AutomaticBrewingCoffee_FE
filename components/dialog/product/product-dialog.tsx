@@ -77,6 +77,7 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
 
     useEffect(() => {
         const fetchCategories = async () => {
+            setFetching(true);
             try {
                 const response = await getCategories({ page: 1, size: 100 });
                 setCategories(response.items);
@@ -87,6 +88,8 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                     description: "Không thể tải danh sách danh mục.",
                     variant: "destructive",
                 });
+            } finally {
+                setFetching(false);
             }
         };
         if (open) {
@@ -95,7 +98,7 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
     }, [open, toast]);
 
     useEffect(() => {
-        if (product) {
+        if (open && product) {
             setFormData({
                 name: product.name,
                 description: product.description || "",
@@ -117,13 +120,18 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                 price: product.price > 0,
             });
             setErrors({});
-        } else {
+            setSubmitted(false);
+            setFocusedField(null);
+        } else if (open && !product) {
             setFormData(initialFormData);
             setImagePreview(null);
             setImageTab("upload");
             setValidFields({});
+            setErrors({});
+            setSubmitted(false);
+            setFocusedField(null);
         }
-    }, [product]);
+    }, [open, product]);
 
     useEffect(() => {
         if (!open) {
@@ -134,6 +142,7 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
             setImagePreview(null);
             setImageTab("upload");
             setSubmitted(false);
+            setValidFields({});
             setFocusedField(null);
         }
     }, [open]);
@@ -498,7 +507,7 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                                         <p className="text-xs text-muted-foreground">Nhập URL hình ảnh từ internet.</p>
                                     </TabsContent>
                                 </Tabs>
-                                {errors.imageUrl && <p className="text-red-500 text-sm mt-1">{errors.imageUrl}</p>}
+                                {submitted && errors.imageUrl && <p className="text-red-500 text-sm mt-1">{errors.imageUrl}</p>}
                             </div>
                         </div>
                     </div>
@@ -648,11 +657,15 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                                             handleChange("price", value);
                                         }
                                     }}
+                                    onFocus={() => setFocusedField("price")}
+                                    onBlur={() => setFocusedField(null)}
                                     placeholder="Nhập giá sản phẩm"
                                     disabled={loading}
                                     className={cn(
                                         "h-12 text-base px-4 border-2 transition-all duration-300 bg-white/80 backdrop-blur-sm pr-10",
-                                        errors.price && "border-red-300 bg-red-50/50"
+                                        focusedField === "price" && "border-primary-300 ring-4 ring-primary-100 shadow-lg scale-[1.02]",
+                                        validFields.price && "border-green-400 bg-green-50/50",
+                                        !validFields.price && formData.price && "border-red-300 bg-red-50/50"
                                     )}
                                 />
                                 {validFields.price && (
@@ -699,7 +712,7 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                             <Select
                                 value={formData.productCategoryId}
                                 onValueChange={(value) => handleChange("productCategoryId", value)}
-                                disabled={loading}
+                                disabled={loading || fetching}
                             >
                                 <SelectTrigger className="h-12 text-sm px-4 border-2 bg-white/80 backdrop-blur-sm">
                                     <SelectValue placeholder="Chọn danh mục" />
@@ -759,6 +772,7 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                                             value={attr.label}
                                             onChange={(e) => updateProductAttribute(attrIndex, "label", e.target.value)}
                                             placeholder="Nhập nhãn"
+                                            disabled={loading}
                                         />
                                     </div>
                                     <div>
@@ -766,6 +780,7 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                                         <Select
                                             value={attr.ingredientType}
                                             onValueChange={(value) => updateProductAttribute(attrIndex, "ingredientType", value as EIngredientType)}
+                                            disabled={loading}
                                         >
                                             <SelectTrigger>
                                                 <SelectValue placeholder="Chọn loại" />
@@ -783,6 +798,7 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                                             value={attr.description}
                                             onChange={(e) => updateProductAttribute(attrIndex, "description", e.target.value)}
                                             placeholder="Nhập mô tả"
+                                            disabled={loading}
                                         />
                                     </div>
                                     <div>
@@ -791,6 +807,7 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                                             type="number"
                                             value={attr.displayOrder}
                                             onChange={(e) => updateProductAttribute(attrIndex, "displayOrder", Number(e.target.value))}
+                                            disabled={loading}
                                         />
                                     </div>
                                     <div>
@@ -799,6 +816,7 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                                             type="number"
                                             value={attr.defaultAmount}
                                             onChange={(e) => updateProductAttribute(attrIndex, "defaultAmount", Number(e.target.value))}
+                                            disabled={loading}
                                         />
                                     </div>
                                     <div>
@@ -806,6 +824,7 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                                         <Select
                                             value={attr.unit}
                                             onValueChange={(value) => updateProductAttribute(attrIndex, "unit", value as EBaseUnit)}
+                                            disabled={loading}
                                         >
                                             <SelectTrigger>
                                                 <SelectValue placeholder="Chọn đơn vị" />
@@ -826,32 +845,53 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                                                 value={option.name}
                                                 onChange={(e) => updateAttributeOption(attrIndex, optIndex, "name", e.target.value)}
                                                 placeholder="Tên tùy chọn"
+                                                disabled={loading}
                                             />
                                             <Input
                                                 type="number"
                                                 value={option.value}
                                                 onChange={(e) => updateAttributeOption(attrIndex, optIndex, "value", Number(e.target.value))}
                                                 placeholder="Giá trị"
+                                                disabled={loading}
                                             />
                                             <Button
+                                                type="button"
                                                 variant="destructive"
                                                 size="sm"
                                                 onClick={() => removeAttributeOption(attrIndex, optIndex)}
+                                                disabled={loading}
                                             >
                                                 Xóa
                                             </Button>
                                         </div>
                                     ))}
-                                    <Button variant="outline" size="sm" onClick={() => addAttributeOption(attrIndex)}>
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => addAttributeOption(attrIndex)}
+                                        disabled={loading}
+                                    >
                                         Thêm tùy chọn
                                     </Button>
                                 </div>
-                                <Button variant="destructive" size="sm" onClick={() => removeProductAttribute(attrIndex)}>
+                                <Button
+                                    type="button"
+                                    variant="destructive"
+                                    size="sm"
+                                    onClick={() => removeProductAttribute(attrIndex)}
+                                    disabled={loading}
+                                >
                                     Xóa thuộc tính
                                 </Button>
                             </div>
                         ))}
-                        <Button variant="outline" onClick={addProductAttribute}>
+                        <Button
+                            type="button"
+                            variant="outline"
+                            onClick={addProductAttribute}
+                            disabled={loading}
+                        >
                             Thêm thuộc tính
                         </Button>
                     </div>

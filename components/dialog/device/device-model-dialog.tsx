@@ -222,6 +222,7 @@ const DeviceModelDialog = ({ open, onOpenChange, onSuccess, deviceModel }: Devic
                     warningPercent: 0,
                     unit: EBaseUnit.Piece,
                     isRenewable: false,
+                    isPrimary: false,
                     status: EBaseStatus.Active,
                 },
             ],
@@ -271,7 +272,7 @@ const DeviceModelDialog = ({ open, onOpenChange, onSuccess, deviceModel }: Devic
             const data = {
                 modelName: formData.modelName,
                 status: formData.status,
-                manufacturergrounds: formData.manufacturer,
+                manufacturer: formData.manufacturer,
                 deviceTypeId: formData.deviceTypeId,
                 deviceFunctions: formData.deviceFunctions,
                 deviceIngredients: formData.deviceIngredients,
@@ -459,7 +460,7 @@ const DeviceModelDialog = ({ open, onOpenChange, onSuccess, deviceModel }: Devic
                     </div>
 
                     <div className="space-y-4">
-                        <div className="flex items-center justify-between">
+                        <div className="flex items-center justify-between NOTHING">
                             <div className="flex items-center gap-2">
                                 <Settings2 className="h-5 w-5 text-primary-300" />
                                 <Label className="text-base font-semibold">Chức Năng Thiết Bị</Label>
@@ -632,6 +633,22 @@ const DeviceModelDialog = ({ open, onOpenChange, onSuccess, deviceModel }: Devic
                                                         {Object.entries(EBaseStatusViMap).map(([key, value]) => (
                                                             <SelectItem key={key} value={key}>{value}</SelectItem>
                                                         ))}
+                                                    </SelectContent>
+                                                </Select>
+                                            </div>
+                                            <div>
+                                                <Label>Là chính</Label>
+                                                <Select
+                                                    value={ingredient.isPrimary ? "true" : "false"}
+                                                    onValueChange={(value) => handleDeviceIngredientChange(index, "isPrimary", value === "true")}
+                                                    disabled={loading}
+                                                >
+                                                    <SelectTrigger>
+                                                        <SelectValue />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value="true">Có</SelectItem>
+                                                        <SelectItem value="false">Không</SelectItem>
                                                     </SelectContent>
                                                 </Select>
                                             </div>

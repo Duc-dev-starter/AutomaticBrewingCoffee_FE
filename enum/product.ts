@@ -52,7 +52,8 @@ export enum EIngredientType {
     Ice = "Ice",
     Coffee = "Coffee",
     Water = "Water",
-    Milk = "Milk"
+    Milk = "Milk",
+    Cup = "Cup",
 }
 
 export const EIngredientTypeViMap: Record<EIngredientType, string> = {
@@ -61,5 +62,6 @@ export const EIngredientTypeViMap: Record<EIngredientType, string> = {
     [EIngredientType.Ice]: "Đá",
     [EIngredientType.Coffee]: "Cà phê",
     [EIngredientType.Water]: "Nước",
-    [EIngredientType.Milk]: "Sữa"
+    [EIngredientType.Milk]: "Sữa",
+    [EIngredientType.Cup]: "Cốc",
 };

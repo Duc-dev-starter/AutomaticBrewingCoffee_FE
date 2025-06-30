@@ -55,6 +55,7 @@ export interface DeviceIngredient {
     unit: string;
     isRenewable: boolean;
     status: EBaseStatus;
+    isPrimary: boolean;
 }
 
 export interface FunctionParameters {

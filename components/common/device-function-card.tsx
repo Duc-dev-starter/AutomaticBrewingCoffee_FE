@@ -77,6 +77,14 @@ export function DeviceFunctionCard({
                             />
                         </div>
 
+                        <Label htmlFor={`func-label-${index}`}>Label</Label>
+                        <Input
+                            id={`func-label-${index}`}
+                            value={func.label || ""}
+                            onChange={(e) => onUpdate(index, "label", e.target.value)}
+                            placeholder="Ví dụ: Bật đèn, Tắt máy..."
+                        />
+
                         {/* Function Status */}
                         <div className="space-y-2">
                             <Label htmlFor={`func-status-${index}`}>Trạng thái</Label>

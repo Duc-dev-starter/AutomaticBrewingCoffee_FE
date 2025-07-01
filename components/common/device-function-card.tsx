@@ -21,6 +21,7 @@ interface DeviceFunctionCardProps {
     onAddParameter: (functionIndex: number) => void
     onRemoveParameter: (functionIndex: number, paramIndex: number) => void
     onUpdateParameter: (functionIndex: number, paramIndex: number, field: string, value: any) => void
+    errors?: Record<string, any>
 }
 
 export function DeviceFunctionCard({
@@ -31,6 +32,7 @@ export function DeviceFunctionCard({
     onAddParameter,
     onRemoveParameter,
     onUpdateParameter,
+    errors = {},
 }: DeviceFunctionCardProps) {
     const [isOpen, setIsOpen] = useState(true)
 
@@ -75,6 +77,22 @@ export function DeviceFunctionCard({
                                 onChange={(e) => onUpdate(index, "name", e.target.value)}
                                 placeholder="Nhập tên chức năng"
                             />
+                            {errors.name && <p className="text-red-500 text-xs">{errors.name}</p>}
+                        </div>
+
+                        {/* Function Label */}
+                        <div className="space-y-2">
+                            <Label htmlFor={`func-label-${index}`}>
+                                Label
+                                <span className="text-red-500 ml-1">*</span>
+                            </Label>
+                            <Input
+                                id={`func-label-${index}`}
+                                value={func.label || ""}
+                                onChange={(e) => onUpdate(index, "label", e.target.value)}
+                                placeholder="Ví dụ: Bật đèn, Tắt máy..."
+                            />
+                            {errors.label && <p className="text-red-500 text-xs">{errors.label}</p>}
                         </div>
 
                         {/* Function Status */}
@@ -95,6 +113,7 @@ export function DeviceFunctionCard({
                                     ))}
                                 </SelectContent>
                             </Select>
+                            {errors.status && <p className="text-red-500 text-xs">{errors.status}</p>}
                         </div>
 
                         {/* Function Parameters */}
@@ -118,68 +137,120 @@ export function DeviceFunctionCard({
                                 </div>
                             ) : (
                                 <div className="space-y-3">
-                                    {func.functionParameters.map((param, paramIndex) => (
-                                        <Card key={paramIndex} className="bg-muted/30">
-                                            <CardHeader className="pb-2">
-                                                <div className="flex items-center justify-between">
-                                                    <CardTitle className="text-sm">
-                                                        {param.name || `Tham số ${paramIndex + 1}`}
-                                                    </CardTitle>
-                                                    <Button
-                                                        type="button"
-                                                        variant="destructive"
-                                                        size="sm"
-                                                        onClick={() => onRemoveParameter(index, paramIndex)}
-                                                    >
-                                                        <Trash2 className="h-3 w-3" />
-                                                    </Button>
-                                                </div>
-                                            </CardHeader>
-                                            <CardContent className="space-y-3">
-                                                <div className="grid grid-cols-2 gap-3">
-                                                    {/* Parameter Name */}
+                                    {func.functionParameters.map((param, paramIndex) => {
+                                        const paramErrors = errors.functionParameters?.[paramIndex] || {};
+                                        return (
+                                            <Card key={paramIndex} className="bg-muted/30">
+                                                <CardHeader className="pb-2">
+                                                    <div className="flex items-center justify-between">
+                                                        <CardTitle className="text-sm">
+                                                            {param.name || `Tham số ${paramIndex + 1}`}
+                                                        </CardTitle>
+                                                        <Button
+                                                            type="button"
+                                                            variant="destructive"
+                                                            size="sm"
+                                                            onClick={() => onRemoveParameter(index, paramIndex)}
+                                                        >
+                                                            <Trash2 className="h-3 w-3" />
+                                                        </Button>
+                                                    </div>
+                                                </CardHeader>
+                                                <CardContent className="space-y-3">
+                                                    <div className="grid grid-cols-2 gap-3">
+                                                        {/* Parameter Name */}
+                                                        <div className="space-y-2">
+                                                            <Label htmlFor={`param-name-${index}-${paramIndex}`}>
+                                                                Tên tham số
+                                                                <span className="text-red-500 ml-1">*</span>
+                                                            </Label>
+                                                            <Input
+                                                                id={`param-name-${index}-${paramIndex}`}
+                                                                value={param.name}
+                                                                onChange={(e) =>
+                                                                    onUpdateParameter(index, paramIndex, "name", e.target.value)
+                                                                }
+                                                                placeholder="Nhập tên tham số"
+                                                            />
+                                                            {paramErrors.name && (
+                                                                <p className="text-red-500 text-xs">{paramErrors.name}</p>
+                                                            )}
+                                                        </div>
+
+                                                        {/* Parameter Type */}
+                                                        <div className="space-y-2">
+                                                            <Label htmlFor={`param-type-${index}-${paramIndex}`}>Kiểu tham số</Label>
+                                                            <Select
+                                                                value={param.type}
+                                                                onValueChange={(value) =>
+                                                                    onUpdateParameter(index, paramIndex, "type", value)
+                                                                }
+                                                            >
+                                                                <SelectTrigger>
+                                                                    <SelectValue placeholder="Chọn kiểu" />
+                                                                </SelectTrigger>
+                                                                <SelectContent>
+                                                                    {Object.values(EFunctionParameterType).map((type) => (
+                                                                        <SelectItem key={type} value={type}>
+                                                                            {type}
+                                                                        </SelectItem>
+                                                                    ))}
+                                                                </SelectContent>
+                                                            </Select>
+                                                            {paramErrors.type && (
+                                                                <p className="text-red-500 text-xs">{paramErrors.type}</p>
+                                                            )}
+                                                        </div>
+                                                    </div>
+
+                                                    {/* Min/Max Values */}
+                                                    {(param.type === EFunctionParameterType.Double || param.type === EFunctionParameterType.Integer) && (
+                                                        <div className="grid grid-cols-2 gap-3">
+                                                            <div className="space-y-2">
+                                                                <Label htmlFor={`param-min-${index}-${paramIndex}`}>Giá trị tối thiểu</Label>
+                                                                <Input
+                                                                    id={`param-min-${index}-${paramIndex}`}
+                                                                    value={param.min ?? ""}
+                                                                    onChange={(e) =>
+                                                                        onUpdateParameter(index, paramIndex, "min", e.target.value)
+                                                                    }
+                                                                    placeholder="Tùy chọn"
+                                                                />
+                                                                {paramErrors.min && (
+                                                                    <p className="text-red-500 text-xs">{paramErrors.min}</p>
+                                                                )}
+                                                            </div>
+                                                            <div className="space-y-2">
+                                                                <Label htmlFor={`param-max-${index}-${paramIndex}`}>Giá trị tối đa</Label>
+                                                                <Input
+                                                                    id={`param-max-${index}-${paramIndex}`}
+                                                                    value={param.max ?? ""}
+                                                                    onChange={(e) =>
+                                                                        onUpdateParameter(index, paramIndex, "max", e.target.value)
+                                                                    }
+                                                                    placeholder="Tùy chọn"
+                                                                />
+                                                                {paramErrors.max && (
+                                                                    <p className="text-red-500 text-xs">{paramErrors.max}</p>
+                                                                )}
+                                                            </div>
+                                                        </div>
+                                                    )}
+
+                                                    {/* Dynamic Options Input */}
+                                                    <DynamicOptionsInput
+                                                        label="Tùy chọn"
+                                                        value={param.options}
+                                                        onChange={(options) => onUpdateParameter(index, paramIndex, "options", options)}
+                                                        placeholder="Nhập tùy chọn và nhấn Enter hoặc nút +"
+                                                    />
+
+                                                    {/* Default value */}
                                                     <div className="space-y-2">
-                                                        <Label htmlFor={`param-name-${index}-${paramIndex}`}>
-                                                            Tên tham số
+                                                        <Label>
+                                                            Giá trị mặc định
                                                             <span className="text-red-500 ml-1">*</span>
                                                         </Label>
-                                                        <Input
-                                                            id={`param-name-${index}-${paramIndex}`}
-                                                            value={param.name}
-                                                            onChange={(e) =>
-                                                                onUpdateParameter(index, paramIndex, "name", e.target.value)
-                                                            }
-                                                            placeholder="Nhập tên tham số"
-                                                        />
-                                                    </div>
-
-                                                    {/* Parameter Type */}
-                                                    <div className="space-y-2">
-                                                        <Label htmlFor={`param-type-${index}-${paramIndex}`}>Kiểu tham số</Label>
-                                                        <Select
-                                                            value={param.type}
-                                                            onValueChange={(value) =>
-                                                                onUpdateParameter(index, paramIndex, "type", value)
-                                                            }
-                                                        >
-                                                            <SelectTrigger>
-                                                                <SelectValue placeholder="Chọn kiểu" />
-                                                            </SelectTrigger>
-                                                            <SelectContent>
-                                                                {Object.values(EFunctionParameterType).map((type) => (
-                                                                    <SelectItem key={type} value={type}>
-                                                                        {type}
-                                                                    </SelectItem>
-                                                                ))}
-                                                            </SelectContent>
-                                                        </Select>
-                                                    </div>
-                                                </div>
-
-                                                <div className="grid grid-cols-2 gap-3">
-                                                    {/* Default Value */}
-                                                    <div className="space-y-2">
-                                                        <Label htmlFor={`param-default-${index}-${paramIndex}`}>Giá trị mặc định</Label>
                                                         {param.type === EFunctionParameterType.Boolean ? (
                                                             <Select
                                                                 value={
@@ -205,7 +276,6 @@ export function DeviceFunctionCard({
                                                             </Select>
                                                         ) : (
                                                             <Input
-                                                                id={`param-default-${index}-${paramIndex}`}
                                                                 value={param.default || ""}
                                                                 onChange={(e) =>
                                                                     onUpdateParameter(index, paramIndex, "default", e.target.value)
@@ -213,60 +283,30 @@ export function DeviceFunctionCard({
                                                                 placeholder="Nhập giá trị mặc định"
                                                             />
                                                         )}
+                                                        {paramErrors.default && (
+                                                            <p className="text-red-500 text-xs">{paramErrors.default}</p>
+                                                        )}
                                                     </div>
 
                                                     {/* Description */}
                                                     <div className="space-y-2">
-                                                        <Label htmlFor={`param-description-${index}-${paramIndex}`}>Mô tả</Label>
+                                                        <Label>Mô tả</Label>
                                                         <Input
-                                                            id={`param-description-${index}-${paramIndex}`}
-                                                            value={param.description || ""}
+                                                            value={param.description ?? ""}
                                                             onChange={(e) =>
-                                                                onUpdateParameter(index, paramIndex, "description", e.target.value || null)
+                                                                onUpdateParameter(index, paramIndex, "description", e.target.value)
                                                             }
-                                                            placeholder="Nhập mô tả"
+                                                            placeholder="Nhập mô tả (tối đa 450 ký tự)"
+                                                            maxLength={450}
                                                         />
+                                                        {paramErrors.description && (
+                                                            <p className="text-red-500 text-xs">{paramErrors.description}</p>
+                                                        )}
                                                     </div>
-                                                </div>
-
-                                                {/* Min/Max Values */}
-                                                {(param.type === EFunctionParameterType.Double || param.type === EFunctionParameterType.Integer) && (
-                                                    <div className="grid grid-cols-2 gap-3">
-                                                        <div className="space-y-2">
-                                                            <Label htmlFor={`param-min-${index}-${paramIndex}`}>Giá trị tối thiểu</Label>
-                                                            <Input
-                                                                id={`param-min-${index}-${paramIndex}`}
-                                                                value={param.min || ""}
-                                                                onChange={(e) =>
-                                                                    onUpdateParameter(index, paramIndex, "min", e.target.value || null)
-                                                                }
-                                                                placeholder="Tùy chọn"
-                                                            />
-                                                        </div>
-                                                        <div className="space-y-2">
-                                                            <Label htmlFor={`param-max-${index}-${paramIndex}`}>Giá trị tối đa</Label>
-                                                            <Input
-                                                                id={`param-max-${index}-${paramIndex}`}
-                                                                value={param.max || ""}
-                                                                onChange={(e) =>
-                                                                    onUpdateParameter(index, paramIndex, "max", e.target.value || null)
-                                                                }
-                                                                placeholder="Tùy chọn"
-                                                            />
-                                                        </div>
-                                                    </div>
-                                                )}
-
-                                                {/* Dynamic Options Input */}
-                                                <DynamicOptionsInput
-                                                    label="Tùy chọn"
-                                                    value={param.options}
-                                                    onChange={(options) => onUpdateParameter(index, paramIndex, "options", options)}
-                                                    placeholder="Nhập tùy chọn và nhấn Enter hoặc nút +"
-                                                />
-                                            </CardContent>
-                                        </Card>
-                                    ))}
+                                                </CardContent>
+                                            </Card>
+                                        );
+                                    })}
                                 </div>
                             )}
                         </div>

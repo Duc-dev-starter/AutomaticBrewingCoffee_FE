@@ -637,7 +637,7 @@ const CreateWorkflow = () => {
                                 Xem thông tin quy trình
                             </Button>
                         </DialogTrigger>
-                        <DialogContent className="sm:max-w-[600px]">
+                        <DialogContent className="sm:max-w-[650px] p-0 border-0 bg-white backdrop-blur-xl shadow-2xl max-h-[90vh] overflow-y-auto hide-scrollbar">
                             <DialogHeader>
                                 <DialogTitle>Thông tin quy trình</DialogTitle>
                             </DialogHeader>
@@ -906,7 +906,7 @@ const CreateWorkflow = () => {
             </div>
 
             <Dialog open={editingStepIndex !== null} onOpenChange={() => setEditingStepIndex(null)}>
-                <DialogContent className="sm:max-w-[600px]">
+                <DialogContent className="sm:max-w-[650px] p-0 border-0 bg-white backdrop-blur-xl shadow-2xl max-h-[90vh] overflow-y-auto hide-scrollbar">
                     <DialogHeader>
                         <DialogTitle>Chỉnh sửa bước {formData.steps[editingStepIndex ?? 0]?.sequence}</DialogTitle>
                     </DialogHeader>

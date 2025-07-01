@@ -32,9 +32,9 @@ export const deviceModelSchema = z.object({
                     type: z.nativeEnum(EFunctionParameterType),
                     default: z.string().trim().min(1, "Giá trị mặc định là bắt buộc"),
                 })
-            ).optional(),
+            ).default([]),
         }),
-    ).min(1, "Phải có ít nhất một chức năng thiết bị"),
+    ).default([]),
     deviceIngredients: z.array(
         z.object({
             label: z.string().trim().min(1, "Label là bắt buộc"),
@@ -47,7 +47,7 @@ export const deviceModelSchema = z.object({
             isRenewable: z.boolean(),
             status: z.nativeEnum(EBaseStatus),
         })
-    ).min(1, "Phải có ít nhất một thành phần thiết bị"),
+    ).default([]),
 });
 
 export const deviceSchema = z.object({

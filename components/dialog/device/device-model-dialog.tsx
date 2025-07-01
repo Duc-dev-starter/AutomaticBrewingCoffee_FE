@@ -19,25 +19,31 @@ import { deviceModelSchema } from "@/schema/device"
 import { EFunctionParameterType } from "@/enum/device"
 import { DeviceFunctionCard } from "@/components/common/device-function-card"
 import { cn } from "@/lib/utils"
-import { EBaseUnit, EBaseUnitViMap, EIngredientTypeViMap } from "@/enum/product"
+import { EBaseUnit, EBaseUnitViMap, EIngredientType, EIngredientTypeViMap } from "@/enum/product"
 
-// Hàm parse lỗi từ Zod
-const parseErrors = (fieldErrors: Record<string, string[]>) => {
-    const parsedErrors: Record<string, any> = {}
-    for (const [key, value] of Object.entries(fieldErrors)) {
-        const keys = key.split('.')
-        let current = parsedErrors
-        keys.forEach((k, i) => {
-            if (i === keys.length - 1) {
-                current[k] = value[0]
+import { ZodError } from "zod";
+
+// Thay thế hàm parseErrors cũ bằng hàm mới này:
+const parseErrors = (zodError: ZodError) => {
+    const errors: Record<string, any> = {};
+    for (const issue of zodError.errors) {
+        let current = errors;
+        for (let i = 0; i < issue.path.length; i++) {
+            const key = issue.path[i];
+            if (i === issue.path.length - 1) {
+                current[key] = issue.message;
             } else {
-                if (!current[k]) current[k] = {}
-                current = current[k]
+                if (typeof issue.path[i + 1] === "number") {
+                    current[key] = current[key] || [];
+                } else {
+                    current[key] = current[key] || {};
+                }
+                current = current[key];
             }
-        })
+        }
     }
-    return parsedErrors
-}
+    return errors;
+};
 
 const initialFormData = {
     modelName: "",
@@ -175,8 +181,15 @@ const DeviceModelDialog = ({ open, onOpenChange, onSuccess, deviceModel }: Devic
         setFormData((prev) => ({
             ...prev,
             deviceFunctions: prev.deviceFunctions.filter((_, i) => i !== index),
-        }))
-    }
+        }));
+        setErrors((prev) => {
+            const newErrors = { ...prev };
+            if (Array.isArray(newErrors.deviceFunctions)) {
+                newErrors.deviceFunctions = newErrors.deviceFunctions.filter((_, i) => i !== index);
+            }
+            return newErrors;
+        });
+    };
 
     const handleDeviceFunctionChange = (index: number, field: string, value: string) => {
         setFormData((prev) => {
@@ -233,7 +246,7 @@ const DeviceModelDialog = ({ open, onOpenChange, onSuccess, deviceModel }: Devic
                 ...prev.deviceIngredients,
                 {
                     label: "",
-                    ingredientType: "",
+                    ingredientType: EIngredientType.Coffee,
                     description: "",
                     maxCapacity: 0,
                     minCapacity: 0,
@@ -251,8 +264,15 @@ const DeviceModelDialog = ({ open, onOpenChange, onSuccess, deviceModel }: Devic
         setFormData((prev) => ({
             ...prev,
             deviceIngredients: prev.deviceIngredients.filter((_, i) => i !== index),
-        }))
-    }
+        }));
+        setErrors((prev) => {
+            const newErrors = { ...prev };
+            if (Array.isArray(newErrors.deviceIngredients)) {
+                newErrors.deviceIngredients = newErrors.deviceIngredients.filter((_, i) => i !== index);
+            }
+            return newErrors;
+        });
+    };
 
     const handleDeviceIngredientChange = (index: number, field: string, value: any) => {
         setFormData((prev) => {
@@ -270,20 +290,13 @@ const DeviceModelDialog = ({ open, onOpenChange, onSuccess, deviceModel }: Devic
         e.stopPropagation()
         setSubmitted(true)
 
-        const validationResult = deviceModelSchema.safeParse({
-            modelName: formData.modelName,
-            manufacturer: formData.manufacturer,
-            deviceTypeId: formData.deviceTypeId,
-            status: formData.status,
-            deviceFunctions: formData.deviceFunctions,
-            deviceIngredients: formData.deviceIngredients,
-        })
+        const validationResult = deviceModelSchema.safeParse(formData);
         if (!validationResult.success) {
-            const fieldErrors = validationResult.error.flatten().fieldErrors
-            const parsedErrors = parseErrors(fieldErrors)
-            setErrors(parsedErrors)
-            console.error("Validation errors:", parsedErrors)
-            return
+            const parsedErrors = parseErrors(validationResult.error);
+            setErrors(parsedErrors);
+            console.error("Validation failed:", validationResult.error);
+            console.error("Validation errors:", parsedErrors);
+            return;
         }
 
         setErrors({})
@@ -518,9 +531,6 @@ const DeviceModelDialog = ({ open, onOpenChange, onSuccess, deviceModel }: Devic
                                 ))}
                             </div>
                         )}
-                        {submitted && typeof errors.deviceFunctions === 'string' && (
-                            <p className="text-red-500 text-xs mt-1">{errors.deviceFunctions}</p>
-                        )}
                     </div>
 
                     <div className="space-y-4">
@@ -563,28 +573,25 @@ const DeviceModelDialog = ({ open, onOpenChange, onSuccess, deviceModel }: Devic
                                             </div>
                                             <div className="space-y-2">
                                                 <Label>Loại nguyên liệu</Label>
-                                                <div className="space-y-2">
-                                                    <Label>Loại nguyên liệu</Label>
-                                                    <Select
-                                                        value={ingredient.ingredientType}
-                                                        onValueChange={(value) => handleDeviceIngredientChange(index, "ingredientType", value)}
-                                                        disabled={loading}
-                                                    >
-                                                        <SelectTrigger>
-                                                            <SelectValue placeholder="Chọn loại nguyên liệu" />
-                                                        </SelectTrigger>
-                                                        <SelectContent>
-                                                            {Object.entries(EIngredientTypeViMap).map(([key, value]) => (
-                                                                <SelectItem key={key} value={key}>
-                                                                    {value}
-                                                                </SelectItem>
-                                                            ))}
-                                                        </SelectContent>
-                                                    </Select>
-                                                    {submitted && errors.deviceIngredients?.[index]?.ingredientType && (
-                                                        <p className="text-red-500 text-xs">{errors.deviceIngredients[index].ingredientType}</p>
-                                                    )}
-                                                </div>
+                                                <Select
+                                                    value={ingredient.ingredientType}
+                                                    onValueChange={(value) => handleDeviceIngredientChange(index, "ingredientType", value)}
+                                                    disabled={loading}
+                                                >
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder="Chọn loại nguyên liệu" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {Object.entries(EIngredientTypeViMap).map(([key, value]) => (
+                                                            <SelectItem key={key} value={key}>
+                                                                {value}
+                                                            </SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                                {submitted && errors.deviceIngredients?.[index]?.ingredientType && (
+                                                    <p className="text-red-500 text-xs">{errors.deviceIngredients[index].ingredientType}</p>
+                                                )}
                                             </div>
                                             <div className="space-y-2">
                                                 <Label>Mô tả</Label>

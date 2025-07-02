@@ -255,7 +255,7 @@ const ManageKiosks = () => {
             onSync: handleSync,
             onWebhook: handleWebhook,
             onExport: handleExport,
-            onOverrideSync: handleSyncOverride,
+            onSyncOverride: handleSyncOverride,
         }),
         [handleViewDetails, handleEdit, handleDelete, handleSync, handleWebhook, handleExport]
     );
@@ -408,7 +408,7 @@ const ManageKiosks = () => {
                             {(!data && isLoading) ? (
                                 Array.from({ length: pageSize }).map((_, index) => (
                                     <TableRow key={`skeleton-${index}`} className="animate-pulse">
-                                        {columns({ onViewDetails: () => { }, onEdit: () => { }, onDelete: () => { }, onSync: () => { }, onWebhook: () => { }, onExport: () => { }, onOverrideSync: () => { } }).map((column, cellIndex) => (
+                                        {columns({ onViewDetails: () => { }, onEdit: () => { }, onDelete: () => { }, onSync: () => { }, onWebhook: () => { }, onExport: () => { }, onSyncOverride: () => { } }).map((column, cellIndex) => (
                                             <TableCell key={`skeleton-cell-${cellIndex}`}>
                                                 {column.id === "kioskId" ? (
                                                     <Skeleton className="h-5 w-24 mx-auto" />
@@ -450,7 +450,7 @@ const ManageKiosks = () => {
                                     </TableRow>
                                 ))
                             ) : (
-                                <NoResultsRow columns={columns({ onViewDetails: () => { }, onEdit: () => { }, onDelete: () => { }, onSync: () => { }, onWebhook: () => { }, onExport: () => { }, onOverrideSync: () => { } })} />
+                                <NoResultsRow columns={columns({ onViewDetails: () => { }, onEdit: () => { }, onDelete: () => { }, onSync: () => { }, onWebhook: () => { }, onExport: () => { }, onSyncOverride: () => { } })} />
                             )}
                         </TableBody>
                     </Table>

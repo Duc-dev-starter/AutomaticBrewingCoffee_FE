@@ -18,7 +18,7 @@ export const getSyncTasks = async (params: PagingParams = {}): Promise<PagingRes
 };
 
 export const syncOverrideKiosk = async (kioskId: string) => {
-    const response = await BaseService.post({ url: `/syncs/override-kiosk=${kioskId}` });
+    const response = await BaseService.post({ url: `/syncs/override-kiosk??kioskId=${kioskId}` });
     return response;
 }
 

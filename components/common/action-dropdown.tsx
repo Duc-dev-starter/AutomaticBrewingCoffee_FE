@@ -12,6 +12,7 @@ type ActionDropdownProps<T> = {
     onWebhook?: (item: T) => void;
     onClone?: (item: T) => void;
     onExport?: (item: T) => void;
+    onSyncOverride?: (item: T) => void;
 }
 
 export function ActionDropdown<T>({
@@ -24,7 +25,7 @@ export function ActionDropdown<T>({
     onWebhook,
     onClone,
     onExport,
-
+    onSyncOverride
 }: ActionDropdownProps<T>) {
     return (
         <div className="flex justify-center">
@@ -45,6 +46,11 @@ export function ActionDropdown<T>({
                     {onSync && (
                         <DropdownMenuItem onClick={() => onSync(item)}>
                             Đồng bộ
+                        </DropdownMenuItem>
+                    )}
+                    {onSyncOverride && (
+                        <DropdownMenuItem onClick={() => onSyncOverride(item)}>
+                            Đồng bộ ghi đè
                         </DropdownMenuItem>
                     )}
                     {onWebhook && (

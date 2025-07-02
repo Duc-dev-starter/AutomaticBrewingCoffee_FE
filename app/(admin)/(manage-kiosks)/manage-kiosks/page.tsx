@@ -35,6 +35,7 @@ import axios from "axios";
 import Cookies from "js-cookie"
 import { useDebounce, useKiosks, useToast } from "@/hooks";
 import { Path } from "@/constants/path";
+import { syncOverrideKiosk } from "@/services/sync";
 const KioskDialog = React.lazy(() => import("@/components/dialog/kiosk").then(module => ({ default: module.KioskDialog })));
 const KioskDetailDialog = React.lazy(() => import("@/components/dialog/kiosk").then(module => ({ default: module.KioskDetailDialog })));
 const WebhookDialog = React.lazy(() => import("@/components/dialog/webhook").then(module => ({ default: module.WebhookDialog })));
@@ -171,6 +172,25 @@ const ManageKiosks = () => {
         }
     };
 
+    const handleSyncOverride = async (kiosk: Kiosk) => {
+        try {
+            const response = await syncOverrideKiosk(kiosk.kioskId);
+            toast({
+                title: "Thành công",
+                description: response.message,
+            });
+        } catch (error) {
+            const err = error as ErrorResponse;
+            console.error("Lỗi khi đồng bộ ghi đè kiosk:", err);
+            toast({
+                title: "Lỗi khi đồng bộ ghi đè kiosk",
+                description: err.message,
+                variant: "destructive",
+            }
+            )
+        }
+    };
+
     const handleWebhook = useCallback((kiosk: Kiosk) => {
         setSelectedKioskId(kiosk.kioskId);
         setWebhookDialogOpen(true);
@@ -235,6 +255,7 @@ const ManageKiosks = () => {
             onSync: handleSync,
             onWebhook: handleWebhook,
             onExport: handleExport,
+            onOverrideSync: handleSyncOverride,
         }),
         [handleViewDetails, handleEdit, handleDelete, handleSync, handleWebhook, handleExport]
     );
@@ -387,7 +408,7 @@ const ManageKiosks = () => {
                             {(!data && isLoading) ? (
                                 Array.from({ length: pageSize }).map((_, index) => (
                                     <TableRow key={`skeleton-${index}`} className="animate-pulse">
-                                        {columns({ onViewDetails: () => { }, onEdit: () => { }, onDelete: () => { }, onSync: () => { }, onWebhook: () => { }, onExport: () => { } }).map((column, cellIndex) => (
+                                        {columns({ onViewDetails: () => { }, onEdit: () => { }, onDelete: () => { }, onSync: () => { }, onWebhook: () => { }, onExport: () => { }, onOverrideSync: () => { } }).map((column, cellIndex) => (
                                             <TableCell key={`skeleton-cell-${cellIndex}`}>
                                                 {column.id === "kioskId" ? (
                                                     <Skeleton className="h-5 w-24 mx-auto" />
@@ -429,7 +450,7 @@ const ManageKiosks = () => {
                                     </TableRow>
                                 ))
                             ) : (
-                                <NoResultsRow columns={columns({ onViewDetails: () => { }, onEdit: () => { }, onDelete: () => { }, onSync: () => { }, onWebhook: () => { }, onExport: () => { } })} />
+                                <NoResultsRow columns={columns({ onViewDetails: () => { }, onEdit: () => { }, onDelete: () => { }, onSync: () => { }, onWebhook: () => { }, onExport: () => { }, onOverrideSync: () => { } })} />
                             )}
                         </TableBody>
                     </Table>

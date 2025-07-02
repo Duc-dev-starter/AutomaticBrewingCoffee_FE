@@ -16,3 +16,13 @@ export const getSyncTasks = async (params: PagingParams = {}): Promise<PagingRes
         payload: params,
     });
 };
+
+export const syncOverrideKiosk = async (kioskId: string) => {
+    const response = await BaseService.post({ url: `/syncs/override-kiosk=${kioskId}` });
+    return response;
+}
+
+export const syncKiosk = async (kioskId: string) => {
+    const response = await BaseService.post({ url: `${Api.SYNCS}/sync-kiosk?kioskId=${kioskId}` });
+    return response;
+}

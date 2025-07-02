@@ -127,7 +127,6 @@ export const syncKiosk = async (kioskId: string) => {
     return response;
 }
 
-
 export const getOnhub = async (kioskDeviceId: string) => {
     const response = await BaseService.get({ url: `${Api.KIOSKS}${Api.DEVICES}/${kioskDeviceId}/on-hub` });
     return response;

@@ -2,9 +2,7 @@
 
 import { useState, useEffect, useRef, useCallback } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PlusCircle, Loader2, Edit, CheckCircle2, AlertCircle, Zap, Save, Building2, Circle, Edit3, Monitor, MapPin, Phone } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -19,6 +17,7 @@ import { Organization } from "@/interfaces/organization";
 import { LocationType } from "@/interfaces/location";
 import { cn } from "@/lib/utils";
 import { ScrollArea } from "@/components/ui/scroll-area";
+import { FormDescriptionField, FormFooterActions } from "@/components/form";
 
 const initialFormData = {
     organizationId: "",
@@ -35,6 +34,7 @@ const StoreDialog = ({ open, onOpenChange, onSuccess, store }: StoreDialogProps)
     const [formData, setFormData] = useState(initialFormData);
     const [organizations, setOrganizations] = useState<Organization[]>([]);
     const [locationTypes, setLocationTypes] = useState<LocationType[]>([]);
+    const [focusedField, setFocusedField] = useState<string | null>(null);
     const [errors, setErrors] = useState<Record<string, any>>({});
     const [loading, setLoading] = useState(false);
     const [validFields, setValidFields] = useState<Record<string, boolean>>({});
@@ -139,6 +139,7 @@ const StoreDialog = ({ open, onOpenChange, onSuccess, store }: StoreDialogProps)
             setValidFields({});
             setOrganizations([]);
             setLocationTypes([]);
+            setFocusedField(null);
             setOrgPage(1);
             setLocPage(1);
             setHasMoreOrgs(true);
@@ -150,6 +151,7 @@ const StoreDialog = ({ open, onOpenChange, onSuccess, store }: StoreDialogProps)
         if (!open) {
             setFormData(initialFormData);
             setOrganizations([]);
+            setFocusedField(null);
             setLocationTypes([]);
             setSubmitted(false);
             setErrors({});
@@ -460,78 +462,25 @@ const StoreDialog = ({ open, onOpenChange, onSuccess, store }: StoreDialogProps)
                     </div>
 
                     {/* Mô tả */}
-                    <div className="space-y-3">
-                        <div className="flex items-center space-x-2 mb-2">
-                            <Edit3 className="w-4 h-4 text-primary-300" />
-                            <label className="text-sm font-medium text-gray-700">Mô tả</label>
-                        </div>
-                        <div className="relative group">
-                            <Textarea
-                                placeholder="Nhập mô tả cửa hàng"
-                                value={formData.description}
-                                onChange={(e) => handleChange("description", e.target.value)}
-                                disabled={loading}
-                                className={cn(
-                                    "min-h-[100px] text-base p-4 border-2 transition-all duration-300 bg-white/80 backdrop-blur-sm resize-none",
-                                    errors.description && "border-red-300 bg-red-50/50"
-                                )}
-                            />
-                            {!errors.description && formData.description && (
-                                <CheckCircle2 className="absolute right-3 top-3 w-5 h-5 text-green-500 animate-in zoom-in-50" />
-                            )}
-                            {errors.description && (
-                                <AlertCircle className="absolute right-3 top-3 w-5 h-5 text-red-400 animate-in zoom-in-50" />
-                            )}
-                        </div>
-                        <div className="flex justify-between items-center text-xs">
-                            <span className={cn("transition-colors", formData.description.length > 400 ? "text-orange-500" : "text-gray-400")}>
-                                {formData.description.length}/450
-                            </span>
-                        </div>
-                        {errors.description && (
-                            <p className="text-red-500 text-xs mt-1">{errors.description}</p>
-                        )}
-                    </div>
+                    <FormDescriptionField
+                        value={formData.description}
+                        onChange={(val) => handleChange("description", val)}
+                        onFocus={() => setFocusedField("description")}
+                        onBlur={() => setFocusedField(null)}
+                        disabled={loading}
+                        error={errors.description}
+                        submitted={submitted}
+                        valid={validFields.description}
+                        focused={focusedField === "description"}
+                    />
+
 
                     {/* Nút điều khiển */}
-                    <div className="flex justify-between items-center pt-2">
-                        <div className="flex items-center space-x-2 text-xs text-gray-400">
-                            <Zap className="w-3 h-3" />
-                            <span>Ctrl+Enter để lưu • Esc để đóng</span>
-                        </div>
-                        <div className="flex space-x-3">
-                            <Button
-                                type="button"
-                                variant="outline"
-                                onClick={() => onOpenChange(false)}
-                                disabled={loading}
-                                className="h-11 px-6 border-2 border-gray-300 hover:bg-gray-50 transition-all duration-200"
-                            >
-                                Hủy
-                            </Button>
-                            <Button
-                                type="button"
-                                onClick={handleSubmit}
-                                disabled={loading}
-                                className={cn(
-                                    "h-11 px-8 bg-primary text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105",
-                                    loading && "opacity-60 cursor-not-allowed hover:scale-100"
-                                )}
-                            >
-                                {loading ? (
-                                    <>
-                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                        Đang xử lý...
-                                    </>
-                                ) : (
-                                    <>
-                                        <Save className="mr-2 w-4 h-4" />
-                                        {isUpdate ? "Cập nhật" : "Tạo"}
-                                    </>
-                                )}
-                            </Button>
-                        </div>
-                    </div>
+                    <FormFooterActions
+                        onCancel={() => onOpenChange(false)}
+                        loading={loading}
+                        isUpdate={isUpdate}
+                    />
                 </div>
             </DialogContent>
         </Dialog>

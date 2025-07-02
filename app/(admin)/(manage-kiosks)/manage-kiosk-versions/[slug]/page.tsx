@@ -114,7 +114,7 @@ const KioskVersionDetailPage = () => {
                 const payload = {
                     kioskVersionId: slug,
                     deviceModelId: selectedDeviceModelId,
-                    quantity: newQuantity,
+                    quantity: 1,
                 }
 
                 await createDeviceModelInKioskVersion(payload)
@@ -206,7 +206,6 @@ const KioskVersionDetailPage = () => {
             const selectedProduct = products.find((product) => product.productId === selectedProductId)
 
             if (selectedProduct) {
-                // Add the new support product to the list with the correct structure
                 const newSupportProduct: SupportProduct = {
                     kioskVersionId: slug,
                     productId: selectedProductId,

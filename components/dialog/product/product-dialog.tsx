@@ -6,7 +6,6 @@ import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import type { Product, ProductAttribute } from "@/interfaces/product";
@@ -14,12 +13,15 @@ import { EProductStatus, EProductSize, EProductType, EIngredientType, EBaseUnit,
 import { createProduct, updateProduct, getProducts } from "@/services/product";
 import { productSchema } from "@/schema/product";
 import type { ProductDialogProps } from "@/types/dialog";
-import { Upload, X, LinkIcon, ImageIcon, CheckCircle2, AlertCircle, Save, Zap, PlusCircle, Edit, Monitor, DollarSign, Tag, Box, List, Check, Slash } from "lucide-react";
+import { Upload, X, LinkIcon, ImageIcon, CheckCircle2, AlertCircle, PlusCircle, Edit, Monitor, DollarSign, Tag, Box, List, Check, Slash, Edit3 } from "lucide-react";
 import type { ErrorResponse } from "@/types/error";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getCategories } from "@/services/category";
 import { Category } from "@/interfaces/category";
 import { cn } from "@/lib/utils";
+import InfiniteScroll from "react-infinite-scroll-component";
+import { useDebounce } from "@/hooks";
+import { FormDescriptionField, FormFooterActions } from "@/components/form";
 
 const initialFormData = {
     name: "",
@@ -41,7 +43,6 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
     const [formData, setFormData] = useState(initialFormData);
     const [errors, setErrors] = useState<Record<string, string>>({});
     const [loading, setLoading] = useState(false);
-    const [fetching, setFetching] = useState(false);
     const [products, setProducts] = useState<Product[]>([]);
     const [categories, setCategories] = useState<Category[]>([]);
     const [imagePreview, setImagePreview] = useState<string | null>(null);
@@ -51,52 +52,97 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
     const [focusedField, setFocusedField] = useState<string | null>(null);
     const nameInputRef = useRef<HTMLInputElement>(null);
 
+    const [parentSearchQuery, setParentSearchQuery] = useState("");
+    const [pageParents, setPageParents] = useState(1);
+    const [hasMoreParents, setHasMoreParents] = useState(true);
+    const debouncedParentSearchQuery = useDebounce(parentSearchQuery, 300);
+
+    const [categorySearchQuery, setCategorySearchQuery] = useState("");
+    const [pageCategories, setPageCategories] = useState(1);
+    const [hasMoreCategories, setHasMoreCategories] = useState(true);
+    const debouncedCategorySearchQuery = useDebounce(categorySearchQuery, 300);
+
     const isUpdate = !!product;
 
-    useEffect(() => {
-        const fetchProducts = async () => {
-            setFetching(true);
-            try {
-                const response = await getProducts({ page: 1, size: 100 });
+    const fetchProducts = async (pageNumber: number, query: string) => {
+        setLoading(true);
+        try {
+            const response = await getProducts({
+                page: pageNumber,
+                size: 10,
+                filterBy: "name",
+                filterQuery: query,
+                type: EProductType.Parent, // Chỉ lấy sản phẩm cha
+            });
+            if (pageNumber === 1) {
                 setProducts(response.items);
-            } catch (error) {
-                console.error("Lỗi khi tải sản phẩm:", error);
-                toast({
-                    title: "Lỗi",
-                    description: "Không thể tải danh sách sản phẩm.",
-                    variant: "destructive",
-                });
-            } finally {
-                setFetching(false);
+            } else {
+                setProducts((prev) => [...prev, ...response.items]);
             }
-        };
-        if (open) {
-            fetchProducts();
+            setHasMoreParents(response.items.length === 10);
+            setPageParents(pageNumber);
+        } catch (error) {
+            console.error("Lỗi khi tải sản phẩm:", error);
+            toast({
+                title: "Lỗi",
+                description: "Không thể tải danh sách sản phẩm.",
+                variant: "destructive",
+            });
+        } finally {
+            setLoading(false);
         }
-    }, [open, toast]);
+    };
 
-    useEffect(() => {
-        const fetchCategories = async () => {
-            setFetching(true);
-            try {
-                const response = await getCategories({ page: 1, size: 100 });
+    // Fetch danh sách danh mục sản phẩm
+    const fetchCategories = async (pageNumber: number, query: string) => {
+        setLoading(true);
+        try {
+            const response = await getCategories({
+                page: pageNumber,
+                size: 10,
+                filterBy: "name",
+                filterQuery: query,
+            });
+            if (pageNumber === 1) {
                 setCategories(response.items);
-            } catch (error) {
-                console.error("Lỗi khi tải danh mục:", error);
-                toast({
-                    title: "Lỗi",
-                    description: "Không thể tải danh sách danh mục.",
-                    variant: "destructive",
-                });
-            } finally {
-                setFetching(false);
+            } else {
+                setCategories((prev) => [...prev, ...response.items]);
             }
-        };
-        if (open) {
-            fetchCategories();
+            setHasMoreCategories(response.items.length === 10);
+            setPageCategories(pageNumber);
+        } catch (error) {
+            console.error("Lỗi khi tải danh mục:", error);
+            toast({
+                title: "Lỗi",
+                description: "Không thể tải danh sách danh mục.",
+                variant: "destructive",
+            });
+        } finally {
+            setLoading(false);
         }
-    }, [open, toast]);
+    };
 
+    // Tải dữ liệu khi dialog mở hoặc từ khóa tìm kiếm thay đổi
+    useEffect(() => {
+        if (open) {
+            fetchProducts(1, debouncedParentSearchQuery);
+            fetchCategories(1, debouncedCategorySearchQuery);
+        }
+    }, [open, debouncedParentSearchQuery, debouncedCategorySearchQuery]);
+
+    // Tải thêm dữ liệu cho sản phẩm cha
+    const loadMoreParents = async () => {
+        const nextPage = pageParents + 1;
+        await fetchProducts(nextPage, debouncedParentSearchQuery);
+    };
+
+    // Tải thêm dữ liệu cho danh mục sản phẩm
+    const loadMoreCategories = async () => {
+        const nextPage = pageCategories + 1;
+        await fetchCategories(nextPage, debouncedCategorySearchQuery);
+    };
+
+    // Các useEffect khác giữ nguyên
     useEffect(() => {
         if (open && product) {
             setFormData({
@@ -165,6 +211,7 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
         return () => document.removeEventListener("keydown", handleKeyDown);
     }, [open, formData]);
 
+    // Các hàm xử lý khác giữ nguyên
     const validateField = (field: string, value: string) => {
         const newValidFields = { ...validFields };
         switch (field) {
@@ -407,7 +454,7 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                 <div className="relative overflow-hidden bg-primary-100 rounded-tl-2xl rounded-tr-2xl">
                     <div className="relative px-8 py-6 border-b border-primary-300">
                         <div className="flex items-center space-x-4">
-                            <div className="w-14 h-14 bg-gradient-to-r from-primary-400 to-primary-500 rounded-2xl flex items-center justify-center shadow-lg">
+                            <div className="w-14 h-14 bg-gradient-to-r from-primary-400 to-primary-500 rounded-2xl flex-items-center justify-center shadow-lg">
                                 {isUpdate ? <Edit className="w-7 h-7 text-primary-100" /> : <PlusCircle className="w-7 h-7 text-primary-100" />}
                             </div>
                             <div>
@@ -421,6 +468,7 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                 </div>
 
                 <form onSubmit={handleSubmit} className="px-8 py-8 pt-2 space-y-8">
+                    {/* Hình ảnh sản phẩm giữ nguyên */}
                     <div className="space-y-2">
                         <Label className="text-sm font-medium text-gray-700">Hình ảnh sản phẩm</Label>
                         <div className="flex items-start gap-4">
@@ -512,6 +560,7 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                         </div>
                     </div>
 
+                    {/* Tên sản phẩm và Sản phẩm cha */}
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-3">
                             <div className="flex items-center space-x-2 mb-2">
@@ -553,17 +602,36 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                             <Select
                                 value={formData.parentId}
                                 onValueChange={(value) => handleChange("parentId", value)}
-                                disabled={loading || fetching}
+                                disabled={loading}
                             >
                                 <SelectTrigger className="h-12 text-sm px-4 border-2 bg-white/80 backdrop-blur-sm">
                                     <SelectValue placeholder="Chọn sản phẩm cha (tùy chọn)" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {products.map((p) => (
-                                        <SelectItem key={p.productId} value={p.productId}>
-                                            {p.name}
-                                        </SelectItem>
-                                    ))}
+                                    <div className="p-2">
+                                        <Input
+                                            placeholder="Tìm kiếm sản phẩm cha..."
+                                            className="h-10 text-xs px-3"
+                                            value={parentSearchQuery}
+                                            onChange={(e) => setParentSearchQuery(e.target.value)}
+                                            disabled={loading}
+                                        />
+                                    </div>
+                                    <div id="parent-scroll" className="max-h-[200px] overflow-y-auto">
+                                        <InfiniteScroll
+                                            dataLength={products.length}
+                                            next={loadMoreParents}
+                                            hasMore={hasMoreParents}
+                                            loader={<div className="p-2 text-center text-sm">Đang tải thêm...</div>}
+                                            scrollableTarget="parent-scroll"
+                                        >
+                                            {products.map((p) => (
+                                                <SelectItem key={p.productId} value={p.productId}>
+                                                    {p.name}
+                                                </SelectItem>
+                                            ))}
+                                        </InfiniteScroll>
+                                    </div>
                                 </SelectContent>
                             </Select>
                             {submitted && errors.parentId && (
@@ -572,6 +640,7 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                         </div>
                     </div>
 
+                    {/* Size và Loại sản phẩm giữ nguyên */}
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-3">
                             <div className="flex items-center space-x-2 mb-2">
@@ -618,6 +687,7 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                         </div>
                     </div>
 
+                    {/* Trạng thái và Giá giữ nguyên */}
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-3">
                             <div className="flex items-center space-x-2 mb-2">
@@ -681,6 +751,7 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                         </div>
                     </div>
 
+                    {/* Hoạt động và Danh mục sản phẩm */}
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-3">
                             <div className="flex items-center space-x-2 mb-2">
@@ -712,17 +783,36 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                             <Select
                                 value={formData.productCategoryId}
                                 onValueChange={(value) => handleChange("productCategoryId", value)}
-                                disabled={loading || fetching}
+                                disabled={loading}
                             >
                                 <SelectTrigger className="h-12 text-sm px-4 border-2 bg-white/80 backdrop-blur-sm">
                                     <SelectValue placeholder="Chọn danh mục" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {categories.map((category) => (
-                                        <SelectItem key={category.productCategoryId} value={category.productCategoryId}>
-                                            {category.name}
-                                        </SelectItem>
-                                    ))}
+                                    <div className="p-2">
+                                        <Input
+                                            placeholder="Tìm kiếm danh mục..."
+                                            className="h-10 text-xs px-3"
+                                            value={categorySearchQuery}
+                                            onChange={(e) => setCategorySearchQuery(e.target.value)}
+                                            disabled={loading}
+                                        />
+                                    </div>
+                                    <div id="category-scroll" className="max-h-[200px] overflow-y-auto">
+                                        <InfiniteScroll
+                                            dataLength={categories.length}
+                                            next={loadMoreCategories}
+                                            hasMore={hasMoreCategories}
+                                            loader={<div className="p-2 text-center text-sm">Đang tải thêm...</div>}
+                                            scrollableTarget="category-scroll"
+                                        >
+                                            {categories.map((category) => (
+                                                <SelectItem key={category.productCategoryId} value={category.productCategoryId}>
+                                                    {category.name}
+                                                </SelectItem>
+                                            ))}
+                                        </InfiniteScroll>
+                                    </div>
                                 </SelectContent>
                             </Select>
                             {submitted && errors.productCategoryId && (
@@ -731,29 +821,17 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                         </div>
                     </div>
 
-                    <div className="space-y-3">
-                        <div className="flex items-center space-x-2 mb-2">
-                            <Edit className="w-4 h-4 text-primary-300" />
-                            <label className="text-sm font-medium text-gray-700">Mô tả</label>
-                        </div>
-                        <div className="relative group">
-                            <Textarea
-                                placeholder="Nhập mô tả sản phẩm"
-                                value={formData.description}
-                                onChange={(e) => handleChange("description", e.target.value)}
-                                onFocus={() => setFocusedField("description")}
-                                onBlur={() => setFocusedField(null)}
-                                disabled={loading}
-                                className={cn(
-                                    "min-h-[100px] text-base p-4 border-2 transition-all duration-300 bg-white/80 backdrop-blur-sm resize-none",
-                                    focusedField === "description" && "border-primary-300 ring-4 ring-primary-100 shadow-lg scale-[1.01]"
-                                )}
-                            />
-                        </div>
-                        {submitted && errors.description && (
-                            <p className="text-red-500 text-xs mt-1">{errors.description}</p>
-                        )}
-                    </div>
+                    {/* Mô tả */}
+                    <FormDescriptionField
+                        label="Mô tả"
+                        icon={<Edit3 className="w-4 h-4 text-primary-300" />}
+                        value={formData.description}
+                        onChange={(val) => handleChange("description", val)}
+                        placeholder="Nhập mô tả menu"
+                        disabled={loading}
+                        error={errors.description}
+                        maxLength={450}
+                    />
 
                     <div className="space-y-3">
                         <div className="flex items-center space-x-2 mb-2">
@@ -896,40 +974,11 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                         </Button>
                     </div>
 
-                    <div className="flex justify-between items-center pt-2">
-                        <div className="flex items-center space-x-2 text-xs text-gray-400">
-                            <Zap className="w-3 h-3" />
-                            <span>Ctrl+Enter để lưu • Esc để đóng</span>
-                        </div>
-                        <div className="flex space-x-3">
-                            <Button
-                                type="button"
-                                variant="outline"
-                                onClick={() => onOpenChange(false)}
-                                disabled={loading}
-                                className="h-11 px-6 border-2 border-gray-300 hover:bg-gray-50 transition-all duration-200"
-                            >
-                                Hủy
-                            </Button>
-                            <Button
-                                type="submit"
-                                disabled={loading || fetching}
-                                className={cn(
-                                    "h-11 px-8 bg-primary text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105",
-                                    loading && "opacity-60 cursor-not-allowed hover:scale-100"
-                                )}
-                            >
-                                {loading ? (
-                                    "Đang xử lý..."
-                                ) : (
-                                    <>
-                                        <Save className="mr-2 w-4 h-4" />
-                                        {isUpdate ? "Cập nhật" : "Tạo"}
-                                    </>
-                                )}
-                            </Button>
-                        </div>
-                    </div>
+                    <FormFooterActions
+                        onCancel={() => onOpenChange(false)}
+                        loading={loading}
+                        isUpdate={isUpdate}
+                    />
                 </form>
             </DialogContent>
         </Dialog>

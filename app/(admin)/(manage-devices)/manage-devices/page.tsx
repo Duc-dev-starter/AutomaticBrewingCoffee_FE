@@ -44,7 +44,10 @@ const ManageDevices = () => {
 
     const [sorting, setSorting] = useState<SortingState>([{ id: "createdDate", desc: true }]);
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-    const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+    const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({
+        createdDate: false,
+        updatedDate: false,
+    });
     const [rowSelection, setRowSelection] = useState({});
 
     const [dialogOpen, setDialogOpen] = useState<boolean>(false);

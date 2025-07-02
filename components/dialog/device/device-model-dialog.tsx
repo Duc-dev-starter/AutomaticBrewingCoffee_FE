@@ -22,6 +22,7 @@ import { cn } from "@/lib/utils"
 import { EBaseUnit, EBaseUnitViMap, EIngredientType, EIngredientTypeViMap } from "@/enum/product"
 
 import { ZodError } from "zod";
+import { FormFooterActions } from "@/components/form"
 
 // Thay thế hàm parseErrors cũ bằng hàm mới này:
 const parseErrors = (zodError: ZodError) => {
@@ -743,44 +744,11 @@ const DeviceModelDialog = ({ open, onOpenChange, onSuccess, deviceModel }: Devic
                         )}
                     </div>
 
-                    <div className="flex justify-between items-center pt-2">
-                        <div className="flex items-center space-x-2 text-xs text-gray-400">
-                            <Zap className="w-3 h-3" />
-                            <span>Ctrl+Enter để lưu • Esc để đóng</span>
-                        </div>
-                        <div className="flex space-x-3">
-                            <Button
-                                type="button"
-                                variant="outline"
-                                onClick={() => onOpenChange(false)}
-                                disabled={loading}
-                                className="h-11 px-6 border-2 border-gray-300 hover:bg-gray-50 transition-all duration-200"
-                            >
-                                Hủy
-                            </Button>
-                            <Button
-                                type="button"
-                                onClick={handleSubmit}
-                                disabled={loading}
-                                className={cn(
-                                    "h-11 px-8 bg-primary text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105",
-                                    loading && "opacity-60 cursor-not-allowed hover:scale-100"
-                                )}
-                            >
-                                {loading ? (
-                                    <>
-                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                        Đang xử lý...
-                                    </>
-                                ) : (
-                                    <>
-                                        <Save className="mr-2 w-4 h-4" />
-                                        {isUpdate ? "Cập nhật" : "Tạo"}
-                                    </>
-                                )}
-                            </Button>
-                        </div>
-                    </div>
+                    <FormFooterActions
+                        onCancel={() => onOpenChange(false)}
+                        loading={loading}
+                        isUpdate={isUpdate}
+                    />
                 </div>
             </DialogContent>
         </Dialog>

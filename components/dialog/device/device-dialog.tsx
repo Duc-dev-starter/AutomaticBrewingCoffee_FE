@@ -19,6 +19,7 @@ import { cn } from "@/lib/utils";
 import InfiniteScroll from "react-infinite-scroll-component";
 import { useDebounce } from "@/hooks";
 import { DeviceStatusSelect } from "@/components/manage-devices";
+import { FormDescriptionField, FormFooterActions } from "@/components/form";
 
 const initialFormData = {
     deviceModelId: "",
@@ -215,7 +216,6 @@ const DeviceDialog = ({ open, onOpenChange, onSuccess, device }: DeviceDialogPro
         }
     };
 
-    const selectedDeviceModel = deviceModels.find((model) => model.deviceModelId === formData.deviceModelId);
 
     if (isSuccess) {
         return (
@@ -390,76 +390,24 @@ const DeviceDialog = ({ open, onOpenChange, onSuccess, device }: DeviceDialogPro
                     </div>
 
                     {/* Mô tả */}
-                    <div className="space-y-3">
-                        <div className="flex items-center space-x-2 mb-2">
-                            <Edit3 className="w-4 h-4 text-primary-300" />
-                            <label className="text-sm font-medium text-gray-700 asterisk">Mô tả</label>
-                        </div>
-                        <div className="relative group">
-                            <Textarea
-                                placeholder="Mô tả chi tiết về thiết bị..."
-                                value={formData.description}
-                                onChange={(e) => handleChange("description", e.target.value)}
-                                onFocus={() => setFocusedField("description")}
-                                onBlur={() => setFocusedField(null)}
-                                disabled={loading}
-                                className={cn(
-                                    "min-h-[100px] text-base p-4 border-2 transition-all duration-300 bg-white/80 backdrop-blur-sm resize-none",
-                                    focusedField === "description" && "border-primary-300 ring-4 ring-primary-100 shadow-lg scale-[1.01]",
-                                    validFields.description && "border-green-400 bg-green-50/50"
-                                )}
-                            />
-                            {validFields.description && (
-                                <CheckCircle2 className="absolute right-3 top-3 w-5 h-5 text-green-500 animate-in zoom-in-50" />
-                            )}
-                        </div>
-                        <div className="flex justify-between items-center text-xs">
-                            <span className={cn("transition-colors", formData.description.length > 400 ? "text-orange-500" : "text-gray-400")}>
-                                {formData.description.length}/450
-                            </span>
-                        </div>
-                        {submitted && errors.description && <p className="text-red-500 text-xs mt-1">{errors.description}</p>}
-                    </div>
+                    <FormDescriptionField
+                        value={formData.description}
+                        onChange={(val) => handleChange("description", val)}
+                        onFocus={() => setFocusedField("description")}
+                        onBlur={() => setFocusedField(null)}
+                        disabled={loading}
+                        error={errors.description}
+                        submitted={submitted}
+                        valid={validFields.description}
+                        focused={focusedField === "description"}
+                    />
 
                     {/* Nút điều khiển */}
-                    <div className="flex justify-between items-center">
-                        <div className="flex items-center space-x-2 text-xs text-gray-400">
-                            <Zap className="w-3 h-3" />
-                            <span>Ctrl+Enter để lưu • Esc để đóng</span>
-                        </div>
-                        <div className="flex space-x-3">
-                            <Button
-                                type="button"
-                                variant="outline"
-                                onClick={() => onOpenChange(false)}
-                                disabled={loading}
-                                className="h-11 px-6 border-2 border-gray-300 hover:bg-gray-50 transition-all duration-200"
-                            >
-                                Hủy
-                            </Button>
-                            <Button
-                                type="button"
-                                onClick={handleSubmit}
-                                disabled={loading}
-                                className={cn(
-                                    "h-11 px-8 bg-primary text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105",
-                                    loading && "opacity-60 cursor-not-allowed hover:scale-100"
-                                )}
-                            >
-                                {loading ? (
-                                    <>
-                                        <div className="w-4 h-4 border-2 border-white border-t-transparent rounded-full animate-spin mr-2" />
-                                        Đang xử lý...
-                                    </>
-                                ) : (
-                                    <>
-                                        <Save className="mr-2 w-4 h-4" />
-                                        {isUpdate ? "Cập nhật" : "Tạo"}
-                                    </>
-                                )}
-                            </Button>
-                        </div>
-                    </div>
+                    <FormFooterActions
+                        onCancel={() => onOpenChange(false)}
+                        loading={loading}
+                        isUpdate={isUpdate}
+                    />
                 </div>
             </DialogContent>
         </Dialog>

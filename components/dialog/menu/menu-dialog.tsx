@@ -4,7 +4,6 @@ import { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { PlusCircle, Loader2, Edit, CheckCircle2, AlertCircle, Zap, Save, Building2, Circle, Edit3, Monitor } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
@@ -16,6 +15,9 @@ import { ErrorResponse } from "@/types/error";
 import { menuSchema } from "@/schema/menu";
 import { Organization } from "@/interfaces/organization";
 import { cn } from "@/lib/utils";
+import InfiniteScroll from "react-infinite-scroll-component";
+import { useDebounce } from "@/hooks";
+import { FormBaseStatusSelectField, FormDescriptionField, FormFooterActions } from "@/components/form";
 
 const initialFormData = {
     organizationId: "",
@@ -30,27 +32,30 @@ const MenuDialog = ({ open, onOpenChange, onSuccess, menu }: MenuDialogProps) =>
     const [organizations, setOrganizations] = useState<Organization[]>([]);
     const [errors, setErrors] = useState<Record<string, any>>({});
     const [loading, setLoading] = useState(false);
+    const [organizationSearchQuery, setOrganizationSearchQuery] = useState("");
+    const [pageOrganizations, setPageOrganizations] = useState(1);
+    const [hasMoreOrganizations, setHasMoreOrganizations] = useState(true);
     const nameInputRef = useRef<HTMLInputElement>(null);
 
+    const debouncedOrganizationSearchQuery = useDebounce(organizationSearchQuery, 300);
     const isUpdate = !!menu;
 
     useEffect(() => {
-        if (open) {
-            fetchOrganizations();
-            if (nameInputRef.current) {
-                setTimeout(() => nameInputRef.current?.focus(), 200);
-            }
+        if (!open) {
+            setFormData(initialFormData);
+            setOrganizations([]);
+            setErrors({});
+            setOrganizationSearchQuery("");
+            setPageOrganizations(1);
+            setHasMoreOrganizations(true);
         }
     }, [open]);
 
-    const fetchOrganizations = async () => {
-        try {
-            const response = await getOrganizations();
-            setOrganizations(response.items);
-        } catch (error) {
-            console.error("Lỗi khi lấy danh sách tổ chức:", error);
+    useEffect(() => {
+        if (open && nameInputRef.current) {
+            setTimeout(() => nameInputRef.current?.focus(), 200);
         }
-    };
+    }, [open]);
 
     useEffect(() => {
         if (menu) {
@@ -60,18 +65,39 @@ const MenuDialog = ({ open, onOpenChange, onSuccess, menu }: MenuDialogProps) =>
                 description: menu.description ?? "",
                 status: menu.status,
             });
-        } else {
-            setFormData(initialFormData);
         }
     }, [menu, open]);
 
     useEffect(() => {
-        if (!open) {
-            setFormData(initialFormData);
-            setOrganizations([]);
-            setErrors({});
+        if (open) {
+            fetchOrganizations(1, debouncedOrganizationSearchQuery);
         }
-    }, [open]);
+    }, [open, debouncedOrganizationSearchQuery]);
+
+    const fetchOrganizations = async (pageNumber: number, query: string) => {
+        try {
+            const response = await getOrganizations({
+                page: pageNumber,
+                size: 10,
+                filterBy: "name",
+                filterQuery: query,
+            });
+            if (pageNumber === 1) {
+                setOrganizations(response.items);
+            } else {
+                setOrganizations((prev) => [...prev, ...response.items]);
+            }
+            setHasMoreOrganizations(response.items.length === 10);
+            setPageOrganizations(pageNumber);
+        } catch (error) {
+            console.error("Lỗi khi lấy danh sách tổ chức:", error);
+        }
+    };
+
+    const loadMoreOrganizations = async () => {
+        const nextPage = pageOrganizations + 1;
+        await fetchOrganizations(nextPage, debouncedOrganizationSearchQuery);
+    };
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
@@ -192,17 +218,36 @@ const MenuDialog = ({ open, onOpenChange, onSuccess, menu }: MenuDialogProps) =>
                             <Select
                                 value={formData.organizationId}
                                 onValueChange={(value) => handleChange("organizationId", value)}
-                                disabled={loading || organizations.length === 0}
+                                disabled={loading}
                             >
-                                <SelectTrigger className="h-12 text-base px-4 border-2 bg-white/80 backdrop-blur-sm">
+                                <SelectTrigger className="h-12 text-sm px-4 border-2 bg-white/80 backdrop-blur-sm">
                                     <SelectValue placeholder="Chọn tổ chức" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    {organizations.map((org) => (
-                                        <SelectItem key={org.organizationId} value={org.organizationId}>
-                                            {org.name}
-                                        </SelectItem>
-                                    ))}
+                                    <div className="p-2">
+                                        <Input
+                                            placeholder="Tìm kiếm tổ chức..."
+                                            className="h-10 text-xs px-3"
+                                            value={organizationSearchQuery}
+                                            onChange={(e) => setOrganizationSearchQuery(e.target.value)}
+                                            disabled={loading}
+                                        />
+                                    </div>
+                                    <div id="organization-scroll" className="max-h-[200px] overflow-y-auto">
+                                        <InfiniteScroll
+                                            dataLength={organizations.length}
+                                            next={loadMoreOrganizations}
+                                            hasMore={hasMoreOrganizations}
+                                            loader={<div className="p-2 text-center text-sm">Đang tải thêm...</div>}
+                                            scrollableTarget="organization-scroll"
+                                        >
+                                            {organizations.map((org) => (
+                                                <SelectItem key={org.organizationId} value={org.organizationId}>
+                                                    {org.name}
+                                                </SelectItem>
+                                            ))}
+                                        </InfiniteScroll>
+                                    </div>
                                 </SelectContent>
                             </Select>
                             {errors.organizationId && (
@@ -213,105 +258,37 @@ const MenuDialog = ({ open, onOpenChange, onSuccess, menu }: MenuDialogProps) =>
 
                     <div className="grid grid-cols-2 gap-4">
                         {/* Trạng thái */}
-                        <div className="space-y-3">
-                            <div className="flex items-center space-x-2 mb-2">
-                                <Circle className="w-4 h-4 text-primary-300" />
-                                <label className="text-sm font-medium text-gray-700 asterisk">Trạng thái</label>
-                            </div>
-                            <Select
-                                value={formData.status}
-                                onValueChange={(value) => handleChange("status", value as EBaseStatus)}
-                                disabled={loading}
-                            >
-                                <SelectTrigger className="h-12 text-base px-4 border-2 bg-white/80 backdrop-blur-sm">
-                                    <SelectValue placeholder="Chọn trạng thái" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    {Object.entries(EBaseStatusViMap).map(([key, label]) => (
-                                        <SelectItem key={key} value={key} className="text-sm">
-                                            {label}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            {errors.status && (
-                                <p className="text-red-500 text-xs mt-1">{errors.status}</p>
-                            )}
-                        </div>
+                        <FormBaseStatusSelectField
+                            label="Trạng thái"
+                            value={formData.status}
+                            onChange={(value) => handleChange("status", value as EBaseStatus)}
+                            placeholder="Chọn trạng thái"
+                            options={Object.entries(EBaseStatusViMap).map(([value, label]) => ({
+                                value,
+                                label,
+                            }))}
+                            error={errors.status}
+                        />
                     </div>
 
                     {/* Mô tả */}
-                    <div className="space-y-3">
-                        <div className="flex items-center space-x-2 mb-2">
-                            <Edit3 className="w-4 h-4 text-primary-300" />
-                            <label className="text-sm font-medium text-gray-700">Mô tả</label>
-                        </div>
-                        <div className="relative group">
-                            <Textarea
-                                placeholder="Nhập mô tả menu"
-                                value={formData.description}
-                                onChange={(e) => handleChange("description", e.target.value)}
-                                disabled={loading}
-                                className={cn(
-                                    "min-h-[100px] text-base p-4 border-2 transition-all duration-300 bg-white/80 backdrop-blur-sm resize-none",
-                                    errors.description && "border-red-300 bg-red-50/50"
-                                )}
-                            />
-                            {!errors.description && formData.description && (
-                                <CheckCircle2 className="absolute right-3 top-3 w-5 h-5 text-green-500 animate-in zoom-in-50" />
-                            )}
-                            {errors.description && (
-                                <AlertCircle className="absolute right-3 top-3 w-5 h-5 text-red-400 animate-in zoom-in-50" />
-                            )}
-                        </div>
-                        <div className="flex justify-between items-center text-xs">
-                            <span className={cn("transition-colors", formData.description.length > 400 ? "text-orange-500" : "text-gray-400")}>
-                                {formData.description.length}/450
-                            </span>
-                        </div>
-                        {errors.description && (
-                            <p className="text-red-500 text-xs mt-1">{errors.description}</p>
-                        )}
-                    </div>
+                    <FormDescriptionField
+                        label="Mô tả"
+                        icon={<Edit3 className="w-4 h-4 text-primary-300" />}
+                        value={formData.description}
+                        onChange={(val) => handleChange("description", val)}
+                        placeholder="Nhập mô tả menu"
+                        disabled={loading}
+                        error={errors.description}
+                        maxLength={450}
+                    />
 
                     {/* Nút điều khiển */}
-                    <div className="flex justify-between items-center pt-2">
-                        <div className="flex items-center space-x-2 text-xs text-gray-400">
-                            <Zap className="w-3 h-3" />
-                            <span>Ctrl+Enter để lưu • Esc để đóng</span>
-                        </div>
-                        <div className="flex space-x-3">
-                            <Button
-                                type="button"
-                                variant="outline"
-                                onClick={() => onOpenChange(false)}
-                                disabled={loading}
-                                className="h-11 px-6 border-2 border-gray-300 hover:bg-gray-50 transition-all duration-200"
-                            >
-                                Hủy
-                            </Button>
-                            <Button
-                                type="submit"
-                                disabled={loading}
-                                className={cn(
-                                    "h-11 px-8 bg-primary text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105",
-                                    loading && "opacity-60 cursor-not-allowed hover:scale-100"
-                                )}
-                            >
-                                {loading ? (
-                                    <>
-                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                        Đang xử lý...
-                                    </>
-                                ) : (
-                                    <>
-                                        <Save className="mr-2 w-4 h-4" />
-                                        {isUpdate ? "Cập nhật" : "Tạo"}
-                                    </>
-                                )}
-                            </Button>
-                        </div>
-                    </div>
+                    <FormFooterActions
+                        onCancel={() => onOpenChange(false)}
+                        loading={loading}
+                        isUpdate={isUpdate}
+                    />
                 </form>
             </DialogContent>
         </Dialog>

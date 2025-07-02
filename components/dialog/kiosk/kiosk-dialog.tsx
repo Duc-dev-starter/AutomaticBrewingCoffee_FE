@@ -27,6 +27,7 @@ import { getValidDevicesInKiosk } from "@/services/kiosk"
 import { EnhancedCalendar } from "@/components/common/enhanced-calendar"
 import { cn } from "@/lib/utils"
 import { useDebounce } from "@/hooks"
+import { FormFooterActions } from "@/components/form"
 
 const initialFormData = {
     kioskVersionId: "",
@@ -702,35 +703,11 @@ const KioskDialog = ({ open, onOpenChange, onSuccess, kiosk }: KioskDialogProps)
                         </div>
                     </div>
 
-                    <div className="flex justify-between items-center pt-2">
-                        <div className="flex items-center space-x-2 text-xs text-gray-400">
-                            <Zap className="w-3 h-3" />
-                            <span>Ctrl+Enter để lưu • Esc để đóng</span>
-                        </div>
-                        <div className="flex space-x-3">
-                            <Button
-                                type="button"
-                                variant="outline"
-                                onClick={() => onOpenChange(false)}
-                                disabled={loading}
-                                className="h-11 px-6 border-2 border-gray-300 hover:bg-gray-50 transition-all duration-200"
-                            >
-                                Hủy
-                            </Button>
-                            <Button
-                                type="button"
-                                onClick={handleSubmit}
-                                disabled={loading || fetching}
-                                className={cn(
-                                    "h-11 px-8 bg-primary text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105",
-                                    loading && "opacity-60 cursor-not-allowed hover:scale-100"
-                                )}
-                            >
-                                <Save className="mr-2 w-4 h-4" />
-                                {isUpdate ? "Cập nhật" : "Tạo"}
-                            </Button>
-                        </div>
-                    </div>
+                    <FormFooterActions
+                        onCancel={() => onOpenChange(false)}
+                        loading={loading}
+                        isUpdate={isUpdate}
+                    />
                 </div>
             </DialogContent>
         </Dialog>

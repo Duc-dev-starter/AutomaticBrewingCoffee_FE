@@ -17,6 +17,7 @@ import { KioskDialogProps } from "@/types/dialog";
 import { ErrorResponse } from "@/types/error";
 import { kioskVersionSchema } from "@/schema/kiosk";
 import { cn } from "@/lib/utils";
+import { FormFooterActions } from "@/components/form";
 
 const initialFormData = {
     kioskTypeId: "",
@@ -461,43 +462,11 @@ const KioskVersionDialog = ({ open, onOpenChange, onSuccess, kioskVersion }: Kio
                         </div>
                     </div>
 
-                    <div className="flex justify-between items-center pt-2">
-                        <div className="flex items-center space-x-2 text-xs text-gray-400">
-                            <Zap className="w-3 h-3" />
-                            <span>Ctrl+Enter để lưu • Esc để đóng</span>
-                        </div>
-                        <div className="flex space-x-3">
-                            <Button
-                                type="button"
-                                variant="outline"
-                                onClick={() => onOpenChange(false)}
-                                disabled={loading}
-                                className="h-11 px-6 border-2 border-gray-300 hover:bg-gray-50 transition-all duration-200"
-                            >
-                                Hủy bỏ
-                            </Button>
-                            <Button
-                                type="submit"
-                                disabled={loading || !validFields.versionTitle || !validFields.versionNumber}
-                                className={cn(
-                                    "h-11 px-8 bg-primary text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105",
-                                    (!validFields.versionTitle || !validFields.versionNumber || loading) && "opacity-60 cursor-not-allowed hover:scale-100",
-                                )}
-                            >
-                                {loading ? (
-                                    <>
-                                        <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                        Đang xử lý...
-                                    </>
-                                ) : (
-                                    <>
-                                        <Save className="mr-2 w-4 h-4" />
-                                        {isUpdate ? "Cập nhật" : "Tạo mới"}
-                                    </>
-                                )}
-                            </Button>
-                        </div>
-                    </div>
+                    <FormFooterActions
+                        onCancel={() => onOpenChange(false)}
+                        loading={loading}
+                        isUpdate={isUpdate}
+                    />
                 </form>
             </DialogContent>
         </Dialog>

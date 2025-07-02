@@ -13,7 +13,7 @@ export const columns = ({
     onSync,
     onWebhook,
     onExport,
-    onOverrideSync,
+    onSyncOverride,
 }: {
     onViewDetails: (kiosk: Kiosk) => void;
     onEdit: (kiosk: Kiosk) => void;
@@ -21,7 +21,7 @@ export const columns = ({
     onSync: (kiosk: Kiosk) => void;
     onWebhook: (kiosk: Kiosk) => void;
     onExport: (kiosk: Kiosk) => void;
-    onOverrideSync: (kiosk: Kiosk) => void;
+    onSyncOverride: (kiosk: Kiosk) => void;
 }): ColumnDef<Kiosk>[] => [
         {
             id: "kioskId",
@@ -106,7 +106,7 @@ export const columns = ({
                     onSync={(item) => onSync(item)}
                     onWebhook={(item) => onWebhook(item)}
                     onExport={(item) => onExport(item)}
-                    onOverrideSync={(item) => onOverrideSync(item)}
+                    onSyncOverride={(item) => onSyncOverride(item)}
                 />
             ),
             enableSorting: false,

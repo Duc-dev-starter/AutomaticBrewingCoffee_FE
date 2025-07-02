@@ -299,6 +299,7 @@ const LocationTypeDialog = ({ open, onOpenChange, onSuccess, locationType }: Loc
 
                     <FormFooterActions
                         onCancel={() => onOpenChange(false)}
+                        onSubmit={handleSubmit}
                         loading={loading}
                         isUpdate={isUpdate}
                     />

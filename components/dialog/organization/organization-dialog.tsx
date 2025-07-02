@@ -574,6 +574,7 @@ const OrganizationDialog = ({ open, onOpenChange, onSuccess, organization }: Org
 
                     <FormFooterActions
                         onCancel={() => onOpenChange(false)}
+                        onSubmit={handleSubmit}
                         loading={loading}
                         isUpdate={isUpdate}
                     />

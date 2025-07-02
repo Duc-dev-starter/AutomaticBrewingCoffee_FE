@@ -436,6 +436,7 @@ const CategoryDialog = ({ open, onOpenChange, onSuccess, category }: CategoryDia
 
                     <FormFooterActions
                         onCancel={() => onOpenChange(false)}
+                        onSubmit={handleSubmit}
                         loading={loading}
                         isUpdate={isUpdate}
                     />

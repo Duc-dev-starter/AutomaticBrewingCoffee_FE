@@ -976,6 +976,7 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
 
                     <FormFooterActions
                         onCancel={() => onOpenChange(false)}
+                        onSubmit={handleSubmit}
                         loading={loading}
                         isUpdate={isUpdate}
                     />

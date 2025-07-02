@@ -2,15 +2,16 @@ import React from "react";
 import { Button } from "@/components/ui/button";
 import { Save, Zap } from "lucide-react";
 import { cn } from "@/lib/utils";
-
 interface FormFooterActionsProps {
     onCancel: () => void;
+    onSubmit: (e: React.FormEvent) => void;
     loading?: boolean;
     isUpdate?: boolean;
 }
 
 const FormFooterActions: React.FC<FormFooterActionsProps> = ({
     onCancel,
+    onSubmit,
     loading = false,
     isUpdate = false,
 }) => {
@@ -31,7 +32,8 @@ const FormFooterActions: React.FC<FormFooterActionsProps> = ({
                     Hủy
                 </Button>
                 <Button
-                    type="submit"
+                    type="button"
+                    onClick={onSubmit}
                     disabled={loading}
                     className={cn(
                         "h-11 px-8 bg-primary text-white shadow-lg hover:shadow-xl transition-all duration-300 hover:scale-105",

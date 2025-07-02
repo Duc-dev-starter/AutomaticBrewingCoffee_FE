@@ -746,6 +746,7 @@ const DeviceModelDialog = ({ open, onOpenChange, onSuccess, deviceModel }: Devic
 
                     <FormFooterActions
                         onCancel={() => onOpenChange(false)}
+                        onSubmit={() => handleSubmit(new Event("submit") as any)}
                         loading={loading}
                         isUpdate={isUpdate}
                     />

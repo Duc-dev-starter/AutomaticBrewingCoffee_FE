@@ -479,6 +479,7 @@ const StoreDialog = ({ open, onOpenChange, onSuccess, store }: StoreDialogProps)
                     <FormFooterActions
                         onCancel={() => onOpenChange(false)}
                         loading={loading}
+                        onSubmit={handleSubmit}
                         isUpdate={isUpdate}
                     />
                 </div>

@@ -54,8 +54,8 @@ const styles = `
   .react-flow__node-workflowStep .react-flow__handle-right {
     display: flex;
   }
-  .react-flow__handle-top { top: -20px; width: 20px; height: 20px; }
-  .react-flow__handle-bottom { display: block; }
+  .react-flow__handle-top { top: -20px; width: 15px; height: 15px; }
+  .react-flow__handle-bottom { bottom: -20px; width: 15px; height: 15px; }
   .react-flow__handle.hidden {
     display: none;
   }
@@ -187,7 +187,7 @@ const UpdateWorkflow = () => {
         async (pageNumber: number) => {
             if (pageNumber === 1) setLoadingProducts(true)
             try {
-                const response = await getProducts({ page: pageNumber, size: 10 })
+                const response = await getProducts({ page: pageNumber, size: 100 })
                 setProducts((prev) => (pageNumber === 1 ? response.items : [...prev, ...response.items]))
                 setProductPage(pageNumber)
                 setHasMoreProducts(response.items.length >= 10)
@@ -594,7 +594,7 @@ const UpdateWorkflow = () => {
                 }
             });
 
-            yOffset += 150;
+            yOffset += 200;
         });
 
         setNodes(newNodes);
@@ -863,144 +863,153 @@ const UpdateWorkflow = () => {
                     </Dialog>
                 </div>
 
-                <div className="w-full md:w-[65%]">
-                    <Card className="mb-6">
-                        <CardHeader>
-                            <CardTitle>Sơ đồ quy trình</CardTitle>
-                            <CardDescription>Kéo thả tay cầm để nối các bước. Click vào bước để chỉnh sửa.</CardDescription>
-                        </CardHeader>
-                        <CardContent className="h-[400px] p-0">
-                            <ReactFlow
-                                nodes={nodes}
-                                edges={edges}
-                                onNodesChange={onNodesChange}
-                                onEdgesChange={onEdgesChange}
-                                onConnect={onConnect}
-                                nodeTypes={nodeTypes}
-                                fitView
-                                className="bg-gray-50"
-                            >
-                                <Controls />
-                                <Background variant="dots" gap={12} size={1} />
-                            </ReactFlow>
-                        </CardContent>
-                    </Card>
 
-                    <Dialog open={editingStepIndex !== null} onOpenChange={() => setEditingStepIndex(null)}>
-                        <Card>
-                            <CardHeader className="flex flex-row items-center justify-between">
-                                <div>
-                                    <CardTitle>Các bước thực hiện</CardTitle>
-                                    <CardDescription>Thêm và quản lý các bước của quy trình. Bước là bắt buộc.</CardDescription>
+            </div>
+            <div className="w-full ">
+                <Card className="mb-6">
+                    <CardHeader>
+                        <div className="flex items-center justify-between">
+                            <div>
+                                <CardTitle>Sơ đồ quy trình</CardTitle>
+                                <CardDescription>Kéo thả tay cầm để nối các bước. Click vào bước để chỉnh sửa.</CardDescription>
+                            </div>
+                            <Button type="button" onClick={addStep} disabled={loading} className="bg-primary hover:bg-primary-200">
+                                <PlusCircle className="mr-2 h-4 w-4" />
+                                Thêm bước
+                            </Button>
+                        </div>
+                    </CardHeader>
+                    <CardContent className="h-[400px] p-0">
+                        <ReactFlow
+                            nodes={nodes}
+                            edges={edges}
+                            onNodesChange={onNodesChange}
+                            onEdgesChange={onEdgesChange}
+                            onConnect={onConnect}
+                            nodeTypes={nodeTypes}
+                            fitView
+                            className="bg-gray-50"
+                        >
+                            <Controls />
+                            <Background variant="dots" gap={12} size={1} />
+                        </ReactFlow>
+                    </CardContent>
+                </Card>
+
+                <Dialog open={editingStepIndex !== null} onOpenChange={() => setEditingStepIndex(null)}>
+                    <Card>
+                        <CardHeader className="flex flex-row items-center justify-between">
+                            <div>
+                                <CardTitle>Các bước thực hiện</CardTitle>
+                                <CardDescription>Thêm và quản lý các bước của quy trình. Bước là bắt buộc.</CardDescription>
+                            </div>
+                            <Button type="button" onClick={addStep} disabled={loading} className="bg-primary hover:bg-primary-200">
+                                <PlusCircle className="mr-2 h-4 w-4" />
+                                Thêm bước
+                            </Button>
+                        </CardHeader>
+                        <CardContent>
+                            {errors.steps && typeof errors.steps === "string" && (
+                                <p className="text-red-500 text-sm flex items-center mb-2">
+                                    <AlertTriangle className="h-3 w-3 mr-1" />
+                                    {errors.steps}
+                                </p>
+                            )}
+                            {formData.steps.length === 0 ? (
+                                <div className="text-center py-12 border-2 border-dashed rounded-lg">
+                                    <Settings className="h-12 w-12 mx-auto text-gray-400 mb-3" />
+                                    <p className="text-gray-500">Chưa có bước nào được thêm vào</p>
+                                    <p className="text-gray-500">Quy trình phải có ít nhất một bước.</p>
+                                    <Button type="button" onClick={addStep} variant="outline" className="mt-4">
+                                        <PlusCircle className="mr-2 h-4 w-4" />
+                                        Thêm bước đầu tiên
+                                    </Button>
                                 </div>
-                                <Button type="button" onClick={addStep} disabled={loading} className="bg-primary hover:bg-primary-200">
-                                    <PlusCircle className="mr-2 h-4 w-4" />
-                                    Thêm bước
-                                </Button>
-                            </CardHeader>
-                            <CardContent>
-                                {errors.steps && typeof errors.steps === "string" && (
-                                    <p className="text-red-500 text-sm flex items-center mb-2">
-                                        <AlertTriangle className="h-3 w-3 mr-1" />
-                                        {errors.steps}
-                                    </p>
-                                )}
-                                {formData.steps.length === 0 ? (
-                                    <div className="text-center py-12 border-2 border-dashed rounded-lg">
-                                        <Settings className="h-12 w-12 mx-auto text-gray-400 mb-3" />
-                                        <p className="text-gray-500">Chưa có bước nào được thêm vào</p>
-                                        <p className="text-gray-500">Quy trình phải có ít nhất một bước.</p>
-                                        <Button type="button" onClick={addStep} variant="outline" className="mt-4">
-                                            <PlusCircle className="mr-2 h-4 w-4" />
-                                            Thêm bước đầu tiên
-                                        </Button>
-                                    </div>
-                                ) : (
-                                    <div className="space-y-3">
-                                        {formData.steps.map((step, index) => (
-                                            <div
-                                                key={index}
-                                                className={`border rounded-md p-4 flex items-center justify-between bg-white dark:bg-gray-800 ${errors.steps?.[index] ? "border-red-500" : "border-gray-200 dark:border-gray-700"}`}
-                                            >
-                                                <div className="flex items-center">
-                                                    <Badge variant="outline" className="mr-3 bg-blue-50 text-blue-700 border-blue-200">
-                                                        {step.sequence}
+                            ) : (
+                                <div className="space-y-3">
+                                    {formData.steps.map((step, index) => (
+                                        <div
+                                            key={index}
+                                            className={`border rounded-md p-4 flex items-center justify-between bg-white dark:bg-gray-800 ${errors.steps?.[index] ? "border-red-500" : "border-gray-200 dark:border-gray-700"}`}
+                                        >
+                                            <div className="flex items-center">
+                                                <Badge variant="outline" className="mr-3 bg-blue-50 text-blue-700 border-blue-200">
+                                                    {step.sequence}
+                                                </Badge>
+                                                <span
+                                                    className="font-medium truncate max-w-[200px] sm:max-w-[300px] md:max-w-[400px]"
+                                                    title={step.name || `Bước ${step.sequence}`}
+                                                >
+                                                    {step.name || `Bước ${step.sequence}`}
+                                                </span>
+                                                {step.type && (
+                                                    <Badge variant="secondary" className="ml-3 hidden sm:inline-flex">
+                                                        {step.type}
                                                     </Badge>
-                                                    <span
-                                                        className="font-medium truncate max-w-[200px] sm:max-w-[300px] md:max-w-[400px]"
-                                                        title={step.name || `Bước ${step.sequence}`}
-                                                    >
-                                                        {step.name || `Bước ${step.sequence}`}
-                                                    </span>
-                                                    {step.type && (
-                                                        <Badge variant="secondary" className="ml-3 hidden sm:inline-flex">
-                                                            {step.type}
-                                                        </Badge>
-                                                    )}
-                                                    {errors.steps?.[index] && (
-                                                        <AlertTriangle className="h-4 w-4 text-red-500 ml-2" />
-                                                    )}
+                                                )}
+                                                {errors.steps?.[index] && (
+                                                    <AlertTriangle className="h-4 w-4 text-red-500 ml-2" />
+                                                )}
+                                            </div>
+                                            <div className="flex items-center space-x-1 flex-shrink-0">
+                                                <div
+                                                    role="button"
+                                                    tabIndex={0}
+                                                    onClick={() => moveStepUp(index)}
+                                                    onKeyDown={(e) => {
+                                                        if (e.key === "Enter" || e.key === " ") moveStepUp(index)
+                                                    }}
+                                                    className={`h-7 w-7 rounded-full flex items-center justify-center ${loading || index === 0 ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-100 dark:hover:bg-gray-700"}`}
+                                                    title="Di chuyển lên"
+                                                >
+                                                    <ChevronUp className="h-4 w-4" />
                                                 </div>
-                                                <div className="flex items-center space-x-1 flex-shrink-0">
+                                                <div
+                                                    role="button"
+                                                    tabIndex={0}
+                                                    onClick={() => moveStepDown(index)}
+                                                    onKeyDown={(e) => {
+                                                        if (e.key === "Enter" || e.key === " ") moveStepDown(index)
+                                                    }}
+                                                    className={`h-7 w-7 rounded-full flex items-center justify-center ${loading || index === formData.steps.length - 1 ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-100 dark:hover:bg-gray-700"}`}
+                                                    title="Di chuyển xuống"
+                                                >
+                                                    <ChevronDown className="h-4 w-4" />
+                                                </div>
+                                                <DialogTrigger asChild>
                                                     <div
                                                         role="button"
                                                         tabIndex={0}
-                                                        onClick={() => moveStepUp(index)}
+                                                        onClick={() => setEditingStepIndex(index)}
                                                         onKeyDown={(e) => {
-                                                            if (e.key === "Enter" || e.key === " ") moveStepUp(index)
+                                                            if (e.key === "Enter" || e.key === " ") setEditingStepIndex(index)
                                                         }}
-                                                        className={`h-7 w-7 rounded-full flex items-center justify-center ${loading || index === 0 ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-100 dark:hover:bg-gray-700"}`}
-                                                        title="Di chuyển lên"
+                                                        className={`h-7 w-7 rounded-full flex items-center justify-center ${loading ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-100 dark:hover:bg-gray-700"}`}
+                                                        title="Chỉnh sửa bước"
                                                     >
-                                                        <ChevronUp className="h-4 w-4" />
+                                                        <Settings className="h-4 w-4" />
                                                     </div>
-                                                    <div
-                                                        role="button"
-                                                        tabIndex={0}
-                                                        onClick={() => moveStepDown(index)}
-                                                        onKeyDown={(e) => {
-                                                            if (e.key === "Enter" || e.key === " ") moveStepDown(index)
-                                                        }}
-                                                        className={`h-7 w-7 rounded-full flex items-center justify-center ${loading || index === formData.steps.length - 1 ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-100 dark:hover:bg-gray-700"}`}
-                                                        title="Di chuyển xuống"
-                                                    >
-                                                        <ChevronDown className="h-4 w-4" />
-                                                    </div>
-                                                    <DialogTrigger asChild>
-                                                        <div
-                                                            role="button"
-                                                            tabIndex={0}
-                                                            onClick={() => setEditingStepIndex(index)}
-                                                            onKeyDown={(e) => {
-                                                                if (e.key === "Enter" || e.key === " ") setEditingStepIndex(index)
-                                                            }}
-                                                            className={`h-7 w-7 rounded-full flex items-center justify-center ${loading ? "opacity-50 cursor-not-allowed" : "hover:bg-gray-100 dark:hover:bg-gray-700"}`}
-                                                            title="Chỉnh sửa bước"
-                                                        >
-                                                            <Settings className="h-4 w-4" />
-                                                        </div>
-                                                    </DialogTrigger>
-                                                    <div
-                                                        role="button"
-                                                        tabIndex={0}
-                                                        onClick={() => removeStep(index)}
-                                                        onKeyDown={(e) => {
-                                                            if (e.key === "Enter" || e.key === " ") removeStep(index)
-                                                        }}
-                                                        className={`h-7 w-7 rounded-full flex items-center justify-center ${loading ? "opacity-50 cursor-not-allowed" : "text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900"}`}
-                                                        title="Xóa bước"
-                                                    >
-                                                        <Trash2 className="h-4 w-4" />
-                                                    </div>
+                                                </DialogTrigger>
+                                                <div
+                                                    role="button"
+                                                    tabIndex={0}
+                                                    onClick={() => removeStep(index)}
+                                                    onKeyDown={(e) => {
+                                                        if (e.key === "Enter" || e.key === " ") removeStep(index)
+                                                    }}
+                                                    className={`h-7 w-7 rounded-full flex items-center justify-center ${loading ? "opacity-50 cursor-not-allowed" : "text-red-500 hover:text-red-700 hover:bg-red-50 dark:hover:bg-red-900"}`}
+                                                    title="Xóa bước"
+                                                >
+                                                    <Trash2 className="h-4 w-4" />
                                                 </div>
                                             </div>
-                                        ))}
-                                    </div>
-                                )}
-                            </CardContent>
-                        </Card>
-                    </Dialog>
-                </div>
+                                        </div>
+                                    ))}
+                                </div>
+                            )}
+                        </CardContent>
+                    </Card>
+                </Dialog>
             </div>
 
             <Dialog open={editingStepIndex !== null} onOpenChange={() => setEditingStepIndex(null)}>

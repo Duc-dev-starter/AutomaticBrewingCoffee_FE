@@ -3,7 +3,6 @@
 import type React from "react";
 import { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
@@ -223,8 +222,8 @@ const KioskVersionDialog = ({ open, onOpenChange, onSuccess, kioskVersion }: Kio
                 <form onSubmit={handleSubmit} className="px-8 py-8 pt-2 space-y-8">
                     <div className="space-y-3">
                         <div className="flex items-center space-x-2 mb-2">
-                            <Label className="text-sm font-medium text-gray-700">
-                                Tiêu đề phiên bản <span className="text-red-500">*</span>
+                            <Label className="text-sm font-medium text-gray-700 asterisk">
+                                Tiêu đề phiên bản
                             </Label>
                         </div>
                         <div className="relative group">
@@ -275,8 +274,8 @@ const KioskVersionDialog = ({ open, onOpenChange, onSuccess, kioskVersion }: Kio
 
                     <div className="space-y-3">
                         <div className="flex items-center space-x-2 mb-2">
-                            <Label className="text-sm font-medium text-gray-700">
-                                Số phiên bản <span className="text-red-500">*</span>
+                            <Label className="text-sm font-medium text-gray-700 asterisk">
+                                Số phiên bản
                             </Label>
                         </div>
                         <div className="relative group">
@@ -326,8 +325,8 @@ const KioskVersionDialog = ({ open, onOpenChange, onSuccess, kioskVersion }: Kio
 
                     <div className="space-y-3">
                         <div className="flex items-center space-x-2 mb-2">
-                            <Label className="text-sm font-medium text-gray-700">
-                                Loại kiosk <span className="text-red-500">*</span>
+                            <Label className="text-sm font-medium text-gray-700 asterisk">
+                                Loại kiosk
                             </Label>
                         </div>
                         <div className="relative">
@@ -383,8 +382,8 @@ const KioskVersionDialog = ({ open, onOpenChange, onSuccess, kioskVersion }: Kio
 
                     <div className="space-y-3">
                         <div className="flex items-center space-x-2 mb-2">
-                            <Label className="text-sm font-medium text-gray-700">
-                                Trạng thái <span className="text-red-500">*</span>
+                            <Label className="text-sm font-medium text-gray-700 asterisk">
+                                Trạng thái
                             </Label>
                         </div>
                         <div className="relative">

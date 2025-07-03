@@ -1,10 +1,10 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { PlusCircle, Loader2, Edit, CheckCircle2, AlertCircle, Zap, Save, Building2, Circle, Edit3, Monitor, MapPin, Phone } from "lucide-react";
+import { PlusCircle, Edit, CheckCircle2, AlertCircle, Building2, Monitor, MapPin, Phone, Circle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { EBaseStatus, EBaseStatusViMap } from "@/enum/base";
 import { createStore, updateStore } from "@/services/store";
@@ -16,7 +16,8 @@ import { storeSchema } from "@/schema/stores";
 import { Organization } from "@/interfaces/organization";
 import { LocationType } from "@/interfaces/location";
 import { cn } from "@/lib/utils";
-import { ScrollArea } from "@/components/ui/scroll-area";
+import InfiniteScroll from "react-infinite-scroll-component";
+import { useDebounce } from "@/hooks";
 import { FormDescriptionField, FormFooterActions } from "@/components/form";
 
 const initialFormData = {
@@ -31,92 +32,53 @@ const initialFormData = {
 
 const StoreDialog = ({ open, onOpenChange, onSuccess, store }: StoreDialogProps) => {
     const { toast } = useToast();
-    const [formData, setFormData] = useState(initialFormData);
-    const [organizations, setOrganizations] = useState<Organization[]>([]);
-    const [locationTypes, setLocationTypes] = useState<LocationType[]>([]);
-    const [focusedField, setFocusedField] = useState<string | null>(null);
-    const [errors, setErrors] = useState<Record<string, any>>({});
     const [loading, setLoading] = useState(false);
+    const [formData, setFormData] = useState(initialFormData);
+    const [focusedField, setFocusedField] = useState<string | null>(null);
     const [validFields, setValidFields] = useState<Record<string, boolean>>({});
     const [submitted, setSubmitted] = useState(false);
-    const [orgPage, setOrgPage] = useState(1);
-    const [locPage, setLocPage] = useState(1);
-    const [hasMoreOrgs, setHasMoreOrgs] = useState(true);
-    const [hasMoreLocs, setHasMoreLocs] = useState(true);
-    const [isLoadingOrgs, setIsLoadingOrgs] = useState(false);
-    const [isLoadingLocs, setIsLoadingLocs] = useState(false);
+    const [errors, setErrors] = useState<Record<string, string>>({});
+    const [organizations, setOrganizations] = useState<Organization[]>([]);
+    const [locationTypes, setLocationTypes] = useState<LocationType[]>([]);
+    const [orgPage, setOrgPage] = useState<number>(1);
+    const [locPage, setLocPage] = useState<number>(1);
+    const [hasMoreOrgs, setHasMoreOrgs] = useState<boolean>(true);
+    const [hasMoreLocs, setHasMoreLocs] = useState<boolean>(true);
+    const [orgSearchQuery, setOrgSearchQuery] = useState("");
+    const [locSearchQuery, setLocSearchQuery] = useState("");
     const nameInputRef = useRef<HTMLInputElement>(null);
-    const orgObserver = useRef<IntersectionObserver>();
-    const locObserver = useRef<IntersectionObserver>();
 
+    const debouncedOrgSearchQuery = useDebounce(orgSearchQuery, 300);
+    const debouncedLocSearchQuery = useDebounce(locSearchQuery, 300);
     const isUpdate = !!store;
 
-    const lastOrgElementRef = useCallback(
-        (node: HTMLDivElement) => {
-            if (isLoadingOrgs) return;
-            if (orgObserver.current) orgObserver.current.disconnect();
-            orgObserver.current = new IntersectionObserver((entries) => {
-                if (entries[0].isIntersecting && hasMoreOrgs) {
-                    setOrgPage((prev) => prev + 1);
-                }
-            });
-            if (node) orgObserver.current.observe(node);
-        },
-        [isLoadingOrgs, hasMoreOrgs]
-    );
-
-    const lastLocElementRef = useCallback(
-        (node: HTMLDivElement) => {
-            if (isLoadingLocs) return;
-            if (locObserver.current) locObserver.current.disconnect();
-            locObserver.current = new IntersectionObserver((entries) => {
-                if (entries[0].isIntersecting && hasMoreLocs) {
-                    setLocPage((prev) => prev + 1);
-                }
-            });
-            if (node) locObserver.current.observe(node);
-        },
-        [isLoadingLocs, hasMoreLocs]
-    );
-
+    // Reset state when dialog closes
     useEffect(() => {
-        if (open) {
-            fetchOrganizations();
-            fetchLocationTypes();
-            if (nameInputRef.current) {
-                setTimeout(() => nameInputRef.current?.focus(), 200);
-            }
+        if (!open) {
+            setFormData(initialFormData);
+            setValidFields({});
+            setFocusedField(null);
+            setSubmitted(false);
+            setErrors({});
+            setOrganizations([]);
+            setLocationTypes([]);
+            setOrgPage(1);
+            setLocPage(1);
+            setHasMoreOrgs(true);
+            setHasMoreLocs(true);
+            setOrgSearchQuery("");
+            setLocSearchQuery("");
         }
-    }, [open, orgPage, locPage]);
+    }, [open]);
 
-    const fetchOrganizations = useCallback(async () => {
-        try {
-            setIsLoadingOrgs(true);
-            const response = await getOrganizations({ page: orgPage, size: 20 });
-            setOrganizations((prev) => [...prev, ...response.items]);
-            setHasMoreOrgs(response.items.length === 20);
-        } catch (error) {
-            console.error("Lỗi khi lấy danh sách tổ chức:", error);
-            toast({ title: "Lỗi", description: "Không thể tải danh sách tổ chức.", variant: "destructive" });
-        } finally {
-            setIsLoadingOrgs(false);
+    // Auto-focus name field when dialog opens
+    useEffect(() => {
+        if (open && nameInputRef.current) {
+            setTimeout(() => nameInputRef.current?.focus(), 200);
         }
-    }, [orgPage, toast]);
+    }, [open]);
 
-    const fetchLocationTypes = useCallback(async () => {
-        try {
-            setIsLoadingLocs(true);
-            const response = await getLocationTypes({ page: locPage, size: 20 });
-            setLocationTypes((prev) => [...prev, ...response.items]);
-            setHasMoreLocs(response.items.length === 20);
-        } catch (error) {
-            console.error("Lỗi khi lấy danh sách loại địa điểm:", error);
-            toast({ title: "Lỗi", description: "Không thể tải danh sách loại địa điểm.", variant: "destructive" });
-        } finally {
-            setIsLoadingLocs(false);
-        }
-    }, [locPage, toast]);
-
+    // Populate form data for editing
     useEffect(() => {
         if (store) {
             setFormData({
@@ -133,31 +95,73 @@ const StoreDialog = ({ open, onOpenChange, onSuccess, store }: StoreDialogProps)
                 description: (store.description || "").length <= 450,
                 contactPhone: store.contactPhone?.trim().length >= 1,
                 locationAddress: store.locationAddress?.trim().length >= 1,
+                organizationId: !!store.organization?.organizationId,
+                locationTypeId: !!store.locationTypeId,
             });
-        } else {
-            setFormData(initialFormData);
-            setValidFields({});
-            setOrganizations([]);
-            setLocationTypes([]);
-            setFocusedField(null);
-            setOrgPage(1);
-            setLocPage(1);
-            setHasMoreOrgs(true);
-            setHasMoreLocs(true);
         }
-    }, [store, open]);
+    }, [store]);
 
+    // Fetch organizations and location types with debounced search
     useEffect(() => {
-        if (!open) {
-            setFormData(initialFormData);
-            setOrganizations([]);
-            setFocusedField(null);
-            setLocationTypes([]);
-            setSubmitted(false);
-            setErrors({});
+        if (open) {
+            fetchOrganizations(1, debouncedOrgSearchQuery);
+            fetchLocationTypes(1, debouncedLocSearchQuery);
         }
-    }, [open]);
+    }, [open, debouncedOrgSearchQuery, debouncedLocSearchQuery]);
 
+    const fetchOrganizations = async (pageNumber: number, query: string) => {
+        try {
+            const response = await getOrganizations({
+                page: pageNumber,
+                size: 10,
+                filterBy: "name",
+                filterQuery: query,
+            });
+            if (pageNumber === 1) {
+                setOrganizations(response.items);
+            } else {
+                setOrganizations((prev) => [...prev, ...response.items]);
+            }
+            setHasMoreOrgs(response.items.length === 10);
+            setOrgPage(pageNumber);
+        } catch (error) {
+            console.error("Error fetching organizations:", error);
+            toast({ title: "Lỗi", description: "Không thể tải danh sách tổ chức.", variant: "destructive" });
+        }
+    };
+
+    const fetchLocationTypes = async (pageNumber: number, query: string) => {
+        try {
+            const response = await getLocationTypes({
+                page: pageNumber,
+                size: 10,
+                filterBy: "name",
+                filterQuery: query,
+            });
+            if (pageNumber === 1) {
+                setLocationTypes(response.items);
+            } else {
+                setLocationTypes((prev) => [...prev, ...response.items]);
+            }
+            setHasMoreLocs(response.items.length === 10);
+            setLocPage(pageNumber);
+        } catch (error) {
+            console.error("Error fetching location types:", error);
+            toast({ title: "Lỗi", description: "Không thể tải danh sách loại địa điểm.", variant: "destructive" });
+        }
+    };
+
+    const loadMoreOrganizations = async () => {
+        const nextPage = orgPage + 1;
+        await fetchOrganizations(nextPage, debouncedOrgSearchQuery);
+    };
+
+    const loadMoreLocationTypes = async () => {
+        const nextPage = locPage + 1;
+        await fetchLocationTypes(nextPage, debouncedLocSearchQuery);
+    };
+
+    // Ctrl+Enter shortcut for submission
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
             if (!open) return;
@@ -185,6 +189,12 @@ const StoreDialog = ({ open, onOpenChange, onSuccess, store }: StoreDialogProps)
             case "locationAddress":
                 newValidFields.locationAddress = value.trim().length >= 1;
                 break;
+            case "organizationId":
+                newValidFields.organizationId = !!value;
+                break;
+            case "locationTypeId":
+                newValidFields.locationTypeId = !!value;
+                break;
         }
         setValidFields(newValidFields);
     };
@@ -194,7 +204,7 @@ const StoreDialog = ({ open, onOpenChange, onSuccess, store }: StoreDialogProps)
             value = value.substring(0, 450);
         }
         setFormData((prev) => ({ ...prev, [field]: value }));
-        if (field === "name" || field === "description" || field === "contactPhone" || field === "locationAddress") {
+        if (["name", "description", "contactPhone", "locationAddress", "organizationId", "locationTypeId"].includes(field)) {
             validateField(field, value);
         }
         if (errors[field]) {
@@ -208,8 +218,14 @@ const StoreDialog = ({ open, onOpenChange, onSuccess, store }: StoreDialogProps)
 
         const validationResult = storeSchema.safeParse(formData);
         if (!validationResult.success) {
-            const { fieldErrors } = validationResult.error.flatten();
-            setErrors(fieldErrors);
+            const fieldErrors = validationResult.error.flatten().fieldErrors;
+            const errorStrings: Record<string, string> = {};
+            Object.entries(fieldErrors).forEach(([key, value]) => {
+                if (value && value.length > 0) {
+                    errorStrings[key] = value[0];
+                }
+            });
+            setErrors(errorStrings);
             toast({ title: "Lỗi", description: "Vui lòng kiểm tra lại thông tin", variant: "destructive" });
             return;
         }
@@ -224,21 +240,21 @@ const StoreDialog = ({ open, onOpenChange, onSuccess, store }: StoreDialogProps)
                 contactPhone: formData.contactPhone,
                 organizationId: formData.organizationId,
                 locationTypeId: formData.locationTypeId,
-                locationAddress: formData.locationAddress
+                locationAddress: formData.locationAddress,
             };
             if (store) {
                 await updateStore(store.storeId, data);
-                toast({ title: "Thành công", description: "Cập nhật cửa hàng thành công", variant: "success" });
+                toast({ title: "Thành công", description: "Cửa hàng đã được cập nhật", variant: "success" });
             } else {
                 await createStore(data);
-                toast({ title: "Thành công", description: "Thêm cửa hàng mới thành công", variant: "success" });
+                toast({ title: "Thành công", description: "Cửa hàng mới đã được tạo", variant: "success" });
             }
             onSuccess?.();
             onOpenChange(false);
         } catch (error) {
             const err = error as ErrorResponse;
-            console.error("Lỗi khi xử lý cửa hàng:", error);
-            toast({ title: "Lỗi khi xử lý cửa hàng", description: err.message, variant: "destructive" });
+            console.error("Error processing store:", err);
+            toast({ title: "Lỗi", description: err.message, variant: "destructive" });
         } finally {
             setLoading(false);
         }
@@ -263,7 +279,7 @@ const StoreDialog = ({ open, onOpenChange, onSuccess, store }: StoreDialogProps)
                     </div>
                 </div>
 
-                <div className="px-8 py-8 pt-2 space-y-8">
+                <div className="px-6 py-8 pt-2 space-y-8">
                     <div className="grid grid-cols-2 gap-4">
                         {/* Tên Cửa Hàng */}
                         <div className="space-y-3">
@@ -277,20 +293,24 @@ const StoreDialog = ({ open, onOpenChange, onSuccess, store }: StoreDialogProps)
                                     placeholder="Nhập tên cửa hàng"
                                     value={formData.name}
                                     onChange={(e) => handleChange("name", e.target.value)}
+                                    onFocus={() => setFocusedField("name")}
+                                    onBlur={() => setFocusedField(null)}
                                     disabled={loading}
                                     className={cn(
                                         "h-12 text-base px-4 border-2 transition-all duration-300 bg-white/80 backdrop-blur-sm pr-10",
-                                        errors.name && "border-red-300 bg-red-50/50"
+                                        focusedField === "name" && "border-primary-300 ring-4 ring-primary-100 shadow-lg scale-[1.02]",
+                                        validFields.name && "border-green-400 bg-green-50/50",
+                                        !validFields.name && formData.name && "border-red-300 bg-red-50/50"
                                     )}
                                 />
-                                {!errors.name && formData.name && (
+                                {validFields.name && (
                                     <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-green-500 animate-in zoom-in-50" />
                                 )}
-                                {errors.name && (
+                                {!validFields.name && formData.name && (
                                     <AlertCircle className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-red-400 animate-in zoom-in-50" />
                                 )}
                             </div>
-                            {errors.name && (
+                            {submitted && errors.name && (
                                 <p className="text-red-500 text-xs mt-1">{errors.name}</p>
                             )}
                         </div>
@@ -304,31 +324,39 @@ const StoreDialog = ({ open, onOpenChange, onSuccess, store }: StoreDialogProps)
                             <Select
                                 value={formData.organizationId}
                                 onValueChange={(value) => handleChange("organizationId", value)}
-                                disabled={loading || organizations.length === 0}
+                                disabled={loading}
                             >
-                                <SelectTrigger className="h-12 text-base px-4 border-2 bg-white/80 backdrop-blur-sm">
+                                <SelectTrigger className="h-12 text-sm px-4 border-2 bg-white/80 backdrop-blur-sm">
                                     <SelectValue placeholder="Chọn tổ chức" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <ScrollArea className="h-[200px]">
-                                        {organizations.map((org, index) => (
-                                            <SelectItem
-                                                key={org.organizationId}
-                                                value={org.organizationId}
-                                                ref={index === organizations.length - 1 ? lastOrgElementRef : null}
-                                            >
-                                                {org.name}
-                                            </SelectItem>
-                                        ))}
-                                        {isLoadingOrgs && (
-                                            <div className="flex justify-center p-2">
-                                                <Loader2 className="h-4 w-4 animate-spin" />
-                                            </div>
-                                        )}
-                                    </ScrollArea>
+                                    <div className="p-2">
+                                        <Input
+                                            placeholder="Tìm kiếm tổ chức..."
+                                            className="h-10 text-xs px-3"
+                                            value={orgSearchQuery}
+                                            onChange={(e) => setOrgSearchQuery(e.target.value)}
+                                            disabled={loading}
+                                        />
+                                    </div>
+                                    <div id="org-scroll" className="max-h-[200px] overflow-y-auto">
+                                        <InfiniteScroll
+                                            dataLength={organizations.length}
+                                            next={loadMoreOrganizations}
+                                            hasMore={hasMoreOrgs}
+                                            loader={<div className="p-2 text-center text-sm">Đang tải thêm...</div>}
+                                            scrollableTarget="org-scroll"
+                                        >
+                                            {organizations.map((org) => (
+                                                <SelectItem key={org.organizationId} value={org.organizationId}>
+                                                    {org.name}
+                                                </SelectItem>
+                                            ))}
+                                        </InfiniteScroll>
+                                    </div>
                                 </SelectContent>
                             </Select>
-                            {errors.organizationId && (
+                            {submitted && errors.organizationId && (
                                 <p className="text-red-500 text-xs mt-1">{errors.organizationId}</p>
                             )}
                         </div>
@@ -346,7 +374,7 @@ const StoreDialog = ({ open, onOpenChange, onSuccess, store }: StoreDialogProps)
                                 onValueChange={(value) => handleChange("status", value as EBaseStatus)}
                                 disabled={loading}
                             >
-                                <SelectTrigger className="h-12 text-base px-4 border-2 bg-white/80 backdrop-blur-sm">
+                                <SelectTrigger className="h-12 text-sm px-4 border-2 bg-white/80 backdrop-blur-sm">
                                     <SelectValue placeholder="Chọn trạng thái" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -357,7 +385,7 @@ const StoreDialog = ({ open, onOpenChange, onSuccess, store }: StoreDialogProps)
                                     ))}
                                 </SelectContent>
                             </Select>
-                            {errors.status && (
+                            {submitted && errors.status && (
                                 <p className="text-red-500 text-xs mt-1">{errors.status}</p>
                             )}
                         </div>
@@ -371,31 +399,39 @@ const StoreDialog = ({ open, onOpenChange, onSuccess, store }: StoreDialogProps)
                             <Select
                                 value={formData.locationTypeId}
                                 onValueChange={(value) => handleChange("locationTypeId", value)}
-                                disabled={loading || locationTypes.length === 0}
+                                disabled={loading}
                             >
-                                <SelectTrigger className="h-12 text-base px-4 border-2 bg-white/80 backdrop-blur-sm">
+                                <SelectTrigger className="h-12 text-sm px-4 border-2 bg-white/80 backdrop-blur-sm">
                                     <SelectValue placeholder="Chọn loại địa điểm" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <ScrollArea className="h-[200px]">
-                                        {locationTypes.map((loc, index) => (
-                                            <SelectItem
-                                                key={loc.locationTypeId}
-                                                value={loc.locationTypeId}
-                                                ref={index === locationTypes.length - 1 ? lastLocElementRef : null}
-                                            >
-                                                {loc.name}
-                                            </SelectItem>
-                                        ))}
-                                        {isLoadingLocs && (
-                                            <div className="flex justify-center p-2">
-                                                <Loader2 className="h-4 w-4 animate-spin" />
-                                            </div>
-                                        )}
-                                    </ScrollArea>
+                                    <div className="p-2">
+                                        <Input
+                                            placeholder="Tìm kiếm loại địa điểm..."
+                                            className="h-10 text-xs px-3"
+                                            value={locSearchQuery}
+                                            onChange={(e) => setLocSearchQuery(e.target.value)}
+                                            disabled={loading}
+                                        />
+                                    </div>
+                                    <div id="loc-scroll" className="max-h-[200px] overflow-y-auto">
+                                        <InfiniteScroll
+                                            dataLength={locationTypes.length}
+                                            next={loadMoreLocationTypes}
+                                            hasMore={hasMoreLocs}
+                                            loader={<div className="p-2 text-center text-sm">Đang tải thêm...</div>}
+                                            scrollableTarget="loc-scroll"
+                                        >
+                                            {locationTypes.map((loc) => (
+                                                <SelectItem key={loc.locationTypeId} value={loc.locationTypeId}>
+                                                    {loc.name}
+                                                </SelectItem>
+                                            ))}
+                                        </InfiniteScroll>
+                                    </div>
                                 </SelectContent>
                             </Select>
-                            {errors.locationTypeId && (
+                            {submitted && errors.locationTypeId && (
                                 <p className="text-red-500 text-xs mt-1">{errors.locationTypeId}</p>
                             )}
                         </div>
@@ -413,20 +449,24 @@ const StoreDialog = ({ open, onOpenChange, onSuccess, store }: StoreDialogProps)
                                     placeholder="Nhập số điện thoại"
                                     value={formData.contactPhone}
                                     onChange={(e) => handleChange("contactPhone", e.target.value)}
+                                    onFocus={() => setFocusedField("contactPhone")}
+                                    onBlur={() => setFocusedField(null)}
                                     disabled={loading}
                                     className={cn(
                                         "h-12 text-base px-4 border-2 transition-all duration-300 bg-white/80 backdrop-blur-sm pr-10",
-                                        errors.contactPhone && "border-red-300 bg-red-50/50"
+                                        focusedField === "contactPhone" && "border-primary-300 ring-4 ring-primary-100 shadow-lg scale-[1.02]",
+                                        validFields.contactPhone && "border-green-400 bg-green-50/50",
+                                        !validFields.contactPhone && formData.contactPhone && "border-red-300 bg-red-50/50"
                                     )}
                                 />
-                                {!errors.contactPhone && formData.contactPhone && (
+                                {validFields.contactPhone && (
                                     <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-green-500 animate-in zoom-in-50" />
                                 )}
-                                {errors.contactPhone && (
+                                {!validFields.contactPhone && formData.contactPhone && (
                                     <AlertCircle className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-red-400 animate-in zoom-in-50" />
                                 )}
                             </div>
-                            {errors.contactPhone && (
+                            {submitted && errors.contactPhone && (
                                 <p className="text-red-500 text-xs mt-1">{errors.contactPhone}</p>
                             )}
                         </div>
@@ -442,20 +482,24 @@ const StoreDialog = ({ open, onOpenChange, onSuccess, store }: StoreDialogProps)
                                     placeholder="Nhập địa chỉ"
                                     value={formData.locationAddress}
                                     onChange={(e) => handleChange("locationAddress", e.target.value)}
+                                    onFocus={() => setFocusedField("locationAddress")}
+                                    onBlur={() => setFocusedField(null)}
                                     disabled={loading}
                                     className={cn(
                                         "h-12 text-base px-4 border-2 transition-all duration-300 bg-white/80 backdrop-blur-sm pr-10",
-                                        errors.locationAddress && "border-red-300 bg-red-50/50"
+                                        focusedField === "locationAddress" && "border-primary-300 ring-4 ring-primary-100 shadow-lg scale-[1.02]",
+                                        validFields.locationAddress && "border-green-400 bg-green-50/50",
+                                        !validFields.locationAddress && formData.locationAddress && "border-red-300 bg-red-50/50"
                                     )}
                                 />
-                                {!errors.locationAddress && formData.locationAddress && (
+                                {validFields.locationAddress && (
                                     <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-green-500 animate-in zoom-in-50" />
                                 )}
-                                {errors.locationAddress && (
+                                {!validFields.locationAddress && formData.locationAddress && (
                                     <AlertCircle className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-red-400 animate-in zoom-in-50" />
                                 )}
                             </div>
-                            {errors.locationAddress && (
+                            {submitted && errors.locationAddress && (
                                 <p className="text-red-500 text-xs mt-1">{errors.locationAddress}</p>
                             )}
                         </div>
@@ -474,12 +518,11 @@ const StoreDialog = ({ open, onOpenChange, onSuccess, store }: StoreDialogProps)
                         focused={focusedField === "description"}
                     />
 
-
                     {/* Nút điều khiển */}
                     <FormFooterActions
                         onCancel={() => onOpenChange(false)}
-                        loading={loading}
                         onSubmit={handleSubmit}
+                        loading={loading}
                         isUpdate={isUpdate}
                     />
                 </div>

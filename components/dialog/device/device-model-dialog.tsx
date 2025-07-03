@@ -7,7 +7,7 @@ import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import { PlusCircle, Loader2, Edit, Plus, Settings2, CheckCircle2, AlertCircle, Save, Zap, Monitor, Factory, Cpu, Circle, Layers } from "lucide-react"
+import { PlusCircle, Edit, Plus, Settings2, CheckCircle2, AlertCircle, Monitor, Factory, Cpu, Circle, Layers } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { createDeviceModel, updateDeviceModel, getDeviceTypes } from "@/services/device"
 import type { DeviceDialogProps } from "@/types/dialog"
@@ -20,9 +20,9 @@ import { EFunctionParameterType } from "@/enum/device"
 import { DeviceFunctionCard } from "@/components/common/device-function-card"
 import { cn } from "@/lib/utils"
 import { EBaseUnit, EBaseUnitViMap, EIngredientType, EIngredientTypeViMap } from "@/enum/product"
-
-import { ZodError } from "zod";
+import { ZodError } from "zod"
 import { FormFooterActions } from "@/components/form"
+import { useDebounce } from "@/hooks"
 
 // Thay thế hàm parseErrors cũ bằng hàm mới này:
 const parseErrors = (zodError: ZodError) => {
@@ -68,11 +68,20 @@ const DeviceModelDialog = ({ open, onOpenChange, onSuccess, deviceModel }: Devic
     const [focusedField, setFocusedField] = useState<string | null>(null)
     const modelNameInputRef = useRef<HTMLInputElement>(null)
 
+    // State cho tìm kiếm loại thiết bị
+    const [deviceTypeSearchQuery, setDeviceTypeSearchQuery] = useState("")
+    const debouncedSearchQuery = useDebounce(deviceTypeSearchQuery, 300)
+
     const isUpdate = !!deviceModel
 
-    const fetchDeviceTypes = async (pageNumber: number) => {
+    const fetchDeviceTypes = async (pageNumber: number, query: string) => {
         try {
-            const response = await getDeviceTypes({ page: pageNumber, size: 10 })
+            const response = await getDeviceTypes({
+                page: pageNumber,
+                size: 10,
+                filterBy: "name",
+                filterQuery: query,
+            })
             if (pageNumber === 1) {
                 setDeviceTypes(response.items)
             } else {
@@ -91,10 +100,10 @@ const DeviceModelDialog = ({ open, onOpenChange, onSuccess, deviceModel }: Devic
 
     useEffect(() => {
         if (open) {
-            fetchDeviceTypes(1)
+            fetchDeviceTypes(1, debouncedSearchQuery)
             setTimeout(() => modelNameInputRef.current?.focus(), 200)
         }
-    }, [open])
+    }, [open, debouncedSearchQuery])
 
     useEffect(() => {
         if (deviceModel) {
@@ -128,6 +137,7 @@ const DeviceModelDialog = ({ open, onOpenChange, onSuccess, deviceModel }: Devic
             setSubmitted(false)
             setValidFields({})
             setFocusedField(null)
+            setDeviceTypeSearchQuery("")
         }
     }, [open])
 
@@ -182,15 +192,15 @@ const DeviceModelDialog = ({ open, onOpenChange, onSuccess, deviceModel }: Devic
         setFormData((prev) => ({
             ...prev,
             deviceFunctions: prev.deviceFunctions.filter((_, i) => i !== index),
-        }));
+        }))
         setErrors((prev) => {
-            const newErrors = { ...prev };
+            const newErrors = { ...prev }
             if (Array.isArray(newErrors.deviceFunctions)) {
-                newErrors.deviceFunctions = newErrors.deviceFunctions.filter((_, i) => i !== index);
+                newErrors.deviceFunctions = newErrors.deviceFunctions.filter((_, i) => i !== index)
             }
-            return newErrors;
-        });
-    };
+            return newErrors
+        })
+    }
 
     const handleDeviceFunctionChange = (index: number, field: string, value: string) => {
         setFormData((prev) => {
@@ -265,15 +275,15 @@ const DeviceModelDialog = ({ open, onOpenChange, onSuccess, deviceModel }: Devic
         setFormData((prev) => ({
             ...prev,
             deviceIngredients: prev.deviceIngredients.filter((_, i) => i !== index),
-        }));
+        }))
         setErrors((prev) => {
-            const newErrors = { ...prev };
+            const newErrors = { ...prev }
             if (Array.isArray(newErrors.deviceIngredients)) {
-                newErrors.deviceIngredients = newErrors.deviceIngredients.filter((_, i) => i !== index);
+                newErrors.deviceIngredients = newErrors.deviceIngredients.filter((_, i) => i !== index)
             }
-            return newErrors;
-        });
-    };
+            return newErrors
+        })
+    }
 
     const handleDeviceIngredientChange = (index: number, field: string, value: any) => {
         setFormData((prev) => {
@@ -291,13 +301,13 @@ const DeviceModelDialog = ({ open, onOpenChange, onSuccess, deviceModel }: Devic
         e.stopPropagation()
         setSubmitted(true)
 
-        const validationResult = deviceModelSchema.safeParse(formData);
+        const validationResult = deviceModelSchema.safeParse(formData)
         if (!validationResult.success) {
-            const parsedErrors = parseErrors(validationResult.error);
-            setErrors(parsedErrors);
-            console.error("Validation failed:", validationResult.error);
-            console.error("Validation errors:", parsedErrors);
-            return;
+            const parsedErrors = parseErrors(validationResult.error)
+            setErrors(parsedErrors)
+            console.error("Validation failed:", validationResult.error)
+            console.error("Validation errors:", parsedErrors)
+            return
         }
 
         setErrors({})
@@ -311,7 +321,7 @@ const DeviceModelDialog = ({ open, onOpenChange, onSuccess, deviceModel }: Devic
                 deviceFunctions: formData.deviceFunctions,
                 deviceIngredients: formData.deviceIngredients,
             }
-            console.log("Form data before validation:", formData);
+            console.log("Form data before validation:", formData)
             if (deviceModel) {
                 await updateDeviceModel(deviceModel.deviceModelId, data)
                 toast({
@@ -342,7 +352,7 @@ const DeviceModelDialog = ({ open, onOpenChange, onSuccess, deviceModel }: Devic
 
     const loadMoreDeviceTypes = async () => {
         const nextPage = page + 1
-        await fetchDeviceTypes(nextPage)
+        await fetchDeviceTypes(nextPage, debouncedSearchQuery)
         setPage(nextPage)
     }
 
@@ -445,21 +455,31 @@ const DeviceModelDialog = ({ open, onOpenChange, onSuccess, deviceModel }: Devic
                                 <SelectTrigger className="h-12 text-base px-4 border-2 bg-white/80 backdrop-blur-sm">
                                     <SelectValue placeholder="Chọn loại thiết bị" />
                                 </SelectTrigger>
-                                <SelectContent className="max-h-[300px] overflow-y-auto">
-                                    <InfiniteScroll
-                                        dataLength={deviceTypes.length}
-                                        next={loadMoreDeviceTypes}
-                                        hasMore={hasMore}
-                                        loader={<div className="p-2 text-center text-sm">Đang tải...</div>}
-                                        scrollableTarget="select-content"
-                                        style={{ overflow: "hidden" }}
-                                    >
-                                        {deviceTypes.map((deviceType) => (
-                                            <SelectItem key={deviceType.deviceTypeId} value={deviceType.deviceTypeId}>
-                                                {deviceType.name}
-                                            </SelectItem>
-                                        ))}
-                                    </InfiniteScroll>
+                                <SelectContent>
+                                    <div className="p-2">
+                                        <Input
+                                            placeholder="Tìm kiếm loại thiết bị..."
+                                            className="h-10 text-xs px-3"
+                                            value={deviceTypeSearchQuery}
+                                            onChange={(e) => setDeviceTypeSearchQuery(e.target.value)}
+                                            disabled={loading}
+                                        />
+                                    </div>
+                                    <div id="device-type-scroll" className="max-h-[200px] overflow-y-auto">
+                                        <InfiniteScroll
+                                            dataLength={deviceTypes.length}
+                                            next={loadMoreDeviceTypes}
+                                            hasMore={hasMore}
+                                            loader={<div className="p-2 text-center text-sm">Đang tải thêm...</div>}
+                                            scrollableTarget="device-type-scroll"
+                                        >
+                                            {deviceTypes.map((deviceType) => (
+                                                <SelectItem key={deviceType.deviceTypeId} value={deviceType.deviceTypeId}>
+                                                    {deviceType.name}
+                                                </SelectItem>
+                                            ))}
+                                        </InfiniteScroll>
+                                    </div>
                                 </SelectContent>
                             </Select>
                             {submitted && errors.deviceTypeId && (
@@ -645,7 +665,7 @@ const DeviceModelDialog = ({ open, onOpenChange, onSuccess, deviceModel }: Devic
                                                     <p className="text-red-500 text-xs">{errors.deviceIngredients[index].warningPercent}</p>
                                                 )}
                                             </div>
-                                            <div className="space-y-2">
+                                            <div className=" CLEARspace-y-2">
                                                 <Label>Đơn vị</Label>
                                                 <Select
                                                     value={ingredient.unit}
@@ -725,7 +745,6 @@ const DeviceModelDialog = ({ open, onOpenChange, onSuccess, deviceModel }: Devic
                                                     <p className="text-red-500 text-xs">{errors.deviceIngredients[index].isPrimary}</p>
                                                 )}
                                             </div>
-
                                         </div>
                                         <Button
                                             variant="destructive"
@@ -739,14 +758,14 @@ const DeviceModelDialog = ({ open, onOpenChange, onSuccess, deviceModel }: Devic
                                 ))}
                             </div>
                         )}
-                        {submitted && typeof errors.deviceIngredients === 'string' && (
+                        {submitted && typeof errors.deviceIngredients === "string" && (
                             <p className="text-red-500 text-xs mt-1">{errors.deviceIngredients}</p>
                         )}
                     </div>
 
                     <FormFooterActions
                         onCancel={() => onOpenChange(false)}
-                        onSubmit={() => handleSubmit(new Event("submit") as any)}
+                        onSubmit={handleSubmit}
                         loading={loading}
                         isUpdate={isUpdate}
                     />

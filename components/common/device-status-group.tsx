@@ -13,12 +13,13 @@ import { Calendar, Info, MoreHorizontal, Package, RefreshCw, Tag } from "lucide-
 import { KioskDevice } from "@/interfaces/kiosk"
 
 interface DeviceStatusGroupProps {
-    kioskDevices: any[];
-    openReplaceDialog: (kioskDevice: any) => void;
-    openOnhubDialog: (kioskDevice: any) => void;
-    openOnplaceDialog: (kioskDevice: any) => void;
+    kioskDevices: KioskDevice[];
+    openReplaceDialog: (kioskDevice: KioskDevice) => void;
+    openOnhubDialog: (kioskDevice: KioskDevice) => void;
+    openOnplaceDialog: (kioskDevice: KioskDevice) => void;
+    openDeviceIngredient: (kioskDevice: KioskDevice) => void;
 }
-export const DeviceStatusGroup = ({ kioskDevices, openReplaceDialog, openOnhubDialog, openOnplaceDialog }: DeviceStatusGroupProps) => {
+export const DeviceStatusGroup = ({ kioskDevices, openReplaceDialog, openOnhubDialog, openOnplaceDialog, openDeviceIngredient }: DeviceStatusGroupProps) => {
     // Group devices by status
     const groupedDevices = kioskDevices.reduce(
         (acc, device) => {
@@ -31,20 +32,6 @@ export const DeviceStatusGroup = ({ kioskDevices, openReplaceDialog, openOnhubDi
         },
         {} as Record<string, any[]>,
     )
-
-    // Get status color
-    const getStatusColor = (status: string) => {
-        switch (status) {
-            case EDeviceStatus.Working:
-                return "bg-green-500 text-white"
-            case EDeviceStatus.Maintain:
-                return "bg-amber-500 text-white"
-            case EDeviceStatus.Stock:
-                return "bg-blue-500 text-white"
-            default:
-                return "bg-gray-500 text-white"
-        }
-    }
 
     // Order statuses: Working first, then Maintain, then Stock
     const statusOrder = [EDeviceStatus.Working, EDeviceStatus.Maintain, EDeviceStatus.Stock]
@@ -97,6 +84,10 @@ export const DeviceStatusGroup = ({ kioskDevices, openReplaceDialog, openOnhubDi
                                                     <DropdownMenuItem onClick={() => openOnplaceDialog(kioskDevice)}>
                                                         <Info className="mr-2 h-4 w-4" />
                                                         Xem thông tin Onplace
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem onClick={() => openDeviceIngredient(kioskDevice)}>
+                                                        <Info className="mr-2 h-4 w-4" />
+                                                        Xem thông tin nguyên liệu
                                                     </DropdownMenuItem>
                                                 </DropdownMenuContent>
                                             </DropdownMenu>

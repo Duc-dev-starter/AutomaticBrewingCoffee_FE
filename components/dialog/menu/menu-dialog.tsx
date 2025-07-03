@@ -35,6 +35,9 @@ const MenuDialog = ({ open, onOpenChange, onSuccess, menu }: MenuDialogProps) =>
     const [organizationSearchQuery, setOrganizationSearchQuery] = useState("");
     const [pageOrganizations, setPageOrganizations] = useState(1);
     const [hasMoreOrganizations, setHasMoreOrganizations] = useState(true);
+    const [submitted, setSubmitted] = useState(false)
+    const [validFields, setValidFields] = useState<Record<string, boolean>>({})
+    const [focusedField, setFocusedField] = useState<string | null>(null)
     const nameInputRef = useRef<HTMLInputElement>(null);
 
     const debouncedOrganizationSearchQuery = useDebounce(organizationSearchQuery, 300);
@@ -263,11 +266,11 @@ const MenuDialog = ({ open, onOpenChange, onSuccess, menu }: MenuDialogProps) =>
                             value={formData.status}
                             onChange={(value) => handleChange("status", value as EBaseStatus)}
                             placeholder="Chọn trạng thái"
-                            options={Object.entries(EBaseStatusViMap).map(([value, label]) => ({
-                                value,
-                                label,
-                            }))}
                             error={errors.status}
+                            focusedField={focusedField}
+                            setFocusedField={setFocusedField}
+                            valid={validFields.status}
+                            submitted={submitted}
                         />
                     </div>
 

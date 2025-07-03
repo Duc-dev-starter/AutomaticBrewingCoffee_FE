@@ -1,5 +1,6 @@
 import { EBaseStatus } from "@/enum/base";
 import { EDeviceStatus, EFunctionParameterType } from "@/enum/device";
+import { EIngredientType } from "@/enum/product";
 
 export interface Device {
     deviceId: string;
@@ -11,6 +12,7 @@ export interface Device {
     updatedDate: string | null;
     deviceModel: DeviceModel;
     serialNumber: string;
+    deviceIngredientStates: DeviceIngredientStates[];
 }
 
 
@@ -68,4 +70,20 @@ export interface FunctionParameters {
     description: string | null,
     type: EFunctionParameterType,
     default: string
+}
+
+
+export interface DeviceIngredientStates {
+    deviceIngredientStateId: string;
+    deviceId: string;
+    maxCapacity: number;
+    minCapacity: number;
+    warningPercent: number;
+    ingredientType: string;
+    capacityLevel: string;
+    currentCapacity: number;
+    unit: EIngredientType;
+    isWarning: boolean;
+    isRenewable: boolean;
+    isPrimary: boolean;
 }

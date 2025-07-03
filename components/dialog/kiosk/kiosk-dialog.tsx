@@ -7,14 +7,14 @@ import { Input } from "@/components/ui/input"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { useToast } from "@/hooks/use-toast"
 import type { Device } from "@/interfaces/device"
-import { EBaseStatus } from "@/enum/base"
+import { EBaseStatus, EBaseStatusViMap } from "@/enum/base"
 import { createKiosk, updateKiosk } from "@/services/kiosk"
 import { getStores } from "@/services/store"
 import { getKioskVersions } from "@/services/kiosk"
 import { getMenus } from "@/services/menu"
 import { format, isAfter, startOfDay } from "date-fns"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { CalendarIcon, X, Cpu, MapPin, Settings, Clock, CheckCircle2, AlertCircle, Save, Zap } from "lucide-react"
+import { CalendarIcon, X, Cpu, MapPin, Settings, Clock, CheckCircle2, AlertCircle } from "lucide-react"
 import { vi } from "date-fns/locale"
 import { kioskSchema } from "@/schema/kiosk"
 import type { KioskDialogProps } from "@/types/dialog"
@@ -27,7 +27,7 @@ import { getValidDevicesInKiosk } from "@/services/kiosk"
 import { EnhancedCalendar } from "@/components/common/enhanced-calendar"
 import { cn } from "@/lib/utils"
 import { useDebounce } from "@/hooks"
-import { FormFooterActions } from "@/components/form"
+import { FormBaseStatusSelectField, FormFooterActions } from "@/components/form"
 
 const initialFormData = {
     kioskVersionId: "",
@@ -87,10 +87,15 @@ const KioskDialog = ({ open, onOpenChange, onSuccess, kiosk }: KioskDialogProps)
             setValidFields({
                 location: kiosk.location?.trim().length >= 1,
                 position: kiosk.position?.trim().length >= 1,
+                status: true,
             })
         } else if (open) {
             setFormData(initialFormData)
-            setValidFields({})
+            setValidFields({
+                location: false,
+                position: false,
+                status: true,
+            })
         }
     }, [open, kiosk])
 
@@ -592,28 +597,17 @@ const KioskDialog = ({ open, onOpenChange, onSuccess, kiosk }: KioskDialogProps)
                         </div>
                     </div>
 
-                    <div className="space-y-3">
-                        <div className="flex items-center space-x-2 mb-2">
-                            <Clock className="w-4 h-4 text-primary-300" />
-                            <label className="text-sm font-medium text-gray-700 asterisk">Trạng thái</label>
-                        </div>
-                        <Select
-                            value={formData.status}
-                            onValueChange={(value) => handleChange("status", value as EBaseStatus)}
-                            disabled={loading}
-                        >
-                            <SelectTrigger className="h-12 text-sm px-4 border-2 bg-white/80 backdrop-blur-sm w-full">
-                                <SelectValue placeholder="Chọn trạng thái" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                <SelectItem value={EBaseStatus.Active}>Hoạt động</SelectItem>
-                                <SelectItem value={EBaseStatus.Inactive}>Không hoạt động</SelectItem>
-                            </SelectContent>
-                        </Select>
-                        {submitted && errors.status && (
-                            <p className="text-red-500 text-xs mt-1">{errors.status}</p>
-                        )}
-                    </div>
+                    <FormBaseStatusSelectField
+                        label="Trạng thái"
+                        value={formData.status}
+                        onChange={(value) => handleChange("status", value as EBaseStatus)}
+                        placeholder="Chọn trạng thái"
+                        error={errors.status}
+                        focusedField={focusedField}
+                        setFocusedField={setFocusedField}
+                        valid={validFields.status}
+                        submitted={submitted}
+                    />
 
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-3">

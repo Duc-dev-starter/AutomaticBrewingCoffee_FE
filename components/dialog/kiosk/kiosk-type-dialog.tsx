@@ -3,11 +3,10 @@
 import type React from "react";
 import { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { MapPin, Sparkles, CheckCircle2, AlertCircle, Save, X, Edit, Zap, ChevronDown } from "lucide-react";
+import { MapPin, Sparkles, CheckCircle2, AlertCircle, Edit } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { EBaseStatus, EBaseStatusViMap } from "@/enum/base";
 import { KioskDialogProps } from "@/types/dialog";
@@ -15,7 +14,7 @@ import { createKioskType, updateKioskType } from "@/services/kiosk";
 import { ErrorResponse } from "@/types/error";
 import { kioskTypeSchema } from "@/schema/kiosk";
 import { cn } from "@/lib/utils";
-import { FormFooterActions } from "@/components/form";
+import { FormBaseStatusSelectField, FormFooterActions } from "@/components/form";
 
 const initialFormData = {
     name: "",
@@ -29,9 +28,10 @@ const KioskTypeDialog = ({ open, onOpenChange, onSuccess, kioskType }: KioskDial
     const [formData, setFormData] = useState(initialFormData);
     const [focusedField, setFocusedField] = useState<string | null>(null);
     const [validFields, setValidFields] = useState<Record<string, boolean>>({});
+    const [errors, setErrors] = useState<Record<string, any>>({});
     const [isSuccess, setIsSuccess] = useState(false);
     const nameInputRef = useRef<HTMLInputElement>(null);
-    const [statusDropdownOpen, setStatusDropdownOpen] = useState(false);
+    const [submitted, setSubmitted] = useState(false)
 
     const isUpdate = !!kioskType;
 
@@ -40,9 +40,9 @@ const KioskTypeDialog = ({ open, onOpenChange, onSuccess, kioskType }: KioskDial
         if (!open) {
             setFormData(initialFormData);
             setValidFields({});
+            setErrors({});
             setIsSuccess(false);
             setFocusedField(null);
-            setStatusDropdownOpen(false);
         }
     }, [open]);
 
@@ -109,7 +109,9 @@ const KioskTypeDialog = ({ open, onOpenChange, onSuccess, kioskType }: KioskDial
 
         const validationResult = kioskTypeSchema.safeParse(formData);
         if (!validationResult.success) {
-            const errors = validationResult.error.flatten().fieldErrors;
+            const { fieldErrors } = validationResult.error.flatten();
+            setErrors(fieldErrors);
+
             toast({
                 title: "Lỗi validation",
                 description: Object.values(errors).flat().join(", "),
@@ -119,7 +121,7 @@ const KioskTypeDialog = ({ open, onOpenChange, onSuccess, kioskType }: KioskDial
         }
 
         if (!validFields.name) return;
-
+        setErrors({});
         setLoading(true);
 
         try {
@@ -268,51 +270,17 @@ const KioskTypeDialog = ({ open, onOpenChange, onSuccess, kioskType }: KioskDial
                         </div>
                     </div>
 
-                    <div className="space-y-3">
-                        <div className="flex items-center space-x-2 mb-2">
-                            <Label className="text-sm font-medium text-gray-700">
-                                Trạng thái <span className="text-red-500">*</span>
-                            </Label>
-                        </div>
-                        <div className="relative">
-                            <button
-                                type="button"
-                                onClick={() => setStatusDropdownOpen(!statusDropdownOpen)}
-                                disabled={loading}
-                                className={cn(
-                                    "w-full h-12 px-4 text-left bg-white/80 backdrop-blur-sm border-2 rounded-md transition-all duration-300 flex items-center justify-between",
-                                    statusDropdownOpen && "border-primary-400 ring-4 ring-primary-100 shadow-lg",
-                                    !statusDropdownOpen && "border-gray-200 hover:border-gray-300",
-                                )}
-                            >
-                                <span className="text-sm">{EBaseStatusViMap[formData.status as keyof typeof EBaseStatusViMap]}</span>
-                                <ChevronDown
-                                    className={cn("w-4 h-4 text-gray-500 transition-transform", statusDropdownOpen && "rotate-180")}
-                                />
-                            </button>
-
-                            {statusDropdownOpen && (
-                                <div className="absolute top-full left-0 right-0 mt-1 bg-white/95 backdrop-blur-sm border-2 border-primary-200 rounded-md shadow-xl z-50 overflow-hidden">
-                                    {Object.entries(EBaseStatusViMap).map(([key, value]) => (
-                                        <button
-                                            key={key}
-                                            type="button"
-                                            onClick={() => {
-                                                handleChange("status", key);
-                                                setStatusDropdownOpen(false);
-                                            }}
-                                            className={cn(
-                                                "w-full px-4 py-3 text-left hover:bg-primary-50 transition-colors text-sm",
-                                                formData.status === key && "bg-primary-100 text-primary-700 font-medium",
-                                            )}
-                                        >
-                                            {value}
-                                        </button>
-                                    ))}
-                                </div>
-                            )}
-                        </div>
-                    </div>
+                    <FormBaseStatusSelectField
+                        label="Trạng thái"
+                        value={formData.status}
+                        onChange={(value) => handleChange("status", value as EBaseStatus)}
+                        placeholder="Chọn trạng thái"
+                        error={errors.status}
+                        focusedField={focusedField}
+                        setFocusedField={setFocusedField}
+                        valid={validFields.status}
+                        submitted={submitted}
+                    />
 
                     <div className="space-y-3">
                         <div className="flex items-center space-x-2 mb-2">

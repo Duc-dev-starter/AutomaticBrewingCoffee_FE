@@ -61,17 +61,19 @@ const KioskDetailPage = () => {
     const [selectedReplacementDeviceId, setSelectedReplacementDeviceId] = useState<string>("")
     const [loadingReplacements, setLoadingReplacements] = useState<boolean>(false)
     const [processingAction, setProcessingAction] = useState<boolean>(false)
-    const [isOnhubDialogOpen, setIsOnhubDialogOpen] = useState<boolean>(false);
-    const [selectedKioskDeviceForOnhub, setSelectedKioskDeviceForOnhub] = useState<any>(null);
-    const [onhubData, setOnhubData] = useState<any>(null);
-    const [loadingOnhub, setLoadingOnhub] = useState<boolean>(false);
+    const [isOnhubDialogOpen, setIsOnhubDialogOpen] = useState<boolean>(false)
+    const [selectedKioskDeviceForOnhub, setSelectedKioskDeviceForOnhub] = useState<any>(null)
+    const [onhubData, setOnhubData] = useState<any>(null)
+    const [loadingOnhub, setLoadingOnhub] = useState<boolean>(false)
     const [isUpdateWebhookDialogOpen, setIsUpdateWebhookDialogOpen] = useState<boolean>(false)
     const [selectedWebhook, setSelectedWebhook] = useState<any>(null)
     const [newWebhookUrl, setNewWebhookUrl] = useState<string>("")
-    const [isOnplaceDialogOpen, setIsOnplaceDialogOpen] = useState<boolean>(false);
-    const [selectedKioskDeviceForOnplace, setSelectedKioskDeviceForOnplace] = useState<KioskDevice | null>(null);
-    const [onplaceData, setOnplaceData] = useState<any>(null);
-    const [loadingOnplace, setLoadingOnplace] = useState<boolean>(false);
+    const [isOnplaceDialogOpen, setIsOnplaceDialogOpen] = useState<boolean>(false)
+    const [selectedKioskDeviceForOnplace, setSelectedKioskDeviceForOnplace] = useState<KioskDevice | null>(null)
+    const [onplaceData, setOnplaceData] = useState<any>(null)
+    const [loadingOnplace, setLoadingOnplace] = useState<boolean>(false)
+    const [isIngredientDialogOpen, setIsIngredientDialogOpen] = useState(false)
+    const [selectedDeviceIngredients, setSelectedDeviceIngredients] = useState<any[]>([])
 
     const fetchKioskData = async () => {
         try {
@@ -105,22 +107,22 @@ const KioskDetailPage = () => {
 
     const fetchOnhubData = async (kioskDeviceId: string) => {
         try {
-            setLoadingOnhub(true);
-            const response = await getOnhub(kioskDeviceId);
-            setOnhubData(response);
+            setLoadingOnhub(true)
+            const response = await getOnhub(kioskDeviceId)
+            setOnhubData(response)
         } catch (error) {
             const err = error as ErrorResponse
-            console.error("Error fetching onhub data:", error);
+            console.error("Error fetching onhub data:", error)
             toast({
                 title: "Lỗi",
                 description: err.message,
                 variant: "destructive",
-            });
-            setOnhubData(null);
+            })
+            setOnhubData(null)
         } finally {
-            setLoadingOnhub(false);
+            setLoadingOnhub(false)
         }
-    };
+    }
 
     const openUpdateWebhookDialog = (webhook: Webhook) => {
         setSelectedWebhook(webhook)
@@ -128,44 +130,43 @@ const KioskDetailPage = () => {
         setIsUpdateWebhookDialogOpen(true)
     }
 
-
     const openOnhubDialog = (kioskDevice: KioskDevice) => {
-        setSelectedKioskDeviceForOnhub(kioskDevice);
-        setIsOnhubDialogOpen(true);
-        setOnhubData(null);
-        fetchOnhubData(kioskDevice.kioskDeviceMappingId);
-    };
+        setSelectedKioskDeviceForOnhub(kioskDevice)
+        setIsOnhubDialogOpen(true)
+        setOnhubData(null)
+        fetchOnhubData(kioskDevice.kioskDeviceMappingId)
+    }
 
     const openOnplaceDialog = async (kioskDevice: KioskDevice) => {
-        setSelectedKioskDeviceForOnplace(kioskDevice);
-        setIsOnplaceDialogOpen(true);
-        setOnplaceData(null);
-        setLoadingOnplace(true);
+        setSelectedKioskDeviceForOnplace(kioskDevice)
+        setIsOnplaceDialogOpen(true)
+        setOnplaceData(null)
+        setLoadingOnplace(true)
         try {
             if (!kiosk?.kioskId) {
                 toast({
                     title: "Lỗi",
                     description: "Không tìm thấy kioskId.",
                     variant: "destructive",
-                });
-                setOnplaceData(null);
-                return;
+                })
+                setOnplaceData(null)
+                return
             }
-            const data = await getOnplace(kiosk.kioskId, kioskDevice.device.deviceModelId);
-            setOnplaceData(data);
+            const data = await getOnplace(kiosk.kioskId, kioskDevice.device.deviceModelId)
+            setOnplaceData(data)
         } catch (error) {
-            const err = error as ErrorResponse;
-            console.error("Error fetching onplace data:", error);
+            const err = error as ErrorResponse
+            console.error("Error fetching onplace data:", error)
             toast({
                 title: "Lỗi",
                 description: err.message,
                 variant: "destructive",
-            });
-            setOnplaceData(null);
+            })
+            setOnplaceData(null)
         } finally {
-            setLoadingOnplace(false);
+            setLoadingOnplace(false)
         }
-    };
+    }
 
     const openReplaceDialog = async (kioskDevice: KioskDevice) => {
         setSelectedKioskDevice(kioskDevice)
@@ -203,7 +204,6 @@ const KioskDetailPage = () => {
                 variant: "success",
             })
 
-            // Refresh data
             await fetchKioskData()
         } catch (error) {
             const err = error as ErrorResponse
@@ -219,6 +219,12 @@ const KioskDetailPage = () => {
             setSelectedKioskDevice(null)
             setSelectedReplacementDeviceId("")
         }
+    }
+
+    const openIngredientDialog = (kioskDevice: KioskDevice) => {
+        setSelectedDeviceIngredients(kioskDevice.device.deviceIngredientStates || [])
+        console.log("Selected Device Ingredients:", kioskDevice.device.deviceIngredientStates)
+        setIsIngredientDialogOpen(true)
     }
 
     if (loading) {
@@ -463,41 +469,39 @@ const KioskDetailPage = () => {
                             </CardHeader>
                             <CardContent>
                                 <div className="space-y-4">
-                                    {
-                                        kiosk.webhooks.map((webhook) => (
-                                            <div key={webhook.webhookId} className="border rounded-md p-4">
-                                                <div className="flex justify-between items-start">
-                                                    <div className="flex-1">
-                                                        <h4 className="font-medium">{webhook.webhookType}</h4>
-                                                        <p className="text-sm text-muted-foreground break-all mt-1">{webhook.webhookUrl}</p>
-                                                    </div>
-                                                    <div className="flex items-center gap-2">
-                                                        <Button
-                                                            variant="outline"
-                                                            size="sm"
-                                                            onClick={() => {
-                                                                navigator.clipboard.writeText(webhook.webhookUrl)
-                                                                toast({
-                                                                    title: "Thành công",
-                                                                    description: "Đã sao chép URL vào clipboard",
-                                                                })
-                                                            }}
-                                                        >
-                                                            <Copy className="h-4 w-4 mr-2" />
-                                                            Sao chép URL
-                                                        </Button>
-                                                        <Button
-                                                            variant="outline"
-                                                            size="sm"
-                                                            onClick={() => openUpdateWebhookDialog(webhook)}
-                                                        >
-                                                            Cập nhật
-                                                        </Button>
-                                                    </div>
+                                    {kiosk.webhooks.map((webhook) => (
+                                        <div key={webhook.webhookId} className="border rounded-md p-4">
+                                            <div className="flex justify-between items-start">
+                                                <div className="flex-1">
+                                                    <h4 className="font-medium">{webhook.webhookType}</h4>
+                                                    <p className="text-sm text-muted-foreground break-all mt-1">{webhook.webhookUrl}</p>
+                                                </div>
+                                                <div className="flex items-center gap-2">
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        onClick={() => {
+                                                            navigator.clipboard.writeText(webhook.webhookUrl)
+                                                            toast({
+                                                                title: "Thành công",
+                                                                description: "Đã sao chép URL vào clipboard",
+                                                            })
+                                                        }}
+                                                    >
+                                                        <Copy className="h-4 w-4 mr-2" />
+                                                        Sao chép URL
+                                                    </Button>
+                                                    <Button
+                                                        variant="outline"
+                                                        size="sm"
+                                                        onClick={() => openUpdateWebhookDialog(webhook)}
+                                                    >
+                                                        Cập nhật
+                                                    </Button>
                                                 </div>
                                             </div>
-                                        ))
-                                    }
+                                        </div>
+                                    ))}
                                 </div>
                             </CardContent>
                         </Card>
@@ -519,6 +523,7 @@ const KioskDetailPage = () => {
                                     openReplaceDialog={openReplaceDialog}
                                     openOnhubDialog={openOnhubDialog}
                                     openOnplaceDialog={openOnplaceDialog}
+                                    openDeviceIngredient={openIngredientDialog}
                                 />
                             ) : (
                                 <div className="text-center py-8 text-muted-foreground">
@@ -596,14 +601,45 @@ const KioskDetailPage = () => {
                 </DialogContent>
             </Dialog>
 
+            <Dialog open={isIngredientDialogOpen} onOpenChange={setIsIngredientDialogOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Thông tin Nguyên liệu của Thiết bị</DialogTitle>
+                        <DialogDescription>
+                            Danh sách các thành phần (ingredients) của thiết bị đã chọn.
+                        </DialogDescription>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                        {selectedDeviceIngredients.length > 0 ? (
+                            selectedDeviceIngredients.map((ingredient, index) => (
+                                <div key={index} className="border p-4 rounded-md">
+                                    <p><strong>Loại Nguyên liệu:</strong> {ingredient.ingredientType}</p>
+                                    <p><strong>Dung lượng tối đa:</strong> {ingredient.maxCapacity} {ingredient.unit}</p>
+                                    <p><strong>Dung lượng tối thiểu:</strong> {ingredient.minCapacity} {ingredient.unit}</p>
+                                    <p><strong>Dung lượng hiện tại:</strong> {ingredient.currentCapacity} {ingredient.unit}</p>
+                                    <p><strong>Mức cảnh báo:</strong> {ingredient.warningPercent}%</p>
+                                    <p><strong>Trạng thái cảnh báo:</strong> {ingredient.isWarning ? "Có" : "Không"}</p>
+                                    <p><strong>Có thể tái tạo:</strong> {ingredient.isRenewable ? "Có" : "Không"}</p>
+                                    <p><strong>Chính:</strong> {ingredient.isPrimary ? "Có" : "Không"}</p>
+                                </div>
+                            ))
+                        ) : (
+                            <p>Không có thông tin nguyên liệu cho thiết bị này.</p>
+                        )}
+                    </div>
+                    <DialogFooter>
+                        <Button onClick={() => setIsIngredientDialogOpen(false)}>Đóng</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
             <OnplaceDialog
                 isOpen={isOnplaceDialogOpen}
                 onOpenChange={setIsOnplaceDialogOpen}
                 data={onplaceData}
                 loading={loadingOnplace}
-                deviceName={selectedKioskDeviceForOnplace?.device.name || ''}
+                deviceName={selectedKioskDeviceForOnplace?.device.name || ""}
             />
-
 
             <Dialog open={isOnhubDialogOpen} onOpenChange={setIsOnhubDialogOpen}>
                 <DialogContent>
@@ -675,15 +711,10 @@ const KioskDetailPage = () => {
                         />
                     </div>
                     <DialogFooter>
-                        <Button
-                            variant="outline"
-                            onClick={() => setIsUpdateWebhookDialogOpen(false)}
-                        >
+                        <Button variant="outline" onClick={() => setIsUpdateWebhookDialogOpen(false)}>
                             Hủy
                         </Button>
-                        <Button onClick={handleUpdateWebhook}>
-                            Lưu
-                        </Button>
+                        <Button onClick={handleUpdateWebhook}>Lưu</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>

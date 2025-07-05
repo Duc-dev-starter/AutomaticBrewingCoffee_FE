@@ -1,32 +1,41 @@
-"use client"
+"use client";
 
-import type React from "react"
+import React, { useState } from "react";
+import Link from "next/link";
+import { useRouter } from "next/navigation";
+import { AlertCircle, Coffee, Lock, LogIn, Mail } from "lucide-react";
 
-import { useState } from "react"
-import { cn } from "@/lib/utils"
-import { Button } from "@/components/ui/button"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
-import { Input } from "@/components/ui/input"
-import { Label } from "@/components/ui/label"
-import Link from "next/link"
-import { useRouter } from "next/navigation"
-import { AlertCircle, Coffee, Lock, LogIn, Mail } from "lucide-react"
-import { Alert, AlertDescription } from "@/components/ui/alert"
-import { getCurrentUser, login } from "@/services/auth"
-import { handleToken } from "@/utils/cookie"
-import { Path } from "@/constants/path"
-import { useToast } from "@/hooks/use-toast"
-import { ErrorResponse } from "@/types/error"
-import { useAccountStore } from "@/stores/user"
+import { cn } from "@/lib/utils";
+import { Input } from "@/components/ui/input";
+import { Button } from "@/components/ui/button";
+import { Label } from "@/components/ui/label";
+import {
+    Card,
+    CardHeader,
+    CardTitle,
+    CardDescription,
+    CardContent,
+    CardFooter,
+} from "@/components/ui/card";
+import { Alert, AlertDescription } from "@/components/ui/alert";
+import { useToast } from "@/hooks/use-toast";
+
+import { login, getCurrentUser } from "@/services/auth";
+import { handleToken } from "@/utils/cookie";
+import { ErrorResponse } from "@/types/error";
+import { Path } from "@/constants/path";
+import { useAppStore } from "@/stores/use-app-store";
 
 export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRef<"div">) {
-    const router = useRouter()
-    const [email, setEmail] = useState("")
-    const [password, setPassword] = useState("")
-    const [error, setError] = useState("")
-    const [isLoading, setIsLoading] = useState(false)
+    const router = useRouter();
     const { toast } = useToast();
-    const { setAccount } = useAccountStore();
+
+    const setAccount = useAppStore((state) => state.setAccount);
+
+    const [email, setEmail] = useState("");
+    const [password, setPassword] = useState("");
+    const [error, setError] = useState("");
+    const [isLoading, setIsLoading] = useState(false);
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
@@ -40,33 +49,33 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
         setIsLoading(true);
         try {
             const response = await login({ email, password });
-            console.log(response);
+
             if (response.isSuccess && response.statusCode === 200) {
                 const accessToken = response.response.accessToken;
                 const refreshToken = response.response.refreshToken;
+
                 toast({
                     title: "Đăng nhập thành công",
-                    description: `Chuẩn bị điều hướng`,
+                    description: "Chuẩn bị điều hướng...",
                 });
+
                 handleToken(accessToken, refreshToken);
+
                 const userResponse = await getCurrentUser();
-                if (userResponse?.isSuccess && userResponse.response) {
+                if (userResponse.isSuccess && userResponse.response) {
                     setAccount(userResponse.response);
                 }
-                const params = new URLSearchParams(window.location.search);
-                const redirect = params.get("redirect");
+
+                const redirect = new URLSearchParams(window.location.search).get("redirect");
                 setTimeout(() => {
                     router.push(redirect || Path.DASHBOARD);
                 }, 100);
-
             } else {
                 setError("Email hoặc mật khẩu không chính xác");
-                setIsLoading(false);
             }
-        } catch (error) {
-            const err = error as ErrorResponse
-            setError(err.message);
-            console.error("Login error:", error);
+        } catch (err) {
+            const typedError = err as ErrorResponse;
+            setError(typedError.message || "Lỗi không xác định");
         } finally {
             setIsLoading(false);
         }
@@ -85,8 +94,11 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
             <Card className="border-0 shadow-lg">
                 <CardHeader className="space-y-1 pb-4">
                     <CardTitle className="text-2xl text-center">Đăng nhập quản trị</CardTitle>
-                    <CardDescription className="text-center">Khu vực hạn chế - Chỉ dành cho quản trị viên</CardDescription>
+                    <CardDescription className="text-center">
+                        Khu vực hạn chế - Chỉ dành cho quản trị viên
+                    </CardDescription>
                 </CardHeader>
+
                 <CardContent>
                     {error && (
                         <Alert variant="destructive" className="mb-4">
@@ -111,6 +123,7 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
                                     />
                                 </div>
                             </div>
+
                             <div className="grid gap-2">
                                 <div className="flex items-center">
                                     <Label htmlFor="password">Mật khẩu</Label>
@@ -134,6 +147,7 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
                                     />
                                 </div>
                             </div>
+
                             <Button type="submit" className="w-full bg-sky-600 hover:bg-sky-700" disabled={isLoading}>
                                 {isLoading ? (
                                     <div className="flex items-center">
@@ -168,14 +182,13 @@ export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRe
                         </div>
                     </form>
                 </CardContent>
+
                 <CardFooter className="flex flex-col">
                     <div className="text-center text-sm text-muted-foreground mt-2">
-                        <div className="flex items-center justify-center">
-                            <span>Khu vực bảo mật - Chỉ dành cho nhân viên được ủy quyền</span>
-                        </div>
+                        <span>Khu vực bảo mật - Chỉ dành cho nhân viên được ủy quyền</span>
                     </div>
                 </CardFooter>
             </Card>
         </div>
-    )
+    );
 }

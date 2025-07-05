@@ -18,7 +18,7 @@ import { Path } from "@/constants/path"
 import { ThemeSelector } from "./theme-selector"
 import { logout } from "@/services/auth"
 import { Account } from "@/interfaces/account"
-import { useAccountStore } from "@/stores/user"
+import { useAppStore } from "@/stores/use-app-store"
 
 export function NavUser({
     account,
@@ -28,7 +28,7 @@ export function NavUser({
     const { isMobile } = useSidebar()
     const handleLogout = () => {
         logout();
-        useAccountStore.getState().clearAccount();
+        useAppStore.getState().clearAccount();
     };
 
     if (account === null) {

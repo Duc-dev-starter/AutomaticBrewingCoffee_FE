@@ -35,6 +35,13 @@ export const columns = ({
             ),
         },
         {
+            id: "organizationName",
+            header: "Tên tổ chức",
+            cell: ({ row }) => (
+                <div className="text-center">{row.original.organization?.name || "Không có"}</div>
+            ),
+        },
+        {
             id: "status",
             header: "Trạng thái",
             cell: ({ row }) => {

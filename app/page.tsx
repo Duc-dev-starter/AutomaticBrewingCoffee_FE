@@ -5,13 +5,13 @@ import { useState, useEffect } from "react"
 import { Coffee, ChevronRight, Clock, Droplets, Thermometer, Award } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { motion } from "framer-motion"
-import { useAccountStore } from "@/stores/user"
 import { Path } from "@/constants/path"
+import { useAppStore } from "@/stores/use-app-store"
 
 export default function Home() {
   const [mounted, setMounted] = useState(false)
   const [scrollY, setScrollY] = useState(0)
-  const { account } = useAccountStore()
+  const { account } = useAppStore()
 
   // Fix for initial loading issue - ensure component is mounted before rendering
   useEffect(() => {

@@ -9,10 +9,10 @@ import Link from "next/link"
 import { Coffee } from "lucide-react"
 import { Path } from "@/constants/path"
 import clsx from "clsx"
-import { useAccountStore } from "@/stores/user"
+import { useAppStore } from "@/stores/use-app-store"
 
 export function AdminSidebar() {
-    const account = useAccountStore(state => state.account);
+    const account = useAppStore(state => state.account);
     console.log(account)
     const roleName = account?.roleName
 

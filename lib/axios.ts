@@ -56,7 +56,7 @@ axiosInstance.interceptors.response.use(
             const { data } = error.response;
 
             // Xử lý lỗi 401
-            if (error.response.status === HttpStatus.Unauthorized && !originalRequest._retry && error.response?.message?.includes("Mã làm mới đã hết hạn")) {
+            if (error.response.status === HttpStatus.Unauthorized && !originalRequest._retry && error.response?.message?.includes("làm mới")) {
                 if (isRefreshing) {
                     return new Promise((resolve, reject) => {
                         failedQueue.push({ resolve, reject });

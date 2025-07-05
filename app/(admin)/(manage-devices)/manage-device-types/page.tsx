@@ -46,7 +46,6 @@ const ManageDeviceTypes = () => {
     const [sorting, setSorting] = useState<SortingState>([{ id: "createdDate", desc: true }]);
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
     const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
-    const [rowSelection, setRowSelection] = useState({});
 
     const [dialogOpen, setDialogOpen] = useState<boolean>(false);
     const [selectedDeviceType, setSelectedDeviceType] = useState<DeviceType | undefined>(undefined);
@@ -76,16 +75,6 @@ const ManageDeviceTypes = () => {
             });
         }
     }, [error, toast]);
-
-    // useEffect(() => {
-    //     // Prefetch trang tiếp theo nếu còn trang
-    //     if (data?.totalPages && currentPage < data.totalPages) {
-    //         useDeviceTypes({
-    //             ...params,
-    //             page: currentPage + 1,
-    //         });
-    //     }
-    // }, [currentPage, data?.totalPages, params]);
 
     useEffect(() => {
         table.getColumn("name")?.setFilterValue(debouncedSearchValue || undefined);
@@ -171,7 +160,6 @@ const ManageDeviceTypes = () => {
             sorting,
             columnFilters,
             columnVisibility,
-            rowSelection,
             pagination: { pageIndex: currentPage - 1, pageSize },
         },
         manualPagination: true,

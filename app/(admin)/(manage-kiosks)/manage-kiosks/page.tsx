@@ -54,7 +54,6 @@ const ManageKiosks = () => {
     const [sorting, setSorting] = useState<SortingState>([{ id: "createdDate", desc: true }]);
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
     const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
-    const [rowSelection, setRowSelection] = useState<any>({});
 
     const [dialogOpen, setDialogOpen] = useState<boolean>(false);
     const [selectedKiosk, setSelectedKiosk] = useState<Kiosk | undefined>(undefined);
@@ -88,16 +87,6 @@ const ManageKiosks = () => {
             });
         }
     }, [error, toast]);
-
-    // useEffect(() => {
-    //     // Prefetch trang tiếp theo nếu còn trang
-    //     if (data?.totalPages && currentPage < data.totalPages) {
-    //         useKiosks({
-    //             ...params,
-    //             page: currentPage + 1,
-    //         });
-    //     }
-    // }, [currentPage, data?.totalPages, params]);
 
     useEffect(() => {
         table.getColumn("location")?.setFilterValue(debouncedSearchValue || undefined);
@@ -275,7 +264,6 @@ const ManageKiosks = () => {
             sorting,
             columnFilters,
             columnVisibility,
-            rowSelection,
             pagination: { pageIndex: currentPage - 1, pageSize },
         },
         manualPagination: true,

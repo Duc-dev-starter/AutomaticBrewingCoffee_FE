@@ -46,7 +46,6 @@ const ManageKioskVersions = () => {
     const [sorting, setSorting] = useState<SortingState>([{ id: "createdDate", desc: true }]);
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
     const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
-    const [rowSelection, setRowSelection] = useState<any>({});
 
     const [dialogOpen, setDialogOpen] = useState<boolean>(false);
     const [selectedKioskVersion, setSelectedKioskVersion] = useState<KioskVersion | undefined>(undefined);
@@ -83,16 +82,6 @@ const ManageKioskVersions = () => {
             });
         }
     }, [error, toast]);
-
-    // useEffect(() => {
-    //     // Prefetch trang tiếp theo nếu còn trang
-    //     if (data?.totalPages && currentPage < data.totalPages) {
-    //         useKioskVersions({
-    //             ...params,
-    //             page: currentPage + 1,
-    //         });
-    //     }
-    // }, [currentPage, data?.totalPages, params]);
 
     const handleSuccess = () => {
         mutate();
@@ -174,7 +163,6 @@ const ManageKioskVersions = () => {
             sorting,
             columnFilters,
             columnVisibility,
-            rowSelection,
             pagination: { pageIndex: currentPage - 1, pageSize },
         },
         manualPagination: true,

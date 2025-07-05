@@ -49,7 +49,6 @@ const ManageDeviceModels = () => {
     const [sorting, setSorting] = useState<SortingState>([{ id: "createdDate", desc: true }]);
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
     const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
-    const [rowSelection, setRowSelection] = useState({});
 
     const [dialogOpen, setDialogOpen] = useState<boolean>(false);
     const [selectedDeviceModel, setSelectedDeviceModel] = useState<DeviceModel | undefined>(undefined);
@@ -79,16 +78,6 @@ const ManageDeviceModels = () => {
             });
         }
     }, [error, toast]);
-
-    // useEffect(() => {
-    //     // Prefetch trang tiếp theo nếu còn trang
-    //     if (data?.totalPages && currentPage < data.totalPages) {
-    //         useDeviceModels({
-    //             ...params,
-    //             page: currentPage + 1,
-    //         });
-    //     }
-    // }, [currentPage, data?.totalPages, params]);
 
     useEffect(() => {
         table.getColumn("modelName")?.setFilterValue(debouncedSearchValue || undefined);
@@ -174,7 +163,6 @@ const ManageDeviceModels = () => {
             sorting,
             columnFilters,
             columnVisibility,
-            rowSelection,
             pagination: { pageIndex: currentPage - 1, pageSize },
         },
         manualPagination: true,

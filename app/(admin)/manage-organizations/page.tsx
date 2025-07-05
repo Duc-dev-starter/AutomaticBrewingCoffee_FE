@@ -54,7 +54,6 @@ const ManageOrganizations = () => {
     const [sorting, setSorting] = useState<SortingState>([{ id: "createdDate", desc: true }]);
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
     const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
-    const [rowSelection, setRowSelection] = useState({})
 
     const [dialogOpen, setDialogOpen] = useState<boolean>(false)
     const [selectedOrganization, setSelectedOrganization] = useState<Organization | undefined>(undefined)
@@ -92,17 +91,6 @@ const ManageOrganizations = () => {
             });
         }
     }, [error, toast]);
-
-    // useEffect(() => {
-    //     // Prefetch trang tiếp theo nếu còn trang
-    //     if (data?.totalPages && currentPage < data.totalPages) {
-    //         useOrganizations({
-    //             ...params,
-    //             page: currentPage + 1,
-    //         });
-    //     }
-    // }, [currentPage, data?.totalPages, params]);
-
 
     const handleSuccess = () => {
         mutate();
@@ -182,7 +170,6 @@ const ManageOrganizations = () => {
             sorting,
             columnFilters,
             columnVisibility,
-            rowSelection,
             pagination: { pageIndex: currentPage - 1, pageSize },
         },
         manualPagination: true,

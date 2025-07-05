@@ -42,7 +42,6 @@ const ManageProducts = () => {
     const [sorting, setSorting] = useState<SortingState>([{ id: "createdDate", desc: true }]);
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
     const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
-    const [rowSelection, setRowSelection] = useState({});
 
     const [statusFilter, setStatusFilter] = useState<string>("");
     const [productTypeFilter, setProductTypeFilter] = useState<string>("");
@@ -83,16 +82,6 @@ const ManageProducts = () => {
             });
         }
     }, [error, toast]);
-
-    // useEffect(() => {
-    //     // Prefetch trang tiếp theo nếu còn trang
-    //     if (data?.totalPages && currentPage < data.totalPages) {
-    //         useProducts({
-    //             ...params,
-    //             page: currentPage + 1,
-    //         });
-    //     }
-    // }, [currentPage, data?.totalPages, params]);
 
     useEffect(() => {
         table.getColumn("name")?.setFilterValue(debouncedSearchValue || undefined);
@@ -210,7 +199,6 @@ const ManageProducts = () => {
             sorting,
             columnFilters,
             columnVisibility,
-            rowSelection,
             pagination: { pageIndex: currentPage - 1, pageSize },
         },
         manualPagination: true,

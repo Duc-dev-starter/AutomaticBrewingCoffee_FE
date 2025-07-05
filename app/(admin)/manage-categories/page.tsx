@@ -45,7 +45,6 @@ const ManageCategories = () => {
     const [sorting, setSorting] = useState<SortingState>([{ id: "displayOrder", desc: false }]);
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
     const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
-    const [rowSelection, setRowSelection] = useState({});
 
     const [dialogOpen, setDialogOpen] = useState<boolean>(false);
     const [selectedCategory, setSelectedCategory] = useState<Category | undefined>(undefined);
@@ -163,7 +162,6 @@ const ManageCategories = () => {
             sorting,
             columnFilters,
             columnVisibility,
-            rowSelection,
             pagination: { pageIndex: currentPage - 1, pageSize },
         },
         manualPagination: true,

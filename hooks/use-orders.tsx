@@ -4,7 +4,7 @@ import { PagingParams } from "@/types/paging";
 
 export function useOrders(params: PagingParams) {
     return useCrossTabSWR(
-        ["workflows", params],
+        ["orders", params],
         () => getOrders(params)
     );
 }

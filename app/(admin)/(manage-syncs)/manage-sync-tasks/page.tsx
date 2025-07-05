@@ -41,7 +41,6 @@ const ManageSyncTasks = () => {
     const [sorting, setSorting] = useState<SortingState>([{ id: "createdDate", desc: true }]);
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
     const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
-    const [rowSelection, setRowSelection] = useState({});
 
     const [detailDialogOpen, setDetailDialogOpen] = useState(false);
     const [detailSyncTask, setDetailSyncTask] = useState<SyncTask | null>(null);
@@ -67,17 +66,6 @@ const ManageSyncTasks = () => {
             });
         }
     }, [error, toast]);
-
-
-    // useEffect(() => {
-    //     // Prefetch trang tiếp theo nếu còn trang
-    //     if (data?.totalPages && currentPage < data.totalPages) {
-    //         useSyncTasks({
-    //             ...params,
-    //             page: currentPage + 1,
-    //         });
-    //     }
-    // }, [currentPage, data?.totalPages, params]);
 
     useEffect(() => {
         table.getColumn("kioskId")?.setFilterValue(debouncedSearchValue || undefined);
@@ -108,7 +96,6 @@ const ManageSyncTasks = () => {
             sorting,
             columnFilters,
             columnVisibility,
-            rowSelection,
             pagination: { pageIndex: currentPage - 1, pageSize },
         },
         manualPagination: true,

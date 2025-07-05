@@ -28,7 +28,7 @@ export function AdminSidebar() {
                         "group-data-[collapsible=icon]:justify-center",
                     )}
                 >
-                    <div className="flex h-10 w-10 items-center justify-center rounded-md bg-[#68e0df] text-white">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-md bg-primary text-white">
                         <Coffee className="h-6 w-6" />
                     </div>
                     <span className="ml-3 text-lg font-medium text-gray-700 dark:text-white group-data-[collapsible=icon]:hidden">

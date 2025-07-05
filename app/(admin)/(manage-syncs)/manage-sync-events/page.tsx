@@ -41,7 +41,6 @@ const ManageSyncEvents = () => {
     const [sorting, setSorting] = useState<SortingState>([{ id: "createdDate", desc: true }]);
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
     const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
-    const [rowSelection, setRowSelection] = useState({});
 
     const [detailDialogOpen, setDetailDialogOpen] = useState(false);
     const [detailSyncEvent, setDetailSyncEvent] = useState<SyncEvent | null>(null);
@@ -67,16 +66,6 @@ const ManageSyncEvents = () => {
             });
         }
     }, [error, toast]);
-
-    // useEffect(() => {
-    //     // Prefetch trang tiếp theo nếu còn trang
-    //     if (data?.totalPages && currentPage < data.totalPages) {
-    //         useSyncEvents({
-    //             ...params,
-    //             page: currentPage + 1,
-    //         });
-    //     }
-    // }, [currentPage, data?.totalPages, params]);
 
     useEffect(() => {
         table.getColumn("entityId")?.setFilterValue(debouncedSearchValue || undefined);
@@ -107,7 +96,6 @@ const ManageSyncEvents = () => {
             sorting,
             columnFilters,
             columnVisibility,
-            rowSelection,
             pagination: { pageIndex: currentPage - 1, pageSize },
         },
         manualPagination: true,

@@ -3,10 +3,9 @@
 import type React from "react";
 import { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
-import { MapPin, Sparkles, CheckCircle2, AlertCircle, Save, X, Building2, Edit3, Zap, Monitor, Smartphone, ChevronDown, Circle } from "lucide-react";
+import { MapPin, CheckCircle2, AlertCircle, Building2, Edit3, Monitor, Smartphone, ChevronDown, Circle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { DeviceDialogProps } from "@/types/dialog";
 import { createDeviceType, updateDeviceType } from "@/services/device";
@@ -15,6 +14,7 @@ import { ErrorResponse } from "@/types/error";
 import { deviceTypeSchema } from "@/schema/device";
 import { cn } from "@/lib/utils";
 import { FormFooterActions } from "@/components/form";
+import { parseErrors } from "@/utils";
 
 const initialFormData = {
     name: "",
@@ -29,31 +29,31 @@ const DeviceTypeDialog = ({ open, onOpenChange, onSuccess, deviceType }: DeviceD
     const [formData, setFormData] = useState(initialFormData);
     const [focusedField, setFocusedField] = useState<string | null>(null);
     const [validFields, setValidFields] = useState<Record<string, boolean>>({});
-    const [isSuccess, setIsSuccess] = useState(false);
     const nameInputRef = useRef<HTMLInputElement>(null);
     const [statusDropdownOpen, setStatusDropdownOpen] = useState(false)
+    const [submitted, setSubmitted] = useState(false);
+    const [errors, setErrors] = useState<Record<string, string>>({});
+
 
     const isUpdate = !!deviceType;
 
-    // Reset form khi dialog đóng
     useEffect(() => {
         if (!open) {
             setFormData(initialFormData);
+            setSubmitted(false);
             setValidFields({});
-            setIsSuccess(false);
             setFocusedField(null);
-            setStatusDropdownOpen(false)
+            setStatusDropdownOpen(false);
+            setErrors({});
         }
     }, [open]);
 
-    // Auto-focus trường name khi dialog mở
     useEffect(() => {
         if (open && nameInputRef.current) {
             setTimeout(() => nameInputRef.current?.focus(), 200);
         }
     }, [open]);
 
-    // Điền dữ liệu khi chỉnh sửa
     useEffect(() => {
         if (deviceType) {
             setFormData({
@@ -103,25 +103,23 @@ const DeviceTypeDialog = ({ open, onOpenChange, onSuccess, deviceType }: DeviceD
         if (field === "name" || field === "description") {
             validateField(field, value);
         }
+        if (errors[field]) {
+            setErrors((prev) => ({ ...prev, [field]: "" }));
+        }
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        setSubmitted(true);
 
         const validationResult = deviceTypeSchema.safeParse(formData);
         if (!validationResult.success) {
-            const errors = validationResult.error.flatten().fieldErrors;
-            toast({
-                title: "Lỗi validation",
-                description: Object.values(errors).flat().join(", "),
-                variant: "destructive",
-            });
-            return;
+            const parsedErrors = parseErrors(validationResult.error)
+            setErrors(parsedErrors)
+            return
         }
-
-        if (!validFields.name) return;
-
         setLoading(true);
+        setErrors({});
 
         try {
             const data = {
@@ -135,18 +133,12 @@ const DeviceTypeDialog = ({ open, onOpenChange, onSuccess, deviceType }: DeviceD
             } else {
                 await createDeviceType(data);
             }
-
-            setIsSuccess(true);
-            setTimeout(() => {
-                setIsSuccess(false);
-                toast({
-                    title: "🎉 Thành công",
-                    description: isUpdate ? "Cập nhật loại thiết bị thành công" : "Thêm loại thiết bị mới thành công",
-                    variant: "success",
-                });
-                onSuccess?.();
-                onOpenChange(false);
-            }, 2000);
+            toast({
+                title: "🎉 Thành công",
+                description: isUpdate ? "Cập nhật loại thiết bị thành công" : "Thêm loại thiết bị mới thành công",
+                variant: "success",
+            });
+            onSuccess?.();
         } catch (error) {
             const err = error as ErrorResponse;
             console.error("Lỗi khi xử lý loại thiết bị:", error);
@@ -159,32 +151,6 @@ const DeviceTypeDialog = ({ open, onOpenChange, onSuccess, deviceType }: DeviceD
             setLoading(false);
         }
     };
-
-    if (isSuccess) {
-        return (
-            <Dialog open={open} onOpenChange={onOpenChange}>
-                <DialogContent className="sm:max-w-[500px] border-0 bg-primary-100 backdrop-blur-xl">
-                    <div className="flex flex-col items-center justify-center py-16 text-center space-y-6">
-                        <div className="relative">
-                            <div className="w-20 h-20 bg-primary-200 rounded-full flex items-center justify-center shadow-2xl animate-pulse">
-                                <CheckCircle2 className="w-10 h-10 text-primary-300 animate-bounce" />
-                            </div>
-                            <div className="absolute -top-1 -right-1 animate-spin">
-                                <Sparkles className="w-6 h-6 text-yellow-400" />
-                            </div>
-                        </div>
-
-                        <div className="space-y-2">
-                            <h2 className="text-2xl font-bold text-primary-300">
-                                🎉 Thành công!
-                            </h2>
-                            <p className="text-gray-600">{isUpdate ? "Loại thiết bị đã được cập nhật" : "Loại thiết bị mới đã được tạo"}</p>
-                        </div>
-                    </div>
-                </DialogContent>
-            </Dialog>
-        );
-    }
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -237,7 +203,7 @@ const DeviceTypeDialog = ({ open, onOpenChange, onSuccess, deviceType }: DeviceD
                                     "h-12 text-base px-4 border-2 transition-all duration-300 bg-white/80 backdrop-blur-sm pr-10",
                                     focusedField === "name" && "border-primary-300 ring-4 ring-primary-100 shadow-lg scale-[1.02]",
                                     validFields.name && "border-green-400 bg-green-50/50",
-                                    !validFields.name && formData.name && "border-red-300 bg-red-50/50",
+                                    !validFields.name && formData.name && "border-red-300 bg-red-50/50"
                                 )}
                             />
                             {validFields.name && (
@@ -248,27 +214,26 @@ const DeviceTypeDialog = ({ open, onOpenChange, onSuccess, deviceType }: DeviceD
                             )}
                         </div>
 
-                        <div className="flex justify-between items-center text-xs">
-                            <span
-                                className={cn(
-                                    "transition-colors",
-                                    !validFields.name && formData.name ? "text-red-500" : "text-gray-500",
-                                )}
-                            >
-                                {!validFields.name && formData.name
-                                    ? formData.name.trim().length < 2
-                                        ? "Tên phải có ít nhất 2 ký tự"
-                                        : formData.name.length > 100
-                                            ? "Tên không được vượt quá 100 ký tự"
-                                            : "Tên không hợp lệ"
-                                    : "Tên sẽ hiển thị trong danh sách loại thiết bị"}
-                            </span>
-                            <span
-                                className={cn("transition-colors", formData.name.length > 80 ? "text-orange-500" : "text-gray-400")}
-                            >
-                                {formData.name.length}/100
-                            </span>
-                        </div>
+                        {submitted && (
+                            <div className="flex justify-between items-center text-xs mt-1 h-[18px]">
+                                <span
+                                    className={cn(
+                                        "transition-colors",
+                                        errors.name ? "text-red-500" : "text-gray-500"
+                                    )}
+                                >
+                                    {errors.name || ""}
+                                </span>
+                                <span
+                                    className={cn(
+                                        "transition-colors",
+                                        formData.name.length > 80 ? "text-orange-500" : "text-gray-400"
+                                    )}
+                                >
+                                    {formData.name.length}/100
+                                </span>
+                            </div>
+                        )}
                     </div>
 
 
@@ -316,6 +281,7 @@ const DeviceTypeDialog = ({ open, onOpenChange, onSuccess, deviceType }: DeviceD
                                     ))}
                                 </div>
                             )}
+                            {submitted && errors.status && <p className="text-red-500 text-xs mt-1">{errors.status}</p>}
                         </div>
                     </div>
 
@@ -378,6 +344,7 @@ const DeviceTypeDialog = ({ open, onOpenChange, onSuccess, deviceType }: DeviceD
                                 </div>
                             </button>
                         </div>
+                        {submitted && errors.isMobileDevice && <p className="text-red-500 text-xs mt-1">{errors.isMobileDevice}</p>}
                     </div>
 
 
@@ -407,7 +374,6 @@ const DeviceTypeDialog = ({ open, onOpenChange, onSuccess, deviceType }: DeviceD
                         </div>
 
                         <div className="flex justify-between items-center text-xs">
-                            <span className="text-gray-500">Mô tả giúp phân biệt loại thiết bị này với các loại khác</span>
                             <span
                                 className={cn(
                                     "transition-colors",

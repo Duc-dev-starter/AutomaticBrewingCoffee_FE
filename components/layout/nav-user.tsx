@@ -19,6 +19,7 @@ import { ThemeSelector } from "./theme-selector"
 import { logout } from "@/services/auth"
 import { Account } from "@/interfaces/account"
 import { useAppStore } from "@/stores/use-app-store"
+import { useRouter } from "next/navigation"
 
 export function NavUser({
     account,
@@ -26,9 +27,11 @@ export function NavUser({
     account: Account | null
 }) {
     const { isMobile } = useSidebar()
-    const handleLogout = () => {
+    const router = useRouter();
+    const handleLogout = async () => {
         logout();
         useAppStore.getState().clearAccount();
+        router.push(Path.LOGIN);
     };
 
     if (account === null) {

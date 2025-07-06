@@ -21,7 +21,6 @@ export const createOrganization = async (payload: Partial<Organization>) => {
 }
 
 export const updateOrganization = async (id: string, payload: Partial<Organization>) => {
-    console.log(id)
     const response = await BaseService.put({ url: `${Api.ORGANIZATIONS}/${id}`, payload });
     return response;
 }

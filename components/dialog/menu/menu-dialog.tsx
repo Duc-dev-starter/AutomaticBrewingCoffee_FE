@@ -2,10 +2,9 @@
 
 import { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { PlusCircle, Loader2, Edit, CheckCircle2, AlertCircle, Zap, Save, Building2, Circle, Edit3, Monitor } from "lucide-react";
+import { PlusCircle, Edit, CheckCircle2, AlertCircle, Building2, Edit3, Monitor } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { EBaseStatus, EBaseStatusViMap } from "@/enum/base";
 import { createMenu, updateMenu } from "@/services/menu";
@@ -18,6 +17,7 @@ import { cn } from "@/lib/utils";
 import InfiniteScroll from "react-infinite-scroll-component";
 import { useDebounce } from "@/hooks";
 import { FormBaseStatusSelectField, FormDescriptionField, FormFooterActions } from "@/components/form";
+import { parseErrors } from "@/utils";
 
 const initialFormData = {
     organizationId: "",
@@ -129,9 +129,9 @@ const MenuDialog = ({ open, onOpenChange, onSuccess, menu }: MenuDialogProps) =>
 
         const validationResult = menuSchema.safeParse(formData);
         if (!validationResult.success) {
-            const { fieldErrors } = validationResult.error.flatten();
-            setErrors(fieldErrors);
-            return;
+            const parsedErrors = parseErrors(validationResult.error)
+            setErrors(parsedErrors)
+            return
         }
 
         setErrors({});

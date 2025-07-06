@@ -20,31 +20,9 @@ import { EFunctionParameterType } from "@/enum/device"
 import { DeviceFunctionCard } from "@/components/common/device-function-card"
 import { cn } from "@/lib/utils"
 import { EBaseUnit, EBaseUnitViMap, EIngredientType, EIngredientTypeViMap } from "@/enum/product"
-import { ZodError } from "zod"
 import { FormFooterActions } from "@/components/form"
 import { useDebounce } from "@/hooks"
-
-// Thay thế hàm parseErrors cũ bằng hàm mới này:
-const parseErrors = (zodError: ZodError) => {
-    const errors: Record<string, any> = {};
-    for (const issue of zodError.errors) {
-        let current = errors;
-        for (let i = 0; i < issue.path.length; i++) {
-            const key = issue.path[i];
-            if (i === issue.path.length - 1) {
-                current[key] = issue.message;
-            } else {
-                if (typeof issue.path[i + 1] === "number") {
-                    current[key] = current[key] || [];
-                } else {
-                    current[key] = current[key] || {};
-                }
-                current = current[key];
-            }
-        }
-    }
-    return errors;
-};
+import { parseErrors } from "@/utils"
 
 const initialFormData = {
     modelName: "",
@@ -305,8 +283,6 @@ const DeviceModelDialog = ({ open, onOpenChange, onSuccess, deviceModel }: Devic
         if (!validationResult.success) {
             const parsedErrors = parseErrors(validationResult.error)
             setErrors(parsedErrors)
-            console.error("Validation failed:", validationResult.error)
-            console.error("Validation errors:", parsedErrors)
             return
         }
 
@@ -452,7 +428,7 @@ const DeviceModelDialog = ({ open, onOpenChange, onSuccess, deviceModel }: Devic
                                 onValueChange={(value) => handleChange("deviceTypeId", value)}
                                 disabled={loading}
                             >
-                                <SelectTrigger className="h-12 text-base px-4 border-2 bg-white/80 backdrop-blur-sm">
+                                <SelectTrigger className="h-12 text-sm px-4 border-2 bg-white/80 backdrop-blur-sm">
                                     <SelectValue placeholder="Chọn loại thiết bị" />
                                 </SelectTrigger>
                                 <SelectContent>
@@ -497,7 +473,7 @@ const DeviceModelDialog = ({ open, onOpenChange, onSuccess, deviceModel }: Devic
                                 onValueChange={(value) => handleChange("status", value)}
                                 disabled={loading}
                             >
-                                <SelectTrigger className="h-12 text-base px-4 border-2 bg-white/80 backdrop-blur-sm">
+                                <SelectTrigger className="h-12 text-sm px-4 border-2 bg-white/80 backdrop-blur-sm">
                                     <SelectValue placeholder="Chọn trạng thái" />
                                 </SelectTrigger>
                                 <SelectContent>

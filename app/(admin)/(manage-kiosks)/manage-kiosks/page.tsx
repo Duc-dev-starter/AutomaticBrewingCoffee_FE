@@ -219,7 +219,6 @@ const ManageKiosks = () => {
                 link.download = `kiosk_${kiosk.kioskId}.zip`;
                 link.click();
                 window.URL.revokeObjectURL(url);
-                console.log("Tải file thành công!");
                 toast({
                     title: "Thành công",
                     description: "Tải file thành công!",
@@ -228,9 +227,6 @@ const ManageKiosks = () => {
                 throw new Error("Server không trả về file ZIP");
             }
         } catch (error) {
-            // @ts-ignore
-            const errMessage = error.response ? error.response.data : error.message;
-            console.log("Chi tiết lỗi:", errMessage);
         } finally {
             mutate();
         }

@@ -223,7 +223,6 @@ const KioskDetailPage = () => {
 
     const openIngredientDialog = (kioskDevice: KioskDevice) => {
         setSelectedDeviceIngredients(kioskDevice.device.deviceIngredientStates || [])
-        console.log("Selected Device Ingredients:", kioskDevice.device.deviceIngredientStates)
         setIsIngredientDialogOpen(true)
     }
 

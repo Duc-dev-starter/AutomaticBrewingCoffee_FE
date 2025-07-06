@@ -3,12 +3,10 @@
 import type React from "react";
 import { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/components/ui/dialog";
-import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { EDeviceStatus, EDeviceStatusViMap } from "@/enum/device";
-import { MapPin, Sparkles, CheckCircle2, AlertCircle, Save, X, Building2, Edit3, Zap, Monitor, Boxes, Hash, Circle } from "lucide-react";
+import { EDeviceStatus, } from "@/enum/device";
+import { CheckCircle2, AlertCircle, Building2, Edit3, Monitor, Boxes, Hash, Circle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { createDevice, updateDevice, getDeviceModels } from "@/services/device";
 import { DeviceDialogProps } from "@/types/dialog";
@@ -20,6 +18,7 @@ import InfiniteScroll from "react-infinite-scroll-component";
 import { useDebounce } from "@/hooks";
 import { DeviceStatusSelect } from "@/components/manage-devices";
 import { FormDescriptionField, FormFooterActions } from "@/components/form";
+import { parseErrors } from "@/utils";
 
 const initialFormData = {
     deviceModelId: "",
@@ -35,7 +34,6 @@ const DeviceDialog = ({ open, onOpenChange, onSuccess, device }: DeviceDialogPro
     const [formData, setFormData] = useState(initialFormData);
     const [focusedField, setFocusedField] = useState<string | null>(null);
     const [validFields, setValidFields] = useState<Record<string, boolean>>({});
-    const [isSuccess, setIsSuccess] = useState(false);
     const [deviceModels, setDeviceModels] = useState<DeviceModel[]>([]);
     const [pageDeviceModels, setPageDeviceModels] = useState<number>(1);
     const [hasMoreDeviceModels, setHasMoreDeviceModels] = useState<boolean>(true);
@@ -52,7 +50,6 @@ const DeviceDialog = ({ open, onOpenChange, onSuccess, device }: DeviceDialogPro
         if (!open) {
             setFormData(initialFormData);
             setValidFields({});
-            setIsSuccess(false);
             setFocusedField(null);
             setDeviceModels([]);
             setPageDeviceModels(1);
@@ -173,15 +170,9 @@ const DeviceDialog = ({ open, onOpenChange, onSuccess, device }: DeviceDialogPro
 
         const validationResult = deviceSchema.safeParse(formData);
         if (!validationResult.success) {
-            const fieldErrors = validationResult.error.flatten().fieldErrors;
-            const errorStrings: Record<string, string> = {};
-            Object.entries(fieldErrors).forEach(([key, value]) => {
-                if (value && value.length > 0) {
-                    errorStrings[key] = value[0];
-                }
-            });
-            setErrors(errorStrings);
-            return;
+            const parsedErrors = parseErrors(validationResult.error)
+            setErrors(parsedErrors)
+            return
         }
         setErrors({});
 
@@ -202,12 +193,8 @@ const DeviceDialog = ({ open, onOpenChange, onSuccess, device }: DeviceDialogPro
                 toast({ title: "Thành công", description: "Thiết bị mới đã được tạo" });
             }
 
-            setIsSuccess(true);
-            setTimeout(() => {
-                setIsSuccess(false);
-                onSuccess?.();
-                onOpenChange(false);
-            }, 2000);
+            onSuccess?.();
+            onOpenChange(false);
         } catch (error) {
             const err = error as ErrorResponse;
             console.error("Error processing device:", err);
@@ -215,30 +202,6 @@ const DeviceDialog = ({ open, onOpenChange, onSuccess, device }: DeviceDialogPro
             setLoading(false);
         }
     };
-
-
-    if (isSuccess) {
-        return (
-            <Dialog open={open} onOpenChange={onOpenChange}>
-                <DialogContent className="sm:max-w-[800px] border-0 bg-primary-100 backdrop-blur-xl">
-                    <div className="flex flex-col items-center justify-center py-16 text-center space-y-6">
-                        <div className="relative">
-                            <div className="w-20 h-20 bg-primary-200 rounded-full flex items-center justify-center shadow-2xl animate-pulse">
-                                <CheckCircle2 className="w-10 h-10 text-primary-300 animate-bounce" />
-                            </div>
-                            <div className="absolute -top-1 -right-1 animate-spin">
-                                <Sparkles className="w-6 h-6 text-yellow-400" />
-                            </div>
-                        </div>
-                        <div className="space-y-2">
-                            <h2 className="text-2xl font-bold text-primary-300">🎉 Thành công!</h2>
-                            <p className="text-gray-600">{isUpdate ? "Thiết bị đã được cập nhật" : "Thiết bị mới đã được tạo"}</p>
-                        </div>
-                    </div>
-                </DialogContent>
-            </Dialog>
-        );
-    }
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>

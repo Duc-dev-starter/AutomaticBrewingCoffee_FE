@@ -1,5 +1,13 @@
 "use client";
-import React, { createContext, useContext, useRef, useEffect, useCallback } from "react";
+
+import React, {
+    createContext,
+    useContext,
+    useRef,
+    useEffect,
+    useCallback,
+    useState,
+} from "react";
 import * as signalR from "@microsoft/signalr";
 import { getAccessTokenFromCookie } from "@/utils/cookie";
 
@@ -16,12 +24,16 @@ const SignalRContext = createContext<ISignalRContext | null>(null);
 
 export const SignalRProvider = ({ children }: { children: React.ReactNode }) => {
     const connectionRef = useRef<signalR.HubConnection | null>(null);
+    const [connectionReady, setConnectionReady] = useState(false);
+
     const url = process.env.NEXT_PUBLIC_SIGNALR_URL;
-    if (!url) {
-        throw new Error("Missing SignalR URL environment variable.");
-    }
-    if (!connectionRef.current) {
-        connectionRef.current = new signalR.HubConnectionBuilder()
+    if (!url) throw new Error("Missing SignalR URL");
+
+    // ✅ Create connection once (on client only)
+    useEffect(() => {
+        if (typeof window === "undefined") return;
+
+        const connection = new signalR.HubConnectionBuilder()
             .withUrl(url, {
                 skipNegotiation: true,
                 transport: signalR.HttpTransportType.WebSockets,
@@ -31,38 +43,44 @@ export const SignalRProvider = ({ children }: { children: React.ReactNode }) => 
             .configureLogging(signalR.LogLevel.Information)
             .build();
 
-        connectionRef.current.onreconnected((connectionId) => {
-            console.log(`Reconnected: ${connectionId}`);
+        connection.onreconnected((connectionId) => {
+            console.log(`🔌 Reconnected: ${connectionId}`);
         });
 
-        connectionRef.current.onclose((error) => {
-            console.log(`Connection closed due to error: ${error}`);
+        connection.onclose((error) => {
+            console.log(`⚠️ Connection closed: ${error}`);
         });
-    }
 
-    // Hàm start/stop
+        connectionRef.current = connection;
+        setConnectionReady(true);
+    }, [url]);
+
     const startConnection = useCallback(async () => {
         try {
-            if (connectionRef.current?.state !== signalR.HubConnectionState.Connected) {
-                await connectionRef.current?.start();
-                console.log("Connected to SignalR Hub");
+            if (
+                connectionRef.current &&
+                connectionRef.current.state !== signalR.HubConnectionState.Connected
+            ) {
+                await connectionRef.current.start();
+                console.log("✅ SignalR Connected");
             }
         } catch (error) {
-            console.log(`Error while establishing connection: ${error}`);
+            console.error("❌ Error starting SignalR:", error);
             setTimeout(startConnection, 5000);
         }
     }, []);
 
     const stopConnection = useCallback(async () => {
         try {
-            await connectionRef.current?.stop();
-            console.log("Disconnected from SignalR Hub");
+            if (connectionRef.current) {
+                await connectionRef.current.stop();
+                console.log("🛑 SignalR Disconnected");
+            }
         } catch (error) {
-            console.log(`Error while stopping connection: ${error}`);
+            console.error("❌ Error stopping SignalR:", error);
         }
     }, []);
 
-    // on, off, invoke
     const on = useCallback((methodName: string, newMethod: (...args: any[]) => void) => {
         connectionRef.current?.on(methodName, newMethod);
     }, []);
@@ -75,11 +93,10 @@ export const SignalRProvider = ({ children }: { children: React.ReactNode }) => 
         try {
             await connectionRef.current?.invoke(methodName, ...args);
         } catch (error) {
-            console.error(`Error while invoking ${methodName}: ${error}`);
+            console.error(`❌ Error invoking ${methodName}:`, error);
         }
     }, []);
 
-    // Cleanup khi unmount
     useEffect(() => {
         return () => {
             stopConnection();
@@ -97,7 +114,7 @@ export const SignalRProvider = ({ children }: { children: React.ReactNode }) => 
                 invoke,
             }}
         >
-            {children}
+            {connectionReady ? children : null}
         </SignalRContext.Provider>
     );
 };

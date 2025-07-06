@@ -13,6 +13,7 @@ import { ErrorResponse } from "@/types/error";
 import { cn } from "@/lib/utils";
 import { locationSchema } from "@/schema/location";
 import { FormFooterActions } from "@/components/form";
+import { parseErrors } from "@/utils";
 
 const initialFormData = {
     name: "",
@@ -25,7 +26,8 @@ const LocationTypeDialog = ({ open, onOpenChange, onSuccess, locationType }: Loc
     const [formData, setFormData] = useState(initialFormData);
     const [focusedField, setFocusedField] = useState<string | null>(null);
     const [validFields, setValidFields] = useState<Record<string, boolean>>({});
-    const [isSuccess, setIsSuccess] = useState(false);
+    const [submitted, setSubmitted] = useState(false);
+    const [errors, setErrors] = useState<Record<string, string>>({});
     const nameInputRef = useRef<HTMLInputElement>(null);
     const isUpdate = !!locationType;
 
@@ -34,7 +36,6 @@ const LocationTypeDialog = ({ open, onOpenChange, onSuccess, locationType }: Loc
         if (!open) {
             setFormData(initialFormData);
             setValidFields({});
-            setIsSuccess(false);
             setFocusedField(null);
         }
     }, [open]);
@@ -99,17 +100,12 @@ const LocationTypeDialog = ({ open, onOpenChange, onSuccess, locationType }: Loc
 
         const validationResult = locationSchema.safeParse(formData);
         if (!validationResult.success) {
-            const errors = validationResult.error.flatten().fieldErrors;
-            toast({
-                title: "Lỗi validation",
-                description: Object.values(errors).flat().join(", "),
-                variant: "destructive",
-            });
-            return;
+            const parsedErrors = parseErrors(validationResult.error)
+            setErrors(parsedErrors)
+            return
         }
 
-        if (!validFields.name) return;
-
+        setErrors({})
         setLoading(true);
 
         try {
@@ -123,16 +119,12 @@ const LocationTypeDialog = ({ open, onOpenChange, onSuccess, locationType }: Loc
                 await createLocationType(data);
             }
 
-            setIsSuccess(true);
-            setTimeout(() => {
-                setIsSuccess(false);
-                toast({
-                    title: "🎉 Thành công",
-                    description: isUpdate ? "Cập nhật location thành công" : "Thêm location mới thành công",
-                });
-                onSuccess?.();
-                onOpenChange(false);
-            }, 2000);
+            toast({
+                title: "🎉 Thành công",
+                description: isUpdate ? "Cập nhật location thành công" : "Thêm location mới thành công",
+            });
+            onSuccess?.();
+            onOpenChange(false);
         } catch (error) {
             const err = error as ErrorResponse;
             console.error("Lỗi khi xử lý location:", error);
@@ -145,32 +137,6 @@ const LocationTypeDialog = ({ open, onOpenChange, onSuccess, locationType }: Loc
             setLoading(false);
         }
     };
-
-    if (isSuccess) {
-        return (
-            <Dialog open={open} onOpenChange={onOpenChange}>
-                <DialogContent className="sm:max-w-[500px] border-0 bg-primary-100 backdrop-blur-xl">
-                    <div className="flex flex-col items-center justify-center py-16 text-center space-y-6">
-                        <div className="relative">
-                            <div className="w-20 h-20 bg-primary-200 rounded-full flex items-center justify-center shadow-2xl animate-pulse">
-                                <CheckCircle2 className="w-10 h-10 text-primary-300 animate-bounce" />
-                            </div>
-                            <div className="absolute -top-1 -right-1 animate-spin">
-                                <Sparkles className="w-6 h-6 text-yellow-400" />
-                            </div>
-                        </div>
-
-                        <div className="space-y-2">
-                            <h2 className="text-2xl font-bold text-primary-300">
-                                🎉 Thành công!
-                            </h2>
-                            <p className="text-gray-600">{isUpdate ? "Location đã được cập nhật" : "Location mới đã được tạo"}</p>
-                        </div>
-                    </div>
-                </DialogContent>
-            </Dialog>
-        );
-    }
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>

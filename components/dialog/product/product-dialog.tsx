@@ -22,6 +22,7 @@ import { cn } from "@/lib/utils";
 import InfiniteScroll from "react-infinite-scroll-component";
 import { useDebounce } from "@/hooks";
 import { FormDescriptionField, FormFooterActions } from "@/components/form";
+import { parseErrors } from "@/utils";
 
 const initialFormData = {
     name: "",
@@ -395,11 +396,9 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
 
         const validationResult = productSchema.safeParse(validationData);
         if (!validationResult.success) {
-            const fieldErrors = validationResult.error.flatten().fieldErrors;
-            setErrors(
-                Object.fromEntries(Object.entries(fieldErrors).map(([key, messages]) => [key, messages ? messages[0] : ""]))
-            );
-            return;
+            const parsedErrors = parseErrors(validationResult.error)
+            setErrors(parsedErrors)
+            return
         }
 
         setErrors({});

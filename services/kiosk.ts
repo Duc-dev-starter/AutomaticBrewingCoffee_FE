@@ -117,7 +117,6 @@ export const addDeviceInKiosk = async (payload: { kioskId: string, deviceId: str
 }
 
 export const replaceDeviceByKioskId = async (kioskDeviceId: string, payload: { deviceReplaceId: string }) => {
-    console.log(kioskDeviceId)
     const response = await BaseService.put({ url: `${Api.KIOSKS}${Api.DEVICES}/${kioskDeviceId}/replace`, payload })
     return response;
 }

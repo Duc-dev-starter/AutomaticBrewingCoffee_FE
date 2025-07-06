@@ -15,6 +15,7 @@ import { ErrorResponse } from "@/types/error";
 import { kioskTypeSchema } from "@/schema/kiosk";
 import { cn } from "@/lib/utils";
 import { FormBaseStatusSelectField, FormFooterActions } from "@/components/form";
+import { parseErrors } from "@/utils";
 
 const initialFormData = {
     name: "",
@@ -28,10 +29,9 @@ const KioskTypeDialog = ({ open, onOpenChange, onSuccess, kioskType }: KioskDial
     const [formData, setFormData] = useState(initialFormData);
     const [focusedField, setFocusedField] = useState<string | null>(null);
     const [validFields, setValidFields] = useState<Record<string, boolean>>({});
-    const [errors, setErrors] = useState<Record<string, any>>({});
-    const [isSuccess, setIsSuccess] = useState(false);
     const nameInputRef = useRef<HTMLInputElement>(null);
-    const [submitted, setSubmitted] = useState(false)
+    const [submitted, setSubmitted] = useState(false);
+    const [errors, setErrors] = useState<Record<string, string>>({});
 
     const isUpdate = !!kioskType;
 
@@ -41,7 +41,7 @@ const KioskTypeDialog = ({ open, onOpenChange, onSuccess, kioskType }: KioskDial
             setFormData(initialFormData);
             setValidFields({});
             setErrors({});
-            setIsSuccess(false);
+            setSubmitted(false);
             setFocusedField(null);
         }
     }, [open]);
@@ -106,23 +106,16 @@ const KioskTypeDialog = ({ open, onOpenChange, onSuccess, kioskType }: KioskDial
 
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        setSubmitted(true)
 
         const validationResult = kioskTypeSchema.safeParse(formData);
         if (!validationResult.success) {
-            const { fieldErrors } = validationResult.error.flatten();
-            setErrors(fieldErrors);
-
-            toast({
-                title: "Lỗi validation",
-                description: Object.values(errors).flat().join(", "),
-                variant: "destructive",
-            });
-            return;
+            const parsedErrors = parseErrors(validationResult.error)
+            setErrors(parsedErrors)
+            return
         }
-
-        if (!validFields.name) return;
-        setErrors({});
         setLoading(true);
+        setErrors({});
 
         try {
             const data = {
@@ -136,16 +129,11 @@ const KioskTypeDialog = ({ open, onOpenChange, onSuccess, kioskType }: KioskDial
                 await createKioskType(data);
             }
 
-            setIsSuccess(true);
-            setTimeout(() => {
-                setIsSuccess(false);
-                toast({
-                    title: "🎉 Thành công",
-                    description: isUpdate ? "Cập nhật loại kiosk thành công" : "Thêm loại kiosk mới thành công",
-                });
-                onSuccess?.();
-                onOpenChange(false);
-            }, 2000);
+            toast({
+                title: "🎉 Thành công",
+                description: isUpdate ? "Cập nhật loại kiosk thành công" : "Thêm loại kiosk mới thành công",
+            });
+            onSuccess?.();
         } catch (error) {
             const err = error as ErrorResponse;
             console.error("Lỗi khi xử lý loại kiosk:", error);
@@ -158,32 +146,6 @@ const KioskTypeDialog = ({ open, onOpenChange, onSuccess, kioskType }: KioskDial
             setLoading(false);
         }
     };
-
-    if (isSuccess) {
-        return (
-            <Dialog open={open} onOpenChange={onOpenChange}>
-                <DialogContent className="sm:max-w-[500px] border-0 bg-primary-100 backdrop-blur-xl">
-                    <div className="flex flex-col items-center justify-center py-16 text-center space-y-6">
-                        <div className="relative">
-                            <div className="w-20 h-20 bg-primary-200 rounded-full flex items-center justify-center shadow-2xl animate-pulse">
-                                <CheckCircle2 className="w-10 h-10 text-primary-300 animate-bounce" />
-                            </div>
-                            <div className="absolute -top-1 -right-1 animate-spin">
-                                <Sparkles className="w-6 h-6 text-yellow-400" />
-                            </div>
-                        </div>
-
-                        <div className="space-y-2">
-                            <h2 className="text-2xl font-bold text-primary-300">
-                                🎉 Thành công!
-                            </h2>
-                            <p className="text-gray-600">{isUpdate ? "Loại kiosk đã được cập nhật" : "Loại kiosk mới đã được tạo"}</p>
-                        </div>
-                    </div>
-                </DialogContent>
-            </Dialog>
-        );
-    }
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
@@ -218,8 +180,8 @@ const KioskTypeDialog = ({ open, onOpenChange, onSuccess, kioskType }: KioskDial
                     <div className="space-y-3">
                         <div className="flex items-center space-x-2 mb-2">
                             <MapPin className="w-4 h-4 text-primary-300" />
-                            <Label className="text-sm font-medium text-gray-700">
-                                Tên Loại Kiosk <span className="text-red-500">*</span>
+                            <Label className="text-sm font-medium text-gray-700 asterisk">
+                                Tên Loại Kiosk
                             </Label>
                         </div>
 
@@ -245,6 +207,9 @@ const KioskTypeDialog = ({ open, onOpenChange, onSuccess, kioskType }: KioskDial
                             {!validFields.name && formData.name && (
                                 <AlertCircle className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-red-400 animate-in zoom-in-50" />
                             )}
+                            {submitted && errors.name && (
+                                <p className="text-red-500 text-xs mt-1">{errors.name}</p>
+                            )}
                         </div>
 
                         <div className="flex justify-between items-center text-xs">
@@ -260,7 +225,7 @@ const KioskTypeDialog = ({ open, onOpenChange, onSuccess, kioskType }: KioskDial
                                         : formData.name.length > 100
                                             ? "Tên không được vượt quá 100 ký tự"
                                             : "Tên không hợp lệ"
-                                    : "Tên sẽ hiển thị trong danh sách loại kiosk"}
+                                    : ""}
                             </span>
                             <span
                                 className={cn("transition-colors", formData.name.length > 80 ? "text-orange-500" : "text-gray-400")}

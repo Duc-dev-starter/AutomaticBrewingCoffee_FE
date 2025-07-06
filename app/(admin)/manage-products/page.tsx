@@ -164,7 +164,6 @@ const ManageProducts = () => {
             }, 6000);
         } catch (error) {
             const err = error as ErrorResponse;
-            console.log(error);
             toast({
                 title: "Lỗi khi nhân bản sản phẩm",
                 description: err.message,

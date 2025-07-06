@@ -17,6 +17,7 @@ import { ErrorResponse } from "@/types/error";
 import { kioskVersionSchema } from "@/schema/kiosk";
 import { cn } from "@/lib/utils";
 import { FormFooterActions } from "@/components/form";
+import { parseErrors } from "@/utils";
 
 const initialFormData = {
     kioskTypeId: "",
@@ -144,12 +145,10 @@ const KioskVersionDialog = ({ open, onOpenChange, onSuccess, kioskVersion }: Kio
 
         const validationResult = kioskVersionSchema.safeParse(formData);
         if (!validationResult.success) {
-            const { fieldErrors } = validationResult.error.flatten();
-            setErrors(fieldErrors);
-            return;
+            const parsedErrors = parseErrors(validationResult.error)
+            setErrors(parsedErrors)
+            return
         }
-
-        if (!validFields.versionTitle || !validFields.versionNumber) return;
 
         setErrors({});
         setLoading(true);

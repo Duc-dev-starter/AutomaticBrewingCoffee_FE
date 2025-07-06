@@ -19,6 +19,7 @@ import { organizationSchema } from "@/schema/organization"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { cn } from "@/lib/utils"
 import { FormFooterActions } from "@/components/form"
+import { parseErrors } from "@/utils"
 
 const initialFormData = {
     name: "",
@@ -223,8 +224,8 @@ const OrganizationDialog = ({ open, onOpenChange, onSuccess, organization }: Org
 
         const validationResult = organizationSchema.safeParse(formData)
         if (!validationResult.success) {
-            const { fieldErrors } = validationResult.error.flatten()
-            setErrors(fieldErrors)
+            const parsedErrors = parseErrors(validationResult.error)
+            setErrors(parsedErrors)
             return
         }
 

@@ -77,7 +77,6 @@ export const logout = async () => {
     if (typeof window !== 'undefined') {
         sessionStorage.clear();
     }
-    window.location.href = '/login';
 };
 
 export const getCurrentUser = async (): Promise<ApiResponse> => {

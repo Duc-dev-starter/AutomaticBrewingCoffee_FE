@@ -21,7 +21,6 @@ export const createStore = async (payload: Partial<Store>) => {
 }
 
 export const updateStore = async (id: string, payload: Partial<Store>) => {
-    console.log(id)
     const response = await BaseService.put({ url: `${Api.STORES}/${id}`, payload });
     return response;
 }

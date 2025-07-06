@@ -19,6 +19,7 @@ import { cn } from "@/lib/utils";
 import InfiniteScroll from "react-infinite-scroll-component";
 import { useDebounce } from "@/hooks";
 import { FormDescriptionField, FormFooterActions } from "@/components/form";
+import { parseErrors } from "@/utils";
 
 const initialFormData = {
     organizationId: "",
@@ -218,16 +219,9 @@ const StoreDialog = ({ open, onOpenChange, onSuccess, store }: StoreDialogProps)
 
         const validationResult = storeSchema.safeParse(formData);
         if (!validationResult.success) {
-            const fieldErrors = validationResult.error.flatten().fieldErrors;
-            const errorStrings: Record<string, string> = {};
-            Object.entries(fieldErrors).forEach(([key, value]) => {
-                if (value && value.length > 0) {
-                    errorStrings[key] = value[0];
-                }
-            });
-            setErrors(errorStrings);
-            toast({ title: "Lỗi", description: "Vui lòng kiểm tra lại thông tin", variant: "destructive" });
-            return;
+            const parsedErrors = parseErrors(validationResult.error)
+            setErrors(parsedErrors)
+            return
         }
 
         setErrors({});

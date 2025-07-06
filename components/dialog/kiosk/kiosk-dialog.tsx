@@ -28,6 +28,7 @@ import { EnhancedCalendar } from "@/components/common/enhanced-calendar"
 import { cn } from "@/lib/utils"
 import { useDebounce } from "@/hooks"
 import { FormBaseStatusSelectField, FormFooterActions } from "@/components/form"
+import { parseErrors } from "@/utils"
 
 const initialFormData = {
     kioskVersionId: "",
@@ -51,7 +52,6 @@ const KioskDialog = ({ open, onOpenChange, onSuccess, kiosk }: KioskDialogProps)
     const [errors, setErrors] = useState<Record<string, string>>({})
     const [loading, setLoading] = useState(false)
     const [fetching, setFetching] = useState(false)
-    const [deviceSearchQuery, setDeviceSearchQuery] = useState("")
     const [devicePage, setDevicePage] = useState(1)
     const [hasMoreDevices, setHasMoreDevices] = useState(true)
     const [isDeviceDropdownOpen, setIsDeviceDropdownOpen] = useState(false)
@@ -64,12 +64,32 @@ const KioskDialog = ({ open, onOpenChange, onSuccess, kiosk }: KioskDialogProps)
     const [menuSearchQuery, setMenuSearchQuery] = useState("")
     const [kioskVersionSearchQuery, setKioskVersionSearchQuery] = useState("")
     const [storeSearchQuery, setStoreSearchQuery] = useState("")
+    const [deviceSearchQuery, setDeviceSearchQuery] = useState("")
+
 
     const debouncedMenuSearchQuery = useDebounce(menuSearchQuery, 300)
     const debouncedKioskVersionSearchQuery = useDebounce(kioskVersionSearchQuery, 300)
     const debouncedStoreSearchQuery = useDebounce(storeSearchQuery, 300)
+    const debouncedDeviceSearchQuery = useDebounce(deviceSearchQuery, 300)
 
     const isUpdate = !!kiosk
+
+    useEffect(() => {
+        if (!open) {
+            setFormData(initialFormData);
+            setValidFields({});
+            setFocusedField(null);
+            setKioskVersions([]);
+            setDevicePage(1);
+            setHasMoreDevices(true);
+            setSubmitted(false);
+            setErrors({});
+            setMenuSearchQuery("");
+            setKioskVersionSearchQuery("");
+            setStoreSearchQuery("");
+            setDeviceSearchQuery("");
+        }
+    }, [open]);
 
     useEffect(() => {
         if (open && kiosk) {
@@ -135,7 +155,7 @@ const KioskDialog = ({ open, onOpenChange, onSuccess, kiosk }: KioskDialogProps)
             const fetchValidDevices = async () => {
                 setFetching(true)
                 try {
-                    const response = await getValidDevicesInKiosk(formData.kioskVersionId, { page: 1, size: 10, filterBy: "name", filterQuery: deviceSearchQuery })
+                    const response = await getValidDevicesInKiosk(formData.kioskVersionId, { page: 1, size: 10, filterBy: "name", filterQuery: debouncedDeviceSearchQuery })
                     setValidDevices(response.items)
                     setHasMoreDevices(response.items.length === 10)
                     setDevicePage(1)
@@ -156,7 +176,7 @@ const KioskDialog = ({ open, onOpenChange, onSuccess, kiosk }: KioskDialogProps)
             setValidDevices([])
             setHasMoreDevices(true)
         }
-    }, [formData.kioskVersionId, toast, deviceSearchQuery])
+    }, [formData.kioskVersionId, toast, debouncedDeviceSearchQuery])
 
     const loadMoreDevices = async () => {
         if (fetching || !hasMoreDevices || !formData.kioskVersionId) return
@@ -222,10 +242,8 @@ const KioskDialog = ({ open, onOpenChange, onSuccess, kiosk }: KioskDialogProps)
         setSubmitted(true)
         const validationResult = kioskSchema.safeParse(formData)
         if (!validationResult.success) {
-            const fieldErrors = validationResult.error.flatten().fieldErrors
-            setErrors(
-                Object.fromEntries(Object.entries(fieldErrors).map(([key, messages]) => [key, messages ? messages[0] : ""])),
-            )
+            const parsedErrors = parseErrors(validationResult.error)
+            setErrors(parsedErrors)
             return
         }
 

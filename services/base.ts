@@ -76,7 +76,6 @@ export const BaseService = {
                 params,
                 headers: headers || {},
             });
-            console.log(response);
             return response;
         } catch (error) {
             console.error("DELETE request failed", error);

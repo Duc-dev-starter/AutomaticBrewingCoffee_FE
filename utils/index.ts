@@ -1,5 +1,6 @@
 import { Path } from "@/constants/path";
 import { Roles } from "@/enum/role";
+import { ZodError } from "zod";
 
 type ToastOptions = {
     title: string;
@@ -81,4 +82,23 @@ export const formatCurrency = (amount: number): string => {
     return new Intl.NumberFormat('vi-VN', { style: 'currency', currency: 'VND' }).format(amount);
 };
 
-
+export const parseErrors = (zodError: ZodError) => {
+    const errors: Record<string, any> = {};
+    for (const issue of zodError.errors) {
+        let current = errors;
+        for (let i = 0; i < issue.path.length; i++) {
+            const key = issue.path[i];
+            if (i === issue.path.length - 1) {
+                current[key] = issue.message;
+            } else {
+                if (typeof issue.path[i + 1] === "number") {
+                    current[key] = current[key] || [];
+                } else {
+                    current[key] = current[key] || {};
+                }
+                current = current[key];
+            }
+        }
+    }
+    return errors;
+};

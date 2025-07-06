@@ -59,8 +59,6 @@ const WorkflowDetail = () => {
     }
 
     const handleEdit = () => {
-        console.log("tesst")
-
         router.push(`/update-workflow/${workflow?.workflowId}`)
     }
 

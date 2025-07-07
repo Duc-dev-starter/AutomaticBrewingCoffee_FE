@@ -11,7 +11,9 @@ import { useToast } from "@/hooks/use-toast";
 import { registerToast } from "@/utils";
 import { useEffect, useState } from "react";
 import { HubConnectionState } from "@microsoft/signalr";
-import { logout } from "@/services/auth";
+import { logout } from "@/services/auth.service";
+import { scheduleTokenRefresh } from "@/utils/cookie";
+import Cookies from 'js-cookie'
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
     const { toast } = useToast();
@@ -71,6 +73,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         }
     }, [connection]);
 
+    useEffect(() => {
+        const accessToken = Cookies.get("accessToken");
+        if (accessToken) {
+            scheduleTokenRefresh(accessToken);
+        }
+    }, []);
 
     const renderConnectionState = () => {
         if (connectionState === HubConnectionState.Connected) return <span className="text-green-600">Đã kết nối server</span>

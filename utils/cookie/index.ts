@@ -1,5 +1,6 @@
 import { jwtDecode } from "jwt-decode";
 import Cookies from 'js-cookie'
+import { refreshToken } from "@/services/auth.service";
 
 
 interface JwtPayload {
@@ -36,10 +37,31 @@ export const handleToken = (accessToken: string, refreshToken: string) => {
 
     Cookies.set('accessToken', accessToken, { expires: expiresInDaysAccessToken, secure: true });
     Cookies.set('refreshToken', refreshToken, { expires: expiresInDaysRefreshToken, secure: true });
-    Cookies.set('user', JSON.stringify(user), { expires: expiresInDaysRefreshToken, secure: true })
+    Cookies.set('user', JSON.stringify(user), { expires: expiresInDaysRefreshToken, secure: true });
+
+    scheduleTokenRefresh(accessToken);
 }
 
 export const getAccessTokenFromCookie = (): string | null => {
     const token = Cookies.get("accessToken");
     return token || null;
 }
+
+export const scheduleTokenRefresh = (accessToken: string) => {
+    const decodedAccessToken = jwtDecode<JwtPayload>(accessToken);
+    const exp = decodedAccessToken.exp * 1000;
+    const now = Date.now();
+
+    const delay = exp - now - 60_000;
+
+    if (delay > 0) {
+        setTimeout(async () => {
+            try {
+                const newToken = await refreshToken();
+                console.log("Refreshed access token");
+            } catch (err) {
+                console.error("Refresh token failed", err);
+            }
+        }, delay);
+    }
+};

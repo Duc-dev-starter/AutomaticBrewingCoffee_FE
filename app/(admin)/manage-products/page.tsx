@@ -24,7 +24,7 @@ import { PlusCircle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { columns } from "@/components/manage-products/columns";
 import { ExportButton, NoResultsRow, Pagination, RefreshButton, SearchInput } from "@/components/common";
-import { deleteProduct, cloneProduct } from "@/services/product";
+import { deleteProduct, cloneProduct } from "@/services/product.service";
 import { Product } from "@/interfaces/product";
 import { multiSelectFilter } from "@/utils/table";
 import { ProductFilter } from "@/components/manage-products/filter";

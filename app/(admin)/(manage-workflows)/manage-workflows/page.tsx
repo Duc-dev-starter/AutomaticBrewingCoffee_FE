@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useCallback, useEffect, useState, useRef, useMemo } from "react";
+import React, { useEffect, useState, useMemo } from "react";
 import { ChevronDownIcon } from "@radix-ui/react-icons";
 import {
     type ColumnFiltersState,
@@ -23,102 +23,66 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { PlusCircle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
-import { columns } from "@/components/manage-workflows/columns";
-import { Workflow } from "@/interfaces/workflow";
-import { getWorkflows, deleteWorkflow } from "@/services/workflow";
 import { BaseStatusFilter, ExportButton, NoResultsRow, Pagination, RefreshButton, SearchInput } from "@/components/common";
 import { multiSelectFilter } from "@/utils/table";
-import { FilterBadges } from "@/components/manage-workflows/filter-badges";
-import { useRouter } from "next/navigation";
-import { ErrorResponse } from "@/types/error";
+import { BaseFilterBadges } from "@/components/common/base-filter-badges";
+import { columns } from "@/components/manage-workflows/columns";
+import { Workflow } from "@/interfaces/workflow";
+import { useWorkflows } from "@/hooks/use-workflows";
 import { useDebounce, useToast } from "@/hooks";
-const ConfirmDeleteDialog = React.lazy(() => import("@/components/common").then(module => ({ default: module.ConfirmDeleteDialog })));
+import { useRouter } from "next/navigation";
+import { deleteWorkflow } from "@/services/workflow.service";
+import { ErrorResponse } from "@/types/error";
+import { Path } from "@/constants/path";
+
+const ConfirmDeleteDialog = React.lazy(() =>
+    import("@/components/common").then((module) => ({ default: module.ConfirmDeleteDialog }))
+);
 
 const ManageWorkflows = () => {
     const { toast } = useToast();
     const router = useRouter();
-    const [loading, setLoading] = useState(true);
-    const [pageSize, setPageSize] = useState(10);
-    const [currentPage, setCurrentPage] = useState(1);
-    const [workflows, setWorkflows] = useState<Workflow[]>([]);
-    const [totalItems, setTotalItems] = useState(0);
-    const [totalPages, setTotalPages] = useState(1);
+
+    const [pageSize, setPageSize] = useState<number>(10);
+    const [currentPage, setCurrentPage] = useState<number>(1);
+    const [statusFilter, setStatusFilter] = useState<string>("");
     const [typeFilter, setTypeFilter] = useState<string>("");
+    const [searchValue, setSearchValue] = useState<string>("");
+    const debouncedSearchValue = useDebounce(searchValue, 500);
 
     const [sorting, setSorting] = useState<SortingState>([{ id: "createdDate", desc: true }]);
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
     const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
-    const [rowSelection, setRowSelection] = useState({});
-    const [statusFilter, setStatusFilter] = useState<string>("");
+
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
     const [workflowToDelete, setWorkflowToDelete] = useState<Workflow | null>(null);
 
-    const [searchValue, setSearchValue] = useState("");
-    const debouncedSearchValue = useDebounce(searchValue, 500);
+    const params = {
+        filterBy: debouncedSearchValue ? "name" : undefined,
+        filterQuery: debouncedSearchValue || undefined,
+        page: currentPage,
+        size: pageSize,
+        sortBy: sorting.length > 0 ? sorting[0]?.id : undefined,
+        isAsc: sorting.length > 0 ? !sorting[0]?.desc : undefined,
+        type: typeFilter || undefined,
+    };
 
-    const isInitialMount = useRef(true);
+    const { data, error, isLoading, mutate } = useWorkflows(params);
 
-    // Gộp đồng bộ tất cả bộ lọc trong một useEffect
     useEffect(() => {
-        if (isInitialMount.current) {
-            isInitialMount.current = false;
-            return; // Bỏ qua lần đầu tiên khi mount
+        if (error) {
+            toast({
+                title: "Lỗi khi lấy danh sách quy trình",
+                description: error.message || "Đã xảy ra lỗi không xác định",
+                variant: "destructive",
+            });
         }
+    }, [error, toast]);
+
+    useEffect(() => {
         table.getColumn("name")?.setFilterValue(debouncedSearchValue || undefined);
         table.getColumn("type")?.setFilterValue(typeFilter || undefined);
     }, [debouncedSearchValue, typeFilter]);
-
-    const fetchWorkflows = useCallback(async () => {
-        try {
-            setLoading(true);
-
-            const nameFilter = columnFilters.find((filter) => filter.id === "name");
-            const filterBy = nameFilter ? "name" : undefined;
-            const filterQuery = nameFilter?.value as string | undefined;
-
-            const typeFilterValue = columnFilters.find((filter) => filter.id === "type")?.value as string | undefined;
-
-            const sortBy = sorting.length > 0 ? sorting[0]?.id : undefined;
-            const isAsc = sorting.length > 0 ? !sorting[0]?.desc : undefined;
-
-            const response = await getWorkflows({
-                filterBy,
-                filterQuery,
-                page: currentPage,
-                size: pageSize,
-                sortBy,
-                isAsc,
-                type: typeFilterValue,
-            });
-
-            setWorkflows(response.items);
-            setTotalItems(response.total);
-            setTotalPages(response.totalPages);
-        } catch (err) {
-            console.error(err);
-            toast({
-                title: "Lỗi",
-                description: "Không thể tải danh sách quy trình.",
-                variant: "destructive",
-            });
-        } finally {
-            setLoading(false);
-        }
-    }, [currentPage, pageSize, columnFilters, sorting, toast]);
-
-    // Chỉ gọi fetchWorkflows khi mount và khi các giá trị thay đổi
-    useEffect(() => {
-        fetchWorkflows();
-    }, [fetchWorkflows]);
-
-
-    const handleEdit = (workflow: Workflow) => {
-        router.push(`/update-workflow/${workflow.workflowId}`);
-    };
-
-    const handleViewDetails = (workflow: Workflow) => {
-        router.push(`/manage-workflows/${workflow.workflowId}`);
-    };
 
     const handleDelete = (workflow: Workflow) => {
         setWorkflowToDelete(workflow);
@@ -133,13 +97,12 @@ const ManageWorkflows = () => {
                 title: "Thành công",
                 description: `Quy trình "${workflowToDelete.name}" đã được xóa.`,
             });
-            fetchWorkflows();
-        } catch (error: unknown) {
+            mutate();
+        } catch (error) {
             const err = error as ErrorResponse;
-            console.error("Lỗi khi xóa quy trình:", err);
             toast({
                 title: "Lỗi khi xóa quy trình",
-                description: err.message,
+                description: err.message || "Đã xảy ra lỗi không xác định",
                 variant: "destructive",
             });
         } finally {
@@ -149,25 +112,31 @@ const ManageWorkflows = () => {
     };
 
     const handleAdd = () => {
-        router.push("/create-workflow");
+        router.push(Path.CREATE_WORKFLOW);
     };
 
     const clearAllFilters = () => {
+        setStatusFilter("");
         setTypeFilter("");
         setSearchValue("");
         table.resetColumnFilters();
     };
 
-    const hasActiveFilters = typeFilter !== "" || searchValue !== "";
+    const hasActiveFilters = statusFilter !== "" || typeFilter !== "" || searchValue !== "";
+
+    const columnsDef = useMemo(
+        () => columns({
+            onViewDetails: (workflow: Workflow) => router.push(`${Path.MANAGE_WORKFLOWS}/${workflow.workflowId}`),
+            onEdit: (workflow: Workflow) => router.push(`${Path.UPDATE_WORKFLOW}/${workflow.workflowId}`),
+            onDelete: handleDelete,
+            onViewSteps: (workflow: Workflow) => router.push(`${Path.MANAGE_WORKFLOWS}/${workflow.workflowId}`),
+        }),
+        [router]
+    );
 
     const table = useReactTable({
-        data: workflows,
-        columns: columns({
-            onViewDetails: handleViewDetails,
-            onEdit: handleEdit,
-            onDelete: handleDelete,
-            onViewSteps: (workflow: Workflow) => router.push(`/manage-workflows/${workflow.workflowId}`),
-        }),
+        data: data?.items || [],
+        columns: columnsDef,
         onSortingChange: setSorting,
         onColumnFiltersChange: setColumnFilters,
         getCoreRowModel: getCoreRowModel(),
@@ -179,13 +148,12 @@ const ManageWorkflows = () => {
             sorting,
             columnFilters,
             columnVisibility,
-            rowSelection,
             pagination: { pageIndex: currentPage - 1, pageSize },
         },
         manualPagination: true,
         manualFiltering: true,
         manualSorting: true,
-        pageCount: totalPages,
+        pageCount: data?.totalPages || 1,
         filterFns: { multiSelect: multiSelectFilter },
     });
 
@@ -198,14 +166,11 @@ const ManageWorkflows = () => {
     }, [columnFilters]);
 
     const visibleCount = useMemo(
-        () => table.getAllColumns().filter(col => col.getIsVisible()).length,
+        () => table.getAllColumns().filter((col) => col.getIsVisible()).length,
         [table.getState().columnVisibility]
     );
 
-    const totalCount = useMemo(
-        () => table.getAllColumns().length,
-        []
-    );
+    const totalCount = useMemo(() => table.getAllColumns().length, []);
 
     return (
         <div className="w-full">
@@ -216,14 +181,14 @@ const ManageWorkflows = () => {
                         <p className="text-muted-foreground">Quản lý các quy trình pha chế tự động.</p>
                     </div>
                     <div className="flex items-center gap-2">
-                        <ExportButton loading={loading} />
-                        <RefreshButton loading={loading} toggleLoading={fetchWorkflows} />
+                        <ExportButton loading={isLoading} />
+                        <RefreshButton loading={isLoading} toggleLoading={mutate} />
                     </div>
                 </div>
                 <div className="flex flex-col sm:flex-row items-center py-4 gap-4">
                     <div className="relative w-full sm:w-72">
                         <SearchInput
-                            loading={loading}
+                            loading={isLoading}
                             placeHolderText="Tìm kiếm quy trình..."
                             searchValue={searchValue}
                             setSearchValue={setSearchValue}
@@ -235,7 +200,7 @@ const ManageWorkflows = () => {
                             setStatusFilter={setStatusFilter}
                             clearAllFilters={clearAllFilters}
                             hasActiveFilters={hasActiveFilters}
-                            loading={loading}
+                            loading={isLoading}
                         />
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
@@ -260,28 +225,28 @@ const ManageWorkflows = () => {
                                                     column.id === "type" ? "Loại" :
                                                         column.id === "description" ? "Mô tả" :
                                                             column.id === "steps" ? "Bước" :
-                                                                column.id}
+                                                                column.id === "actions" ? "Hành động" : column.id}
                                         </DropdownMenuCheckboxItem>
                                     ))}
                             </DropdownMenuContent>
                         </DropdownMenu>
-                        <Button onClick={handleAdd} disabled={loading}>
+                        <Button onClick={handleAdd} disabled={isLoading}>
                             <PlusCircle className="mr-2 h-4 w-4" />
                             Thêm
                         </Button>
                     </div>
                 </div>
 
-                <FilterBadges
+                <BaseFilterBadges
                     searchValue={searchValue}
                     setSearchValue={setSearchValue}
-                    typeFilter={typeFilter}
-                    setTypeFilter={setTypeFilter}
+                    statusFilter={statusFilter}
+                    setStatusFilter={setStatusFilter}
                     hasActiveFilters={hasActiveFilters}
                 />
 
                 <div className="rounded-md border">
-                    <Table>
+                    <Table className="table-fixed">
                         <TableHeader>
                             {table.getHeaderGroups().map((headerGroup) => (
                                 <TableRow key={headerGroup.id}>
@@ -308,7 +273,7 @@ const ManageWorkflows = () => {
                             ))}
                         </TableHeader>
                         <TableBody>
-                            {loading ? (
+                            {(!data && isLoading) ? (
                                 Array.from({ length: pageSize }).map((_, index) => (
                                     <TableRow key={`skeleton-${index}`} className="animate-pulse">
                                         {columns({ onViewDetails: () => { }, onEdit: () => { }, onDelete: () => { }, onViewSteps: () => { } }).map((column, cellIndex) => (
@@ -332,7 +297,7 @@ const ManageWorkflows = () => {
                                         ))}
                                     </TableRow>
                                 ))
-                            ) : workflows.length ? (
+                            ) : data?.items?.length ? (
                                 table.getRowModel().rows.map((row) => (
                                     <TableRow key={row.id} data-state={row.getIsSelected() && "selected"}>
                                         {row.getVisibleCells().map((cell) => (
@@ -349,13 +314,13 @@ const ManageWorkflows = () => {
                     </Table>
                 </div>
                 <Pagination
-                    loading={loading}
+                    loading={isLoading}
                     pageSize={pageSize}
                     setPageSize={setPageSize}
                     currentPage={currentPage}
                     setCurrentPage={setCurrentPage}
-                    totalItems={totalItems}
-                    totalPages={totalPages}
+                    totalItems={data?.total || 0}
+                    totalPages={data?.totalPages || 1}
                 />
             </div>
 

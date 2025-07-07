@@ -24,7 +24,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { PlusCircle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { BaseStatusFilter, ExportButton, NoResultsRow, Pagination, RefreshButton, SearchInput } from "@/components/common";
-import { deleteMenu } from "@/services/menu";
+import { deleteMenu } from "@/services/menu.service";
 import { Menu } from "@/interfaces/menu";
 import { multiSelectFilter } from "@/utils/table";
 import { useDebounce, useMenus, useToast } from "@/hooks"

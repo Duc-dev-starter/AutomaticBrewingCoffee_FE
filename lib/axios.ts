@@ -2,7 +2,7 @@ import { HttpStatus } from "@/enum/http";
 import axios from "axios";
 import { toastService } from "@/utils";
 import Cookies from "js-cookie"
-import { refreshToken } from "@/services/auth";
+import { refreshToken } from "@/services/auth.service";
 
 export const axiosInstance = axios.create({
     baseURL: process.env.NEXT_PUBLIC_API_BASE_URL,

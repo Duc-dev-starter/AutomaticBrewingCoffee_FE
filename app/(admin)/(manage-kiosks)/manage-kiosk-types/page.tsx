@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useState, useEffect, useMemo, useCallback } from "react";
 import { ChevronDownIcon } from "@radix-ui/react-icons";
 import {
     type ColumnFiltersState,
@@ -23,29 +23,27 @@ import {
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { PlusCircle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
+import { KioskType } from "@/interfaces/kiosk";
 import { BaseStatusFilter, ExportButton, NoResultsRow, Pagination, RefreshButton, SearchInput } from "@/components/common";
 import { multiSelectFilter } from "@/utils/table";
+import { columns } from "@/components/manage-kiosks/manage-kiosk-types/columns";
 import { BaseFilterBadges } from "@/components/common/base-filter-badges";
-import { columns } from "@/components/manage-workflows/columns";
-import { Workflow } from "@/interfaces/workflow";
-import { useWorkflows } from "@/hooks/use-workflows";
-import { useDebounce, useToast } from "@/hooks";
-import { useRouter } from "next/navigation";
-import { deleteWorkflow } from "@/services/workflow";
 import { ErrorResponse } from "@/types/error";
+import { useDebounce, useKioskTypes, useToast } from "@/hooks";
+import { useRouter } from "next/navigation";
+import { deleteKioskType } from "@/services/kiosk.service";
 
-const ConfirmDeleteDialog = React.lazy(() =>
-    import("@/components/common").then((module) => ({ default: module.ConfirmDeleteDialog }))
-);
+const KioskTypeDialog = React.lazy(() => import("@/components/dialog/kiosk").then(module => ({ default: module.KioskTypeDialog })));
+const KioskTypeDetailDialog = React.lazy(() => import("@/components/dialog/kiosk").then(module => ({ default: module.KioskTypeDetailDialog })));
+const ConfirmDeleteDialog = React.lazy(() => import("@/components/common").then(module => ({ default: module.ConfirmDeleteDialog })));
 
-const ManageWorkflows = () => {
+const ManageKioskTypes = () => {
     const { toast } = useToast();
     const router = useRouter();
 
     const [pageSize, setPageSize] = useState<number>(10);
     const [currentPage, setCurrentPage] = useState<number>(1);
     const [statusFilter, setStatusFilter] = useState<string>("");
-    const [typeFilter, setTypeFilter] = useState<string>("");
     const [searchValue, setSearchValue] = useState<string>("");
     const debouncedSearchValue = useDebounce(searchValue, 500);
 
@@ -53,8 +51,12 @@ const ManageWorkflows = () => {
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
     const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
 
+    const [dialogOpen, setDialogOpen] = useState<boolean>(false);
+    const [selectedKioskType, setSelectedKioskType] = useState<KioskType | undefined>(undefined);
+    const [detailDialogOpen, setDetailDialogOpen] = useState(false);
+    const [detailKioskType, setDetailKioskType] = useState<KioskType | null>(null);
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-    const [workflowToDelete, setWorkflowToDelete] = useState<Workflow | null>(null);
+    const [kioskTypeToDelete, setTypeKioskToDelete] = useState<KioskType | null>(null);
 
     const params = {
         filterBy: debouncedSearchValue ? "name" : undefined,
@@ -63,15 +65,15 @@ const ManageWorkflows = () => {
         size: pageSize,
         sortBy: sorting.length > 0 ? sorting[0]?.id : undefined,
         isAsc: sorting.length > 0 ? !sorting[0]?.desc : undefined,
-        type: typeFilter || undefined,
+        status: statusFilter || undefined,
     };
 
-    const { data, error, isLoading, mutate } = useWorkflows(params);
+    const { data, error, isLoading, mutate } = useKioskTypes(params);
 
     useEffect(() => {
         if (error) {
             toast({
-                title: "Lỗi khi lấy danh sách quy trình",
+                title: "Lỗi khi lấy danh sách loại kiosk",
                 description: error.message || "Đã xảy ra lỗi không xác định",
                 variant: "destructive",
             });
@@ -80,57 +82,72 @@ const ManageWorkflows = () => {
 
     useEffect(() => {
         table.getColumn("name")?.setFilterValue(debouncedSearchValue || undefined);
-        table.getColumn("type")?.setFilterValue(typeFilter || undefined);
-    }, [debouncedSearchValue, typeFilter]);
+        table.getColumn("status")?.setFilterValue(statusFilter || undefined);
+    }, [debouncedSearchValue, statusFilter]);
 
-    const handleDelete = (workflow: Workflow) => {
-        setWorkflowToDelete(workflow);
-        setDeleteDialogOpen(true);
+    const handleSuccess = () => {
+        mutate();
+        setDialogOpen(false);
+        setSelectedKioskType(undefined);
     };
 
+    const handleEdit = useCallback((kioskType: KioskType) => {
+        setSelectedKioskType(kioskType);
+        setDialogOpen(true);
+    }, []);
+
+    const handleViewDetails = useCallback((kioskType: KioskType) => {
+        setDetailKioskType(kioskType);
+        setDetailDialogOpen(true);
+    }, []);
+
+    const handleDelete = useCallback((kioskType: KioskType) => {
+        setTypeKioskToDelete(kioskType);
+        setDeleteDialogOpen(true);
+    }, []);
+
     const confirmDelete = async () => {
-        if (!workflowToDelete) return;
+        if (!kioskTypeToDelete) return;
         try {
-            await deleteWorkflow(workflowToDelete.workflowId);
+            await deleteKioskType(kioskTypeToDelete.kioskTypeId);
             toast({
                 title: "Thành công",
-                description: `Quy trình "${workflowToDelete.name}" đã được xóa.`,
+                description: `Loại kiosk "${kioskTypeToDelete.name}" đã được xóa.`,
             });
             mutate();
         } catch (error) {
             const err = error as ErrorResponse;
             toast({
-                title: "Lỗi khi xóa quy trình",
+                title: "Lỗi khi xóa loại kiosk",
                 description: err.message || "Đã xảy ra lỗi không xác định",
                 variant: "destructive",
             });
         } finally {
             setDeleteDialogOpen(false);
-            setWorkflowToDelete(null);
+            setTypeKioskToDelete(null);
         }
     };
 
     const handleAdd = () => {
-        router.push("/create-workflow");
+        setSelectedKioskType(undefined);
+        setDialogOpen(true);
     };
 
     const clearAllFilters = () => {
         setStatusFilter("");
-        setTypeFilter("");
         setSearchValue("");
         table.resetColumnFilters();
     };
 
-    const hasActiveFilters = statusFilter !== "" || typeFilter !== "" || searchValue !== "";
+    const hasActiveFilters = statusFilter !== "" || searchValue !== "";
 
     const columnsDef = useMemo(
         () => columns({
-            onViewDetails: (workflow: Workflow) => router.push(`/manage-workflows/${workflow.workflowId}`),
-            onEdit: (workflow: Workflow) => router.push(`/update-workflow/${workflow.workflowId}`),
+            onViewDetails: handleViewDetails,
+            onEdit: handleEdit,
             onDelete: handleDelete,
-            onViewSteps: (workflow: Workflow) => router.push(`/manage-workflows/${workflow.workflowId}`),
         }),
-        [router]
+        [handleViewDetails, handleEdit, handleDelete]
     );
 
     const table = useReactTable({
@@ -165,19 +182,22 @@ const ManageWorkflows = () => {
     }, [columnFilters]);
 
     const visibleCount = useMemo(
-        () => table.getAllColumns().filter((col) => col.getIsVisible()).length,
+        () => table.getAllColumns().filter(col => col.getIsVisible()).length,
         [table.getState().columnVisibility]
     );
 
-    const totalCount = useMemo(() => table.getAllColumns().length, []);
+    const totalCount = useMemo(
+        () => table.getAllColumns().length,
+        []
+    );
 
     return (
         <div className="w-full">
             <div className="flex flex-col space-y-4 p-4 sm:p-6">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                     <div>
-                        <h2 className="text-2xl font-bold tracking-tight">Quản lý quy trình</h2>
-                        <p className="text-muted-foreground">Quản lý các quy trình pha chế tự động.</p>
+                        <h2 className="text-2xl font-bold tracking-tight">Quản lý loại kiosk</h2>
+                        <p className="text-muted-foreground">Quản lý và giám sát tất cả các loại kiosk pha cà phê tự động.</p>
                     </div>
                     <div className="flex items-center gap-2">
                         <ExportButton loading={isLoading} />
@@ -188,18 +208,18 @@ const ManageWorkflows = () => {
                     <div className="relative w-full sm:w-72">
                         <SearchInput
                             loading={isLoading}
-                            placeHolderText="Tìm kiếm quy trình..."
+                            placeHolderText="Tìm kiếm kiosk..."
                             searchValue={searchValue}
                             setSearchValue={setSearchValue}
                         />
                     </div>
                     <div className="flex items-center gap-2 ml-auto">
                         <BaseStatusFilter
+                            loading={isLoading}
                             statusFilter={statusFilter}
                             setStatusFilter={setStatusFilter}
                             clearAllFilters={clearAllFilters}
                             hasActiveFilters={hasActiveFilters}
-                            loading={isLoading}
                         />
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
@@ -219,12 +239,13 @@ const ManageWorkflows = () => {
                                             checked={column.getIsVisible()}
                                             onCheckedChange={(value) => column.toggleVisibility(!!value)}
                                         >
-                                            {column.id === "workflowId" ? "Mã quy trình" :
-                                                column.id === "name" ? "Tên quy trình" :
-                                                    column.id === "type" ? "Loại" :
-                                                        column.id === "description" ? "Mô tả" :
-                                                            column.id === "steps" ? "Bước" :
-                                                                column.id === "actions" ? "Hành động" : column.id}
+                                            {column.id === "kioskTypeId" ? "Mã loại kiosk" :
+                                                column.id === "name" ? "Tên thiết bị" :
+                                                    column.id === "description" ? "Mô tả" :
+                                                        column.id === "status" ? "Trạng thái" :
+                                                            column.id === "createdDate" ? "Ngày tạo" :
+                                                                column.id === "updatedDate" ? "Ngày cập nhật" :
+                                                                    column.id === "actions" ? "Hành động" : column.id}
                                         </DropdownMenuCheckboxItem>
                                     ))}
                             </DropdownMenuContent>
@@ -250,7 +271,7 @@ const ManageWorkflows = () => {
                             {table.getHeaderGroups().map((headerGroup) => (
                                 <TableRow key={headerGroup.id}>
                                     {headerGroup.headers.map((header) => (
-                                        <TableHead key={header.id} className="text-center">
+                                        <TableHead key={header.id} className="text-center" style={{ width: header.column.getSize() }}>
                                             {header.isPlaceholder ? null : (
                                                 header.column.getCanSort() ? (
                                                     <Button
@@ -275,20 +296,31 @@ const ManageWorkflows = () => {
                             {(!data && isLoading) ? (
                                 Array.from({ length: pageSize }).map((_, index) => (
                                     <TableRow key={`skeleton-${index}`} className="animate-pulse">
-                                        {columns({ onViewDetails: () => { }, onEdit: () => { }, onDelete: () => { }, onViewSteps: () => { } }).map((column, cellIndex) => (
+                                        {columns({ onViewDetails: () => { }, onEdit: () => { }, onDelete: () => { } }).map((column, cellIndex) => (
                                             <TableCell key={`skeleton-cell-${cellIndex}`}>
-                                                {column.id === "workflowId" ? (
+                                                {column.id === "kioskTypeId" ? (
                                                     <Skeleton className="h-5 w-24 mx-auto" />
                                                 ) : column.id === "name" ? (
-                                                    <Skeleton className="h-5 w-40 mx-auto" />
-                                                ) : column.id === "type" ? (
-                                                    <Skeleton className="h-6 w-24 rounded-full mx-auto" />
+                                                    <div className="flex items-center gap-2 justify-center">
+                                                        <Skeleton className="h-4 w-4 rounded-full" />
+                                                        <Skeleton className="h-5 w-40" />
+                                                    </div>
                                                 ) : column.id === "description" ? (
-                                                    <Skeleton className="h-5 w-48 mx-auto" />
-                                                ) : column.id === "steps" ? (
-                                                    <Skeleton className="h-5 w-20 mx-auto" />
+                                                    <div className="flex items-center gap-2 justify-center">
+                                                        <Skeleton className="h-4 w-4 rounded-full" />
+                                                        <Skeleton className="h-5 w-40" />
+                                                    </div>
+                                                ) : column.id === "status" ? (
+                                                    <Skeleton className="h-6 w-24 rounded-full mx-auto" />
+                                                ) : column.id === "createdDate" || column.id === "updatedDate" ? (
+                                                    <div className="flex items-center gap-2 justify-center">
+                                                        <Skeleton className="h-4 w-4 rounded-full" />
+                                                        <Skeleton className="h-5 w-24" />
+                                                    </div>
                                                 ) : column.id === "actions" ? (
-                                                    <Skeleton className="h-8 w-8 rounded-full mx-auto" />
+                                                    <div className="flex justify-center">
+                                                        <Skeleton className="h-8 w-8 rounded-full" />
+                                                    </div>
                                                 ) : (
                                                     <Skeleton className="h-5 w-full" />
                                                 )}
@@ -307,7 +339,7 @@ const ManageWorkflows = () => {
                                     </TableRow>
                                 ))
                             ) : (
-                                <NoResultsRow columns={columns({ onViewDetails: () => { }, onEdit: () => { }, onDelete: () => { }, onViewSteps: () => { } })} />
+                                <NoResultsRow columns={columns({ onViewDetails: () => { }, onEdit: () => { }, onDelete: () => { } })} />
                             )}
                         </TableBody>
                     </Table>
@@ -322,18 +354,36 @@ const ManageWorkflows = () => {
                     totalPages={data?.totalPages || 1}
                 />
             </div>
+            <React.Suspense fallback={<div className="hidden">Đang tải...</div>}>
+                <KioskTypeDialog
+                    open={dialogOpen}
+                    onOpenChange={setDialogOpen}
+                    onSuccess={handleSuccess}
+                    kioskType={selectedKioskType}
+                />
+            </React.Suspense>
 
-            <React.Suspense fallback={<div>Đang tải...</div>}>
+            <React.Suspense fallback={<div className="hidden">Đang tải...</div>}>
+                <KioskTypeDetailDialog
+                    open={detailDialogOpen}
+                    onOpenChange={(open) => {
+                        setDetailDialogOpen(open);
+                        if (!open) setDetailKioskType(null);
+                    }}
+                    kioskType={detailKioskType}
+                />
+            </React.Suspense>
+            <React.Suspense fallback={<div className="hidden">Đang tải...</div>}>
                 <ConfirmDeleteDialog
                     open={deleteDialogOpen}
                     onOpenChange={setDeleteDialogOpen}
-                    description={`Bạn có chắc chắn muốn xóa quy trình "${workflowToDelete?.name}"? Hành động này không thể hoàn tác.`}
+                    description={`Bạn có chắc chắn muốn xóa loại kiosk "${kioskTypeToDelete?.name}"? Hành động này không thể hoàn tác.`}
                     onConfirm={confirmDelete}
-                    onCancel={() => setWorkflowToDelete(null)}
+                    onCancel={() => setTypeKioskToDelete(null)}
                 />
             </React.Suspense>
         </div>
     );
 };
 
-export default ManageWorkflows;
+export default ManageKioskTypes;

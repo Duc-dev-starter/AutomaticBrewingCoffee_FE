@@ -1,5 +1,5 @@
 import { useCrossTabSWR } from "@/lib/swr";
-import { getOrganizations } from "@/services/organization";
+import { getOrganizations } from "@/services/organization.service";
 import { PagingParams } from "@/types/paging";
 
 export function useOrganizations(params: PagingParams) {

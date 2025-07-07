@@ -7,11 +7,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { PlusCircle, Edit, CheckCircle2, AlertCircle, Building2, Edit3, Monitor } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { EBaseStatus, EBaseStatusViMap } from "@/enum/base";
-import { createMenu, updateMenu } from "@/services/menu";
-import { getOrganizations } from "@/services/organization";
+import { createMenu, updateMenu } from "@/services/menu.service";
+import { getOrganizations } from "@/services/organization.service";
 import { MenuDialogProps } from "@/types/dialog";
 import { ErrorResponse } from "@/types/error";
-import { menuSchema } from "@/schema/menu";
+import { menuSchema } from "@/schema/menu.schema";
 import { Organization } from "@/interfaces/organization";
 import { cn } from "@/lib/utils";
 import InfiniteScroll from "react-infinite-scroll-component";

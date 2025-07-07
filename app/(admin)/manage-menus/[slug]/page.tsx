@@ -21,7 +21,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Pagination, ConfirmDeleteDialog, ExportButton, RefreshButton } from "@/components/common"
 import type { Menu, MenuProductMapping } from "@/interfaces/menu"
 import { useToast } from "@/hooks/use-toast"
-import { getMenu, removeProductFromMenu, reorderMenuProducts } from "@/services/menu"
+import { getMenu, removeProductFromMenu, reorderMenuProducts } from "@/services/menu.service"
 import { columns } from "@/components/manage-menus-detail/columns"
 import AddProductToMenuDialog from "@/components/dialog/menu/add-product-to-menu"
 import { EBaseStatusViMap } from "@/enum/base"

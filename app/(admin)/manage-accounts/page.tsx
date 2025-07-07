@@ -27,7 +27,7 @@ import { multiSelectFilter } from "@/utils/table";
 import { ErrorResponse } from "@/types/error";
 import { columns } from "@/components/manage-accounts/columns";
 import { Account } from "@/interfaces/account";
-import { banAccount, unbanAccount } from "@/services/auth";
+import { banAccount, unbanAccount } from "@/services/auth.service";
 import { useAccounts, useDebounce, useToast } from "@/hooks";
 const ConfirmBanUnbanDialog = React.lazy(() => import("@/components/common").then(module => ({ default: module.ConfirmBanUnbanDialog })));
 const AccountDetailDialog = React.lazy(() => import("@/components/dialog/account").then(module => ({ default: module.AccountDetailDialog })));

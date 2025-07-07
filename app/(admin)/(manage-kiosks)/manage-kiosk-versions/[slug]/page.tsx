@@ -7,9 +7,9 @@ import {
     kioskSupportProducts,
     getKioskVersion,
     getSupportProducts,
-} from "@/services/kiosk"
-import { getDeviceModels } from "@/services/device"
-import { getProducts } from "@/services/product"
+} from "@/services/kiosk.service"
+import { getDeviceModels } from "@/services/device.service"
+import { getProducts } from "@/services/product.service"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"

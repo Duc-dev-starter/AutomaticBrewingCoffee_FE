@@ -27,7 +27,7 @@ import { BaseStatusFilter, ExportButton, NoResultsRow, Pagination, RefreshButton
 import { multiSelectFilter } from "@/utils/table";
 import { Category } from "@/interfaces/category";
 import { columns } from "@/components/manage-categories/columns";
-import { deleteCategory, reorderCategory } from "@/services/category";
+import { deleteCategory, reorderCategory } from "@/services/category.service";
 import { ErrorResponse } from "@/types/error";
 import { useDebounce, useCategories, useToast } from "@/hooks";
 import { DragDropContext, Droppable, Draggable, DropResult } from "react-beautiful-dnd";

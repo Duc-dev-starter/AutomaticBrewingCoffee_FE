@@ -31,7 +31,7 @@ import {
     RefreshButton,
     SearchInput,
 } from "@/components/common"
-import { deleteOrganization } from "@/services/organization"
+import { deleteOrganization } from "@/services/organization.service"
 import type { Organization } from "@/interfaces/organization"
 import { multiSelectFilter } from "@/utils/table"
 import { columns } from "@/components/manage-organizations/columns"

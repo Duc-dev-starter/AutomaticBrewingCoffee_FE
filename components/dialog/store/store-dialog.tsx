@@ -7,12 +7,12 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { PlusCircle, Edit, CheckCircle2, AlertCircle, Building2, Monitor, MapPin, Phone, Circle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { EBaseStatus, EBaseStatusViMap } from "@/enum/base";
-import { createStore, updateStore } from "@/services/store";
-import { getOrganizations } from "@/services/organization";
-import { getLocationTypes } from "@/services/locationType";
+import { createStore, updateStore } from "@/services/store.service";
+import { getOrganizations } from "@/services/organization.service";
+import { getLocationTypes } from "@/services/locationType.service";
 import { StoreDialogProps } from "@/types/dialog";
 import { ErrorResponse } from "@/types/error";
-import { storeSchema } from "@/schema/stores";
+import { storeSchema } from "@/schema/stores.schema";
 import { Organization } from "@/interfaces/organization";
 import { LocationType } from "@/interfaces/location";
 import { cn } from "@/lib/utils";

@@ -28,7 +28,7 @@ import { multiSelectFilter } from "@/utils/table";
 import { FilterBadges } from "@/components/manage-devices/filter-badges";
 import { columns } from "@/components/manage-kiosks/manage-kiosk-versions/columns";
 import { KioskVersion } from "@/interfaces/kiosk";
-import { deleteKioskVersion } from "@/services/kiosk";
+import { deleteKioskVersion } from "@/services/kiosk.service";
 import { useRouter } from "next/navigation";
 import { ErrorResponse } from "@/types/error";
 import { useDebounce, useKioskVersions, useToast } from "@/hooks";

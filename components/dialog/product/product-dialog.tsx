@@ -10,13 +10,13 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { useToast } from "@/hooks/use-toast";
 import type { Product, ProductAttribute } from "@/interfaces/product";
 import { EProductStatus, EProductSize, EProductType, EIngredientType, EBaseUnit, EAttributteOption } from "@/enum/product";
-import { createProduct, updateProduct, getProducts } from "@/services/product";
-import { productSchema } from "@/schema/product";
+import { createProduct, updateProduct, getProducts } from "@/services/product.service";
+import { productSchema } from "@/schema/product.schema";
 import type { ProductDialogProps } from "@/types/dialog";
 import { Upload, X, LinkIcon, ImageIcon, CheckCircle2, AlertCircle, PlusCircle, Edit, Monitor, DollarSign, Tag, Box, List, Check, Slash, Edit3 } from "lucide-react";
 import type { ErrorResponse } from "@/types/error";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
-import { getCategories } from "@/services/category";
+import { getCategories } from "@/services/category.service";
 import { Category } from "@/interfaces/category";
 import { cn } from "@/lib/utils";
 import InfiniteScroll from "react-infinite-scroll-component";

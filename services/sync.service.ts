@@ -1,6 +1,6 @@
 import { SyncEvent, SyncTask } from "@/interfaces/sync";
 import { PagingParams, PagingResponse } from "@/types/paging";
-import { BaseService } from "./base";
+import { BaseService } from "./base.service";
 import { Api } from "@/constants/api";
 
 export const getSyncEvents = async (params: PagingParams = {}): Promise<PagingResponse<SyncEvent>> => {

@@ -1,5 +1,5 @@
 import { Device, DeviceModel, DeviceType } from "@/interfaces/device";
-import { BaseService } from "./base"
+import { BaseService } from "./base.service"
 import { PagingParams, PagingResponse } from "@/types/paging";
 import { Api } from "@/constants/api";
 

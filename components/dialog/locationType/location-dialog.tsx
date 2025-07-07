@@ -8,10 +8,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { MapPin, Sparkles, CheckCircle2, AlertCircle, Save, X, Building2, Edit3, Zap } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { LocationTypeDialogProps } from "@/types/dialog";
-import { createLocationType, updateLocationType } from "@/services/locationType";
+import { createLocationType, updateLocationType } from "@/services/locationType.service";
 import { ErrorResponse } from "@/types/error";
 import { cn } from "@/lib/utils";
-import { locationSchema } from "@/schema/location";
+import { locationSchema } from "@/schema/location.schema";
 import { FormFooterActions } from "@/components/form";
 import { parseErrors } from "@/utils";
 

@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { useParams, useRouter } from "next/navigation"
-import { getWorkflow } from "@/services/workflow"
+import { getWorkflow } from "@/services/workflow.service"
 import type { Workflow } from "@/interfaces/workflow"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"

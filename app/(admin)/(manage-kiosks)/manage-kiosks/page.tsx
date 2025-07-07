@@ -24,7 +24,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { PlusCircle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { BaseStatusFilter, ExportButton, NoResultsRow, Pagination, RefreshButton, SearchInput } from "@/components/common";
-import { deleteKiosk, syncKiosk } from "@/services/kiosk";
+import { deleteKiosk, syncKiosk } from "@/services/kiosk.service";
 import { Kiosk } from "@/interfaces/kiosk";
 import { multiSelectFilter } from "@/utils/table";
 import { columns } from "@/components/manage-kiosks/columns";
@@ -35,7 +35,7 @@ import axios from "axios";
 import Cookies from "js-cookie"
 import { useDebounce, useKiosks, useToast } from "@/hooks";
 import { Path } from "@/constants/path";
-import { syncOverrideKiosk } from "@/services/sync";
+import { syncOverrideKiosk } from "@/services/sync.service";
 const KioskDialog = React.lazy(() => import("@/components/dialog/kiosk").then(module => ({ default: module.KioskDialog })));
 const KioskDetailDialog = React.lazy(() => import("@/components/dialog/kiosk").then(module => ({ default: module.KioskDetailDialog })));
 const WebhookDialog = React.lazy(() => import("@/components/dialog/webhook").then(module => ({ default: module.WebhookDialog })));

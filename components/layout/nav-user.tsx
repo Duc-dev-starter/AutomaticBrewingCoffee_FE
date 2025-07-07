@@ -16,7 +16,7 @@ import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/c
 import Link from "next/link"
 import { Path } from "@/constants/path"
 import { ThemeSelector } from "./theme-selector"
-import { logout } from "@/services/auth"
+import { logout } from "@/services/auth.service"
 import { Account } from "@/interfaces/account"
 import { useAppStore } from "@/stores/use-app-store"
 import { useRouter } from "next/navigation"

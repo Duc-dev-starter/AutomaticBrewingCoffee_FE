@@ -7,8 +7,8 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import { EBaseStatus } from "@/enum/base";
-import { addProductToMenu } from "@/services/menu";
-import { getProducts } from "@/services/product";
+import { addProductToMenu } from "@/services/menu.service";
+import { getProducts } from "@/services/product.service";
 import { Product } from "@/interfaces/product";
 import { ErrorResponse } from "@/types/error";
 

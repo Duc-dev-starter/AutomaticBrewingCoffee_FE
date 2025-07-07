@@ -1,4 +1,4 @@
-import { BaseService } from "./base"
+import { BaseService } from "./base.service"
 import { PagingParams, PagingResponse } from "@/types/paging";
 import { Order } from "@/interfaces/order";
 import { Api } from "@/constants/api";

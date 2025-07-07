@@ -1,5 +1,5 @@
 import { useCrossTabSWR } from "@/lib/swr";
-import { getDeviceModels } from "@/services/device";
+import { getDeviceModels } from "@/services/device.service";
 import { PagingParams } from "@/types/paging";
 
 export function useDeviceModels(params: PagingParams) {

@@ -10,9 +10,9 @@ import { MapPin, Sparkles, CheckCircle2, AlertCircle, Edit } from "lucide-react"
 import { useToast } from "@/hooks/use-toast";
 import { EBaseStatus, EBaseStatusViMap } from "@/enum/base";
 import { KioskDialogProps } from "@/types/dialog";
-import { createKioskType, updateKioskType } from "@/services/kiosk";
+import { createKioskType, updateKioskType } from "@/services/kiosk.service";
 import { ErrorResponse } from "@/types/error";
-import { kioskTypeSchema } from "@/schema/kiosk";
+import { kioskTypeSchema } from "@/schema/kiosk.schema";
 import { cn } from "@/lib/utils";
 import { FormBaseStatusSelectField, FormFooterActions } from "@/components/form";
 import { parseErrors } from "@/utils";

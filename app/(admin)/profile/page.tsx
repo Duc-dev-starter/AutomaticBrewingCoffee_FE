@@ -13,8 +13,8 @@ import { BellRing, Key, Lock, Mail, Shield, User, UserCog } from "lucide-react"
 import React, { useState } from 'react'
 import { useForm } from "react-hook-form"
 import { zodResolver } from "@hookform/resolvers/zod"
-import { ChangePasswordFormData, changePasswordSchema } from "@/schema/auth"
-import { changePassword } from "@/services/auth"
+import { ChangePasswordFormData, changePasswordSchema } from "@/schema/auth.schema"
+import { changePassword } from "@/services/auth.service"
 import { toast } from "@/hooks/use-toast"
 
 

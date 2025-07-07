@@ -8,11 +8,11 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { EDeviceStatus, } from "@/enum/device";
 import { CheckCircle2, AlertCircle, Building2, Edit3, Monitor, Boxes, Hash, Circle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { createDevice, updateDevice, getDeviceModels } from "@/services/device";
+import { createDevice, updateDevice, getDeviceModels } from "@/services/device.service";
 import { DeviceDialogProps } from "@/types/dialog";
 import { DeviceModel } from "@/interfaces/device";
 import { ErrorResponse } from "@/types/error";
-import { deviceSchema } from "@/schema/device";
+import { deviceSchema } from "@/schema/device.schema";
 import { cn } from "@/lib/utils";
 import InfiniteScroll from "react-infinite-scroll-component";
 import { useDebounce } from "@/hooks";

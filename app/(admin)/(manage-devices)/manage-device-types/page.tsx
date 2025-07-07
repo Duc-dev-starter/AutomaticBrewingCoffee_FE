@@ -26,7 +26,7 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { DeviceType } from "@/interfaces/device";
 import { BaseStatusFilter, ExportButton, NoResultsRow, Pagination, RefreshButton, SearchInput } from "@/components/common";
 import { multiSelectFilter } from "@/utils/table";
-import { deleteDeviceType } from "@/services/device";
+import { deleteDeviceType } from "@/services/device.service";
 import { columns } from "@/components/manage-devices/manage-device-types/columns";
 import { BaseFilterBadges } from "@/components/common/base-filter-badges";
 import { ErrorResponse } from "@/types/error";

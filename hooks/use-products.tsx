@@ -1,5 +1,5 @@
 import { useCrossTabSWR } from "@/lib/swr";
-import { getProducts } from "@/services/product";
+import { getProducts } from "@/services/product.service";
 import { PagingParams } from "@/types/paging";
 
 export function useProducts(params: PagingParams) {

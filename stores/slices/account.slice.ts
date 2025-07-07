@@ -1,7 +1,7 @@
 // @ts-nocheck
 import { StateCreator } from 'zustand';
 import { Account } from '@/interfaces/account';
-import { BaseService } from '@/services/base';
+import { BaseService } from '@/services/base.service';
 import { Api } from '@/constants/api';
 import { ApiResponse } from '@/types/api';
 

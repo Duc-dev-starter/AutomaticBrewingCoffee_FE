@@ -1,4 +1,4 @@
-import { BaseService } from "./base";
+import { BaseService } from "./base.service";
 
 export const registerWebhook = async (payload: { kioskId: string, webhookUrl: string, webhookType: string }) => {
     const response = await BaseService.post({ url: `/webhooks`, payload });

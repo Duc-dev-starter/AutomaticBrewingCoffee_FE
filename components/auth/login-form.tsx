@@ -20,7 +20,7 @@ import {
 import { Alert, AlertDescription } from "@/components/ui/alert";
 import { useToast } from "@/hooks/use-toast";
 
-import { login, getCurrentUser } from "@/services/auth";
+import { login, getCurrentUser } from "@/services/auth.service";
 import { handleToken } from "@/utils/cookie";
 import { ErrorResponse } from "@/types/error";
 import { Path } from "@/constants/path";

@@ -27,7 +27,7 @@ import { BaseStatusFilter, ExportButton, NoResultsRow, Pagination, RefreshButton
 import { multiSelectFilter } from "@/utils/table";
 import { LocationType } from "@/interfaces/location";
 import { columns } from "@/components/manage-locations/columns";
-import { deleteLocationType } from "@/services/locationType";
+import { deleteLocationType } from "@/services/locationType.service";
 import { ErrorResponse } from "@/types/error";
 import { useDebounce, useLocationTypes, useToast } from "@/hooks";
 const LocationTypeDialog = React.lazy(() => import("@/components/dialog/locationType").then(module => ({ default: module.LocationTypeDialog })));

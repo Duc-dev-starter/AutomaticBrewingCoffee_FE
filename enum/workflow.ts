@@ -9,50 +9,39 @@ export const EWorkflowTypeViMap: Record<string, string> = {
     [EWorkflowType.Callback]: "Gọi lại",
 };
 
-export enum EWorkflowStepType {
-    MoveArmCommand = "MoveArmCommand",
-    CloseGripperCommand = "CloseGripperCommand",
-    DiscardCupCommand = "DiscardCupCommand",
-    ResetArmCommand = "ResetArmCommand",
-    MoveFailCommand = "MoveFailCommand",
-    OpenFailCommand = "OpenFailCommand",
-    CloseFailCommand = "CloseFailCommand",
-    OpenGripperCommand = "OpenGripperCommand",
-    MakeDrinkCommand = "MakeDrinkCommand",
-    MakeFailCommand = "MakeFailCommand",
-    DropCupCommand = "DropCupCommand",
-    DropFailCommand = "DropFailCommand",
-    TakeIceCommand = "TakeIceCommand",
-    TakeFailCommand = "TakeFailCommand",
-    AlertCancellationCommand = "AlertCancellationCommand",
-    CancelOrderCommand = "CancelOrderCommand",
-    CompleteOrderCommand = "CompleteOrderCommand",
-    CreateOrderCommand = "CreateOrderCommand",
-    CancelPaymentCommand = "CancelPaymentCommand",
-    RefundCommand = "RefundCommand",
-    ValidatePaymentCommand = "ValidatePaymentCommand",
+export enum EConditionName {
+    Side = 'Side',
 }
 
-export const EWorkflowStepTypeViMap: Record<EWorkflowStepType, string> = {
-    [EWorkflowStepType.MoveArmCommand]: "Di chuyển cánh tay",
-    [EWorkflowStepType.CloseGripperCommand]: "Đóng kẹp",
-    [EWorkflowStepType.DiscardCupCommand]: "Loại bỏ cốc",
-    [EWorkflowStepType.ResetArmCommand]: "Reset cánh tay",
-    [EWorkflowStepType.MoveFailCommand]: "Lỗi di chuyển",
-    [EWorkflowStepType.OpenFailCommand]: "Lỗi mở",
-    [EWorkflowStepType.CloseFailCommand]: "Lỗi đóng",
-    [EWorkflowStepType.OpenGripperCommand]: "Mở kẹp",
-    [EWorkflowStepType.MakeDrinkCommand]: "Pha đồ uống",
-    [EWorkflowStepType.MakeFailCommand]: "Lỗi pha đồ uống",
-    [EWorkflowStepType.DropCupCommand]: "Thả cốc",
-    [EWorkflowStepType.DropFailCommand]: "Lỗi thả cốc",
-    [EWorkflowStepType.TakeIceCommand]: "Lấy đá",
-    [EWorkflowStepType.TakeFailCommand]: "Lỗi lấy đá",
-    [EWorkflowStepType.AlertCancellationCommand]: "Thông báo huỷ đơn",
-    [EWorkflowStepType.CancelOrderCommand]: "Huỷ đơn hàng",
-    [EWorkflowStepType.CompleteOrderCommand]: "Hoàn tất đơn hàng",
-    [EWorkflowStepType.CreateOrderCommand]: "Tạo đơn hàng",
-    [EWorkflowStepType.CancelPaymentCommand]: "Huỷ thanh toán",
-    [EWorkflowStepType.RefundCommand]: "Hoàn tiền",
-    [EWorkflowStepType.ValidatePaymentCommand]: "Xác nhận thanh toán",
+export const EConditionNameViMap: Record<string, string> = {
+    [EConditionName.Side]: "Hướng đặt",
+};
+
+export enum EOperation {
+    Equal = "Equal",
+    NotEqual = "NotEqual",
+    GreaterThan = "GreaterThan",
+    GreaterThanOrEqual = "GreaterThanOrEqual",
+    LessThan = "LessThan",
+    LessThanOrEqual = "LessThanOrEqual",
+}
+
+
+export const EOperationViMap: Record<EOperation, string> = {
+    [EOperation.Equal]: "Bằng",
+    [EOperation.NotEqual]: "Không bằng",
+    [EOperation.GreaterThan]: "Lớn hơn",
+    [EOperation.GreaterThanOrEqual]: "Lớn hơn hoặc bằng",
+    [EOperation.LessThan]: "Nhỏ hơn",
+    [EOperation.LessThanOrEqual]: "Nhỏ hơn hoặc bằng",
+};
+
+export enum EExpressionType {
+    Literal = "Literal",
+    Variable = "Variable",
+}
+
+export const EExpressionTypeViMap: Record<EExpressionType, string> = {
+    [EExpressionType.Literal]: "Giá trị cố định",
+    [EExpressionType.Variable]: "Biến",
 };

@@ -1,4 +1,4 @@
-import { EWorkflowType } from "@/enum/workflow";
+import { EExpressionType, EOperation, EWorkflowType } from "@/enum/workflow";
 import { Product } from "./product";
 import { DeviceModel } from "./device";
 
@@ -11,6 +11,7 @@ export interface WorkflowStep {
     parameters: string;
     sequence: number;
     deviceModel: DeviceModel
+    conditions: WorkflowCondition[];
 }
 
 export interface Workflow {
@@ -22,4 +23,20 @@ export interface Workflow {
     type: EWorkflowType;
     steps: WorkflowStep[];
     kioskVersionId: string;
+}
+
+export interface WorkflowCondition {
+    name: string;
+    description: string;
+    expression: {
+        left: {
+            type: EExpressionType;
+            value: any;
+        },
+        operator: EOperation;
+        right: {
+            type: EExpressionType;
+            value: any;
+        }
+    }
 }

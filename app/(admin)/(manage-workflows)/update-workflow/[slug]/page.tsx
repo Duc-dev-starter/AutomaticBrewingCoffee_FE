@@ -11,7 +11,7 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
-import { PlusCircle, Loader2, Trash2, ChevronDown, ChevronUp, Info, AlertTriangle, Settings, Save } from "lucide-react"
+import { PlusCircle, Loader2, Trash2, ChevronDown, ChevronUp, Info, AlertTriangle, Settings, Save, X } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { getWorkflow, updateWorkflow } from "@/services/workflow.service"
 import { getProducts } from "@/services/product.service"
@@ -25,7 +25,7 @@ import type { ErrorResponse } from "@/types/error"
 import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from "@/components/ui/tooltip"
 import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
-import { EWorkflowType, EWorkflowTypeViMap } from "@/enum/workflow"
+import { EWorkflowType, EWorkflowTypeViMap, EConditionName, EConditionNameViMap, EOperation, EOperationViMap, EExpressionType, EExpressionTypeViMap } from "@/enum/workflow"
 import { workflowSchema } from "@/schema/workflow.schema"
 import { Path } from "@/constants/path"
 import type { KioskVersion } from "@/interfaces/kiosk"
@@ -230,7 +230,7 @@ const UpdateWorkflow = () => {
                 setHasMoreWorkflows(response.items.length >= 10)
             } catch (error) {
                 console.error("Error fetching workflows:", error)
-                toast({ title: "Lỗi", description: "Không tải được các quy651trình.", variant: "destructive" })
+                toast({ title: "Lỗi", description: "Không tải được các quy trình.", variant: "destructive" })
             } finally {
                 if (pageNumber === 1 || !hasMoreWorkflows) setLoadingWorkflows(false)
             }
@@ -375,6 +375,7 @@ const UpdateWorkflow = () => {
                         sequence: newSequence,
                         callbackWorkflowId: "",
                         parameters: "",
+                        conditions: [],
                     },
                 ],
             }
@@ -423,12 +424,88 @@ const UpdateWorkflow = () => {
         [formData]
     )
 
+    // Hàm xử lý thay đổi điều kiện
+    const handleConditionChange = useCallback(
+        (stepIndex: number, conditionIndex: number, field: string, value: any) => {
+            setFormData((prev) => {
+                if (!prev) return null
+                const newSteps = [...prev.steps]
+                const currentStep = { ...newSteps[stepIndex] }
+                const newConditions = [...(currentStep.conditions || [])]
+                const currentCondition = { ...newConditions[conditionIndex] }
+
+                if (field === "name") {
+                    currentCondition.name = value
+                } else if (field === "description") {
+                    currentCondition.description = value
+                } else if (field === "expression") {
+                    currentCondition.expression = value
+                } else if (field === "leftType") {
+                    currentCondition.expression.left.type = value
+                } else if (field === "leftValue") {
+                    currentCondition.expression.left.value = value
+                } else if (field === "operator") {
+                    currentCondition.expression.operator = value
+                } else if (field === "rightType") {
+                    currentCondition.expression.right.type = value
+                } else if (field === "rightValue") {
+                    currentCondition.expression.right.value = value
+                }
+
+                newConditions[conditionIndex] = currentCondition
+                currentStep.conditions = newConditions
+                newSteps[stepIndex] = currentStep
+                console.log("New conditions:", newConditions);
+                return { ...prev, steps: newSteps }
+            })
+        },
+        []
+    )
+
+    const addCondition = useCallback((stepIndex: number) => {
+        setFormData((prev) => {
+            if (!prev) return null
+            const newSteps = [...prev.steps]
+            const currentStep = { ...newSteps[stepIndex] }
+            const newConditions = [
+                ...(currentStep.conditions || []),
+                {
+                    name: EConditionName.Side,
+                    description: "",
+                    expression: {
+                        left: { type: EExpressionType.Variable, value: "" },
+                        operator: EOperation.Equal,
+                        right: { type: EExpressionType.Literal, value: "" },
+                    },
+                },
+            ]
+            currentStep.conditions = newConditions
+            newSteps[stepIndex] = currentStep
+            return { ...prev, steps: newSteps }
+        })
+    }, [])
+
+    const removeCondition = useCallback((stepIndex: number, conditionIndex: number) => {
+        setFormData((prev) => {
+            if (!prev) return null
+            const newSteps = [...prev.steps]
+            const currentStep = { ...newSteps[stepIndex] }
+            const newConditions = (currentStep.conditions || []).filter((_, i) => i !== conditionIndex)
+            currentStep.conditions = newConditions
+            newSteps[stepIndex] = currentStep
+            return { ...prev, steps: newSteps }
+        })
+    }, [])
+
     const handleSubmit = useCallback(
         async (e: React.FormEvent) => {
             e.preventDefault()
             e.stopPropagation()
 
             if (!formData) return
+
+            console.log("formData trước khi gửi:", JSON.stringify(formData, null, 2));
+            console.log("Steps với conditions:", formData.steps.map(step => step.conditions));
 
             const result = workflowSchema.safeParse(formData)
 
@@ -455,6 +532,16 @@ const UpdateWorkflow = () => {
             setLoading(true)
             try {
                 const validatedData = result.data
+                // Ánh xạ EOperation từ frontend sang backend
+                const operationMap: Record<string, string> = {
+                    [EOperation.Equal]: "Equal",
+                    [EOperation.NotEqual]: "NotEqual",
+                    [EOperation.GreaterThan]: "GreaterThan",
+                    [EOperation.GreaterThanOrEqual]: "GreaterThanOrEqual",
+                    [EOperation.LessThan]: "LessThan",
+                    [EOperation.LessThanOrEqual]: "LessThanOrEqual",
+                }
+
                 const dataToSend = {
                     name: validatedData.name,
                     description: validatedData.description || undefined,
@@ -468,8 +555,17 @@ const UpdateWorkflow = () => {
                         deviceModelId: step.deviceModelId || undefined,
                         deviceFunctionId: step.deviceFunctionId || undefined,
                         sequence: step.sequence || 1,
+                        conditions: (step.conditions || []).map((condition) => ({
+                            ...condition,
+                            expression: {
+                                ...condition.expression,
+                                operator: operationMap[condition.expression.operator] || condition.expression.operator,
+                            },
+                        })),
                     })),
                 }
+
+                console.log(dataToSend)
 
                 await updateWorkflow(slug, dataToSend as any)
                 toast({
@@ -542,7 +638,6 @@ const UpdateWorkflow = () => {
     const updateFlowFromSteps = useCallback(() => {
         if (!formData) return;
 
-        // Nhóm các bước theo sequence
         const sequenceGroups: Record<number, any[]> = {};
         formData.steps.forEach((step, index) => {
             const sequence = step.sequence;
@@ -726,146 +821,143 @@ const UpdateWorkflow = () => {
                 </CardContent>
             </Card>
 
-            <div className="flex flex-col md:flex-row gap-6">
-                <div className="w-full md:w-[35%] space-y-6">
-                    <Dialog open={showWorkflowInfo} onOpenChange={setShowWorkflowInfo}>
-                        <DialogTrigger asChild>
-                            <Button variant="outline" className="w-full">
-                                <Info className="mr-2 h-4 w-4" />
-                                Xem thông tin quy trình
-                            </Button>
-                        </DialogTrigger>
-                        <DialogContent className="sm:max-w-[650px] p-7 border-0 bg-white backdrop-blur-xl shadow-2xl max-h-[90vh] overflow-y-auto hide-scrollbar">
-                            <DialogHeader>
-                                <DialogTitle>Thông tin quy trình</DialogTitle>
-                            </DialogHeader>
-                            <div className="space-y-4">
-                                <div className="space-y-2">
-                                    <Label htmlFor="name" className="flex items-center">
-                                        Tên quy trình
-                                        <span className="text-red-500 ml-1">*</span>
-                                    </Label>
-                                    <Input
-                                        id="name"
-                                        placeholder="Nhập tên quy trình"
-                                        value={formData.name}
-                                        onChange={(e) => handleChange("name", e.target.value)}
-                                        disabled={loading}
-                                        className={errors.name ? "border-red-500 focus-visible:ring-red-500" : ""}
-                                    />
-                                    {errors.name && (
-                                        <p className="text-red-500 text-sm flex items-center">
-                                            <AlertTriangle className="h-3 w-3 mr-1" />
-                                            {errors.name[0]}
-                                        </p>
-                                    )}
-                                </div>
-
-                                <div className="space-y-2">
-                                    <Label htmlFor="type" className="flex items-center">
-                                        Loại quy trình
-                                        <span className="text-red-500 ml-1">*</span>
-                                    </Label>
-                                    <Select value={formData.type} onValueChange={(value) => handleChange("type", value)} disabled={loading}>
-                                        <SelectTrigger id="type" className={errors.type ? "border-red-500 focus-visible:ring-red-500" : ""}>
-                                            <SelectValue placeholder="Chọn loại quy trình" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                            {Object.values(EWorkflowType).map((type) => (
-                                                <SelectItem key={type} value={type}>
-                                                    {EWorkflowTypeViMap[type]}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                    {errors.type && (
-                                        <p className="text-red-500 text-sm flex items-center">
-                                            <AlertTriangle className="h-3 w-3 mr-1" />
-                                            {errors.type[0]}
-                                        </p>
-                                    )}
-                                </div>
-
-                                <div className="space-y-2">
-                                    <Label htmlFor="productId" className="flex items-center">
-                                        Sản phẩm (Tùy chọn)
-                                    </Label>
-                                    <Select
-                                        value={formData.productId || ""}
-                                        onValueChange={(value) => handleChange("productId", value || null)}
-                                        disabled={loading || (loadingProducts && products.length === 0)}
-                                    >
-                                        <SelectTrigger id="productId" className={errors.productId ? "border-red-500 focus-visible:ring-red-500" : ""}>
-                                            <SelectValue
-                                                placeholder={loadingProducts && products.length === 0 ? "Đang tải sản phẩm..." : "Chọn sản phẩm"}
-                                            />
-                                        </SelectTrigger>
-                                        <SelectContent id="product-scroll-content" className="max-h-[300px]">
-                                            <ScrollArea id="product-scroll-area" className="h-[200px]">
-                                                <InfiniteScroll
-                                                    dataLength={products.length}
-                                                    next={loadMoreProducts}
-                                                    hasMore={hasMoreProducts && !loadingProducts}
-                                                    loader={<div className="p-2 text-center text-sm">Đang tải thêm...</div>}
-                                                    scrollableTarget="product-scroll-area"
-                                                >
-                                                    {products.map((product) => (
-                                                        <SelectItem key={product.productId} value={product.productId}>
-                                                            {product.name}
-                                                        </SelectItem>
-                                                    ))}
-                                                    {!loadingProducts && products.length === 0 && (
-                                                        <div className="p-2 text-center text-sm text-gray-500">Không có sản phẩm.</div>
-                                                    )}
-                                                </InfiniteScroll>
-                                            </ScrollArea>
-                                        </SelectContent>
-                                    </Select>
-                                    {errors.productId && (
-                                        <p className="text-red-500 text-sm flex items-center">
-                                            <AlertTriangle className="h-3 w-3 mr-1" />
-                                            {errors.productId[0]}
-                                        </p>
-                                    )}
-                                </div>
-
-                                <div className="space-y-2">
-                                    <Label htmlFor="description" className="flex items-center">
-                                        Mô tả (Tùy chọn)
-                                        <TooltipProvider>
-                                            <Tooltip>
-                                                <TooltipTrigger asChild>
-                                                    <Info className="h-3.5 w-3.5 ml-1 text-gray-400" />
-                                                </TooltipTrigger>
-                                                <TooltipContent>
-                                                    <p>Mô tả chi tiết về quy trình này</p>
-                                                </TooltipContent>
-                                            </Tooltip>
-                                        </TooltipProvider>
-                                    </Label>
-                                    <Textarea
-                                        id="description"
-                                        placeholder="Nhập mô tả quy trình"
-                                        value={formData.description}
-                                        onChange={(e) => handleChange("description", e.target.value)}
-                                        disabled={loading}
-                                        className="min-h-[120px]"
-                                    />
-                                    {errors.description && (
-                                        <p className="text-red-500 text-sm flex items-center">
-                                            <AlertTriangle className="h-3 w-3 mr-1" />
-                                            {errors.description[0]}
-                                        </p>
-                                    )}
-                                </div>
+            <div className="w-full md:w-[35%] space-y-6">
+                <Dialog open={showWorkflowInfo} onOpenChange={setShowWorkflowInfo}>
+                    <DialogTrigger asChild>
+                        <Button variant="outline" className="w-full">
+                            <Info className="mr-2 h-4 w-4" />
+                            Xem thông tin quy trình
+                        </Button>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-[650px] p-7 border-0 bg-white backdrop-blur-xl shadow-2xl max-h-[90vh] overflow-y-auto hide-scrollbar">
+                        <DialogHeader>
+                            <DialogTitle>Thông tin quy trình</DialogTitle>
+                        </DialogHeader>
+                        <div className="space-y-4">
+                            <div className="space-y-2">
+                                <Label htmlFor="name" className="flex items-center">
+                                    Tên quy trình
+                                    <span className="text-red-500 ml-1">*</span>
+                                </Label>
+                                <Input
+                                    id="name"
+                                    placeholder="Nhập tên quy trình"
+                                    value={formData.name}
+                                    onChange={(e) => handleChange("name", e.target.value)}
+                                    disabled={loading}
+                                    className={errors.name ? "border-red-500 focus-visible:ring-red-500" : ""}
+                                />
+                                {errors.name && (
+                                    <p className="text-red-500 text-sm flex items-center">
+                                        <AlertTriangle className="h-3 w-3 mr-1" />
+                                        {errors.name[0]}
+                                    </p>
+                                )}
                             </div>
-                        </DialogContent>
-                    </Dialog>
-                </div>
 
+                            <div className="space-y-2">
+                                <Label htmlFor="type" className="flex items-center">
+                                    Loại quy trình
+                                    <span className="text-red-500 ml-1">*</span>
+                                </Label>
+                                <Select value={formData.type} onValueChange={(value) => handleChange("type", value)} disabled={loading}>
+                                    <SelectTrigger id="type" className={errors.type ? "border-red-500 focus-visible:ring-red-500" : ""}>
+                                        <SelectValue placeholder="Chọn loại quy trình" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        {Object.values(EWorkflowType).map((type) => (
+                                            <SelectItem key={type} value={type}>
+                                                {EWorkflowTypeViMap[type]}
+                                            </SelectItem>
+                                        ))}
+                                    </SelectContent>
+                                </Select>
+                                {errors.type && (
+                                    <p className="text-red-500 text-sm flex items-center">
+                                        <AlertTriangle className="h-3 w-3 mr-1" />
+                                        {errors.type[0]}
+                                    </p>
+                                )}
+                            </div>
 
+                            <div className="space-y-2">
+                                <Label htmlFor="productId" className="flex items-center">
+                                    Sản phẩm (Tùy chọn)
+                                </Label>
+                                <Select
+                                    value={formData.productId || ""}
+                                    onValueChange={(value) => handleChange("productId", value || null)}
+                                    disabled={loading || (loadingProducts && products.length === 0)}
+                                >
+                                    <SelectTrigger id="productId" className={errors.productId ? "border-red-500 focus-visible:ring-red-500" : ""}>
+                                        <SelectValue
+                                            placeholder={loadingProducts && products.length === 0 ? "Đang tải sản phẩm..." : "Chọn sản phẩm"}
+                                        />
+                                    </SelectTrigger>
+                                    <SelectContent id="product-scroll-content" className="max-h-[300px]">
+                                        <ScrollArea id="product-scroll-area" className="h-[200px]">
+                                            <InfiniteScroll
+                                                dataLength={products.length}
+                                                next={loadMoreProducts}
+                                                hasMore={hasMoreProducts && !loadingProducts}
+                                                loader={<div className="p-2 text-center text-sm">Đang tải thêm...</div>}
+                                                scrollableTarget="product-scroll-area"
+                                            >
+                                                {products.map((product) => (
+                                                    <SelectItem key={product.productId} value={product.productId}>
+                                                        {product.name}
+                                                    </SelectItem>
+                                                ))}
+                                                {!loadingProducts && products.length === 0 && (
+                                                    <div className="p-2 text-center text-sm text-gray-500">Không có sản phẩm.</div>
+                                                )}
+                                            </InfiniteScroll>
+                                        </ScrollArea>
+                                    </SelectContent>
+                                </Select>
+                                {errors.productId && (
+                                    <p className="text-red-500 text-sm flex items-center">
+                                        <AlertTriangle className="h-3 w-3 mr-1" />
+                                        {errors.productId[0]}
+                                    </p>
+                                )}
+                            </div>
+
+                            <div className="space-y-2">
+                                <Label htmlFor="description" className="flex items-center">
+                                    Mô tả (Tùy chọn)
+                                    <TooltipProvider>
+                                        <Tooltip>
+                                            <TooltipTrigger asChild>
+                                                <Info className="h-3.5 w-3.5 ml-1 text-gray-400" />
+                                            </TooltipTrigger>
+                                            <TooltipContent>
+                                                <p>Mô tả chi tiết về quy trình này</p>
+                                            </TooltipContent>
+                                        </Tooltip>
+                                    </TooltipProvider>
+                                </Label>
+                                <Textarea
+                                    id="description"
+                                    placeholder="Nhập mô tả quy trình"
+                                    value={formData.description}
+                                    onChange={(e) => handleChange("description", e.target.value)}
+                                    disabled={loading}
+                                    className="min-h-[120px]"
+                                />
+                                {errors.description && (
+                                    <p className="text-red-500 text-sm flex items-center">
+                                        <AlertTriangle className="h-3 w-3 mr-1" />
+                                        {errors.description[0]}
+                                    </p>
+                                )}
+                            </div>
+                        </div>
+                    </DialogContent>
+                </Dialog>
             </div>
-            <div className="w-full ">
+
+            <div className="w-full">
                 <Card className="mb-6">
                     <CardHeader>
                         <div className="flex items-center justify-between">
@@ -1018,214 +1110,363 @@ const UpdateWorkflow = () => {
                         <DialogTitle>Chỉnh sửa bước {formData.steps[editingStepIndex ?? 0]?.sequence}</DialogTitle>
                     </DialogHeader>
                     {editingStepIndex !== null && (
-                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                            <div className="space-y-2">
-                                <Label htmlFor={`step-sequence-${editingStepIndex}`}>Thứ tự (Sequence)</Label>
-                                <Input
-                                    id={`step-sequence-${editingStepIndex}`}
-                                    type="number"
-                                    value={formData.steps[editingStepIndex].sequence}
-                                    onChange={(e) => handleStepChange(editingStepIndex, "sequence", Number.parseInt(e.target.value))}
-                                    disabled={loading}
-                                    className={errors.steps?.[editingStepIndex]?.sequence ? "border-red-500" : ""}
-                                />
-                                {errors.steps?.[editingStepIndex]?.sequence && (
-                                    <p className="text-red-500 text-sm">{errors.steps[editingStepIndex].sequence[0]}</p>
-                                )}
-                            </div>
+                        <div className="space-y-6">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <div className="space-y-2">
+                                    <Label htmlFor={`step-sequence-${editingStepIndex}`}>Thứ tự (Sequence)</Label>
+                                    <Input
+                                        id={`step-sequence-${editingStepIndex}`}
+                                        type="number"
+                                        value={formData.steps[editingStepIndex].sequence}
+                                        onChange={(e) => handleStepChange(editingStepIndex, "sequence", Number.parseInt(e.target.value))}
+                                        disabled={loading}
+                                        className={errors.steps?.[editingStepIndex]?.sequence ? "border-red-500" : ""}
+                                    />
+                                    {errors.steps?.[editingStepIndex]?.sequence && (
+                                        <p className="text-red-500 text-sm">{errors.steps[editingStepIndex].sequence[0]}</p>
+                                    )}
+                                </div>
 
-                            <div className="space-y-2">
-                                <Label htmlFor={`step-name-${editingStepIndex}`}>Tên bước</Label>
-                                <Input
-                                    id={`step-name-${editingStepIndex}`}
-                                    value={formData.steps[editingStepIndex].name}
-                                    onChange={(e) => handleStepChange(editingStepIndex, "name", e.target.value)}
-                                    disabled={loading}
-                                    className={errors.steps?.[editingStepIndex]?.name ? "border-red-500" : ""}
-                                    placeholder="Nhập tên bước"
-                                />
-                                {errors.steps?.[editingStepIndex]?.name && (
-                                    <p className="text-red-500 text-sm">{errors.steps[editingStepIndex].name[0]}</p>
-                                )}
-                            </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor={`step-name-${editingStepIndex}`}>Tên bước</Label>
+                                    <Input
+                                        id={`step-name-${editingStepIndex}`}
+                                        value={formData.steps[editingStepIndex].name}
+                                        onChange={(e) => handleStepChange(editingStepIndex, "name", e.target.value)}
+                                        disabled={loading}
+                                        className={errors.steps?.[editingStepIndex]?.name ? "border-red-500" : ""}
+                                        placeholder="Nhập tên bước"
+                                    />
+                                    {errors.steps?.[editingStepIndex]?.name && (
+                                        <p className="text-red-500 text-sm">{errors.steps[editingStepIndex].name[0]}</p>
+                                    )}
+                                </div>
 
-                            <div className="space-y-2">
-                                <Label htmlFor={`step-type-${editingStepIndex}`}>Loại bước (tự động)</Label>
-                                <Input
-                                    id={`step-type-${editingStepIndex}`}
-                                    value={formData.steps[editingStepIndex].type}
-                                    readOnly={true}
-                                    disabled={loading}
-                                    className={`${errors.steps?.[editingStepIndex]?.type ? "border-red-500" : ""} bg-gray-50`}
-                                    placeholder="Loại sẽ tự động cập nhật"
-                                />
-                                {errors.steps?.[editingStepIndex]?.type && (
-                                    <p className="text-red-500 text-sm">{errors.steps[editingStepIndex].type[0]}</p>
-                                )}
-                            </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor={`step-type-${editingStepIndex}`}>Loại bước (tự động)</Label>
+                                    <Input
+                                        id={`step-type-${editingStepIndex}`}
+                                        value={formData.steps[editingStepIndex].type}
+                                        readOnly={true}
+                                        disabled={loading}
+                                        className={`${errors.steps?.[editingStepIndex]?.type ? "border-red-500" : ""} bg-gray-50`}
+                                        placeholder="Loại sẽ tự động cập nhật"
+                                    />
+                                    {errors.steps?.[editingStepIndex]?.type && (
+                                        <p className="text-red-500 text-sm">{errors.steps[editingStepIndex].type[0]}</p>
+                                    )}
+                                </div>
 
-                            <div className="space-y-2">
-                                <Label htmlFor={`step-maxRetries-${editingStepIndex}`}>Số lần thử lại tối đa</Label>
-                                <Input
-                                    id={`step-maxRetries-${editingStepIndex}`}
-                                    type="number"
-                                    min="0"
-                                    value={formData.steps[editingStepIndex].maxRetries}
-                                    onChange={(e) =>
-                                        handleStepChange(editingStepIndex, "maxRetries", Number.parseInt(e.target.value) >= 0 ? Number.parseInt(e.target.value) : 0)
-                                    }
-                                    disabled={loading}
-                                    className={errors.steps?.[editingStepIndex]?.maxRetries ? "border-red-500" : ""}
-                                />
-                                {errors.steps?.[editingStepIndex]?.maxRetries && (
-                                    <p className="text-red-500 text-sm">{errors.steps[editingStepIndex].maxRetries[0]}</p>
-                                )}
-                            </div>
+                                <div className="space-y-2">
+                                    <Label htmlFor={`step-maxRetries-${editingStepIndex}`}>Số lần thử lại tối đa</Label>
+                                    <Input
+                                        id={`step-maxRetries-${editingStepIndex}`}
+                                        type="number"
+                                        min="0"
+                                        value={formData.steps[editingStepIndex].maxRetries}
+                                        onChange={(e) =>
+                                            handleStepChange(editingStepIndex, "maxRetries", Number.parseInt(e.target.value) >= 0 ? Number.parseInt(e.target.value) : 0)
+                                        }
+                                        disabled={loading}
+                                        className={errors.steps?.[editingStepIndex]?.maxRetries ? "border-red-500" : ""}
+                                    />
+                                    {errors.steps?.[editingStepIndex]?.maxRetries && (
+                                        <p className="text-red-500 text-sm">{errors.steps[editingStepIndex].maxRetries[0]}</p>
+                                    )}
+                                </div>
 
-                            <div className="space-y-2">
-                                <Label htmlFor={`step-deviceModelId-${editingStepIndex}`}>Mẫu thiết bị</Label>
-                                <Select
-                                    value={formData.steps[editingStepIndex].deviceModelId}
-                                    onValueChange={(value) => handleStepChange(editingStepIndex, "deviceModelId", value)}
-                                    disabled={loading || !selectedKioskVersion || (loadingDeviceModels && deviceModels.length === 0)}
-                                >
-                                    <SelectTrigger
-                                        id={`step-deviceModelId-${editingStepIndex}`}
-                                        className={errors.steps?.[editingStepIndex]?.deviceModelId ? "border-red-500" : ""}
+                                <div className="space-y-2">
+                                    <Label htmlFor={`step-deviceModelId-${editingStepIndex}`}>Mẫu thiết bị</Label>
+                                    <Select
+                                        value={formData.steps[editingStepIndex].deviceModelId}
+                                        onValueChange={(value) => handleStepChange(editingStepIndex, "deviceModelId", value)}
+                                        disabled={loading || !selectedKioskVersion || (loadingDeviceModels && deviceModels.length === 0)}
                                     >
-                                        <SelectValue
-                                            placeholder={
-                                                !selectedKioskVersion
-                                                    ? "Chọn phiên bản kiosk trước"
-                                                    : loadingDeviceModels && deviceModels.length === 0
-                                                        ? "Đang tải mẫu thiết bị..."
-                                                        : "Chọn mẫu thiết bị"
-                                            }
-                                        />
-                                    </SelectTrigger>
-                                    <SelectContent id={`device-model-scroll-content-${editingStepIndex}`} className="max-h-[300px]">
-                                        {selectedKioskVersion && (
-                                            <ScrollArea id={`device-model-scroll-area-${editingStepIndex}`} className="h-[200px]">
+                                        <SelectTrigger
+                                            id={`step-deviceModelId-${editingStepIndex}`}
+                                            className={errors.steps?.[editingStepIndex]?.deviceModelId ? "border-red-500" : ""}
+                                        >
+                                            <SelectValue
+                                                placeholder={
+                                                    !selectedKioskVersion
+                                                        ? "Chọn phiên bản kiosk trước"
+                                                        : loadingDeviceModels && deviceModels.length === 0
+                                                            ? "Đang tải mẫu thiết bị..."
+                                                            : "Chọn mẫu thiết bị"
+                                                }
+                                            />
+                                        </SelectTrigger>
+                                        <SelectContent id={`device-model-scroll-content-${editingStepIndex}`} className="max-h-[300px]">
+                                            {selectedKioskVersion && (
+                                                <ScrollArea id={`device-model-scroll-area-${editingStepIndex}`} className="h-[200px]">
+                                                    <InfiniteScroll
+                                                        dataLength={deviceModels.length}
+                                                        next={() => fetchDeviceModels(deviceModelPage + 1)}
+                                                        hasMore={hasMoreDeviceModels && !loadingDeviceModels}
+                                                        loader={<div className="p-2 text-center text-sm">Đang tải thêm...</div>}
+                                                        scrollableTarget={`device-model-scroll-area-${editingStepIndex}`}
+                                                    >
+                                                        {deviceModels.map((deviceModel) => (
+                                                            <SelectItem key={deviceModel.deviceModelId} value={deviceModel.deviceModelId}>
+                                                                {deviceModel.modelName}
+                                                            </SelectItem>
+                                                        ))}
+                                                        {!loadingDeviceModels && deviceModels.length === 0 && (
+                                                            <div className="p-2 text-center text-sm text-gray-500">Không có mẫu thiết bị.</div>
+                                                        )}
+                                                    </InfiniteScroll>
+                                                </ScrollArea>
+                                            )}
+                                        </SelectContent>
+                                    </Select>
+                                    {errors.steps?.[editingStepIndex]?.deviceModelId && (
+                                        <p className="text-red-500 text-sm">{errors.steps[editingStepIndex].deviceModelId[0]}</p>
+                                    )}
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label htmlFor={`step-deviceFunctionId-${editingStepIndex}`}>Chức năng thiết bị</Label>
+                                    <Select
+                                        value={formData.steps[editingStepIndex].deviceFunctionId}
+                                        onValueChange={(value) => handleStepChange(editingStepIndex, "deviceFunctionId", value)}
+                                        disabled={
+                                            loading ||
+                                            !formData.steps[editingStepIndex].deviceModelId ||
+                                            getDeviceFunctionsForModel(formData.steps[editingStepIndex].deviceModelId).length === 0
+                                        }
+                                    >
+                                        <SelectTrigger
+                                            id={`step-deviceFunctionId-${editingStepIndex}`}
+                                            className={errors.steps?.[editingStepIndex]?.deviceFunctionId ? "border-red-500" : ""}
+                                        >
+                                            <SelectValue
+                                                placeholder={
+                                                    !formData.steps[editingStepIndex].deviceModelId
+                                                        ? "Chọn mẫu thiết bị trước"
+                                                        : getDeviceFunctionsForModel(formData.steps[editingStepIndex].deviceModelId).length === 0
+                                                            ? "Không có chức năng"
+                                                            : "Chọn chức năng"
+                                                }
+                                            />
+                                        </SelectTrigger>
+                                        <SelectContent className="max-h-[300px]">
+                                            {getDeviceFunctionsForModel(formData.steps[editingStepIndex].deviceModelId).map((df) => (
+                                                <SelectItem key={df.deviceFunctionId || df.name} value={df.deviceFunctionId || df.name}>
+                                                    <div className="flex flex-col">
+                                                        <span className="font-medium">{df.name}</span>
+                                                        {df.functionParameters && df.functionParameters.length > 0 && (
+                                                            <span className="text-xs text-muted-foreground">{df.functionParameters.length} tham số</span>
+                                                        )}
+                                                    </div>
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    {errors.steps?.[editingStepIndex]?.deviceFunctionId && (
+                                        <p className="text-red-500 text-sm">{errors.steps[editingStepIndex].deviceFunctionId[0]}</p>
+                                    )}
+                                </div>
+
+                                <div className="space-y-2">
+                                    <Label htmlFor={`step-callbackWorkflowId-${editingStepIndex}`}>Quy trình callback (Tùy chọn)</Label>
+                                    <Select
+                                        value={formData.steps[editingStepIndex].callbackWorkflowId}
+                                        onValueChange={(value) => handleStepChange(editingStepIndex, "callbackWorkflowId", value)}
+                                        disabled={loading || (loadingWorkflows && workflows.length === 0)}
+                                    >
+                                        <SelectTrigger
+                                            id={`step-callbackWorkflowId-${editingStepIndex}`}
+                                            className={errors.steps?.[editingStepIndex]?.callbackWorkflowId ? "border-red-500" : ""}
+                                        >
+                                            <SelectValue
+                                                placeholder={loadingWorkflows && workflows.length === 0 ? "Đang tải quy trình..." : "Chọn quy trình callback"}
+                                            />
+                                        </SelectTrigger>
+                                        <SelectContent id={`workflow-callback-scroll-content-${editingStepIndex}`} className="max-h-[300px]">
+                                            <ScrollArea className="h-[200px]">
                                                 <InfiniteScroll
-                                                    dataLength={deviceModels.length}
-                                                    next={() => fetchDeviceModels(deviceModelPage + 1)}
-                                                    hasMore={hasMoreDeviceModels && !loadingDeviceModels}
+                                                    dataLength={workflows.length}
+                                                    next={() => fetchWorkflows(workflowPage + 1)}
+                                                    hasMore={hasMoreWorkflows && !loadingWorkflows}
                                                     loader={<div className="p-2 text-center text-sm">Đang tải thêm...</div>}
-                                                    scrollableTarget={`device-model-scroll-area-${editingStepIndex}`}
+                                                    scrollableTarget={`workflow-callback-scroll-content-${editingStepIndex}`}
                                                 >
-                                                    {deviceModels.map((deviceModel) => (
-                                                        <SelectItem key={deviceModel.deviceModelId} value={deviceModel.deviceModelId}>
-                                                            {deviceModel.modelName}
+                                                    {workflows.map((wf) => (
+                                                        <SelectItem key={wf.workflowId} value={wf.workflowId}>
+                                                            {wf.name}
                                                         </SelectItem>
                                                     ))}
-                                                    {!loadingDeviceModels && deviceModels.length === 0 && (
-                                                        <div className="p-2 text-center text-sm text-gray-500">Không có mẫu thiết bị.</div>
+                                                    {!loadingWorkflows && workflows.length === 0 && (
+                                                        <div className="p-2 text-center text-sm text-gray-500">Không có quy trình.</div>
                                                     )}
                                                 </InfiniteScroll>
                                             </ScrollArea>
-                                        )}
-                                    </SelectContent>
-                                </Select>
-                                {errors.steps?.[editingStepIndex]?.deviceModelId && (
-                                    <p className="text-red-500 text-sm">{errors.steps[editingStepIndex].deviceModelId[0]}</p>
-                                )}
+                                        </SelectContent>
+                                    </Select>
+                                    {errors.steps?.[editingStepIndex]?.callbackWorkflowId && (
+                                        <p className="text-red-500 text-sm">{errors.steps[editingStepIndex].callbackWorkflowId[0]}</p>
+                                    )}
+                                </div>
+
+                                <div className="space-y-2 md:col-span-2">
+                                    <Label htmlFor={`step-parameters-${editingStepIndex}`}>Tham số (JSON)</Label>
+                                    <FunctionParameterEditor
+                                        deviceFunctionId={formData.steps[editingStepIndex].deviceFunctionId}
+                                        deviceModels={deviceModels}
+                                        value={formData.steps[editingStepIndex].parameters}
+                                        onChange={(value) => handleStepChange(editingStepIndex, "parameters", value)}
+                                        disabled={loading || !formData.steps[editingStepIndex].deviceFunctionId}
+                                    />
+                                    {errors.steps?.[editingStepIndex]?.parameters && (
+                                        <p className="text-red-500 text-sm">{errors.steps[editingStepIndex].parameters[0]}</p>
+                                    )}
+                                </div>
                             </div>
 
-                            <div className="space-y-2">
-                                <Label htmlFor={`step-deviceFunctionId-${editingStepIndex}`}>Chức năng thiết bị</Label>
-                                <Select
-                                    value={formData.steps[editingStepIndex].deviceFunctionId}
-                                    onValueChange={(value) => handleStepChange(editingStepIndex, "deviceFunctionId", value)}
-                                    disabled={
-                                        loading ||
-                                        !formData.steps[editingStepIndex].deviceModelId ||
-                                        getDeviceFunctionsForModel(formData.steps[editingStepIndex].deviceModelId).length === 0
-                                    }
-                                >
-                                    <SelectTrigger
-                                        id={`step-deviceFunctionId-${editingStepIndex}`}
-                                        className={errors.steps?.[editingStepIndex]?.deviceFunctionId ? "border-red-500" : ""}
+                            {/* Phần điều kiện */}
+                            <div className="space-y-4">
+                                <div className="flex items-center justify-between">
+                                    <Label>Điều kiện (Conditions)</Label>
+                                    <Button
+                                        variant="outline"
+                                        size="sm"
+                                        onClick={() => addCondition(editingStepIndex)}
+                                        disabled={loading}
                                     >
-                                        <SelectValue
-                                            placeholder={
-                                                !formData.steps[editingStepIndex].deviceModelId
-                                                    ? "Chọn mẫu thiết bị trước"
-                                                    : getDeviceFunctionsForModel(formData.steps[editingStepIndex].deviceModelId).length === 0
-                                                        ? "Không có chức năng"
-                                                        : "Chọn chức năng"
-                                            }
-                                        />
-                                    </SelectTrigger>
-                                    <SelectContent className="max-h-[300px]">
-                                        {getDeviceFunctionsForModel(formData.steps[editingStepIndex].deviceModelId).map((df) => (
-                                            <SelectItem key={df.deviceFunctionId || df.name} value={df.deviceFunctionId || df.name}>
-                                                <div className="flex flex-col">
-                                                    <span className="font-medium">{df.name}</span>
-                                                    {df.functionParameters && df.functionParameters.length > 0 && (
-                                                        <span className="text-xs text-muted-foreground">{df.functionParameters.length} tham số</span>
-                                                    )}
+                                        <PlusCircle className="h-4 w-4 mr-2" />
+                                        Thêm điều kiện
+                                    </Button>
+                                </div>
+                                {formData.steps[editingStepIndex].conditions?.length === 0 ? (
+                                    <p className="text-gray-500 text-sm">Chưa có điều kiện nào được thêm.</p>
+                                ) : (
+                                    <div className="space-y-4">
+                                        {formData.steps[editingStepIndex].conditions?.map((condition, conditionIndex) => (
+                                            <div key={conditionIndex} className="border p-4 rounded-md space-y-4">
+                                                <div className="flex items-center justify-between">
+                                                    <h4 className="font-medium">Điều kiện {conditionIndex + 1}</h4>
+                                                    <Button
+                                                        variant="ghost"
+                                                        size="sm"
+                                                        onClick={() => removeCondition(editingStepIndex, conditionIndex)}
+                                                        disabled={loading}
+                                                    >
+                                                        <Trash2 className="h-4 w-4 text-red-500" />
+                                                    </Button>
                                                 </div>
-                                            </SelectItem>
+
+                                                <div className="space-y-2">
+                                                    <Label>Tên điều kiện</Label>
+                                                    <Select
+                                                        value={condition.name}
+                                                        onValueChange={(value) => handleConditionChange(editingStepIndex, conditionIndex, "name", value)}
+                                                        disabled={loading}
+                                                    >
+                                                        <SelectTrigger>
+                                                            <SelectValue placeholder="Chọn tên điều kiện" />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            {Object.values(EConditionName).map((name) => (
+                                                                <SelectItem key={name} value={name}>
+                                                                    {EConditionNameViMap[name]}
+                                                                </SelectItem>
+                                                            ))}
+                                                        </SelectContent>
+                                                    </Select>
+                                                </div>
+
+                                                <div className="space-y-2">
+                                                    <Label>Mô tả</Label>
+                                                    <Input
+                                                        value={condition.description || ""}
+                                                        onChange={(e) => handleConditionChange(editingStepIndex, conditionIndex, "description", e.target.value)}
+                                                        disabled={loading}
+                                                        placeholder="Nhập mô tả điều kiện"
+                                                    />
+                                                </div>
+
+                                                <div className="space-y-2">
+                                                    <Label>Biểu thức (Expression)</Label>
+                                                    <div className="grid grid-cols-1 gap-4">
+                                                        {/* Left */}
+                                                        <div className="space-y-2">
+                                                            <Label>Phần trái</Label>
+                                                            <Select
+                                                                value={condition.expression.left.type}
+                                                                onValueChange={(value) => handleConditionChange(editingStepIndex, conditionIndex, "leftType", value)}
+                                                                disabled={loading}
+                                                            >
+                                                                <SelectTrigger>
+                                                                    <SelectValue placeholder="Chọn loại" />
+                                                                </SelectTrigger>
+                                                                <SelectContent>
+                                                                    {Object.values(EExpressionType).map((type) => (
+                                                                        <SelectItem key={type} value={type}>
+                                                                            {EExpressionTypeViMap[type]}
+                                                                        </SelectItem>
+                                                                    ))}
+                                                                </SelectContent>
+                                                            </Select>
+                                                            <Input
+                                                                value={condition.expression.left.value}
+                                                                onChange={(e) => handleConditionChange(editingStepIndex, conditionIndex, "leftValue", e.target.value)}
+                                                                disabled={loading}
+                                                                placeholder={condition.expression.left.type === EExpressionType.Variable ? "Tên biến" : "Giá trị"}
+                                                            />
+                                                        </div>
+
+                                                        {/* Operator */}
+                                                        <div className="space-y-2">
+                                                            <Label>Toán tử</Label>
+                                                            <Select
+                                                                value={condition.expression.operator}
+                                                                onValueChange={(value) => handleConditionChange(editingStepIndex, conditionIndex, "operator", value)}
+                                                                disabled={loading}
+                                                            >
+                                                                <SelectTrigger>
+                                                                    <SelectValue placeholder="Chọn toán tử" />
+                                                                </SelectTrigger>
+                                                                <SelectContent>
+                                                                    {Object.values(EOperation).map((op) => (
+                                                                        <SelectItem key={op} value={op}>
+                                                                            {EOperationViMap[op]} ({op})
+                                                                        </SelectItem>
+                                                                    ))}
+                                                                </SelectContent>
+                                                            </Select>
+                                                        </div>
+
+                                                        {/* Right */}
+                                                        <div className="space-y-2">
+                                                            <Label>Phần phải</Label>
+                                                            <Select
+                                                                value={condition.expression.right.type}
+                                                                onValueChange={(value) => handleConditionChange(editingStepIndex, conditionIndex, "rightType", value)}
+                                                                disabled={loading}
+                                                            >
+                                                                <SelectTrigger>
+                                                                    <SelectValue placeholder="Chọn loại" />
+                                                                </SelectTrigger>
+                                                                <SelectContent>
+                                                                    {Object.values(EExpressionType).map((type) => (
+                                                                        <SelectItem key={type} value={type}>
+                                                                            {EExpressionTypeViMap[type]}
+                                                                        </SelectItem>
+                                                                    ))}
+                                                                </SelectContent>
+                                                            </Select>
+                                                            <Input
+                                                                value={condition.expression.right.value}
+                                                                onChange={(e) => handleConditionChange(editingStepIndex, conditionIndex, "rightValue", e.target.value)}
+                                                                disabled={loading}
+                                                                placeholder={condition.expression.right.type === EExpressionType.Variable ? "Tên biến" : "Giá trị"}
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
                                         ))}
-                                    </SelectContent>
-                                </Select>
-                                {errors.steps?.[editingStepIndex]?.deviceFunctionId && (
-                                    <p className="text-red-500 text-sm">{errors.steps[editingStepIndex].deviceFunctionId[0]}</p>
-                                )}
-                            </div>
-
-                            <div className="space-y-2">
-                                <Label htmlFor={`step-callbackWorkflowId-${editingStepIndex}`}>Quy trình callback (Tùy chọn)</Label>
-                                <Select
-                                    value={formData.steps[editingStepIndex].callbackWorkflowId}
-                                    onValueChange={(value) => handleStepChange(editingStepIndex, "callbackWorkflowId", value)}
-                                    disabled={loading || (loadingWorkflows && workflows.length === 0)}
-                                >
-                                    <SelectTrigger
-                                        id={`step-callbackWorkflowId-${editingStepIndex}`}
-                                        className={errors.steps?.[editingStepIndex]?.callbackWorkflowId ? "border-red-500" : ""}
-                                    >
-                                        <SelectValue
-                                            placeholder={loadingWorkflows && workflows.length === 0 ? "Đang tải quy trình..." : "Chọn quy trình callback"}
-                                        />
-                                    </SelectTrigger>
-                                    <SelectContent id={`workflow-callback-scroll-content-${editingStepIndex}`} className="max-h-[300px]">
-                                        <ScrollArea className="h-[200px]">
-                                            <InfiniteScroll
-                                                dataLength={workflows.length}
-                                                next={() => fetchWorkflows(workflowPage + 1)}
-                                                hasMore={hasMoreWorkflows && !loadingWorkflows}
-                                                loader={<div className="p-2 text-center text-sm">Đang tải thêm...</div>}
-                                                scrollableTarget={`workflow-callback-scroll-content-${editingStepIndex}`}
-                                            >
-                                                {workflows.map((wf) => (
-                                                    <SelectItem key={wf.workflowId} value={wf.workflowId}>
-                                                        {wf.name}
-                                                    </SelectItem>
-                                                ))}
-                                                {!loadingWorkflows && workflows.length === 0 && (
-                                                    <div className="p-2 text-center text-sm text-gray-500">Không có quy trình.</div>
-                                                )}
-                                            </InfiniteScroll>
-                                        </ScrollArea>
-                                    </SelectContent>
-                                </Select>
-                                {errors.steps?.[editingStepIndex]?.callbackWorkflowId && (
-                                    <p className="text-red-500 text-sm">{errors.steps[editingStepIndex].callbackWorkflowId[0]}</p>
-                                )}
-                            </div>
-
-                            <div className="space-y-2 md:col-span-2">
-                                <Label htmlFor={`step-parameters-${editingStepIndex}`}>Tham số (JSON)</Label>
-                                <FunctionParameterEditor
-                                    deviceFunctionId={formData.steps[editingStepIndex].deviceFunctionId}
-                                    deviceModels={deviceModels}
-                                    value={formData.steps[editingStepIndex].parameters}
-                                    onChange={(value) => handleStepChange(editingStepIndex, "parameters", value)}
-                                    disabled={loading || !formData.steps[editingStepIndex].deviceFunctionId}
-                                />
-                                {errors.steps?.[editingStepIndex]?.parameters && (
-                                    <p className="text-red-500 text-sm">{errors.steps[editingStepIndex].parameters[0]}</p>
+                                    </div>
                                 )}
                             </div>
                         </div>

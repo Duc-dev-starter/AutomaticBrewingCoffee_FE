@@ -120,6 +120,7 @@ const menuSections: MenuSection[] = [
             { title: "Quản lý cửa hàng", url: Path.MANAGE_STORES, icon: Store },
             { title: "Quản lý menu", url: Path.MANAGE_MENUS, icon: Menu },
             { title: "Quản lý location", url: Path.MANAGE_LOCATION_TYPES, icon: Menu },
+            { title: "Quản lý loại nguyên liệu", url: Path.MANAGE_INGREDIENT_TYPE, icon: Menu },
         ],
     },
 ]

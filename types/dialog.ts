@@ -8,6 +8,7 @@ import { LocationType } from "@/interfaces/location";
 import { Organization } from "@/interfaces/organization";
 import { Store } from "@/interfaces/store";
 import { Category } from "@/interfaces/category";
+import { Account } from "@/interfaces/account";
 
 type BaseDialogProps = {
     open: boolean;
@@ -61,4 +62,8 @@ export type WebhookDialogProps = BaseDialogProps & {
 
 export type CategoryDialogProps = BaseDialogProps & {
     category?: Category | null;
+}
+
+export type AccountDialogProps = BaseDialogProps & {
+    account?: Account | null;
 }

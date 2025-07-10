@@ -47,4 +47,7 @@ export const Api = {
     // CATEGORY
     CATEGORIES: '/product-categories',
 
+    // INGREDIENT TYPE
+    INGREDIENT_TYPES: '/ingredient-types',
+
 }

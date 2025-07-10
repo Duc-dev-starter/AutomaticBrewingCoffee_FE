@@ -31,5 +31,6 @@ export const Path = {
     MANAGE_SYNC_TASKS: "/manage-sync-tasks",
     INVALID_REQUEST: "/invalid-request",
     MANAGE_CATEGORIES: "/manage-categories",
+    MANAGE_INGREDIENT_TYPE: "/manage-ingredient-types",
 };
 

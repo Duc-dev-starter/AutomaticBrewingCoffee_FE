@@ -14,6 +14,7 @@ import { useMenus } from './use-menus'
 import { useProducts } from './use-products'
 import { useSyncEvents, useSyncTasks } from './sync'
 import { useCategories } from './use-categories'
+import { useIngredientTypes } from './use-ingredient-types'
 
 export {
     useDebounce, useDeviceTypes, useKioskTypes, useIsMobile, useToast, useScrollPosition, useDeviceModels, useDevices,
@@ -29,5 +30,6 @@ export {
     useProducts,
     useSyncEvents,
     useSyncTasks,
-    useCategories
+    useCategories,
+    useIngredientTypes
 }

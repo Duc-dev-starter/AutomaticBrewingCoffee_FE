@@ -19,10 +19,12 @@ import { deviceModelSchema } from "@/schema/device.schema"
 import { EFunctionParameterType } from "@/enum/device"
 import { DeviceFunctionCard } from "@/components/common/device-function-card"
 import { cn } from "@/lib/utils"
-import { EBaseUnit, EBaseUnitViMap, EIngredientType, EIngredientTypeViMap } from "@/enum/product"
+import { EBaseUnit, EBaseUnitViMap } from "@/enum/product"
 import { FormFooterActions } from "@/components/form"
 import { useDebounce } from "@/hooks"
 import { parseErrors } from "@/utils"
+import { getIngredientTypes } from "@/services/ingredientType.service"
+import { IngredientType } from "@/interfaces/ingredient"
 
 const initialFormData = {
     modelName: "",
@@ -39,6 +41,7 @@ const DeviceModelDialog = ({ open, onOpenChange, onSuccess, deviceModel }: Devic
     const [loading, setLoading] = useState(false)
     const [formData, setFormData] = useState(initialFormData)
     const [deviceTypes, setDeviceTypes] = useState<DeviceType[]>([])
+    const [ingredientTypes, setIngredientTypes] = useState<IngredientType[]>([])
     const [page, setPage] = useState(1)
     const [hasMore, setHasMore] = useState(true)
     const [submitted, setSubmitted] = useState(false)
@@ -46,7 +49,6 @@ const DeviceModelDialog = ({ open, onOpenChange, onSuccess, deviceModel }: Devic
     const [focusedField, setFocusedField] = useState<string | null>(null)
     const modelNameInputRef = useRef<HTMLInputElement>(null)
 
-    // State cho tìm kiếm loại thiết bị
     const [deviceTypeSearchQuery, setDeviceTypeSearchQuery] = useState("")
     const debouncedSearchQuery = useDebounce(deviceTypeSearchQuery, 300)
 
@@ -76,9 +78,24 @@ const DeviceModelDialog = ({ open, onOpenChange, onSuccess, deviceModel }: Devic
         }
     }
 
+    const fetchIngredientTypes = async () => {
+        try {
+            const response = await getIngredientTypes({ page: 1, size: 1000 })
+            setIngredientTypes(response.items)
+        } catch (error) {
+            console.error("Lỗi khi lấy danh sách loại nguyên liệu:", error)
+            toast({
+                title: "Lỗi",
+                description: "Không thể tải danh sách loại nguyên liệu.",
+                variant: "destructive",
+            })
+        }
+    }
+
     useEffect(() => {
         if (open) {
             fetchDeviceTypes(1, debouncedSearchQuery)
+            fetchIngredientTypes()
             setTimeout(() => modelNameInputRef.current?.focus(), 200)
         }
     }, [open, debouncedSearchQuery])
@@ -110,6 +127,7 @@ const DeviceModelDialog = ({ open, onOpenChange, onSuccess, deviceModel }: Devic
             setFormData(initialFormData)
             setPage(1)
             setDeviceTypes([])
+            setIngredientTypes([])
             setHasMore(true)
             setErrors({})
             setSubmitted(false)
@@ -235,7 +253,7 @@ const DeviceModelDialog = ({ open, onOpenChange, onSuccess, deviceModel }: Devic
                 ...prev.deviceIngredients,
                 {
                     label: "",
-                    ingredientType: EIngredientType.Coffee,
+                    ingredientType: "",
                     description: "",
                     maxCapacity: 0,
                     minCapacity: 0,
@@ -244,6 +262,10 @@ const DeviceModelDialog = ({ open, onOpenChange, onSuccess, deviceModel }: Devic
                     isRenewable: false,
                     isPrimary: false,
                     status: EBaseStatus.Active,
+                    deviceFunctionName: "",
+                    ingredientSelectorParameter: "",
+                    ingredientSelectorValue: "",
+                    targetOverrideParameter: "",
                 },
             ],
         }))
@@ -295,7 +317,13 @@ const DeviceModelDialog = ({ open, onOpenChange, onSuccess, deviceModel }: Devic
                 manufacturer: formData.manufacturer,
                 deviceTypeId: formData.deviceTypeId,
                 deviceFunctions: formData.deviceFunctions,
-                deviceIngredients: formData.deviceIngredients,
+                deviceIngredients: formData.deviceIngredients.map((ingredient) => {
+                    const selectedType = ingredientTypes.find((type) => type.ingredientTypeId === ingredient.ingredientType)
+                    return {
+                        ...ingredient,
+                        ingredientType: selectedType ? selectedType.name : "",
+                    }
+                }),
             }
             console.log("Form data before validation:", formData)
             if (deviceModel) {
@@ -545,7 +573,7 @@ const DeviceModelDialog = ({ open, onOpenChange, onSuccess, deviceModel }: Devic
                         {formData.deviceIngredients.length === 0 ? (
                             <div className="text-center py-8 border-2 border-dashed rounded-lg bg-muted/20">
                                 <Layers className="h-12 w-12 mx-auto text-muted-foreground mt-2" />
-                                <p className="text-muted-foreground mt-4 mb-4">Chưa có Nguyên Liệu nào được thêm</p>
+                                <p className="text-muted-foreground mt-4 mb-4">Chưa có nguyên liệu nào được thêm</p>
                                 <Button type="button" variant="outline" onClick={addDeviceIngredient} disabled={loading}>
                                     <Plus className="h-4 w-4 mr-2" />
                                     Thêm nguyên liệu đầu tiên
@@ -579,9 +607,9 @@ const DeviceModelDialog = ({ open, onOpenChange, onSuccess, deviceModel }: Devic
                                                         <SelectValue placeholder="Chọn loại nguyên liệu" />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        {Object.entries(EIngredientTypeViMap).map(([key, value]) => (
-                                                            <SelectItem key={key} value={key}>
-                                                                {value}
+                                                        {ingredientTypes.map((type) => (
+                                                            <SelectItem key={type.ingredientTypeId} value={type.ingredientTypeId}>
+                                                                {type.name}
                                                             </SelectItem>
                                                         ))}
                                                     </SelectContent>
@@ -641,7 +669,7 @@ const DeviceModelDialog = ({ open, onOpenChange, onSuccess, deviceModel }: Devic
                                                     <p className="text-red-500 text-xs">{errors.deviceIngredients[index].warningPercent}</p>
                                                 )}
                                             </div>
-                                            <div className=" CLEARspace-y-2">
+                                            <div className="space-y-2">
                                                 <Label>Đơn vị</Label>
                                                 <Select
                                                     value={ingredient.unit}
@@ -720,6 +748,42 @@ const DeviceModelDialog = ({ open, onOpenChange, onSuccess, deviceModel }: Devic
                                                 {submitted && errors.deviceIngredients?.[index]?.isPrimary && (
                                                     <p className="text-red-500 text-xs">{errors.deviceIngredients[index].isPrimary}</p>
                                                 )}
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label>Tên chức năng thiết bị (tùy chọn)</Label>
+                                                <Input
+                                                    value={ingredient.deviceFunctionName || ""}
+                                                    onChange={(e) => handleDeviceIngredientChange(index, "deviceFunctionName", e.target.value)}
+                                                    placeholder="Nhập tên chức năng thiết bị"
+                                                    disabled={loading}
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label>Tham số chọn nguyên liệu (tùy chọn)</Label>
+                                                <Input
+                                                    value={ingredient.ingredientSelectorParameter || ""}
+                                                    onChange={(e) => handleDeviceIngredientChange(index, "ingredientSelectorParameter", e.target.value)}
+                                                    placeholder="Nhập tham số chọn nguyên liệu"
+                                                    disabled={loading}
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label>Giá trị chọn nguyên liệu (tùy chọn)</Label>
+                                                <Input
+                                                    value={ingredient.ingredientSelectorValue || ""}
+                                                    onChange={(e) => handleDeviceIngredientChange(index, "ingredientSelectorValue", e.target.value)}
+                                                    placeholder="Nhập giá trị chọn nguyên liệu"
+                                                    disabled={loading}
+                                                />
+                                            </div>
+                                            <div className="space-y-2">
+                                                <Label>Tham số ghi đè mục tiêu (tùy chọn)</Label>
+                                                <Input
+                                                    value={ingredient.targetOverrideParameter || ""}
+                                                    onChange={(e) => handleDeviceIngredientChange(index, "targetOverrideParameter", e.target.value)}
+                                                    placeholder="Nhập tham số ghi đè mục tiêu"
+                                                    disabled={loading}
+                                                />
                                             </div>
                                         </div>
                                         <Button

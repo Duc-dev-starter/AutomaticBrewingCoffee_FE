@@ -40,11 +40,12 @@ export interface ProductAttributeOption {
     unit: EAttributteOption;
     displayOrder: number;
     description: string;
+    isDefault: boolean;
 }
 
 export interface ProductAttribute {
     label: string;
-    ingredientType: EIngredientType;
+    ingredientType: string;
     description: string;
     displayOrder: number;
     defaultAmount: number;

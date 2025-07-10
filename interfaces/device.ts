@@ -58,6 +58,10 @@ export interface DeviceIngredient {
     isRenewable: boolean;
     status: EBaseStatus;
     isPrimary: boolean;
+    deviceFunctionName: string | null,
+    ingredientSelectorParameter: string | null,
+    ingredientSelectorValue: string | null,
+    targetOverrideParameter: string | null
 }
 
 export interface FunctionParameters {

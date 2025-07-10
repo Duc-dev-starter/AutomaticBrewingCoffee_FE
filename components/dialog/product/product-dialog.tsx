@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import type { Product, ProductAttribute } from "@/interfaces/product";
-import { EProductStatus, EProductSize, EProductType, EIngredientType, EBaseUnit, EAttributteOption } from "@/enum/product";
+import { EProductStatus, EProductSize, EProductType, EBaseUnit, EAttributteOption } from "@/enum/product";
 import { createProduct, updateProduct, getProducts } from "@/services/product.service";
 import { productSchema } from "@/schema/product.schema";
 import type { ProductDialogProps } from "@/types/dialog";
@@ -23,6 +23,8 @@ import InfiniteScroll from "react-infinite-scroll-component";
 import { useDebounce } from "@/hooks";
 import { FormDescriptionField, FormFooterActions } from "@/components/form";
 import { parseErrors } from "@/utils";
+import { getIngredientTypes } from "@/services/ingredientType.service";
+import { IngredientType } from "@/interfaces/ingredient";
 
 const initialFormData = {
     name: "",
@@ -46,6 +48,7 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
     const [loading, setLoading] = useState(false);
     const [products, setProducts] = useState<Product[]>([]);
     const [categories, setCategories] = useState<Category[]>([]);
+    const [ingredientTypes, setIngredientTypes] = useState<IngredientType[]>([]);
     const [imagePreview, setImagePreview] = useState<string | null>(null);
     const [imageTab, setImageTab] = useState<string>("upload");
     const [submitted, setSubmitted] = useState(false);
@@ -73,7 +76,7 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                 size: 10,
                 filterBy: "name",
                 filterQuery: query,
-                type: EProductType.Parent, // Chỉ lấy sản phẩm cha
+                type: EProductType.Parent,
             });
             if (pageNumber === 1) {
                 setProducts(response.items);
@@ -94,7 +97,6 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
         }
     };
 
-    // Fetch danh sách danh mục sản phẩm
     const fetchCategories = async (pageNumber: number, query: string) => {
         setLoading(true);
         try {
@@ -123,27 +125,38 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
         }
     };
 
-    // Tải dữ liệu khi dialog mở hoặc từ khóa tìm kiếm thay đổi
+    const fetchIngredientTypes = async () => {
+        try {
+            const response = await getIngredientTypes({ page: 1, size: 1000 });
+            setIngredientTypes(response.items);
+        } catch (error) {
+            console.error("Lỗi khi tải danh sách loại nguyên liệu:", error);
+            toast({
+                title: "Lỗi",
+                description: "Không thể tải danh sách loại nguyên liệu.",
+                variant: "destructive",
+            });
+        }
+    };
+
     useEffect(() => {
         if (open) {
             fetchProducts(1, debouncedParentSearchQuery);
             fetchCategories(1, debouncedCategorySearchQuery);
+            fetchIngredientTypes();
         }
     }, [open, debouncedParentSearchQuery, debouncedCategorySearchQuery]);
 
-    // Tải thêm dữ liệu cho sản phẩm cha
     const loadMoreParents = async () => {
         const nextPage = pageParents + 1;
         await fetchProducts(nextPage, debouncedParentSearchQuery);
     };
 
-    // Tải thêm dữ liệu cho danh mục sản phẩm
     const loadMoreCategories = async () => {
         const nextPage = pageCategories + 1;
         await fetchCategories(nextPage, debouncedCategorySearchQuery);
     };
 
-    // Các useEffect khác giữ nguyên
     useEffect(() => {
         if (open && product) {
             setFormData({
@@ -186,6 +199,7 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
             setErrors({});
             setProducts([]);
             setCategories([]);
+            setIngredientTypes([]);
             setImagePreview(null);
             setImageTab("upload");
             setSubmitted(false);
@@ -212,7 +226,6 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
         return () => document.removeEventListener("keydown", handleKeyDown);
     }, [open, formData]);
 
-    // Các hàm xử lý khác giữ nguyên
     const validateField = (field: string, value: string) => {
         const newValidFields = { ...validFields };
         switch (field) {
@@ -243,7 +256,7 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                 ...prev.productAttributes,
                 {
                     label: "",
-                    ingredientType: EIngredientType.Coffee,
+                    ingredientType: "",
                     description: "",
                     displayOrder: prev.productAttributes.length,
                     defaultAmount: 0,
@@ -278,6 +291,7 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                 unit: EAttributteOption.Percent,
                 displayOrder: newAttributes[attrIndex].attributeOptions.length,
                 description: "",
+                isDefault: false
             });
             return { ...prev, productAttributes: newAttributes };
         });
@@ -396,9 +410,9 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
 
         const validationResult = productSchema.safeParse(validationData);
         if (!validationResult.success) {
-            const parsedErrors = parseErrors(validationResult.error)
-            setErrors(parsedErrors)
-            return
+            const parsedErrors = parseErrors(validationResult.error);
+            setErrors(parsedErrors);
+            return;
         }
 
         setErrors({});
@@ -460,14 +474,13 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                                 <h1 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
                                     {isUpdate ? "Cập nhật Sản Phẩm" : "Tạo Sản Phẩm Mới"}
                                 </h1>
-                                <p className="text-gray-500">{isUpdate ? "Chỉnh sửa thông tin sản phẩm" : "Thêm sản phẩm mới vào hệ thống"}</p>
+                                <p className="text-gray49500">{isUpdate ? "Chỉnh sửa thông tin sản phẩm" : "Thêm sản phẩm mới vào hệ thống"}</p>
                             </div>
                         </div>
                     </div>
                 </div>
 
                 <form onSubmit={handleSubmit} className="px-8 py-8 pt-2 space-y-8">
-                    {/* Hình ảnh sản phẩm giữ nguyên */}
                     <div className="space-y-2">
                         <Label className="text-sm font-medium text-gray-700">Hình ảnh sản phẩm</Label>
                         <div className="flex items-start gap-4">
@@ -559,7 +572,6 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                         </div>
                     </div>
 
-                    {/* Tên sản phẩm và Sản phẩm cha */}
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-3">
                             <div className="flex items-center space-x-2 mb-2">
@@ -579,13 +591,13 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                                         "h-12 text-base px-4 border-2 transition-all duration-300 bg-white/80 backdrop-blur-sm pr-10",
                                         focusedField === "name" && "border-primary-300 ring-4 ring-primary-100 shadow-lg scale-[1.02]",
                                         validFields.name && "border-green-400 bg-green-50/50",
-                                        !validFields.name && formData.name && "border-red-300 bg-red-50/50"
+                                        formData.name && !validFields.name && "border-red-300 bg-red-50/50"
                                     )}
                                 />
                                 {validFields.name && (
                                     <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-green-500 animate-in zoom-in-50" />
                                 )}
-                                {!validFields.name && formData.name && (
+                                {formData.name && !validFields.name && (
                                     <AlertCircle className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-red-400 animate-in zoom-in-50" />
                                 )}
                             </div>
@@ -639,7 +651,6 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                         </div>
                     </div>
 
-                    {/* Size và Loại sản phẩm giữ nguyên */}
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-3">
                             <div className="flex items-center space-x-2 mb-2">
@@ -686,7 +697,6 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                         </div>
                     </div>
 
-                    {/* Trạng thái và Giá giữ nguyên */}
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-3">
                             <div className="flex items-center space-x-2 mb-2">
@@ -734,13 +744,13 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                                         "h-12 text-base px-4 border-2 transition-all duration-300 bg-white/80 backdrop-blur-sm pr-10",
                                         focusedField === "price" && "border-primary-300 ring-4 ring-primary-100 shadow-lg scale-[1.02]",
                                         validFields.price && "border-green-400 bg-green-50/50",
-                                        !validFields.price && formData.price && "border-red-300 bg-red-50/50"
+                                        formData.price && !validFields.price && "border-red-300 bg-red-50/50"
                                     )}
                                 />
                                 {validFields.price && (
                                     <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-green-500 animate-in zoom-in-50" />
                                 )}
-                                {!validFields.price && formData.price && (
+                                {formData.price && !validFields.price && (
                                     <AlertCircle className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-red-400 animate-in zoom-in-50" />
                                 )}
                             </div>
@@ -750,7 +760,6 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                         </div>
                     </div>
 
-                    {/* Hoạt động và Danh mục sản phẩm */}
                     <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-3">
                             <div className="flex items-center space-x-2 mb-2">
@@ -820,7 +829,6 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                         </div>
                     </div>
 
-                    {/* Mô tả */}
                     <FormDescriptionField
                         label="Mô tả"
                         icon={<Edit3 className="w-4 h-4 text-primary-300" />}
@@ -856,15 +864,17 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                                         <Label>Loại nguyên liệu</Label>
                                         <Select
                                             value={attr.ingredientType}
-                                            onValueChange={(value) => updateProductAttribute(attrIndex, "ingredientType", value as EIngredientType)}
+                                            onValueChange={(value) => updateProductAttribute(attrIndex, "ingredientType", value)}
                                             disabled={loading}
                                         >
                                             <SelectTrigger>
-                                                <SelectValue placeholder="Chọn loại" />
+                                                <SelectValue placeholder="Chọn loại nguyên liệu" />
                                             </SelectTrigger>
                                             <SelectContent>
-                                                {Object.values(EIngredientType).map((type) => (
-                                                    <SelectItem key={type} value={type}>{type}</SelectItem>
+                                                {ingredientTypes.map((type) => (
+                                                    <SelectItem key={type.ingredientTypeId} value={type.ingredientTypeId}>
+                                                        {type.name}
+                                                    </SelectItem>
                                                 ))}
                                             </SelectContent>
                                         </Select>

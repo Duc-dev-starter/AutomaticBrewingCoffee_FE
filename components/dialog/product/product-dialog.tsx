@@ -44,7 +44,7 @@ const initialFormData = {
 const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialogProps) => {
     const { toast } = useToast();
     const [formData, setFormData] = useState(initialFormData);
-    const [errors, setErrors] = useState<Record<string, string>>({});
+    const [errors, setErrors] = useState<Record<string, any>>({});
     const [loading, setLoading] = useState(false);
     const [products, setProducts] = useState<Product[]>([]);
     const [categories, setCategories] = useState<Category[]>([]);
@@ -291,7 +291,7 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                 unit: EAttributteOption.Percent,
                 displayOrder: newAttributes[attrIndex].attributeOptions.length,
                 description: "",
-                isDefault: false
+                isDefault: false,
             });
             return { ...prev, productAttributes: newAttributes };
         });
@@ -467,14 +467,14 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                 <div className="relative overflow-hidden bg-primary-100 rounded-tl-2xl rounded-tr-2xl">
                     <div className="relative px-8 py-6 border-b border-primary-300">
                         <div className="flex items-center space-x-4">
-                            <div className="w-14 h-14 bg-gradient-to-r from-primary-400 to-primary-500 rounded-2xl flex-items-center justify-center shadow-lg">
+                            <div className="w-14 h-14 bg-gradient-to-r from-primary-400 to-primary-500 rounded-2xl flex items-center justify-center shadow-lg">
                                 {isUpdate ? <Edit className="w-7 h-7 text-primary-100" /> : <PlusCircle className="w-7 h-7 text-primary-100" />}
                             </div>
                             <div>
                                 <h1 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
                                     {isUpdate ? "Cập nhật Sản Phẩm" : "Tạo Sản Phẩm Mới"}
                                 </h1>
-                                <p className="text-gray49500">{isUpdate ? "Chỉnh sửa thông tin sản phẩm" : "Thêm sản phẩm mới vào hệ thống"}</p>
+                                <p className="text-gray-500">{isUpdate ? "Chỉnh sửa thông tin sản phẩm" : "Thêm sản phẩm mới vào hệ thống"}</p>
                             </div>
                         </div>
                     </div>
@@ -834,7 +834,7 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                         icon={<Edit3 className="w-4 h-4 text-primary-300" />}
                         value={formData.description}
                         onChange={(val) => handleChange("description", val)}
-                        placeholder="Nhập mô tả menu"
+                        placeholder="Nhập mô tả sản phẩm"
                         disabled={loading}
                         error={errors.description}
                         maxLength={450}
@@ -859,6 +859,9 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                                             placeholder="Nhập nhãn"
                                             disabled={loading}
                                         />
+                                        {submitted && errors.productAttributes?.[attrIndex]?.label && (
+                                            <p className="text-red-500 text-xs mt-1">{errors.productAttributes[attrIndex].label}</p>
+                                        )}
                                     </div>
                                     <div>
                                         <Label>Loại nguyên liệu</Label>
@@ -872,12 +875,15 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                                             </SelectTrigger>
                                             <SelectContent>
                                                 {ingredientTypes.map((type) => (
-                                                    <SelectItem key={type.ingredientTypeId} value={type.ingredientTypeId}>
+                                                    <SelectItem key={type.ingredientTypeId} value={type.name}>
                                                         {type.name}
                                                     </SelectItem>
                                                 ))}
                                             </SelectContent>
                                         </Select>
+                                        {submitted && errors.productAttributes?.[attrIndex]?.ingredientType && (
+                                            <p className="text-red-500 text-xs mt-1">{errors.productAttributes[attrIndex].ingredientType}</p>
+                                        )}
                                     </div>
                                     <div>
                                         <Label>Mô tả</Label>
@@ -887,6 +893,9 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                                             placeholder="Nhập mô tả"
                                             disabled={loading}
                                         />
+                                        {submitted && errors.productAttributes?.[attrIndex]?.description && (
+                                            <p className="text-red-500 text-xs mt-1">{errors.productAttributes[attrIndex].description}</p>
+                                        )}
                                     </div>
                                     <div>
                                         <Label>Thứ tự hiển thị</Label>
@@ -896,6 +905,9 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                                             onChange={(e) => updateProductAttribute(attrIndex, "displayOrder", Number(e.target.value))}
                                             disabled={loading}
                                         />
+                                        {submitted && errors.productAttributes?.[attrIndex]?.displayOrder && (
+                                            <p className="text-red-500 text-xs mt-1">{errors.productAttributes[attrIndex].displayOrder}</p>
+                                        )}
                                     </div>
                                     <div>
                                         <Label>Số lượng mặc định</Label>
@@ -905,6 +917,9 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                                             onChange={(e) => updateProductAttribute(attrIndex, "defaultAmount", Number(e.target.value))}
                                             disabled={loading}
                                         />
+                                        {submitted && errors.productAttributes?.[attrIndex]?.defaultAmount && (
+                                            <p className="text-red-500 text-xs mt-1">{errors.productAttributes[attrIndex].defaultAmount}</p>
+                                        )}
                                     </div>
                                     <div>
                                         <Label>Đơn vị</Label>
@@ -922,34 +937,115 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                                                 ))}
                                             </SelectContent>
                                         </Select>
+                                        {submitted && errors.productAttributes?.[attrIndex]?.unit && (
+                                            <p className="text-red-500 text-xs mt-1">{errors.productAttributes[attrIndex].unit}</p>
+                                        )}
                                     </div>
                                 </div>
                                 <div className="space-y-2">
                                     <Label>Tùy chọn thuộc tính</Label>
                                     {attr.attributeOptions.map((option, optIndex) => (
-                                        <div key={optIndex} className="flex space-x-2">
-                                            <Input
-                                                value={option.name}
-                                                onChange={(e) => updateAttributeOption(attrIndex, optIndex, "name", e.target.value)}
-                                                placeholder="Tên tùy chọn"
-                                                disabled={loading}
-                                            />
-                                            <Input
-                                                type="number"
-                                                value={option.value}
-                                                onChange={(e) => updateAttributeOption(attrIndex, optIndex, "value", Number(e.target.value))}
-                                                placeholder="Giá trị"
-                                                disabled={loading}
-                                            />
-                                            <Button
-                                                type="button"
-                                                variant="destructive"
-                                                size="sm"
-                                                onClick={() => removeAttributeOption(attrIndex, optIndex)}
-                                                disabled={loading}
-                                            >
-                                                Xóa
-                                            </Button>
+                                        <div key={optIndex} className="grid grid-cols-12 gap-2 mb-2">
+                                            <div className="col-span-2">
+                                                <Label>Tên</Label>
+                                                <Input
+                                                    value={option.name}
+                                                    onChange={(e) => updateAttributeOption(attrIndex, optIndex, "name", e.target.value)}
+                                                    placeholder="Tên tùy chọn"
+                                                    disabled={loading}
+                                                />
+                                                {submitted && errors.productAttributes?.[attrIndex]?.attributeOptions?.[optIndex]?.name && (
+                                                    <p className="text-red-500 text-xs mt-1">{errors.productAttributes[attrIndex].attributeOptions[optIndex].name}</p>
+                                                )}
+                                            </div>
+                                            <div className="col-span-2">
+                                                <Label>Giá trị</Label>
+                                                <Input
+                                                    type="number"
+                                                    value={option.value}
+                                                    onChange={(e) => updateAttributeOption(attrIndex, optIndex, "value", Number(e.target.value))}
+                                                    placeholder="Giá trị"
+                                                    disabled={loading}
+                                                />
+                                                {submitted && errors.productAttributes?.[attrIndex]?.attributeOptions?.[optIndex]?.value && (
+                                                    <p className="text-red-500 text-xs mt-1">{errors.productAttributes[attrIndex].attributeOptions[optIndex].value}</p>
+                                                )}
+                                            </div>
+                                            <div className="col-span-2">
+                                                <Label>Đơn vị</Label>
+                                                <Select
+                                                    value={option.unit}
+                                                    onValueChange={(value) => updateAttributeOption(attrIndex, optIndex, "unit", value as EAttributteOption)}
+                                                    disabled={loading}
+                                                >
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder="Chọn đơn vị" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        {Object.values(EAttributteOption).map((unit) => (
+                                                            <SelectItem key={unit} value={unit}>{unit}</SelectItem>
+                                                        ))}
+                                                    </SelectContent>
+                                                </Select>
+                                                {submitted && errors.productAttributes?.[attrIndex]?.attributeOptions?.[optIndex]?.unit && (
+                                                    <p className="text-red-500 text-xs mt-1">{errors.productAttributes[attrIndex].attributeOptions[optIndex].unit}</p>
+                                                )}
+                                            </div>
+                                            <div className="col-span-2">
+                                                <Label>Thứ tự hiển thị</Label>
+                                                <Input
+                                                    type="number"
+                                                    value={option.displayOrder}
+                                                    onChange={(e) => updateAttributeOption(attrIndex, optIndex, "displayOrder", Number(e.target.value))}
+                                                    placeholder="Thứ tự"
+                                                    disabled={loading}
+                                                />
+                                                {submitted && errors.productAttributes?.[attrIndex]?.attributeOptions?.[optIndex]?.displayOrder && (
+                                                    <p className="text-red-500 text-xs mt-1">{errors.productAttributes[attrIndex].attributeOptions[optIndex].displayOrder}</p>
+                                                )}
+                                            </div>
+                                            <div className="col-span-2">
+                                                <Label>Mô tả</Label>
+                                                <Input
+                                                    value={option.description}
+                                                    onChange={(e) => updateAttributeOption(attrIndex, optIndex, "description", e.target.value)}
+                                                    placeholder="Mô tả"
+                                                    disabled={loading}
+                                                />
+                                                {submitted && errors.productAttributes?.[attrIndex]?.attributeOptions?.[optIndex]?.description && (
+                                                    <p className="text-red-500 text-xs mt-1">{errors.productAttributes[attrIndex].attributeOptions[optIndex].description}</p>
+                                                )}
+                                            </div>
+                                            <div className="col-span-1">
+                                                <Label>Mặc định</Label>
+                                                <Select
+                                                    value={option.isDefault.toString()}
+                                                    onValueChange={(value) => updateAttributeOption(attrIndex, optIndex, "isDefault", value === "true")}
+                                                    disabled={loading}
+                                                >
+                                                    <SelectTrigger>
+                                                        <SelectValue placeholder="Chọn" />
+                                                    </SelectTrigger>
+                                                    <SelectContent>
+                                                        <SelectItem value="true">Có</SelectItem>
+                                                        <SelectItem value="false">Không</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                                {submitted && errors.productAttributes?.[attrIndex]?.attributeOptions?.[optIndex]?.isDefault && (
+                                                    <p className="text-red-500 text-xs mt-1">{errors.productAttributes[attrIndex].attributeOptions[optIndex].isDefault}</p>
+                                                )}
+                                            </div>
+                                            <div className="col-span-1 flex items-end">
+                                                <Button
+                                                    type="button"
+                                                    variant="destructive"
+                                                    size="sm"
+                                                    onClick={() => removeAttributeOption(attrIndex, optIndex)}
+                                                    disabled={loading}
+                                                >
+                                                    Xóa
+                                                </Button>
+                                            </div>
                                         </div>
                                     ))}
                                     <Button

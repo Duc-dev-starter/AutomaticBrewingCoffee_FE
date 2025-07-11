@@ -38,7 +38,7 @@ export const deviceModelSchema = z.object({
     deviceIngredients: z.array(
         z.object({
             label: z.string().trim().min(1, "Label là bắt buộc"),
-            ingredientType: z.nativeEnum(EIngredientType),
+            ingredientType: z.string().trim().min(1, "Loại nguyên liệu là bắt buộc"),
             description: z.string().trim().optional(),
             maxCapacity: z.number().min(0, "Dung lượng tối đa phải lớn hơn hoặc bằng 0"),
             minCapacity: z.number().min(0, "Dung lượng tối thiểu phải lớn hơn hoặc bằng 0"),

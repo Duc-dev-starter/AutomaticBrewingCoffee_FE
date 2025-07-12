@@ -1,7 +1,7 @@
 import { Category } from "@/interfaces/category";
 import { PagingParams, PagingResponse } from "@/types/paging";
 import { BaseService } from "./base.service";
-import { Api } from "@/constants/api";
+import { Api } from "@/constants/api.constant";
 
 export const getCategories = async (params: PagingParams = {}): Promise<PagingResponse<Category>> => {
     return BaseService.getPaging<Category>({

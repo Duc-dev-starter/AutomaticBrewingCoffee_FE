@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from "next/server";
-import { Path } from "./constants/path";
+import { Path } from "./constants/path.constant";
 
 export const config = {
     matcher: [

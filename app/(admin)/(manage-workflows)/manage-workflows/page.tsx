@@ -33,7 +33,7 @@ import { useDebounce, useToast } from "@/hooks";
 import { useRouter } from "next/navigation";
 import { deleteWorkflow } from "@/services/workflow.service";
 import { ErrorResponse } from "@/types/error";
-import { Path } from "@/constants/path";
+import { Path } from "@/constants/path.constant";
 
 const ConfirmDeleteDialog = React.lazy(() =>
     import("@/components/common").then((module) => ({ default: module.ConfirmDeleteDialog }))

@@ -1,4 +1,4 @@
-import { Path } from "@/constants/path";
+import { Path } from "@/constants/path.constant";
 import { Roles } from "@/enum/role";
 import { ZodError } from "zod";
 

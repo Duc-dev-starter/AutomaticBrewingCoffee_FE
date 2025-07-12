@@ -7,7 +7,7 @@ import { NavUser } from "./nav-user"
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarRail } from "@/components/ui/sidebar"
 import Link from "next/link"
 import { Coffee } from "lucide-react"
-import { Path } from "@/constants/path"
+import { Path } from "@/constants/path.constant"
 import clsx from "clsx"
 import { useAppStore } from "@/stores/use-app-store"
 

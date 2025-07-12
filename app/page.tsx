@@ -5,7 +5,7 @@ import { useState, useEffect } from "react"
 import { Coffee, ChevronRight, Clock, Droplets, Thermometer, Award } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { motion } from "framer-motion"
-import { Path } from "@/constants/path"
+import { Path } from "@/constants/path.constant"
 import { useAppStore } from "@/stores/use-app-store"
 
 export default function Home() {

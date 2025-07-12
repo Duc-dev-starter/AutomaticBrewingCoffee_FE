@@ -31,7 +31,7 @@ import { useDebounce, useMenus, useToast } from "@/hooks"
 import { columns } from "@/components/manage-menus/columns";
 import { useRouter } from "next/navigation";
 import { ErrorResponse } from "@/types/error";
-import { Path } from "@/constants/path";
+import { Path } from "@/constants/path.constant";
 const MenuDialog = React.lazy(() => import("@/components/dialog/menu").then(module => ({ default: module.MenuDialog })));
 const MenuDetailDialog = React.lazy(() => import("@/components/dialog/menu").then(module => ({ default: module.MenuDetailDialog })));
 const ConfirmDeleteDialog = React.lazy(() => import("@/components/common").then(module => ({ default: module.ConfirmDeleteDialog })));

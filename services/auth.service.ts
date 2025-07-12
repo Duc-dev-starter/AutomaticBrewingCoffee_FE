@@ -1,6 +1,6 @@
 import { ApiResponse } from "@/types/api";
 import { BaseService } from "./base.service"
-import { Api } from "@/constants/api";
+import { Api } from "@/constants/api.constant";
 import { handleToken } from "@/utils/cookie";
 import Cookies from 'js-cookie'
 import { PagingParams, PagingResponse } from "@/types/paging";

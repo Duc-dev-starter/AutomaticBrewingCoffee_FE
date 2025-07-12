@@ -1,6 +1,6 @@
 import { BaseService } from "./base.service"
 import { PagingParams, PagingResponse } from "@/types/paging";
-import { Api } from "@/constants/api";
+import { Api } from "@/constants/api.constant";
 import { LocationType } from "@/interfaces/location";
 
 export const getLocationTypes = async (params: PagingParams = {}): Promise<PagingResponse<LocationType>> => {

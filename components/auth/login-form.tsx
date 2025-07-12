@@ -23,7 +23,7 @@ import { useToast } from "@/hooks/use-toast";
 import { login, getCurrentUser } from "@/services/auth.service";
 import { handleToken } from "@/utils/cookie";
 import { ErrorResponse } from "@/types/error";
-import { Path } from "@/constants/path";
+import { Path } from "@/constants/path.constant";
 import { useAppStore } from "@/stores/use-app-store";
 
 export function LoginForm({ className, ...props }: React.ComponentPropsWithoutRef<"div">) {

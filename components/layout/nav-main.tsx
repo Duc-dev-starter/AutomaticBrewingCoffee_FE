@@ -32,7 +32,7 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { usePathname } from "next/navigation"
-import { Path } from "@/constants/path"
+import { Path } from "@/constants/path.constant"
 import { useEffect, useRef, useState, useMemo } from "react"
 import { cn } from "@/lib/utils"
 import Link from "next/link"

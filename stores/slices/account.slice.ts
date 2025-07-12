@@ -2,7 +2,7 @@
 import { StateCreator } from 'zustand';
 import { Account } from '@/interfaces/account';
 import { BaseService } from '@/services/base.service';
-import { Api } from '@/constants/api';
+import { Api } from '@/constants/api.constant';
 import { ApiResponse } from '@/types/api';
 
 export interface AccountSlice {

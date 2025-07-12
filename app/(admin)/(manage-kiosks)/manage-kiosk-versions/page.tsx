@@ -32,7 +32,7 @@ import { deleteKioskVersion } from "@/services/kiosk.service";
 import { useRouter } from "next/navigation";
 import { ErrorResponse } from "@/types/error";
 import { useDebounce, useKioskVersions, useToast } from "@/hooks";
-import { Path } from "@/constants/path";
+import { Path } from "@/constants/path.constant";
 const KioskVersionDialog = React.lazy(() => import("@/components/dialog/kiosk").then(module => ({ default: module.KioskVersionDialog })));
 const ConfirmDeleteDialog = React.lazy(() => import("@/components/common").then(module => ({ default: module.ConfirmDeleteDialog })));
 

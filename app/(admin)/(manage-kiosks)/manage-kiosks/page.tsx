@@ -34,7 +34,7 @@ import { ErrorResponse } from "@/types/error";
 import axios from "axios";
 import Cookies from "js-cookie"
 import { useDebounce, useKiosks, useToast } from "@/hooks";
-import { Path } from "@/constants/path";
+import { Path } from "@/constants/path.constant";
 import { syncOverrideKiosk } from "@/services/sync.service";
 const KioskDialog = React.lazy(() => import("@/components/dialog/kiosk").then(module => ({ default: module.KioskDialog })));
 const KioskDetailDialog = React.lazy(() => import("@/components/dialog/kiosk").then(module => ({ default: module.KioskDetailDialog })));

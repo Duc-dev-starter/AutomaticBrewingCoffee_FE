@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { SidebarMenu, SidebarMenuButton, SidebarMenuItem, useSidebar } from "@/components/ui/sidebar"
 import Link from "next/link"
-import { Path } from "@/constants/path"
+import { Path } from "@/constants/path.constant"
 import { ThemeSelector } from "./theme-selector"
 import { logout } from "@/services/auth.service"
 import { Account } from "@/interfaces/account"

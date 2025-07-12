@@ -3,7 +3,7 @@
 import { AlertTriangle, ArrowLeft, Home } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Path } from "@/constants/path"
+import { Path } from "@/constants/path.constant"
 
 export default function InvalidRequestPage() {
     const handleBackToDashboard = () => {

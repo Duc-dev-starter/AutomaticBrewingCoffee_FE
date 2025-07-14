@@ -1,6 +1,5 @@
 import { EBaseStatus } from "@/enum/base";
 import { EDeviceStatus, EFunctionParameterType } from "@/enum/device";
-import { EIngredientType } from "@/enum/product";
 import { z } from "zod";
 
 export const deviceTypeSchema = z.object({
@@ -46,6 +45,10 @@ export const deviceModelSchema = z.object({
             unit: z.string().trim().min(1, "Đơn vị là bắt buộc"),
             isRenewable: z.boolean(),
             status: z.nativeEnum(EBaseStatus),
+            deviceFunctionName: z.string().trim().min(1, "Tên chức năng thiết bị là bắt buộc"),
+            ingredientSelectorParameter: z.string().trim().optional(),
+            ingredientSelectorValue: z.string().trim().optional(),
+            targetOverrideParameter: z.string().trim().optional(),
         })
     ).default([]),
 });

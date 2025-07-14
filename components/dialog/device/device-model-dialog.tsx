@@ -102,25 +102,32 @@ const DeviceModelDialog = ({ open, onOpenChange, onSuccess, deviceModel }: Devic
 
     useEffect(() => {
         if (deviceModel) {
+            const updatedDeviceIngredients = deviceModel.deviceIngredients.map((ingredient) => {
+                const selectedType = ingredientTypes.find((type) => type.name === ingredient.ingredientType);
+                return {
+                    ...ingredient,
+                    ingredientType: selectedType ? selectedType.ingredientTypeId : "",
+                };
+            });
             setFormData({
                 modelName: deviceModel.modelName || "",
                 manufacturer: deviceModel.manufacturer || "",
                 deviceTypeId: deviceModel.deviceTypeId || "",
                 status: deviceModel.status || EBaseStatus.Active,
                 deviceFunctions: deviceModel.deviceFunctions || [],
-                deviceIngredients: deviceModel.deviceIngredients || [],
-            })
+                deviceIngredients: updatedDeviceIngredients,
+            });
             setValidFields({
                 modelName: deviceModel.modelName?.trim().length >= 1,
                 manufacturer: deviceModel.manufacturer?.trim().length >= 1,
-            })
+            });
         } else {
-            setFormData(initialFormData)
-            setValidFields({})
+            setFormData(initialFormData);
+            setValidFields({});
         }
-        setErrors({})
-        setSubmitted(false)
-    }, [deviceModel, open])
+        setErrors({});
+        setSubmitted(false);
+    }, [deviceModel, open, ingredientTypes]);
 
     useEffect(() => {
         if (!open) {
@@ -318,13 +325,17 @@ const DeviceModelDialog = ({ open, onOpenChange, onSuccess, deviceModel }: Devic
                 deviceTypeId: formData.deviceTypeId,
                 deviceFunctions: formData.deviceFunctions,
                 deviceIngredients: formData.deviceIngredients.map((ingredient) => {
-                    const selectedType = ingredientTypes.find((type) => type.ingredientTypeId === ingredient.ingredientType)
+                    const selectedType = ingredientTypes.find((type) => type.ingredientTypeId === ingredient.ingredientType);
                     return {
                         ...ingredient,
                         ingredientType: selectedType ? selectedType.name : "",
-                    }
+                        deviceFunctionName: ingredient.deviceFunctionName || null,
+                        ingredientSelectorParameter: ingredient.ingredientSelectorParameter || null,
+                        ingredientSelectorValue: ingredient.ingredientSelectorValue || null,
+                        targetOverrideParameter: ingredient.targetOverrideParameter || null,
+                    };
                 }),
-            }
+            };
             console.log("Form data before validation:", formData)
             if (deviceModel) {
                 await updateDeviceModel(deviceModel.deviceModelId, data)
@@ -585,7 +596,7 @@ const DeviceModelDialog = ({ open, onOpenChange, onSuccess, deviceModel }: Devic
                                     <div key={index} className="p-4 border rounded-lg bg-white shadow-sm">
                                         <div className="grid grid-cols-2 gap-4">
                                             <div className="space-y-2">
-                                                <Label>Label</Label>
+                                                <Label className="asterisk">Label</Label>
                                                 <Input
                                                     value={ingredient.label}
                                                     onChange={(e) => handleDeviceIngredientChange(index, "label", e.target.value)}
@@ -597,7 +608,7 @@ const DeviceModelDialog = ({ open, onOpenChange, onSuccess, deviceModel }: Devic
                                                 )}
                                             </div>
                                             <div className="space-y-2">
-                                                <Label>Loại nguyên liệu</Label>
+                                                <Label className="asterisk">Loại nguyên liệu</Label>
                                                 <Select
                                                     value={ingredient.ingredientType}
                                                     onValueChange={(value) => handleDeviceIngredientChange(index, "ingredientType", value)}
@@ -750,16 +761,19 @@ const DeviceModelDialog = ({ open, onOpenChange, onSuccess, deviceModel }: Devic
                                                 )}
                                             </div>
                                             <div className="space-y-2">
-                                                <Label>Tên chức năng thiết bị (tùy chọn)</Label>
+                                                <Label className="asterisk">Tên chức năng thiết bị</Label>
                                                 <Input
                                                     value={ingredient.deviceFunctionName || ""}
                                                     onChange={(e) => handleDeviceIngredientChange(index, "deviceFunctionName", e.target.value)}
                                                     placeholder="Nhập tên chức năng thiết bị"
                                                     disabled={loading}
                                                 />
+                                                {submitted && errors.deviceIngredients?.[index]?.deviceFunctionName && (
+                                                    <p className="text-red-500 text-xs">{errors.deviceIngredients[index].deviceFunctionName}</p>
+                                                )}
                                             </div>
                                             <div className="space-y-2">
-                                                <Label>Tham số chọn nguyên liệu (tùy chọn)</Label>
+                                                <Label>Tham số chọn nguyên liệu</Label>
                                                 <Input
                                                     value={ingredient.ingredientSelectorParameter || ""}
                                                     onChange={(e) => handleDeviceIngredientChange(index, "ingredientSelectorParameter", e.target.value)}
@@ -768,7 +782,7 @@ const DeviceModelDialog = ({ open, onOpenChange, onSuccess, deviceModel }: Devic
                                                 />
                                             </div>
                                             <div className="space-y-2">
-                                                <Label>Giá trị chọn nguyên liệu (tùy chọn)</Label>
+                                                <Label>Giá trị chọn nguyên liệu</Label>
                                                 <Input
                                                     value={ingredient.ingredientSelectorValue || ""}
                                                     onChange={(e) => handleDeviceIngredientChange(index, "ingredientSelectorValue", e.target.value)}
@@ -777,7 +791,7 @@ const DeviceModelDialog = ({ open, onOpenChange, onSuccess, deviceModel }: Devic
                                                 />
                                             </div>
                                             <div className="space-y-2">
-                                                <Label>Tham số ghi đè mục tiêu (tùy chọn)</Label>
+                                                <Label>Tham số ghi đè mục tiêu</Label>
                                                 <Input
                                                     value={ingredient.targetOverrideParameter || ""}
                                                     onChange={(e) => handleDeviceIngredientChange(index, "targetOverrideParameter", e.target.value)}

@@ -1,134 +1,181 @@
+"use client"
+
+import { Dialog, DialogContent } from "@/components/ui/dialog"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { Card, CardContent } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
 import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-} from "@/components/ui/dialog";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Info, Mail, User, Calendar, FileText, Shield, Phone, Building2, CheckCircle, XCircle } from 'lucide-react';
-import { format } from "date-fns";
-import { AccountDialogProps } from "@/types/dialog";
+    Info,
+    Mail,
+    User,
+    Calendar,
+    FileText,
+    Shield,
+    Phone,
+    Building2,
+    CheckCircle,
+    XCircle,
+    Sparkles,
+} from "lucide-react"
+import { format } from "date-fns"
+import type { AccountDialogProps } from "@/types/dialog"
 
-const AccountDetailDialog = ({
-    account,
-    open,
-    onOpenChange,
-}: AccountDialogProps) => {
-    if (!account) return null;
+const AccountDetailDialog = ({ account, open, onOpenChange }: AccountDialogProps) => {
+    if (!account) return null
 
-    const org = account.organization;
+    const org = account.organization
 
     const getStatusBadge = (status: string, isBanned: boolean) => {
         if (isBanned) {
             return (
-                <Badge className="bg-red-100 text-red-700 border-red-200 hover:bg-red-200">
+                <Badge className="bg-red-400 text-white border-0 shadow-md px-4 py-1.5">
                     <XCircle className="mr-1 h-3 w-3" />
                     Bị khoá
                 </Badge>
-            );
+            )
         }
-
-        const isActive = status?.toLowerCase() === 'active';
+        const isActive = status?.toLowerCase() === "active"
         return (
-            <Badge className={isActive
-                ? "bg-primary-100 text-primary-600 border-primary-200 hover:bg-primary-200"
-                : "bg-gray-100 text-gray-600 border-gray-200"
-            }>
+            <Badge
+                className={
+                    isActive
+                        ? "bg-primary-300 text-white border-0 shadow-md px-4 py-1.5"
+                        : "bg-gray-400 text-white border-0 shadow-md px-4 py-1.5"
+                }
+            >
                 <CheckCircle className="mr-1 h-3 w-3" />
                 {isActive ? "Hoạt động" : status}
             </Badge>
-        );
-    };
+        )
+    }
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-[650px] bg-white backdrop-blur-xl shadow-2xl max-h-[90vh] overflow-y-auto hide-scrollbar">
-                <DialogHeader className="pb-4">
+            <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-hidden flex flex-col p-0 bg-white border-0 shadow-2xl">
+                {/* Clean Header */}
+                <div className="bg-primary-300 px-8 py-8">
                     <div className="flex items-center justify-between">
-                        <DialogTitle className="text-xl font-bold flex items-center text-primary-600">
-                            <div className="p-2 bg-primary-100 rounded-lg mr-3">
-                                <User className="h-5 w-5 text-primary-500" />
+                        <div className="flex items-center space-x-4">
+                            <div className="relative">
+                                <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-lg">
+                                    <User className="w-8 h-8 text-primary-300" />
+                                </div>
+                                <div className="absolute -top-1 -right-1 w-6 h-6 bg-yellow-400 rounded-full flex items-center justify-center">
+                                    <Sparkles className="w-3 h-3 text-white" />
+                                </div>
                             </div>
-                            Chi tiết tài khoản
-                        </DialogTitle>
+                            <div>
+                                <h1 className="text-3xl font-bold text-white mb-1">Chi tiết tài khoản</h1>
+                                <p className="text-white/80 text-lg">Xem thông tin chi tiết tài khoản người dùng</p>
+                            </div>
+                        </div>
                         {getStatusBadge(account.status, account.isBanned)}
                     </div>
 
-                    <div className="flex items-center justify-between text-sm bg-primary-50 p-3 rounded-lg border border-primary-100">
-                        <div className="flex items-center text-primary-600">
-                            <FileText className="mr-2 h-4 w-4" />
-                            <span>Mã tài khoản:</span>
-                            <span className="font-mono font-semibold ml-2">{account.accountId}</span>
-                        </div>
-                        {org?.createdDate && (
-                            <div className="flex items-center text-primary-500">
-                                <Calendar className="mr-1 h-4 w-4" />
-                                {format(new Date(org.createdDate), "dd/MM/yyyy HH:mm")}
+                    <div className="mt-6 bg-white/20 border border-white/30 rounded-xl p-4 shadow-md">
+                        <div className="flex items-center justify-between text-white">
+                            <div className="flex items-center">
+                                <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center mr-3">
+                                    <FileText className="w-5 h-5" />
+                                </div>
+                                <div>
+                                    <p className="text-white/80 text-sm">Mã tài khoản</p>
+                                    <p className="font-mono font-bold text-lg">{account.accountId}</p>
+                                </div>
                             </div>
-                        )}
+                            {org?.createdDate && (
+                                <div className="flex items-center text-white/80">
+                                    <Calendar className="mr-2 h-4 w-4" />
+                                    {format(new Date(org.createdDate), "dd/MM/yyyy HH:mm")}
+                                </div>
+                            )}
+                        </div>
                     </div>
-                </DialogHeader>
+                </div>
 
-                <ScrollArea className="flex-1 pr-4">
-                    <div className="space-y-5 py-2">
+                <ScrollArea className="flex-1 px-8 bg-gray-50">
+                    <div className="space-y-6 py-6">
                         {/* Account Information */}
-                        <Card className="border-primary-200 shadow-sm">
-                            <CardContent className="p-5">
-                                <h3 className="font-semibold text-base flex items-center mb-4 text-primary-600">
-                                    <div className="p-1.5 bg-primary-100 rounded-md mr-2">
-                                        <Info className="h-4 w-4 text-primary-500" />
-                                    </div>
-                                    Thông tin tài khoản
-                                </h3>
+                        <Card className="border-0 shadow-lg bg-white overflow-hidden">
+                            <CardContent className="p-0">
+                                <div className="bg-primary-200 p-6">
+                                    <h3 className="font-bold text-xl text-white flex items-center">
+                                        <div className="w-8 h-8 bg-white/30 rounded-lg flex items-center justify-center mr-3">
+                                            <Info className="w-5 h-5 text-white" />
+                                        </div>
+                                        Thông tin tài khoản
+                                    </h3>
+                                </div>
 
-                                <div className="grid grid-cols-2 gap-4 text-sm">
-                                    <div className="space-y-1">
-                                        <div className="flex items-center text-primary-400">
-                                            <User className="mr-1.5 h-4 w-4" />
-                                            <span>Họ tên</span>
+                                <div className="p-6 space-y-6">
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        {/* Full Name */}
+                                        <div className="group">
+                                            <div className="flex items-center space-x-3 mb-3">
+                                                <div className="w-10 h-10 bg-primary-200 rounded-xl flex items-center justify-center shadow-md group-hover:shadow-lg transition-all duration-300">
+                                                    <User className="w-5 h-5 text-white" />
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm font-medium text-gray-600">Họ tên</p>
+                                                    <p className="text-xs text-gray-400">Tên đầy đủ của người dùng</p>
+                                                </div>
+                                            </div>
+                                            <div className="bg-primary-100 border-2 border-primary-200 rounded-xl p-4 group-hover:shadow-md transition-all duration-300">
+                                                <p className="text-lg font-bold text-gray-800">{account.fullName}</p>
+                                            </div>
                                         </div>
-                                        <p className="font-semibold text-gray-900 pl-5">{account.fullName}</p>
-                                    </div>
 
-                                    <div className="space-y-1">
-                                        <div className="flex items-center text-primary-400">
-                                            <Mail className="mr-1.5 h-4 w-4" />
-                                            <span>Email</span>
+                                        {/* Email */}
+                                        <div className="group">
+                                            <div className="flex items-center space-x-3 mb-3">
+                                                <div className="w-10 h-10 bg-primary-300 rounded-xl flex items-center justify-center shadow-md group-hover:shadow-lg transition-all duration-300">
+                                                    <Mail className="w-5 h-5 text-white" />
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm font-medium text-gray-600">Email</p>
+                                                    <p className="text-xs text-gray-400">Địa chỉ email liên hệ</p>
+                                                </div>
+                                            </div>
+                                            <div className="bg-primary-100 border-2 border-primary-200 rounded-xl p-4 group-hover:shadow-md transition-all duration-300">
+                                                <p className="text-lg font-medium text-primary-600 hover:text-primary-500 cursor-pointer">
+                                                    {account.email}
+                                                </p>
+                                            </div>
                                         </div>
-                                        <p className="font-medium text-primary-600 pl-5 hover:text-primary-500 cursor-pointer">
-                                            {account.email}
-                                        </p>
-                                    </div>
 
-                                    <div className="space-y-1">
-                                        <div className="flex items-center text-primary-400">
-                                            <Shield className="mr-1.5 h-4 w-4" />
-                                            <span>Vai trò</span>
+                                        {/* Role */}
+                                        <div className="group">
+                                            <div className="flex items-center space-x-3 mb-3">
+                                                <div className="w-10 h-10 bg-primary-200 rounded-xl flex items-center justify-center shadow-md group-hover:shadow-lg transition-all duration-300">
+                                                    <Shield className="w-5 h-5 text-white" />
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm font-medium text-gray-600">Vai trò</p>
+                                                    <p className="text-xs text-gray-400">Quyền hạn trong hệ thống</p>
+                                                </div>
+                                            </div>
+                                            <div className="bg-primary-100 border-2 border-primary-200 rounded-xl p-4 group-hover:shadow-md transition-all duration-300">
+                                                <Badge className="bg-primary-200 text-white border-0 shadow-sm">{account.roleName}</Badge>
+                                            </div>
                                         </div>
-                                        <div className="pl-5">
-                                            <Badge className="bg-primary-200 text-primary-700 border-primary-300 hover:bg-primary-300">
-                                                {account.roleName}
-                                            </Badge>
-                                        </div>
-                                    </div>
 
-                                    <div className="space-y-1">
-                                        <div className="flex items-center text-primary-400">
-                                            <span>Trạng thái</span>
+                                        {/* Reference ID */}
+                                        <div className="group">
+                                            <div className="flex items-center space-x-3 mb-3">
+                                                <div className="w-10 h-10 bg-primary-300 rounded-xl flex items-center justify-center shadow-md group-hover:shadow-lg transition-all duration-300">
+                                                    <FileText className="w-5 h-5 text-white" />
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm font-medium text-gray-600">Mã tham chiếu</p>
+                                                    <p className="text-xs text-gray-400">ID tham chiếu hệ thống</p>
+                                                </div>
+                                            </div>
+                                            <div className="bg-primary-100 border-2 border-primary-200 rounded-xl p-4 group-hover:shadow-md transition-all duration-300">
+                                                <p className="font-mono text-sm text-primary-600 bg-white px-3 py-2 rounded border border-primary-200 inline-block">
+                                                    {account.referenceId}
+                                                </p>
+                                            </div>
                                         </div>
-                                        <p className="font-medium text-gray-700 pl-5">{account.status}</p>
-                                    </div>
-
-                                    <div className="space-y-1">
-                                        <div className="flex items-center text-primary-400">
-                                            <FileText className="mr-1.5 h-4 w-4" />
-                                            <span>Mã tham chiếu</span>
-                                        </div>
-                                        <p className="font-mono text-xs bg-primary-50 text-primary-600 px-2 py-1 rounded border border-primary-100 ml-5 inline-block">
-                                            {account.referenceId}
-                                        </p>
                                     </div>
                                 </div>
                             </CardContent>
@@ -136,81 +183,142 @@ const AccountDetailDialog = ({
 
                         {/* Organization Information */}
                         {org && (
-                            <Card className="border-primary-300 shadow-sm">
-                                <CardContent className="p-5">
-                                    <h3 className="font-semibold text-base flex items-center mb-4 text-primary-600">
-                                        <div className="p-1.5 bg-primary-200 rounded-md mr-2">
-                                            <Building2 className="h-4 w-4 text-primary-600" />
-                                        </div>
-                                        Thông tin tổ chức
-                                    </h3>
-
-                                    <div className="grid grid-cols-2 gap-4 text-sm">
-                                        <div className="space-y-1">
-                                            <div className="flex items-center text-primary-400">
-                                                <Building2 className="mr-1.5 h-4 w-4" />
-                                                <span>Tên tổ chức</span>
+                            <Card className="border-0 shadow-lg bg-white overflow-hidden">
+                                <CardContent className="p-0">
+                                    <div className="bg-primary-300 p-6">
+                                        <h3 className="font-bold text-xl text-white flex items-center">
+                                            <div className="w-8 h-8 bg-white/30 rounded-lg flex items-center justify-center mr-3">
+                                                <Building2 className="w-5 h-5 text-white" />
                                             </div>
-                                            <p className="font-semibold text-gray-900 pl-5">{org.name}</p>
-                                        </div>
+                                            Thông tin tổ chức
+                                        </h3>
+                                    </div>
 
-                                        <div className="space-y-1">
-                                            <div className="flex items-center text-primary-400">
-                                                <span>Mã tổ chức</span>
-                                            </div>
-                                            <p className="font-mono text-xs bg-primary-100 text-primary-600 px-2 py-1 rounded border border-primary-200 ml-5 inline-block">
-                                                {org.organizationCode}
-                                            </p>
-                                        </div>
-
-                                        <div className="space-y-1">
-                                            <div className="flex items-center text-primary-400">
-                                                <Mail className="mr-1.5 h-4 w-4" />
-                                                <span>Email liên hệ</span>
-                                            </div>
-                                            <p className="font-medium text-primary-600 pl-5 hover:text-primary-500 cursor-pointer">
-                                                {org.contactEmail}
-                                            </p>
-                                        </div>
-
-                                        <div className="space-y-1">
-                                            <div className="flex items-center text-primary-400">
-                                                <Phone className="mr-1.5 h-4 w-4" />
-                                                <span>Điện thoại</span>
-                                            </div>
-                                            <p className="font-medium text-gray-700 pl-5">{org.contactPhone}</p>
-                                        </div>
-
-                                        <div className="space-y-1">
-                                            <div className="flex items-center text-primary-400">
-                                                <FileText className="mr-1.5 h-4 w-4" />
-                                                <span>Mã số thuế</span>
-                                            </div>
-                                            <p className="font-medium text-gray-700 pl-5">
-                                                {org.taxId || <span className="text-gray-400 italic">Không có</span>}
-                                            </p>
-                                        </div>
-
-                                        {org.description && (
-                                            <div className="col-span-2 space-y-1 pt-2">
-                                                <div className="flex items-center text-primary-400">
-                                                    <Info className="mr-1.5 h-4 w-4" />
-                                                    <span>Mô tả</span>
+                                    <div className="p-6 space-y-6">
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            {/* Organization Name */}
+                                            <div className="group">
+                                                <div className="flex items-center space-x-3 mb-3">
+                                                    <div className="w-10 h-10 bg-primary-200 rounded-xl flex items-center justify-center shadow-md group-hover:shadow-lg transition-all duration-300">
+                                                        <Building2 className="w-5 h-5 text-white" />
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-sm font-medium text-gray-600">Tên tổ chức</p>
+                                                        <p className="text-xs text-gray-400">Tên công ty/tổ chức</p>
+                                                    </div>
                                                 </div>
-                                                <div className="bg-primary-50 p-3 rounded-lg border border-primary-100 ml-5">
-                                                    <p className="text-sm text-gray-700 leading-relaxed">{org.description}</p>
+                                                <div className="bg-primary-100 border-2 border-primary-200 rounded-xl p-4 group-hover:shadow-md transition-all duration-300">
+                                                    <p className="text-lg font-bold text-gray-800">{org.name}</p>
                                                 </div>
                                             </div>
-                                        )}
+
+                                            {/* Organization Code */}
+                                            <div className="group">
+                                                <div className="flex items-center space-x-3 mb-3">
+                                                    <div className="w-10 h-10 bg-primary-300 rounded-xl flex items-center justify-center shadow-md group-hover:shadow-lg transition-all duration-300">
+                                                        <FileText className="w-5 h-5 text-white" />
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-sm font-medium text-gray-600">Mã tổ chức</p>
+                                                        <p className="text-xs text-gray-400">Mã định danh tổ chức</p>
+                                                    </div>
+                                                </div>
+                                                <div className="bg-primary-100 border-2 border-primary-200 rounded-xl p-4 group-hover:shadow-md transition-all duration-300">
+                                                    <p className="font-mono text-sm text-primary-600 bg-white px-3 py-2 rounded border border-primary-200 inline-block">
+                                                        {org.organizationCode}
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            {/* Contact Email */}
+                                            <div className="group">
+                                                <div className="flex items-center space-x-3 mb-3">
+                                                    <div className="w-10 h-10 bg-primary-200 rounded-xl flex items-center justify-center shadow-md group-hover:shadow-lg transition-all duration-300">
+                                                        <Mail className="w-5 h-5 text-white" />
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-sm font-medium text-gray-600">Email liên hệ</p>
+                                                        <p className="text-xs text-gray-400">Email chính của tổ chức</p>
+                                                    </div>
+                                                </div>
+                                                <div className="bg-primary-100 border-2 border-primary-200 rounded-xl p-4 group-hover:shadow-md transition-all duration-300">
+                                                    <p className="text-lg font-medium text-primary-600 hover:text-primary-500 cursor-pointer">
+                                                        {org.contactEmail}
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            {/* Contact Phone */}
+                                            <div className="group">
+                                                <div className="flex items-center space-x-3 mb-3">
+                                                    <div className="w-10 h-10 bg-primary-300 rounded-xl flex items-center justify-center shadow-md group-hover:shadow-lg transition-all duration-300">
+                                                        <Phone className="w-5 h-5 text-white" />
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-sm font-medium text-gray-600">Điện thoại</p>
+                                                        <p className="text-xs text-gray-400">Số điện thoại liên hệ</p>
+                                                    </div>
+                                                </div>
+                                                <div className="bg-primary-100 border-2 border-primary-200 rounded-xl p-4 group-hover:shadow-md transition-all duration-300">
+                                                    <p className="text-lg font-medium text-gray-700">{org.contactPhone}</p>
+                                                </div>
+                                            </div>
+
+                                            {/* Tax ID */}
+                                            <div className="group col-span-2">
+                                                <div className="flex items-center space-x-3 mb-3">
+                                                    <div className="w-10 h-10 bg-primary-200 rounded-xl flex items-center justify-center shadow-md group-hover:shadow-lg transition-all duration-300">
+                                                        <FileText className="w-5 h-5 text-white" />
+                                                    </div>
+                                                    <div>
+                                                        <p className="text-sm font-medium text-gray-600">Mã số thuế</p>
+                                                        <p className="text-xs text-gray-400">Mã số thuế doanh nghiệp</p>
+                                                    </div>
+                                                </div>
+                                                <div className="bg-primary-100 border-2 border-primary-200 rounded-xl p-4 group-hover:shadow-md transition-all duration-300">
+                                                    <p className="text-lg font-medium text-gray-700">
+                                                        {org.taxId || <span className="text-gray-400 italic">Không có</span>}
+                                                    </p>
+                                                </div>
+                                            </div>
+
+                                            {/* Description */}
+                                            {org.description && (
+                                                <div className="group col-span-2">
+                                                    <div className="flex items-center space-x-3 mb-3">
+                                                        <div className="w-10 h-10 bg-primary-300 rounded-xl flex items-center justify-center shadow-md group-hover:shadow-lg transition-all duration-300">
+                                                            <Info className="w-5 h-5 text-white" />
+                                                        </div>
+                                                        <div>
+                                                            <p className="text-sm font-medium text-gray-600">Mô tả tổ chức</p>
+                                                            <p className="text-xs text-gray-400">Thông tin bổ sung về tổ chức</p>
+                                                        </div>
+                                                    </div>
+                                                    <div className="bg-primary-100 border-2 border-primary-200 rounded-xl p-6 group-hover:shadow-md transition-all duration-300">
+                                                        <p className="text-gray-700 leading-relaxed text-base">{org.description}</p>
+                                                    </div>
+                                                </div>
+                                            )}
+                                        </div>
                                     </div>
                                 </CardContent>
                             </Card>
                         )}
                     </div>
                 </ScrollArea>
+
+                {/* Clean Footer */}
+                <div className="bg-white border-t border-gray-200 px-8 py-4">
+                    <div className="flex items-center justify-center">
+                        <div className="flex items-center space-x-2 text-gray-500">
+                            <Sparkles className="w-4 h-4" />
+                            <span className="text-sm">Thông tin tài khoản được hiển thị đầy đủ</span>
+                        </div>
+                    </div>
+                </div>
             </DialogContent>
         </Dialog>
-    );
-};
+    )
+}
 
-export default AccountDetailDialog;
+export default AccountDetailDialog

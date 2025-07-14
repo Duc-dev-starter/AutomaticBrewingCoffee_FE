@@ -16,6 +16,15 @@ import {
     HardDrive,
     User,
     type LucideIcon,
+    Workflow,
+    CalendarCheck,
+    ListChecks,
+    Building2,
+    PackageCheck,
+    Tags,
+    List,
+    MapPin,
+    UtensilsCrossed,
 } from "lucide-react"
 import {
     SidebarGroup,
@@ -77,7 +86,7 @@ const menuSections: MenuSection[] = [
     {
         title: "Quản lý sản xuất",
         items: [
-            { title: "Quản lý quy trình", url: Path.MANAGE_WORKFLOWS, icon: Layers },
+            { title: "Quản lý quy trình", url: Path.MANAGE_WORKFLOWS, icon: Workflow },
         ],
     },
     {
@@ -106,21 +115,21 @@ const menuSections: MenuSection[] = [
     {
         title: "Quản lý đồng bộ",
         items: [
-            { title: "Quản lý đồng bộ event", url: Path.MANAGE_SYNC_EVENT, icon: DollarSign },
-            { title: "Quản lý đồng bộ task", url: Path.MANAGE_SYNC_TASKS, icon: User },
+            { title: "Quản lý đồng bộ event", url: Path.MANAGE_SYNC_EVENT, icon: CalendarCheck },
+            { title: "Quản lý đồng bộ task", url: Path.MANAGE_SYNC_TASKS, icon: ListChecks },
         ],
     },
     {
         title: "Quản lý kinh doanh",
         items: [
-            { title: "Quản lý tổ chức", url: Path.MANAGE_ORGANIZATIONS, icon: DollarSign },
+            { title: "Quản lý tổ chức", url: Path.MANAGE_ORGANIZATIONS, icon: Building2 },
             { title: "Quản lý tài khoản", url: Path.MANAGE_ACCOUNTS, icon: User },
-            { title: "Quản lý sản phẩm", url: Path.MANAGE_PRODUCTS, icon: Box },
-            { title: "Quản lý danh mục", url: Path.MANAGE_CATEGORIES, icon: Box },
+            { title: "Quản lý sản phẩm", url: Path.MANAGE_PRODUCTS, icon: PackageCheck },
+            { title: "Quản lý danh mục", url: Path.MANAGE_CATEGORIES, icon: Tags },
             { title: "Quản lý cửa hàng", url: Path.MANAGE_STORES, icon: Store },
-            { title: "Quản lý menu", url: Path.MANAGE_MENUS, icon: Menu },
-            { title: "Quản lý location", url: Path.MANAGE_LOCATION_TYPES, icon: Menu },
-            { title: "Quản lý loại nguyên liệu", url: Path.MANAGE_INGREDIENT_TYPE, icon: Menu },
+            { title: "Quản lý menu", url: Path.MANAGE_MENUS, icon: List },
+            { title: "Quản lý location", url: Path.MANAGE_LOCATION_TYPES, icon: MapPin },
+            { title: "Quản lý loại nguyên liệu", url: Path.MANAGE_INGREDIENT_TYPE, icon: UtensilsCrossed },
         ],
     },
 ]

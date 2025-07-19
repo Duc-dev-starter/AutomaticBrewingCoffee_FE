@@ -637,7 +637,7 @@ const KioskDetailPage = () => {
                 onOpenChange={setIsOnplaceDialogOpen}
                 data={onplaceData}
                 loading={loadingOnplace}
-                deviceName={selectedKioskDeviceForOnplace?.device.name || ""}
+                deviceName={selectedKioskDeviceForOnplace?.status || ""}
             />
 
             <Dialog open={isOnhubDialogOpen} onOpenChange={setIsOnhubDialogOpen}>
@@ -658,10 +658,6 @@ const KioskDetailPage = () => {
                             <div>
                                 <h4 className="font-medium">Trạng thái</h4>
                                 <p>{onhubData.status}</p>
-                            </div>
-                            <div>
-                                <h4 className="font-medium">Thời gian cập nhật trạng thái</h4>
-                                <p>{format(new Date(onhubData.statusUpdatedTime), "dd/MM/yyyy HH:mm")}</p>
                             </div>
                             <div>
                                 <h4 className="font-medium">Trạng thái kết nối</h4>

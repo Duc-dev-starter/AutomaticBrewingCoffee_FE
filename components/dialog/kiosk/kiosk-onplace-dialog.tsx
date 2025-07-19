@@ -12,6 +12,10 @@ interface OnplaceDialogProps {
     deviceName: string
 }
 
+const formatKey = (key: string) => {
+    return key.replace(/([a-z])([A-Z])/g, '$1 $2').replace(/([A-Z])([A-Z][a-z])/g, '$1 $2');
+};
+
 export const OnplaceDialog = ({ isOpen, onOpenChange, data, loading, deviceName }: OnplaceDialogProps) => {
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -29,33 +33,31 @@ export const OnplaceDialog = ({ isOpen, onOpenChange, data, loading, deviceName 
                     </div>
                 ) : data ? (
                     <div className="space-y-4">
-                        <div>
-                            <h4 className="font-medium">Device ID</h4>
-                            <p>{data.deviceId}</p>
-                        </div>
-                        <div>
-                            <h4 className="font-medium">Device Model ID</h4>
-                            <p>{data.deviceModelId}</p>
-                        </div>
-                        <div>
-                            <h4 className="font-medium">Serial Number</h4>
-                            <p>{data.serialNumber}</p>
-                        </div>
-                        <div>
-                            <h4 className="font-medium">Name</h4>
-                            <p>{data.name}</p>
-                        </div>
-                        <div>
-                            <h4 className="font-medium">Description</h4>
-                            <p>{data.description}</p>
-                        </div>
+
                         <div>
                             <h4 className="font-medium">Working Status</h4>
                             <p>{data.workingStatus}</p>
                         </div>
                         <div>
                             <h4 className="font-medium">Status</h4>
-                            <pre>{JSON.stringify(data.status, null, 2)}</pre>
+                            {data.status ? (
+                                <div className="space-y-2">
+                                    <p><strong>Current System Status:</strong> {data.status.CurrentSystemStatus}</p>
+                                    <div>
+                                        <h5 className="font-medium mt-2">Device Status Details:</h5>
+                                        <ul className="list-disc pl-5 space-y-1">
+                                            {Object.entries(data.status as Record<string, any>).map(([key, value]) => (
+                                                <li key={key}>
+                                                    <span className="font-medium">{formatKey(key)}:</span> {String(value)}
+                                                </li>
+                                            ))}
+
+                                        </ul>
+                                    </div>
+                                </div>
+                            ) : (
+                                <p>Không có thông tin trạng thái.</p>
+                            )}
                         </div>
                     </div>
                 ) : (

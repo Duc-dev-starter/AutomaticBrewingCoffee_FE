@@ -37,7 +37,7 @@ const getWorkingStatusBadge = (status: string) => {
 export const OnplaceDialog = ({ isOpen, onOpenChange, data, loading, deviceName }: OnplaceDialogProps) => {
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-hidden flex flex-col p-0 bg-white border-0 shadow-2xl">
+            <DialogContent className="sm:max-w-[800px] max-h-[90vh] flex flex-col p-0 bg-white border-0 shadow-2xl">
                 {/* Beautiful Header */}
                 <div className="bg-primary-300 px-8 py-8">
                     <div className="flex items-center justify-between">
@@ -84,37 +84,8 @@ export const OnplaceDialog = ({ isOpen, onOpenChange, data, loading, deviceName 
                         </div>
                     </div>
                 ) : data ? (
-                    <ScrollArea className="flex-1 px-8 bg-gray-50">
+                    <ScrollArea className="flex-1 px-8 bg-gray-50 overflow-y-auto hide-scrollbar">
                         <div className="space-y-6 py-6">
-                            {/* Working Status Card */}
-                            <Card className="border-0 shadow-lg bg-white overflow-hidden">
-                                <CardContent className="p-0">
-                                    <div className="bg-primary-200 p-6">
-                                        <h3 className="font-bold text-xl text-white flex items-center">
-                                            <div className="w-8 h-8 bg-white/30 rounded-lg flex items-center justify-center mr-3">
-                                                <Activity className="w-5 h-5 text-white" />
-                                            </div>
-                                            Trạng thái hoạt động
-                                        </h3>
-                                    </div>
-                                    <div className="p-6">
-                                        <div className="group">
-                                            <div className="flex items-center space-x-3 mb-3">
-                                                <div className="w-10 h-10 bg-primary-200 rounded-xl flex items-center justify-center shadow-md group-hover:shadow-lg transition-all duration-300">
-                                                    <Activity className="w-5 h-5 text-white" />
-                                                </div>
-                                                <div>
-                                                    <p className="text-sm font-medium text-gray-600">Trạng thái làm việc</p>
-                                                    <p className="text-xs text-gray-400">Tình trạng hoạt động hiện tại</p>
-                                                </div>
-                                            </div>
-                                            <div className="bg-primary-100 border-2 border-primary-200 rounded-xl p-4 group-hover:shadow-md transition-all duration-300">
-                                                <p className="text-lg font-bold text-gray-800">{data.workingStatus}</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </CardContent>
-                            </Card>
 
                             {/* Device Status Details Card */}
                             {data.status && (
@@ -157,7 +128,7 @@ export const OnplaceDialog = ({ isOpen, onOpenChange, data, loading, deviceName 
                                                     </div>
                                                     Thông số chi tiết
                                                 </h4>
-                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                                     {Object.entries(data.status as Record<string, any>)
                                                         .filter(([key]) => key !== "CurrentSystemStatus")
                                                         .map(([key, value]) => (

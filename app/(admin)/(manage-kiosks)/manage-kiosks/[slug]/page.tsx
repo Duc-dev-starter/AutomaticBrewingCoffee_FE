@@ -646,8 +646,7 @@ const KioskDetailPage = () => {
                 onOpenChange={setIsOnplaceDialogOpen}
                 data={onplaceData}
                 loading={loadingOnplace}
-                // @ts-ignore
-                deviceName={selectedKioskDeviceForOnplace || ""}
+                deviceName={selectedKioskDeviceForOnplace?.device?.name || ""}
             />
 
             <Dialog open={isOnhubDialogOpen} onOpenChange={setIsOnhubDialogOpen}>

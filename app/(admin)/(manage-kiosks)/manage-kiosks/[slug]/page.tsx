@@ -153,6 +153,7 @@ const KioskDetailPage = () => {
                 return
             }
             const data = await getOnplace(kiosk.kioskId, kioskDevice.device.deviceModelId)
+            console.log("Onplace data:", data)
             setOnplaceData(data)
         } catch (error) {
             const err = error as ErrorResponse

@@ -51,7 +51,6 @@ export const OnplaceDialog = ({ isOpen, onOpenChange, data, loading, deviceName 
                                                     <span className="font-medium">{formatKey(key)}:</span> {String(value)}
                                                 </li>
                                             ))}
-
                                         </ul>
                                     </div>
                                 </div>
@@ -59,6 +58,7 @@ export const OnplaceDialog = ({ isOpen, onOpenChange, data, loading, deviceName 
                                 <p>Không có thông tin trạng thái.</p>
                             )}
                         </div>
+
                     </div>
                 ) : (
                     <p>Không có thông tin OnPlace cho thiết bị này.</p>

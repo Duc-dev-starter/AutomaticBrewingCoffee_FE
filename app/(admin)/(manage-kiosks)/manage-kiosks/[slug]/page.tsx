@@ -152,9 +152,17 @@ const KioskDetailPage = () => {
                 setOnplaceData(null)
                 return
             }
-            const data = await getOnplace(kiosk.kioskId, kioskDevice.device.deviceModelId)
-            console.log("Onplace data:", data)
-            setOnplaceData(data)
+            const data = await getOnplace(kiosk.kioskId, kioskDevice.device.deviceModelId);
+            console.log("Onplace data:", data);
+
+            // @ts-ignore
+            if (Array.isArray(data.response.responseRequest) && data.response.responseRequest.length > 0) {
+                // @ts-ignore
+                setOnplaceData(data.response.responseRequest[0]);
+            } else {
+                setOnplaceData(null);
+            }
+
         } catch (error) {
             const err = error as ErrorResponse
             console.error("Error fetching onplace data:", error)

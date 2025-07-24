@@ -28,6 +28,7 @@ import { EBaseStatusViMap } from "@/enum/base"
 import { SearchInput } from "@/components/common/search-input"
 import { ErrorResponse } from "@/types/error"
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd'
+import EditPriceDialog from "@/components/dialog/menu/edit-price-in-menu"
 
 export type MenuDetailType = Menu & {
     menuProductMappings: MenuProductMapping[]
@@ -49,6 +50,7 @@ const MenuDetail = () => {
     const [pageSize, setPageSize] = useState(5);
     const [totalPages, setTotalPages] = useState(1);
     const [totalItems, setTotalItems] = useState(0);
+    const [editPriceDialogOpen, setEditPriceDialogOpen] = useState(false);
     const [columnVisibility, setColumnVisibility] = useState({
         image: true,
         name: true,
@@ -160,6 +162,11 @@ const MenuDetail = () => {
     const handleDeleteClick = (mapping: MenuProductMapping) => {
         setSelectedMapping(mapping);
         setDeleteProductDialogOpen(true);
+    };
+
+    const handleEditPrice = (mapping: MenuProductMapping) => {
+        setSelectedMapping(mapping);
+        setEditPriceDialogOpen(true);
     };
 
     const handleDragEnd = async (result: any) => {
@@ -448,7 +455,7 @@ const MenuDetail = () => {
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent align="end">
-                                {columns({ onDelete: handleDeleteClick, onOrderChange: () => { } }).map(
+                                {columns({ onDelete: handleDeleteClick, onOrderChange: () => { }, onEditPrice: handleEditPrice }).map(
                                     (column) =>
                                         column.enableHiding && (
                                             <DropdownMenuCheckboxItem
@@ -479,7 +486,7 @@ const MenuDetail = () => {
                             <Table>
                                 <TableHeader>
                                     <TableRow>
-                                        {columns({ onDelete: handleDeleteClick, onOrderChange: () => { } }).filter(
+                                        {columns({ onDelete: handleDeleteClick, onOrderChange: () => { }, onEditPrice: handleEditPrice }).filter(
                                             (column) => columnVisibility[column.id as keyof typeof columnVisibility]
                                         ).map((column) => (
                                             <TableHead key={column.id} className="text-center">
@@ -494,7 +501,7 @@ const MenuDetail = () => {
                                             {loading ? (
                                                 Array.from({ length: pageSize }).map((_, index) => (
                                                     <TableRow key={`skeleton-${index}`} className="animate-pulse">
-                                                        {columns({ onDelete: handleDeleteClick, onOrderChange: () => { } })
+                                                        {columns({ onDelete: handleDeleteClick, onOrderChange: () => { }, onEditPrice: handleEditPrice })
                                                             .filter((column) => columnVisibility[column.id as keyof typeof columnVisibility])
                                                             .map((column) => (
                                                                 <TableCell
@@ -529,7 +536,7 @@ const MenuDetail = () => {
                                                                 {...provided.draggableProps}
                                                                 {...provided.dragHandleProps}
                                                             >
-                                                                {columns({ onDelete: handleDeleteClick, onOrderChange: () => { } })
+                                                                {columns({ onDelete: handleDeleteClick, onOrderChange: () => { }, onEditPrice: handleEditPrice })
                                                                     .filter((column) => columnVisibility[column.id as keyof typeof columnVisibility])
                                                                     .map((column) => (
                                                                         <TableCell
@@ -584,6 +591,13 @@ const MenuDetail = () => {
                 onSuccess={handleAddProductSuccess}
                 menuId={menu.menuId}
                 existingProductIds={existingProductIds}
+            />
+            <EditPriceDialog
+                open={editPriceDialogOpen}
+                onOpenChange={setEditPriceDialogOpen}
+                mapping={selectedMapping}
+                menuId={menu.menuId}
+                onSuccess={fetchMenu}
             />
             <ConfirmDeleteDialog
                 open={deleteProductDialogOpen}

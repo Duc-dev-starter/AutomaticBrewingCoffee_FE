@@ -14,7 +14,6 @@ export interface Order {
     feeAmount: number;
     feeDescription: string;
     finalAmount: number;
-    invoiceId: string;
     orderType: EOrderType;
     paymentGateway: EPaymentGateway;
     sessionId: string;

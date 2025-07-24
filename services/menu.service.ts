@@ -45,6 +45,10 @@ export const addProductToMenu = async (payload: { menuId: string, productId: str
     return BaseService.post({ url: `${Api.MENUS}${Api.MENU_PRODUCTS}`, payload });
 }
 
+export const updateProductToMenu = async (menuId: string, productId: string, payload: { status: EBaseStatus, sellingPrice: string }) => {
+    return BaseService.put({ url: `${Api.MENUS}/${menuId}${Api.MENU_PRODUCTS}/${productId}`, payload });
+}
+
 export const removeProductFromMenu = async (menuId: string, productId: string) => {
     const response = await BaseService.delete({ url: `${Api.MENUS}/${menuId}${Api.MENU_PRODUCTS}/${productId}` })
     return response;

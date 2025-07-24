@@ -25,13 +25,13 @@ const initialFormData = {
 
 const DeviceTypeDialog = ({ open, onOpenChange, onSuccess, deviceType }: DeviceDialogProps) => {
     const { toast } = useToast();
-    const [loading, setLoading] = useState(false);
+    const [loading, setLoading] = useState<boolean>(false);
     const [formData, setFormData] = useState(initialFormData);
     const [focusedField, setFocusedField] = useState<string | null>(null);
     const [validFields, setValidFields] = useState<Record<string, boolean>>({});
     const nameInputRef = useRef<HTMLInputElement>(null);
-    const [statusDropdownOpen, setStatusDropdownOpen] = useState(false)
-    const [submitted, setSubmitted] = useState(false);
+    const [statusDropdownOpen, setStatusDropdownOpen] = useState<boolean>(false)
+    const [submitted, setSubmitted] = useState<boolean>(false);
     const [errors, setErrors] = useState<Record<string, string>>({});
 
 

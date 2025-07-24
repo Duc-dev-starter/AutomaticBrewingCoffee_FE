@@ -677,10 +677,6 @@ const KioskDetailPage = () => {
                                 <p>{format(new Date(onhubData.connectionStateUpdatedTime), "dd/MM/yyyy HH:mm")}</p>
                             </div>
                             <div>
-                                <h4 className="font-medium">Thời gian hoạt động cuối cùng</h4>
-                                <p>{format(new Date(onhubData.lastActivityTime), "dd/MM/yyyy HH:mm")}</p>
-                            </div>
-                            <div>
                                 <h4 className="font-medium">Số lượng tin nhắn từ cloud đến thiết bị</h4>
                                 <p>{onhubData.cloudToDeviceMessageCount}</p>
                             </div>

@@ -7,7 +7,6 @@ export interface Product {
     parentId: string;
     name: string;
     description: string;
-    isActive: boolean;
     size: EProductSize;
     type: EProductType;
     price: number;

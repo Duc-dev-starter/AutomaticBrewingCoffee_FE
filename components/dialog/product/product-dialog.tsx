@@ -36,7 +36,6 @@ const initialFormData = {
     price: "",
     imageBase64: "",
     imageUrl: "",
-    isActive: true,
     productCategoryId: "",
     productAttributes: [] as ProductAttribute[],
 };
@@ -169,7 +168,6 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                 price: product.price.toString(),
                 imageBase64: "",
                 imageUrl: product.imageUrl || "",
-                isActive: product.isActive,
                 productCategoryId: product.productCategoryId || "",
                 productAttributes: product.productAttributes || [],
             });
@@ -403,7 +401,6 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
             status: formData.status,
             price: formData.price,
             imageUrl: formData.imageUrl || formData.imageBase64,
-            isActive: formData.isActive,
             productCategoryId: formData.productCategoryId,
             productAttributes: formData.productAttributes,
         };
@@ -428,7 +425,6 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                 price: Number(formData.price),
                 imageBase64: formData.imageBase64 || undefined,
                 imageUrl: formData.imageUrl || undefined,
-                isActive: formData.isActive,
                 productCategoryId: formData.productCategoryId,
                 productAttributes: formData.productAttributes.length > 0 ? formData.productAttributes : undefined,
             };
@@ -766,22 +762,6 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                                 <Slash className="w-4 h-4 text-primary-300" />
                                 <label className="text-sm font-medium text-gray-700 asterisk">Hoạt Động</label>
                             </div>
-                            <Select
-                                value={formData.isActive.toString()}
-                                onValueChange={(value) => handleChange("isActive", value === "true")}
-                                disabled={loading}
-                            >
-                                <SelectTrigger className="h-12 text-sm px-4 border-2 bg-white/80 backdrop-blur-sm">
-                                    <SelectValue placeholder="Chọn trạng thái hoạt động" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <SelectItem value="true">Hoạt động</SelectItem>
-                                    <SelectItem value="false">Không hoạt động</SelectItem>
-                                </SelectContent>
-                            </Select>
-                            {submitted && errors.isActive && (
-                                <p className="text-red-500 text-xs mt-1">{errors.isActive}</p>
-                            )}
                         </div>
                         <div className="space-y-3">
                             <div className="flex items-center space-x-2 mb-2">

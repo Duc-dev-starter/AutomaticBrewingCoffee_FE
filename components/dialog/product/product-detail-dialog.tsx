@@ -3,7 +3,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
 import type { Product } from "@/interfaces/product"
 import { format } from "date-fns"
-import { EProductStatusViMap, EProductSizeViMap, EProductTypeViMap } from "@/enum/product"
+import { EProductStatusViMap, EProductTypeViMap } from "@/enum/product"
 import { formatCurrency } from "@/utils"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent } from "@/components/ui/card"
@@ -63,12 +63,12 @@ const ProductDetailDialog = ({ product, open, onOpenChange }: ProductDialogProps
                                 <Separator className="my-3" />
 
                                 <div className="grid grid-cols-2 gap-3 text-sm">
-                                    <div className="flex flex-col">
+                                    {/* <div className="flex flex-col">
                                         <span className="text-muted-foreground">Size</span>
                                         <Badge variant="outline" className="mt-1 w-fit">
                                             {EProductSizeViMap[product.size]}
                                         </Badge>
-                                    </div>
+                                    </div> */}
                                     <div className="flex flex-col">
                                         <span className="text-muted-foreground">Loại sản phẩm</span>
                                         <Badge variant="outline" className="mt-1 w-fit">
@@ -97,20 +97,6 @@ const ProductDetailDialog = ({ product, open, onOpenChange }: ProductDialogProps
                                     <div className="flex flex-col">
                                         <span className="text-muted-foreground">Giá</span>
                                         <span className="font-medium text-lg">{formatCurrency(product.price)}</span>
-                                    </div>
-                                    <div className="flex flex-col">
-                                        <span className="text-muted-foreground">Hoạt động</span>
-                                        <Badge
-                                            variant="outline"
-                                            className={clsx(
-                                                "mt-1 w-fit",
-                                                product.isActive
-                                                    ? "bg-green-100 text-green-800 border-green-200"
-                                                    : "bg-red-100 text-red-800 border-red-200",
-                                            )}
-                                        >
-                                            {product.isActive ? "Có" : "Không"}
-                                        </Badge>
                                     </div>
                                 </div>
                             </CardContent>

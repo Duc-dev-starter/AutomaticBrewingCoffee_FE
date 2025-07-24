@@ -1,4 +1,3 @@
-import { Badge } from "../ui/badge";
 import { Calendar } from "lucide-react";
 import { ColumnDef } from "@tanstack/react-table";
 import { Product } from "@/interfaces/product";
@@ -6,7 +5,6 @@ import { format } from "date-fns";
 import { EProductStatus, EProductStatusViMap, EProductTypeViMap } from "@/enum/product";
 import { formatCurrency } from "@/utils";
 import { ActionDropdown } from "../common";
-import { SizeBadge } from "./product-badge";
 import ProductFilterBadgesTable from "./product-filter-badges-table";
 
 // Cột cho bảng sản phẩm

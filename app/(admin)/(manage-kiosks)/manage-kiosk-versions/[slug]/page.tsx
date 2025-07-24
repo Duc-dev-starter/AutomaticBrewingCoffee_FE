@@ -446,11 +446,6 @@ const KioskVersionDetailPage = () => {
                                                 </Badge>
                                             </TableCell>
                                             <TableCell>
-                                                <Badge variant={item.product.isActive ? "default" : "outline"}>
-                                                    {item.product.isActive ? "Có" : "Không"}
-                                                </Badge>
-                                            </TableCell>
-                                            <TableCell>
                                                 {new Date(item.product.createdDate).toLocaleDateString("vi-VN", {
                                                     year: "numeric",
                                                     month: "2-digit",

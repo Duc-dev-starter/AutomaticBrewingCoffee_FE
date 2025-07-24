@@ -65,10 +65,6 @@ const OrderDetailDialog = ({ order, open, onOpenChange }: OrderDialogProps) => {
                                             {EOrderTypeViMap[order.orderType]}
                                         </Badge>
                                     </div>
-                                    <div className="flex flex-col">
-                                        <span className="text-muted-foreground">Mã hóa đơn</span>
-                                        <span className="font-medium">{order.invoiceId || "N/A"}</span>
-                                    </div>
                                 </div>
                             </CardContent>
                         </Card>

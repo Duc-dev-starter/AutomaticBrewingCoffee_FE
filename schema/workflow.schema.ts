@@ -25,6 +25,8 @@ const stepSchema = z.object({
     maxRetries: z.number().min(0),
     sequence: z.number().min(1),
     callbackWorkflowId: z.string().nullable().optional(),
+    callbackStepCode: z.string().optional().nullable(),
+    stepCode: z.string().min(1, "Step code là bắt buộc"),
     parameters: z.string().optional(),
     conditions: z.array(conditionSchema).optional(),
 })

@@ -340,7 +340,8 @@ const UpdateWorkflow = () => {
                 const numValue = Number(value)
                 currentStep.maxRetries = Number.isNaN(numValue) ? 0 : Math.max(0, numValue)
             } else if (field === "callbackStepCode") {
-                currentStep.callbackStepCode = value === "" ? null : value
+                currentStep.callbackStepCode = value === "" ? null : value;
+                console.log("Updated callbackStepCode:", currentStep.callbackStepCode);
             } else {
                 currentStep[field] = value
                 if (field === "callbackWorkflowId") {

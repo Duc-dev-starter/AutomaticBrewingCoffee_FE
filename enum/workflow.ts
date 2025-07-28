@@ -1,12 +1,14 @@
 export enum EWorkflowType {
     Activity = 'Activity',
-    Callback = 'Callback'
+    Callback = 'Callback',
+    Clean = 'Clean'
 }
 
 
 export const EWorkflowTypeViMap: Record<string, string> = {
     [EWorkflowType.Activity]: "Hoạt động",
     [EWorkflowType.Callback]: "Gọi lại",
+    [EWorkflowType.Clean]: "Dọn dẹp",
 };
 
 export enum EConditionName {

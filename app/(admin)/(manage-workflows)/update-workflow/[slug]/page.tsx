@@ -893,48 +893,50 @@ const UpdateWorkflow = () => {
                                 )}
                             </div>
 
-                            <div className="space-y-2">
-                                <Label htmlFor="productId" className="flex items-center">
-                                    Sản phẩm (Tùy chọn)
-                                </Label>
-                                <Select
-                                    value={formData.productId || ""}
-                                    onValueChange={(value) => handleChange("productId", value || null)}
-                                    disabled={loading || (loadingProducts && products.length === 0)}
-                                >
-                                    <SelectTrigger id="productId" className={errors.productId ? "border-red-500 focus-visible:ring-red-500" : ""}>
-                                        <SelectValue
-                                            placeholder={loadingProducts && products.length === 0 ? "Đang tải sản phẩm..." : "Chọn sản phẩm"}
-                                        />
-                                    </SelectTrigger>
-                                    <SelectContent id="product-scroll-content" className="max-h-[300px]">
-                                        <ScrollArea id="product-scroll-area" className="h-[200px]">
-                                            <InfiniteScroll
-                                                dataLength={products.length}
-                                                next={loadMoreProducts}
-                                                hasMore={hasMoreProducts && !loadingProducts}
-                                                loader={<div className="p-2 text-center text-sm">Đang tải thêm...</div>}
-                                                scrollableTarget="product-scroll-area"
-                                            >
-                                                {products.map((product) => (
-                                                    <SelectItem key={product.productId} value={product.productId}>
-                                                        {product.name}
-                                                    </SelectItem>
-                                                ))}
-                                                {!loadingProducts && products.length === 0 && (
-                                                    <div className="p-2 text-center text-sm text-gray-500">Không có sản phẩm.</div>
-                                                )}
-                                            </InfiniteScroll>
-                                        </ScrollArea>
-                                    </SelectContent>
-                                </Select>
-                                {errors.productId && (
-                                    <p className="text-red-500 text-sm flex items-center">
-                                        <AlertTriangle className="h-3 w-3 mr-1" />
-                                        {errors.productId[0]}
-                                    </p>
-                                )}
-                            </div>
+                            {formData.type === EWorkflowType.Activity && (
+                                <div className="space-y-2">
+                                    <Label htmlFor="productId" className="flex items-center">
+                                        Sản phẩm (Tùy chọn)
+                                    </Label>
+                                    <Select
+                                        value={formData.productId || ""}
+                                        onValueChange={(value) => handleChange("productId", value || null)}
+                                        disabled={loading || (loadingProducts && products.length === 0)}
+                                    >
+                                        <SelectTrigger id="productId" className={errors.productId ? "border-red-500 focus-visible:ring-red-500" : ""}>
+                                            <SelectValue
+                                                placeholder={loadingProducts && products.length === 0 ? "Đang tải sản phẩm..." : "Chọn sản phẩm"}
+                                            />
+                                        </SelectTrigger>
+                                        <SelectContent id="product-scroll-content" className="max-h-[300px]">
+                                            <ScrollArea id="product-scroll-area" className="h-[200px]">
+                                                <InfiniteScroll
+                                                    dataLength={products.length}
+                                                    next={loadMoreProducts}
+                                                    hasMore={hasMoreProducts && !loadingProducts}
+                                                    loader={<div className="p-2 text-center text-sm">Đang tải thêm...</div>}
+                                                    scrollableTarget="product-scroll-area"
+                                                >
+                                                    {products.map((product) => (
+                                                        <SelectItem key={product.productId} value={product.productId}>
+                                                            {product.name}
+                                                        </SelectItem>
+                                                    ))}
+                                                    {!loadingProducts && products.length === 0 && (
+                                                        <div className="p-2 text-center text-sm text-gray-500">Không có sản phẩm.</div>
+                                                    )}
+                                                </InfiniteScroll>
+                                            </ScrollArea>
+                                        </SelectContent>
+                                    </Select>
+                                    {errors.productId && (
+                                        <p className="text-red-500 text-sm flex items-center">
+                                            <AlertTriangle className="h-3 w-3 mr-1" />
+                                            {errors.productId[0]}
+                                        </p>
+                                    )}
+                                </div>
+                            )}
 
                             <div className="space-y-2">
                                 <Label htmlFor="description" className="flex items-center">

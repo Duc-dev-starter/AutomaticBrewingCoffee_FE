@@ -8,25 +8,24 @@ import { format } from "date-fns";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { Info, Calendar, FileText } from "lucide-react";
-import { SyncTask } from "@/interfaces/sync";
-
-interface SyncTaskDetailDialogProps {
-    syncTask: SyncTask | null;
-    open: boolean;
-    onOpenChange: (open: boolean) => void;
-}
+import { Info, Calendar, FileText, Ticket, MonitorSmartphone, CheckCircle } from "lucide-react";
+import { SyncTaskDialogProps } from "@/types/dialog";
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
+import { InfoField } from "@/components/common";
 
 const SyncTaskDetailDialog = ({
     syncTask,
     open,
     onOpenChange,
-}: SyncTaskDetailDialogProps) => {
+}: SyncTaskDialogProps) => {
     if (!syncTask) return null;
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-hidden flex flex-col">
+                <DialogTitle asChild>
+                    <VisuallyHidden>Chi tiết</VisuallyHidden>
+                </DialogTitle>
                 <DialogHeader>
                     <DialogTitle className="text-xl font-bold flex items-center">
                         <FileText className="mr-2 h-5 w-5" />
@@ -54,19 +53,24 @@ const SyncTaskDetailDialog = ({
                                     Thông tin tác vụ
                                 </h3>
                                 <div className="grid grid-cols-2 gap-3 text-sm">
-                                    <div className="flex flex-col">
-                                        <span className="text-muted-foreground">Mã sự kiện</span>
-                                        <span className="font-medium">{syncTask.syncEventId}</span>
-                                    </div>
-                                    <div className="flex flex-col">
-                                        <span className="text-muted-foreground">Mã kiosk</span>
-                                        <span className="font-medium">{syncTask.kioskId}</span>
-                                    </div>
-                                    <div className="flex flex-col">
-                                        <span className="text-muted-foreground">Trạng thái</span>
-                                        <Badge className={syncTask.isSynced ? "bg-green-500" : "bg-red-500"}>
-                                            {syncTask.isSynced ? "Đã đồng bộ" : "Chưa đồng bộ"}
-                                        </Badge>
+                                    <InfoField
+                                        label="Mã sự kiện"
+                                        value={syncTask.syncEventId}
+                                        icon={<Ticket className="w-4 h-4 text-muted-foreground" />}
+                                    />
+                                    <InfoField
+                                        label="Mã kiosk"
+                                        value={syncTask.kioskId}
+                                        icon={<MonitorSmartphone className="w-4 h-4 text-muted-foreground" />}
+                                    />
+                                    <div className="flex items-start gap-2 col-span-2">
+                                        <CheckCircle className="w-4 h-4 text-muted-foreground mt-1" />
+                                        <div>
+                                            <div className="text-sm text-muted-foreground">Trạng thái</div>
+                                            <Badge className={syncTask.isSynced ? "bg-green-500" : "bg-red-500"}>
+                                                {syncTask.isSynced ? "Đã đồng bộ" : "Chưa đồng bộ"}
+                                            </Badge>
+                                        </div>
                                     </div>
                                 </div>
                             </CardContent>

@@ -31,6 +31,7 @@ import { ProductFilter } from "@/components/manage-products/filter";
 import { FilterBadges } from "@/components/manage-products/filter-badges";
 import { ErrorResponse } from "@/types/error";
 import { useDebounce, useProducts, useToast } from "@/hooks";
+import { create } from "domain";
 const ProductDialog = React.lazy(() => import("@/components/dialog/product").then(module => ({ default: module.ProductDialog })));
 const ProductDetailDialog = React.lazy(() => import("@/components/dialog/product").then(module => ({ default: module.ProductDetailDialog })));
 const ConfirmDeleteDialog = React.lazy(() => import("@/components/common").then(module => ({ default: module.ConfirmDeleteDialog })));
@@ -41,7 +42,7 @@ const ManageProducts = () => {
     const [currentPage, setCurrentPage] = useState(1);
     const [sorting, setSorting] = useState<SortingState>([{ id: "createdDate", desc: true }]);
     const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-    const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+    const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({ createdDate: false, updatedDate: false });
 
     const [statusFilter, setStatusFilter] = useState<string>("");
     const [productTypeFilter, setProductTypeFilter] = useState<string>("");

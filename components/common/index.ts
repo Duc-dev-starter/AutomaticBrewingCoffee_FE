@@ -12,6 +12,8 @@ import { ParametersDisplay } from './parameter-display';
 import FunctionParameterEditor from './function-parameter-editor';
 import ConfirmBanUnbanDialog from "./confirm-ban-or-ban-alert";
 import CustomFallback from './custom-fallback';
+import { InfoField } from './info-field';
+import { NotificationBell } from './notification';
 
 
 export {
@@ -28,5 +30,7 @@ export {
     Pagination,
     BaseFilterBadgesTable,
     ConfirmBanUnbanDialog,
-    CustomFallback
+    CustomFallback,
+    InfoField,
+    NotificationBell
 }

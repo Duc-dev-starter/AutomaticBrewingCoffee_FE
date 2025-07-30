@@ -1,13 +1,13 @@
 "use client"
 
 import { Loader2, Monitor, Activity, CheckCircle, AlertCircle, Info, Sparkles, Cpu } from "lucide-react"
-import { Dialog, DialogContent } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 
 interface OnplaceDialogProps {
-    isOpen: boolean
+    open: boolean
     onOpenChange: (open: boolean) => void
     data: any | null
     loading: boolean
@@ -15,7 +15,9 @@ interface OnplaceDialogProps {
 }
 
 const formatKey = (key: string) => {
-    return key.replace(/([a-z])([A-Z])/g, "$1 $2").replace(/([A-Z])([A-Z][a-z])/g, "$1 $2")
+    return key
+        .replace(/([a-z])([A-Z])/g, "$1 $2")
+        .replace(/([A-Z])([A-Z][a-z])/g, "$1 $2")
 }
 
 const getWorkingStatusBadge = (status: string) => {
@@ -34,11 +36,14 @@ const getWorkingStatusBadge = (status: string) => {
     )
 }
 
-export const OnplaceDialog = ({ isOpen, onOpenChange, data, loading, deviceName }: OnplaceDialogProps) => {
+export const OnplaceDialog = ({ open, onOpenChange, data, loading, deviceName }: OnplaceDialogProps) => {
     return (
-        <Dialog open={isOpen} onOpenChange={onOpenChange}>
+        <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-[800px] max-h-[90vh] flex flex-col p-0 bg-white border-0 shadow-2xl">
-                {/* Beautiful Header */}
+                <DialogTitle asChild>
+                    <VisuallyHidden>Chi tiết</VisuallyHidden>
+                </DialogTitle>
+                {/* Header */}
                 <div className="bg-primary-300 px-8 py-8">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-4">
@@ -73,6 +78,7 @@ export const OnplaceDialog = ({ isOpen, onOpenChange, data, loading, deviceName 
                     </div>
                 </div>
 
+                {/* Body */}
                 {loading ? (
                     <div className="flex-1 flex items-center justify-center p-12 bg-gray-50">
                         <div className="text-center">
@@ -86,8 +92,7 @@ export const OnplaceDialog = ({ isOpen, onOpenChange, data, loading, deviceName 
                 ) : data ? (
                     <ScrollArea className="flex-1 px-8 bg-gray-50 overflow-y-auto hide-scrollbar">
                         <div className="space-y-6 py-6">
-
-                            {/* Device Status Details Card */}
+                            {/* Device Status Details */}
                             {data.status && (
                                 <Card className="border-0 shadow-lg bg-white overflow-hidden">
                                     <CardContent className="p-0">
@@ -120,7 +125,7 @@ export const OnplaceDialog = ({ isOpen, onOpenChange, data, loading, deviceName 
                                                 </div>
                                             )}
 
-                                            {/* Other Status Details */}
+                                            {/* Other Status */}
                                             <div className="space-y-4">
                                                 <h4 className="font-semibold text-gray-700 text-lg flex items-center">
                                                     <div className="w-6 h-6 bg-primary-200 rounded-lg flex items-center justify-center mr-2">
@@ -165,16 +170,6 @@ export const OnplaceDialog = ({ isOpen, onOpenChange, data, loading, deviceName 
                         </div>
                     </div>
                 )}
-
-                {/* Clean Footer */}
-                <div className="bg-white border-t border-gray-200 px-8 py-4">
-                    <div className="flex items-center justify-center">
-                        <div className="flex items-center space-x-2 text-gray-500">
-                            <Sparkles className="w-4 h-4" />
-                            <span className="text-sm">Thông tin OnPlace được cập nhật theo thời gian thực</span>
-                        </div>
-                    </div>
-                </div>
             </DialogContent>
         </Dialog>
     )

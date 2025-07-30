@@ -14,9 +14,11 @@ import { HubConnectionState } from "@microsoft/signalr";
 import { logout } from "@/services/auth.service";
 import { scheduleTokenRefresh } from "@/utils/cookie";
 import Cookies from 'js-cookie'
+import { NotificationBell } from "@/components/common";
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
     const { toast } = useToast();
+    const [unreadCount, setUnreadCount] = useState<number>(3)
     useEffect(() => {
         registerToast(toast);
     }, [toast]);
@@ -26,12 +28,23 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
     useEffect(() => {
         startConnection();
-        const handler = (data: any) => {
+        const handleForceLogout = (data: any) => {
             console.log("Logout:", data);
             logout();
         };
-        startConnection();
-        on("ForceLogout", handler);
+
+        const handleReceiveNotification = (notification: any) => {
+            console.log("New Notification:", notification);
+            toast({
+                title: notification.title || "Thông báo mới",
+                description: notification.message || "Bạn có thông báo mới",
+            });
+            // Tăng số lượng chưa đọc nếu cần
+            setUnreadCount(prev => prev + 1);
+        };
+
+        on("ForceLogout", handleForceLogout);
+        on("ReceiveNotification", handleReceiveNotification);
 
         if (connection) {
             setConnectionState(connection.state);
@@ -66,7 +79,8 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
             return () => {
                 clearInterval(interval);
-                off("ForceLogout", handler);
+                off("ForceLogout", handleForceLogout);
+                off("ReceiveNotification", handleReceiveNotification);
             };
         } else {
             setConnectionState(null);
@@ -88,6 +102,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         return null;
     }
 
+
     return (
         <SidebarProvider>
             <AdminSidebar />
@@ -98,7 +113,16 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                         <Separator orientation="vertical" className="mr-2 h-4" />
                         <div className="ml-2">{renderConnectionState()}</div>
                     </div>
-                    <AdminSearchbar />
+
+                    {/* Searchbar takes up remaining space */}
+                    <div className="flex-1">
+                        <AdminSearchbar />
+                    </div>
+
+                    {/* Notification bell positioned at the far right */}
+                    <div className="px-4">
+                        <NotificationBell />
+                    </div>
                 </header>
                 {children}
             </SidebarInset>

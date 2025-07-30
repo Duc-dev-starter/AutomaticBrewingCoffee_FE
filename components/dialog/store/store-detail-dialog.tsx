@@ -1,159 +1,145 @@
 "use client"
 
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog"
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Separator } from "@/components/ui/separator"
-import { Store, Building2, Phone, MapPin, FileText, Info, Calendar, Users, Tag, Laptop } from 'lucide-react'
-import clsx from "clsx"
-import { getBaseStatusColor } from "@/utils/color"
-import { EBaseStatusViMap } from "@/enum/base"
+import { FileText, Info, MapPin, Phone, Tag, Building2, Laptop, Users, MonitorSmartphone, Package, CalendarDays, Monitor, Shield } from "lucide-react"
 import type { StoreDialogProps } from "@/types/dialog"
+import { EBaseStatusViMap } from "@/enum/base"
+import { getBaseStatusColor } from "@/utils/color"
+import { InfoField } from "@/components/common"
+import clsx from "clsx"
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden"
 
 const StoreDetailDialog = ({ store, open, onOpenChange }: StoreDialogProps) => {
     if (!store) return null
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-hidden flex flex-col">
-                <DialogHeader>
+            <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-hidden flex flex-col p-0 bg-white rounded-lg">
+                <DialogTitle asChild>
+                    <VisuallyHidden>Chi tiết</VisuallyHidden>
+                </DialogTitle>
+                {/* Header */}
+                <div className="bg-primary-100 px-8 py-6 border-b border-gray-200">
                     <div className="flex items-center justify-between">
-                        <DialogTitle className="text-xl font-bold flex items-center">
-                            <Store className="mr-2 h-5 w-5" />
-                            Chi tiết cửa hàng
-                        </DialogTitle>
-                        <Badge className={clsx("mr-4", getBaseStatusColor(store.status))}>
+                        <div className="flex items-center space-x-4">
+                            <div className="w-16 h-16 bg-white rounded-xl flex items-center justify-center border border-primary-100">
+                                <MonitorSmartphone className="w-8 h-8 text-primary-500" />
+                            </div>
+                            <div>
+                                <h1 className="text-2xl font-semibold text-gray-800">Chi tiết cửa hàng</h1>
+                                <p className="text-gray-500 text-sm">Thông tin chi tiết của cửa hàng đang chọn</p>
+                            </div>
+                        </div>
+                        <Badge className={clsx("px-3 py-1", getBaseStatusColor(store.status))}>
+                            <FileText className="mr-1 h-3 w-3" />
                             {EBaseStatusViMap[store.status]}
                         </Badge>
                     </div>
-                    <div className="flex items-center justify-between text-sm text-muted-foreground mt-2">
-                        <div className="flex items-center">
-                            <FileText className="mr-1 h-4 w-4" />
-                            Mã cửa hàng: <span className="font-medium ml-1">{store.storeId}</span>
-                        </div>
-                    </div>
-                </DialogHeader>
+                </div>
 
-                <ScrollArea className="flex-1 overflow-y-auto pr-4 hide-scrollbar">
-                    <div className="space-y-6 py-2">
-                        {/* Thông tin cơ bản */}
-                        <Card>
-                            <CardContent className="p-4">
-                                <h3 className="font-semibold text-sm flex items-center mb-3">
-                                    <Info className="mr-2 h-4 w-4" />
-                                    Thông tin cơ bản
+                {/* Body */}
+                <ScrollArea className="flex-1 px-8 bg-white overflow-y-auto hide-scrollbar">
+                    <div className="space-y-6 py-6">
+                        {/* Store Info */}
+                        <Card className="border border-gray-100 shadow-sm">
+                            <CardContent className="p-6 space-y-6">
+                                <h3 className="text-lg font-semibold text-primary-600 mb-4 flex items-center">
+                                    <Info className="w-5 h-5 mr-2 text-primary-500" />
+                                    Thông tin cửa hàng
                                 </h3>
-                                <div className="grid grid-cols-1 gap-3 text-sm">
-                                    <div className="flex flex-col">
-                                        <span className="text-muted-foreground">Tên cửa hàng</span>
-                                        <span className="font-medium">{store.name || "Không có"}</span>
-                                    </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <InfoField
+                                        label="Tên cửa hàng"
+                                        value={store.name}
+                                        icon={<MonitorSmartphone className="w-4 h-4 text-primary-500" />} />
 
-                                    <div className="flex flex-col">
-                                        <span className="text-muted-foreground">Mô tả</span>
-                                        <span className="font-medium">{store.description || "Không có"}</span>
-                                    </div>
+                                    <InfoField
+                                        label="Số điện thoại"
+                                        value={store.contactPhone || "Không có"}
+                                        icon={<Phone className="w-4 h-4 text-primary-500" />} />
+                                    <InfoField
+                                        label="Địa chỉ"
+                                        value={store.locationAddress || "Không có"}
+                                        icon={<MapPin className="w-4 h-4 text-primary-500" />} />
+                                    <InfoField
+                                        label="Loại địa điểm"
+                                        value={store.locationType?.name || "Không có"}
+                                        icon={<Tag className="w-4 h-4 text-primary-500" />} />
+                                    <InfoField
+                                        label="Mô tả"
+                                        value={store.description || "Không có"}
+                                        icon={<Info className="w-4 h-4 text-primary-500" />}
+                                        className="col-span-2" />
                                 </div>
                             </CardContent>
                         </Card>
 
-                        {/* Thông tin liên hệ và địa chỉ */}
-                        <Card>
-                            <CardContent className="p-4">
-                                <h3 className="font-semibold text-sm flex items-center mb-3">
-                                    <MapPin className="mr-2 h-4 w-4" />
-                                    Thông tin liên hệ và địa chỉ
-                                </h3>
-                                <div className="grid grid-cols-1 gap-3 text-sm">
-                                    <div className="flex flex-col">
-                                        <span className="text-muted-foreground">Số điện thoại</span>
-                                        <div className="flex items-center mt-1">
-                                            <Phone className="h-3 w-3 mr-1 text-muted-foreground" />
-                                            <span className="font-medium">{store.contactPhone || "Không có"}</span>
-                                        </div>
+                        {/* Organization Info */}
+                        {store.organization && (
+                            <Card className="border border-gray-100 shadow-sm">
+                                <CardContent className="p-6 space-y-6">
+                                    <h3 className="text-lg font-semibold text-primary-600 mb-4 flex items-center">
+                                        <Building2 className="w-5 h-5 mr-2 text-primary-500" />
+                                        Thông tin tổ chức
+                                    </h3>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        <InfoField
+                                            label="Tên tổ chức"
+                                            value={store.organization.name || "Không có"}
+                                            icon={<Users className="w-4 h-4 text-primary-500" />} />
                                     </div>
+                                </CardContent>
+                            </Card>
+                        )}
 
-                                    <Separator className="my-1" />
-
-                                    <div className="flex flex-col">
-                                        <span className="text-muted-foreground">Địa chỉ</span>
-                                        <div className="flex items-start mt-1">
-                                            <MapPin className="h-3 w-3 mr-1 text-muted-foreground mt-1" />
-                                            <span className="font-medium">{store.locationAddress || "Không có"}</span>
-                                        </div>
-                                    </div>
-
-                                    <div className="flex flex-col">
-                                        <span className="text-muted-foreground">Loại địa điểm</span>
-                                        <div className="flex items-center mt-1">
-                                            <Tag className="h-3 w-3 mr-1 text-muted-foreground" />
-                                            <span className="font-medium">{store.locationType?.name || "Không có"}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        {/* Thông tin tổ chức */}
-                        <Card>
-                            <CardContent className="p-4">
-                                <h3 className="font-semibold text-sm flex items-center mb-3">
-                                    <Building2 className="mr-2 h-4 w-4" />
-                                    Thông tin tổ chức
-                                </h3>
-                                <div className="grid grid-cols-1 gap-3 text-sm">
-                                    <div className="flex flex-col">
-                                        <span className="text-muted-foreground">Tổ chức</span>
-                                        <div className="flex items-center mt-1">
-                                            <Users className="h-3 w-3 mr-1 text-muted-foreground" />
-                                            <span className="font-medium">{store.organization?.name || "Không có"}</span>
-                                        </div>
-                                    </div>
-                                </div>
-                            </CardContent>
-                        </Card>
-
-                        {/* Thông tin kiosk */}
+                        {/* Kiosk Info */}
                         {store.kiosk && store.kiosk.length > 0 && (
-                            <Card>
-                                <CardContent className="p-4">
-                                    <h3 className="font-semibold text-sm flex items-center mb-3">
-                                        <Laptop className="mr-2 h-4 w-4" />
+                            <Card className="border border-gray-100 shadow-sm">
+                                <CardContent className="p-6 space-y-6">
+                                    <h3 className="text-lg font-semibold text-primary-600 mb-4 flex items-center">
+                                        <Laptop className="w-5 h-5 mr-2 text-primary-500" />
                                         Thông tin kiosk ({store.kiosk.length})
                                     </h3>
-                                    <div className="space-y-3">
+                                    <div className="space-y-4">
                                         {store.kiosk.map((kiosk, index) => (
-                                            <div key={kiosk.kioskId} className="border rounded-md p-3">
-                                                <div className="flex justify-between items-start">
+                                            <div
+                                                key={kiosk.kioskId}
+                                                className="border rounded-lg p-4 space-y-2 bg-gray-50"
+                                            >
+                                                <div className="flex justify-between items-center">
                                                     <div>
-                                                        <div className="font-medium">Kiosk #{index + 1}</div>
+                                                        <div className="text-sm font-semibold">Kiosk #{index + 1}</div>
                                                         <div className="text-xs text-muted-foreground">ID: {kiosk.kioskId}</div>
                                                     </div>
-                                                    <Badge className={clsx(getBaseStatusColor(kiosk.status))}>
+                                                    <Badge className={`text-white ${getBaseStatusColor(kiosk.status)}`}>
                                                         {EBaseStatusViMap[kiosk.status]}
                                                     </Badge>
                                                 </div>
-                                                <Separator className="my-2" />
-                                                <div className="grid grid-cols-2 gap-2 text-xs">
-                                                    <div>
-                                                        <span className="text-muted-foreground">Vị trí:</span>
-                                                        <span className="ml-1">{kiosk.location || kiosk.position || "Không có"}</span>
-                                                    </div>
-                                                    <div>
-                                                        <span className="text-muted-foreground">Phiên bản:</span>
-                                                        <span className="ml-1">{kiosk.kioskVersion?.versionTitle || "Không có"}</span>
-                                                    </div>
-                                                    <div>
-                                                        <span className="text-muted-foreground">Ngày lắp đặt:</span>
-                                                        <span className="ml-1">
-                                                            {kiosk.installedDate ? new Date(kiosk.installedDate).toLocaleDateString() : "Không có"}
-                                                        </span>
-                                                    </div>
-                                                    <div>
-                                                        <span className="text-muted-foreground">Thiết bị:</span>
-                                                        <span className="ml-1">{kiosk.devices?.length || 0} thiết bị</span>
-                                                    </div>
+
+                                                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm pt-2">
+                                                    <InfoField
+                                                        label="Vị trí"
+                                                        icon={<MapPin className="w-4 h-4 text-muted-foreground" />}
+                                                        value={kiosk.location || kiosk.position || "Không có"} />
+                                                    <InfoField
+                                                        label="Phiên bản"
+                                                        icon={<Package className="w-4 h-4 text-muted-foreground" />}
+                                                        value={kiosk.kioskVersion?.versionTitle || "Không có"} />
+                                                    <InfoField
+                                                        label="Ngày lắp đặt"
+                                                        icon={<CalendarDays className="w-4 h-4 text-muted-foreground" />}
+                                                        value={
+                                                            kiosk.installedDate
+                                                                ? new Date(kiosk.installedDate).toLocaleDateString()
+                                                                : "Không có"
+                                                        } />
+                                                    <InfoField
+                                                        label="Thiết bị"
+                                                        icon={<Monitor className="w-4 h-4 text-muted-foreground" />}
+                                                        value={`${kiosk.devices?.length || 0} thiết bị`} />
                                                 </div>
                                             </div>
                                         ))}

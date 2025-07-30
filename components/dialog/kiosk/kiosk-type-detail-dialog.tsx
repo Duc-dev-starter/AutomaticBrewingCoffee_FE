@@ -1,98 +1,100 @@
-import {
-    Dialog,
-    DialogContent,
-    DialogHeader,
-    DialogTitle,
-} from "@/components/ui/dialog";
-import { format } from "date-fns";
-import { ScrollArea } from "@/components/ui/scroll-area";
-import { Card, CardContent } from "@/components/ui/card";
-import { Badge } from "@/components/ui/badge";
-import { Info, Monitor, Calendar, FileText } from "lucide-react";
-import clsx from "clsx";
-import { getBaseStatusColor } from "@/utils/color";
-import { KioskDialogProps } from "@/types/dialog";
-import { EBaseStatusViMap } from "@/enum/base";
+"use client"
 
+import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { Card, CardContent } from "@/components/ui/card"
+import { Badge } from "@/components/ui/badge"
+import { Info, Monitor, Calendar, FileText } from "lucide-react"
+import { format } from "date-fns"
+import clsx from "clsx"
+import { getBaseStatusColor } from "@/utils/color"
+import { EBaseStatusViMap } from "@/enum/base"
+import type { KioskDialogProps } from "@/types/dialog"
+import { InfoField } from "@/components/common"
+import { VisuallyHidden } from "@radix-ui/react-visually-hidden"
 
-const KioskTypeDetailDialog = ({
-    kioskType,
-    open,
-    onOpenChange,
-}: KioskDialogProps) => {
-    if (!kioskType) return null;
+const KioskTypeDetailDialog = ({ kioskType, open, onOpenChange }: KioskDialogProps) => {
+    if (!kioskType) return null
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-[600px] max-h-[90vh] overflow-hidden flex flex-col">
-                <DialogHeader>
+            <DialogContent className="sm:max-w-[700px] max-h-[90vh] overflow-hidden flex flex-col p-0 bg-white rounded-lg">
+                <DialogTitle asChild>
+                    <VisuallyHidden>Chi tiết</VisuallyHidden>
+                </DialogTitle>
+                {/* Header */}
+                <div className="bg-primary-100 px-8 py-6 border-b border-gray-200">
                     <div className="flex items-center justify-between">
-                        <DialogTitle className="text-xl font-bold flex items-center">
-                            <Monitor className="mr-2 h-5 w-5" />
-                            Chi tiết loại kiosk
-                        </DialogTitle>
-                        <Badge className={clsx("mr-4", getBaseStatusColor(kioskType.status))}>
+                        <div className="flex items-center space-x-4">
+                            <div className="relative">
+                                <div className="w-16 h-16 bg-white rounded-xl flex items-center justify-center border border-primary-100">
+                                    <Monitor className="w-8 h-8 text-primary-500" />
+                                </div>
+                            </div>
+                            <div>
+                                <h1 className="text-2xl font-semibold text-gray-800">Chi tiết loại kiosk</h1>
+                                <p className="text-gray-500 text-sm">Thông tin chi tiết về loại kiosk</p>
+                            </div>
+                        </div>
+                        <Badge className={clsx("px-3 py-1", getBaseStatusColor(kioskType.status))}>
                             {EBaseStatusViMap[kioskType.status] || "Không rõ"}
                         </Badge>
                     </div>
-                    <div className="flex items-center justify-between text-sm text-muted-foreground mt-2">
-                        <div className="flex items-center">
-                            <FileText className="mr-1 h-4 w-4" />
-                            Mã loại kiosk: <span className="font-medium ml-1">{kioskType.kioskTypeId}</span>
-                        </div>
-                        {kioskType.createdDate && (
-                            <div className="flex items-center">
-                                <Calendar className="mr-1 h-4 w-4" />
-                                {format(new Date(kioskType.createdDate), "dd/MM/yyyy HH:mm")}
-                            </div>
-                        )}
-                    </div>
-                </DialogHeader>
 
-                <ScrollArea className="flex-1 pr-4">
-                    <div className="space-y-6 py-2">
-                        <Card>
-                            <CardContent className="p-4">
-                                <h3 className="font-semibold text-sm flex items-center mb-3">
-                                    <Info className="mr-2 h-4 w-4" />
+                </div>
+
+                {/* Body */}
+                <ScrollArea className="flex-1 px-8 bg-white overflow-y-auto hide-scrollbar">
+                    <div className="space-y-6 py-6">
+                        {/* Thông tin kiosk */}
+                        <Card className="border border-gray-100 shadow-sm">
+                            <CardContent className="p-6 space-y-6">
+                                <h3 className="text-lg font-semibold text-primary-600 mb-4 flex items-center">
+                                    <Info className="w-5 h-5 mr-2 text-primary-500" />
                                     Thông tin kiosk
                                 </h3>
-                                <div className="grid grid-cols-2 gap-3 text-sm">
-                                    <div className="flex flex-col">
-                                        <span className="text-muted-foreground">Tên kiosk</span>
-                                        <span className="font-medium">{kioskType.name}</span>
-                                    </div>
-                                    <div className="col-span-2 flex flex-col">
-                                        <span className="text-muted-foreground">Mô tả</span>
-                                        <span className="font-medium">{kioskType.description || "Không có"}</span>
-                                    </div>
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <InfoField
+                                        label="Tên kiosk"
+                                        value={kioskType.name}
+                                        icon={<Monitor className="w-4 h-4 text-primary-500" />}
+                                    />
+                                    <InfoField
+                                        label="Mô tả"
+                                        value={kioskType.description || "Không có"}
+                                        icon={<Info className="w-4 h-4 text-primary-500" />}
+                                        className="col-span-2"
+                                    />
                                 </div>
                             </CardContent>
                         </Card>
 
-                        <Card>
-                            <CardContent className="p-4">
-                                <h3 className="font-semibold text-sm flex items-center mb-3">
-                                    <Calendar className="mr-2 h-4 w-4" />
+                        {/* Thông tin thời gian */}
+                        <Card className="border border-gray-100 shadow-sm">
+                            <CardContent className="p-6 space-y-6">
+                                <h3 className="text-lg font-semibold text-primary-600 mb-4 flex items-center">
+                                    <Calendar className="w-5 h-5 mr-2 text-primary-500" />
                                     Thời gian
                                 </h3>
-                                <div className="grid grid-cols-2 gap-3 text-sm">
-                                    <div className="flex flex-col">
-                                        <span className="text-muted-foreground">Ngày tạo</span>
-                                        <span className="font-medium">
-                                            {kioskType.createdDate
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <InfoField
+                                        label="Ngày tạo"
+                                        value={
+                                            kioskType.createdDate
                                                 ? format(new Date(kioskType.createdDate), "dd/MM/yyyy HH:mm")
-                                                : "Không có"}
-                                        </span>
-                                    </div>
-                                    <div className="flex flex-col">
-                                        <span className="text-muted-foreground">Ngày cập nhật</span>
-                                        <span className="font-medium">
-                                            {kioskType.updatedDate
+                                                : "Không có"
+                                        }
+                                        icon={<Calendar className="w-4 h-4 text-primary-500" />}
+                                    />
+                                    <InfoField
+                                        label="Ngày cập nhật"
+                                        value={
+                                            kioskType.updatedDate
                                                 ? format(new Date(kioskType.updatedDate), "dd/MM/yyyy HH:mm")
-                                                : "Chưa cập nhật"}
-                                        </span>
-                                    </div>
+                                                : "Chưa cập nhật"
+                                        }
+                                        icon={<Calendar className="w-4 h-4 text-primary-500" />}
+                                    />
                                 </div>
                             </CardContent>
                         </Card>
@@ -100,7 +102,7 @@ const KioskTypeDetailDialog = ({
                 </ScrollArea>
             </DialogContent>
         </Dialog>
-    );
-};
+    )
+}
 
-export default KioskTypeDetailDialog;
+export default KioskTypeDetailDialog

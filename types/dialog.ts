@@ -9,6 +9,8 @@ import { Organization } from "@/interfaces/organization";
 import { Store } from "@/interfaces/store";
 import { Category } from "@/interfaces/category";
 import { Account } from "@/interfaces/account";
+import { IngredientType } from "@/interfaces/ingredient";
+import { SyncEvent, SyncTask } from "@/interfaces/sync";
 
 type BaseDialogProps = {
     open: boolean;
@@ -66,4 +68,16 @@ export type CategoryDialogProps = BaseDialogProps & {
 
 export type AccountDialogProps = BaseDialogProps & {
     account?: Account | null;
+}
+
+export type IngredientTypeDialogProps = BaseDialogProps & {
+    ingredientType?: IngredientType | null;
+}
+
+export type SyncEventDialogProps = BaseDialogProps & {
+    syncEvent?: SyncEvent | null;
+}
+
+export type SyncTaskDialogProps = BaseDialogProps & {
+    syncTask?: SyncTask | null;
 }

@@ -642,7 +642,7 @@ const KioskDetailPage = () => {
             </Dialog>
 
             <OnplaceDialog
-                isOpen={isOnplaceDialogOpen}
+                open={isOnplaceDialogOpen}
                 onOpenChange={setIsOnplaceDialogOpen}
                 data={onplaceData}
                 loading={loadingOnplace}

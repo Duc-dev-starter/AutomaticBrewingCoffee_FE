@@ -15,6 +15,7 @@ import { logout } from "@/services/auth.service";
 import { scheduleTokenRefresh } from "@/utils/cookie";
 import Cookies from 'js-cookie'
 import { NotificationBell } from "@/components/common";
+import { Notification } from "@/interfaces/notification";
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
     const { toast } = useToast();
@@ -23,6 +24,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         registerToast(toast);
     }, [toast]);
     const { connection, invoke, off, startConnection, on } = useSignalR();
+
 
     const [connectionState, setConnectionState] = useState<HubConnectionState | null>(null);
 
@@ -33,7 +35,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             logout();
         };
 
-        const handleReceiveNotification = (notification: any) => {
+        const handleReceiveNotification = (notification: Notification) => {
             console.log("New Notification:", notification);
             toast({
                 title: notification.title || "Thông báo mới",

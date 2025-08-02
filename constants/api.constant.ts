@@ -50,4 +50,7 @@ export const Api = {
     // INGREDIENT TYPE
     INGREDIENT_TYPES: '/ingredient-types',
 
+    // NOTIFICATIONS
+    NOTIFICATIONS: '/notifications',
+
 }

@@ -29,6 +29,7 @@ import {
 import { getProductStatusColor } from "@/utils/color"
 import { formatCurrency } from "@/utils"
 import { format } from "date-fns"
+// import { VisuallyHidden } from "@radix-ui/react-visually-hidden"
 
 const ProductDetailDialog = ({ product, open, onOpenChange }: ProductDialogProps) => {
     if (!product) return null
@@ -36,9 +37,9 @@ const ProductDetailDialog = ({ product, open, onOpenChange }: ProductDialogProps
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-hidden flex flex-col p-0 bg-white rounded-lg">
-                <DialogTitle asChild>
+                {/* <DialogTitle asChild>
                     <VisuallyHidden>Chi tiết</VisuallyHidden>
-                </DialogTitle>
+                </DialogTitle> */}
                 {/* Header */}
                 <div className="bg-primary-100 px-8 py-6 border-b border-gray-200">
                     <div className="flex items-center justify-between">

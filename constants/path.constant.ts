@@ -32,5 +32,6 @@ export const Path = {
     INVALID_REQUEST: "/invalid-request",
     MANAGE_CATEGORIES: "/manage-categories",
     MANAGE_INGREDIENT_TYPE: "/manage-ingredient-types",
+    MANAGE_NOTIFICATIONS: "/manage-notifications",
 };
 

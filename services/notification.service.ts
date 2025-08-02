@@ -6,7 +6,7 @@ import { Notification } from "@/interfaces/notification";
 
 export const getNotifications = async (params: PagingParams = {}): Promise<PagingResponse<Notification>> => {
     return BaseService.getPaging<Notification>({
-        url: Api.MENUS,
+        url: Api.NOTIFICATIONS,
         payload: params,
     });
 };

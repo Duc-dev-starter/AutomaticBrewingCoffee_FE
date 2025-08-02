@@ -15,6 +15,7 @@ const dynamicPathPrefixes = [
     Path.MANAGE_KIOSK_VERSIONS,
     Path.MANAGE_KIOSKS,
     Path.UPDATE_WORKFLOW,
+    Path.MANAGE_NOTIFICATIONS
 ];
 
 export function middleware(req: NextRequest) {

@@ -20,6 +20,10 @@ import {
     EyeOff,
     Copy,
     Link,
+    Download,
+    Trash2,
+    FolderSync,
+    MoreHorizontal,
 } from "lucide-react"
 import clsx from "clsx"
 import { getBaseStatusColor } from "@/utils/color"
@@ -38,7 +42,7 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
-import type { Device } from "@/interfaces/device"
+import type { Device, DeviceIngredientHistory, DeviceIngredientStates } from "@/interfaces/device"
 import { getDevicesToReplace } from "@/services/device.service"
 import { DeviceStatusGroup } from "@/components/common/device-status-group"
 import { ErrorResponse } from "@/types/error"
@@ -46,6 +50,17 @@ import { Webhook } from "@/interfaces/webhook"
 import { updateWebhook } from "@/services/webhook.service"
 import { Input } from "@/components/ui/input"
 import { OnplaceDialog } from "@/components/dialog/kiosk"
+import { syncKiosk, syncOverrideKiosk } from "@/services/sync.service"
+import { deleteKiosk } from "@/services/kiosk.service"
+import axios from "axios"
+import Cookies from "js-cookie"
+import {
+    DropdownMenu,
+    DropdownMenuContent,
+    DropdownMenuItem,
+    DropdownMenuTrigger,
+} from "@/components/ui/dropdown-menu"
+
 
 const KioskDetailPage = () => {
     const { slug } = useParams()
@@ -56,24 +71,27 @@ const KioskDetailPage = () => {
     const [showApiKey, setShowApiKey] = useState<boolean>(false)
 
     const [isReplaceDialogOpen, setIsReplaceDialogOpen] = useState<boolean>(false)
-    const [selectedKioskDevice, setSelectedKioskDevice] = useState<any>(null)
+    const [selectedKioskDevice, setSelectedKioskDevice] = useState<KioskDevice | null>(null)
     const [replacementDevices, setReplacementDevices] = useState<Device[]>([])
     const [selectedReplacementDeviceId, setSelectedReplacementDeviceId] = useState<string>("")
     const [loadingReplacements, setLoadingReplacements] = useState<boolean>(false)
     const [processingAction, setProcessingAction] = useState<boolean>(false)
     const [isOnhubDialogOpen, setIsOnhubDialogOpen] = useState<boolean>(false)
-    const [selectedKioskDeviceForOnhub, setSelectedKioskDeviceForOnhub] = useState<any>(null)
+    const [selectedKioskDeviceForOnhub, setSelectedKioskDeviceForOnhub] = useState<KioskDevice | null>(null)
     const [onhubData, setOnhubData] = useState<any>(null)
     const [loadingOnhub, setLoadingOnhub] = useState<boolean>(false)
     const [isUpdateWebhookDialogOpen, setIsUpdateWebhookDialogOpen] = useState<boolean>(false)
-    const [selectedWebhook, setSelectedWebhook] = useState<any>(null)
+    const [selectedWebhook, setSelectedWebhook] = useState<Webhook | null>(null)
     const [newWebhookUrl, setNewWebhookUrl] = useState<string>("")
     const [isOnplaceDialogOpen, setIsOnplaceDialogOpen] = useState<boolean>(false)
     const [selectedKioskDeviceForOnplace, setSelectedKioskDeviceForOnplace] = useState<KioskDevice | null>(null)
     const [onplaceData, setOnplaceData] = useState<any>(null)
     const [loadingOnplace, setLoadingOnplace] = useState<boolean>(false)
     const [isIngredientDialogOpen, setIsIngredientDialogOpen] = useState(false)
-    const [selectedDeviceIngredients, setSelectedDeviceIngredients] = useState<any[]>([])
+    const [selectedDeviceIngredients, setSelectedDeviceIngredients] = useState<DeviceIngredientStates[]>([])
+    const [isDeviceIngredientHistoryDialogOpen, setIsDeviceIngredientHistoryDialogOpen] = useState(false)
+    const [selectedDeviceIngredientHistory, setSelectedDeviceIngredientHistory] = useState<DeviceIngredientHistory[]>([])
+    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
 
     const fetchKioskData = async () => {
         try {
@@ -152,17 +170,14 @@ const KioskDetailPage = () => {
                 setOnplaceData(null)
                 return
             }
-            const data = await getOnplace(kiosk.kioskId, kioskDevice.device.deviceModelId);
-            console.log("Onplace data:", data);
-
+            const data = await getOnplace(kiosk.kioskId, kioskDevice.device.deviceModelId)
             // @ts-ignore
             if (Array.isArray(data.response.responseRequest) && data.response.responseRequest.length > 0) {
                 // @ts-ignore
-                setOnplaceData(data.response.responseRequest[0]);
+                setOnplaceData(data.response.responseRequest[0])
             } else {
-                setOnplaceData(null);
+                setOnplaceData(null)
             }
-
         } catch (error) {
             const err = error as ErrorResponse
             console.error("Error fetching onplace data:", error)
@@ -180,7 +195,6 @@ const KioskDetailPage = () => {
     const openReplaceDialog = async (kioskDevice: KioskDevice) => {
         setSelectedKioskDevice(kioskDevice)
         setIsReplaceDialogOpen(true)
-
         try {
             setLoadingReplacements(true)
             const response = await getDevicesToReplace(kioskDevice.deviceId)
@@ -200,19 +214,16 @@ const KioskDetailPage = () => {
 
     const handleReplaceDevice = async () => {
         if (!selectedKioskDevice || !selectedReplacementDeviceId) return
-
         try {
             setProcessingAction(true)
             await replaceDeviceByKioskId(selectedKioskDevice.kioskDeviceMappingId, {
                 deviceReplaceId: selectedReplacementDeviceId,
             })
-
             toast({
                 title: "Thành công",
                 description: "Thiết bị đã được thay thế thành công.",
                 variant: "success",
             })
-
             await fetchKioskData()
         } catch (error) {
             const err = error as ErrorResponse
@@ -235,18 +246,116 @@ const KioskDetailPage = () => {
         setIsIngredientDialogOpen(true)
     }
 
-    if (loading) {
-        return (
-            <div className="flex items-center justify-center min-h-[60vh]">
-                <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                <span className="ml-2 text-lg">Đang tải dữ liệu...</span>
-            </div>
-        )
+    const openDeviceIngredientHistory = async (kioskDevice: KioskDevice) => {
+        setSelectedDeviceIngredientHistory(kioskDevice.device.deviceIngredientHistories || [])
+        setIsDeviceIngredientHistoryDialogOpen(true)
+    }
+
+    const handleSync = async () => {
+        if (!kiosk) return;
+        try {
+            const response = await syncKiosk(kiosk.kioskId);
+            toast({
+                title: "Thành công",
+                description: response.message,
+            });
+        } catch (error) {
+            const err = error as ErrorResponse;
+            console.error("Lỗi khi xóa loại kiosk:", err);
+            toast({
+                title: "Lỗi khi đồng bộ kiosk",
+                description: err.message,
+                variant: "destructive",
+            }
+            )
+        }
+    };
+
+    const handleSyncOverride = async () => {
+        if (!kiosk) return;
+        try {
+            const response = await syncOverrideKiosk(kiosk.kioskId);
+            toast({
+                title: "Thành công",
+                description: response.message,
+            });
+        } catch (error) {
+            const err = error as ErrorResponse;
+            console.error("Lỗi khi đồng bộ ghi đè kiosk:", err);
+            toast({
+                title: "Lỗi khi đồng bộ ghi đè kiosk",
+                description: err.message,
+                variant: "destructive",
+            }
+            )
+        }
+    };
+
+    const handleExport = async () => {
+        if (!kiosk) return;
+        try {
+            const token = Cookies.get('accessToken')
+            const headers: any = {
+                'accept': 'application/zip',
+            }
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`
+            }
+            const response = await axios.get(
+                `${process.env.NEXT_PUBLIC_API_BASE_URL}/kiosks/${kiosk.kioskId}/export-setup`,
+                {
+                    responseType: 'blob',
+                    headers: headers,
+                }
+            )
+            if (response.headers['content-type'] === 'application/zip') {
+                const blob = new Blob([response.data], { type: 'application/zip' })
+                const url = window.URL.createObjectURL(blob)
+                const link = document.createElement('a')
+                link.href = url
+                link.download = `kiosk_${kiosk.kioskId}.zip`
+                link.click()
+                window.URL.revokeObjectURL(url)
+                toast({
+                    title: "Thành công",
+                    description: "Tải file thành công!",
+                })
+            } else {
+                throw new Error("Server không trả về file ZIP")
+            }
+        } catch (error) {
+            const err = error as ErrorResponse
+            console.error("Error exporting kiosk setup:", error)
+            toast({
+                title: "Lỗi",
+                description: err.message,
+                variant: "destructive",
+            })
+        }
+    }
+
+    const handleDelete = async () => {
+        if (!kiosk?.kioskId) return
+        try {
+            await deleteKiosk(kiosk.kioskId)
+            toast({
+                title: "Thành công",
+                description: "Kiosk đã được xóa.",
+            })
+            router.back()
+        } catch (error) {
+            const err = error as ErrorResponse
+            console.error("Error deleting kiosk:", error)
+            toast({
+                title: "Lỗi",
+                description: err.message,
+                variant: "destructive",
+            })
+        }
     }
 
     const handleUpdateWebhook = async () => {
         if (!selectedWebhook || !newWebhookUrl) return
-
         try {
             await updateWebhook(selectedWebhook.webhookId, { webhookUrl: newWebhookUrl })
             toast({
@@ -254,7 +363,6 @@ const KioskDetailPage = () => {
                 description: "Webhook đã được cập nhật.",
                 variant: "success",
             })
-
             setKiosk((prev) => {
                 if (!prev) return prev
                 return {
@@ -279,6 +387,15 @@ const KioskDetailPage = () => {
             setSelectedWebhook(null)
             setNewWebhookUrl("")
         }
+    }
+
+    if (loading) {
+        return (
+            <div className="flex items-center justify-center min-h-[60vh]">
+                <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                <span className="ml-2 text-lg">Đang tải dữ liệu...</span>
+            </div>
+        )
     }
 
     if (!kiosk) {
@@ -317,6 +434,36 @@ const KioskDetailPage = () => {
                             {EBaseStatusViMap[kiosk.status]}
                         </Badge>
                         <RefreshButton loading={loading} toggleLoading={fetchKioskData} />
+
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="outline" size="icon">
+                                    <MoreHorizontal className="w-4 h-4" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent align="end">
+                                <DropdownMenuItem onClick={handleSync}>
+                                    <FolderSync className="mr-2 h-4 w-4" />
+                                    Đồng bộ
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={handleSyncOverride}>
+                                    <FolderSync className="mr-2 h-4 w-4" />
+                                    Ghi đè
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => setIsUpdateWebhookDialogOpen(true)}>
+                                    <Link className="mr-2 h-4 w-4" />
+                                    Webhook
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={handleExport}>
+                                    <Download className="mr-2 h-4 w-4" />
+                                    Xuất file
+                                </DropdownMenuItem>
+                                <DropdownMenuItem onClick={() => setIsDeleteDialogOpen(true)}>
+                                    <Trash2 className="mr-2 h-4 w-4" />
+                                    Xóa
+                                </DropdownMenuItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
                     </div>
                 </div>
 
@@ -335,36 +482,30 @@ const KioskDetailPage = () => {
                                         <h3 className="text-sm font-medium text-muted-foreground">Vị trí</h3>
                                         <p className="font-medium">{kiosk.position || "Không có"}</p>
                                     </div>
-
                                     <div>
                                         <h3 className="text-sm font-medium text-muted-foreground">Địa chỉ</h3>
                                         <p className="font-medium">{kiosk.location || "Không có"}</p>
                                     </div>
-
                                     <div>
                                         <h3 className="text-sm font-medium text-muted-foreground">Chi nhánh</h3>
                                         <p className="font-medium">{kiosk.store?.name || "Không có"}</p>
                                     </div>
-
                                     <div>
                                         <h3 className="text-sm font-medium text-muted-foreground">Địa chỉ chi nhánh</h3>
                                         <p className="font-medium">{kiosk.store?.locationAddress || "Không có"}</p>
                                     </div>
                                 </div>
-
                                 <div className="space-y-4">
                                     <div>
                                         <h3 className="text-sm font-medium text-muted-foreground">Số điện thoại liên hệ</h3>
                                         <p className="font-medium">{kiosk.store?.contactPhone || "Không có"}</p>
                                     </div>
-
                                     <div>
                                         <h3 className="text-sm font-medium text-muted-foreground">Phiên bản Kiosk</h3>
                                         <p className="font-medium">
                                             {kiosk.kioskVersion?.versionTitle || "Không có"} ({kiosk.kioskVersion?.versionNumber || "N/A"})
                                         </p>
                                     </div>
-
                                     <div>
                                         <h3 className="text-sm font-medium text-muted-foreground">Ngày tạo</h3>
                                         <div className="flex items-center">
@@ -374,7 +515,6 @@ const KioskDetailPage = () => {
                                             </p>
                                         </div>
                                     </div>
-
                                     <div>
                                         <h3 className="text-sm font-medium text-muted-foreground">Ngày cập nhật</h3>
                                         <div className="flex items-center">
@@ -385,7 +525,6 @@ const KioskDetailPage = () => {
                                         </div>
                                     </div>
                                 </div>
-
                                 <div className="space-y-4">
                                     <div>
                                         <h3 className="text-sm font-medium text-muted-foreground">Ngày lắp đặt</h3>
@@ -396,7 +535,6 @@ const KioskDetailPage = () => {
                                             </p>
                                         </div>
                                     </div>
-
                                     <div>
                                         <h3 className="text-sm font-medium text-muted-foreground">Thời hạn bảo hành</h3>
                                         <div className="flex items-center">
@@ -406,7 +544,6 @@ const KioskDetailPage = () => {
                                             </p>
                                         </div>
                                     </div>
-
                                     <div>
                                         <h3 className="text-sm font-medium text-muted-foreground">Trạng thái</h3>
                                         <div className="flex items-center">
@@ -463,9 +600,7 @@ const KioskDetailPage = () => {
                                 </div>
                             </CardContent>
                         </Card>
-                    ) : (
-                        ""
-                    )}
+                    ) : null}
 
                     {kiosk.webhooks && kiosk.webhooks.length > 0 ? (
                         <Card>
@@ -513,9 +648,7 @@ const KioskDetailPage = () => {
                                 </div>
                             </CardContent>
                         </Card>
-                    ) : (
-                        ""
-                    )}
+                    ) : null}
 
                     <Card>
                         <CardHeader>
@@ -532,6 +665,7 @@ const KioskDetailPage = () => {
                                     openOnhubDialog={openOnhubDialog}
                                     openOnplaceDialog={openOnplaceDialog}
                                     openDeviceIngredient={openIngredientDialog}
+                                    openDeviceIngredientHistory={openDeviceIngredientHistory}
                                 />
                             ) : (
                                 <div className="text-center py-8 text-muted-foreground">
@@ -553,7 +687,6 @@ const KioskDetailPage = () => {
                             Chọn thiết bị mới để thay thế cho "{selectedKioskDevice?.device.name}".
                         </DialogDescription>
                     </DialogHeader>
-
                     <div className="py-4">
                         <Select value={selectedReplacementDeviceId} onValueChange={setSelectedReplacementDeviceId}>
                             <SelectTrigger>
@@ -579,7 +712,6 @@ const KioskDetailPage = () => {
                             </SelectContent>
                         </Select>
                     </div>
-
                     <DialogFooter>
                         <Button
                             variant="outline"
@@ -609,34 +741,91 @@ const KioskDetailPage = () => {
                 </DialogContent>
             </Dialog>
 
+            {/* Ingredient Dialog */}
             <Dialog open={isIngredientDialogOpen} onOpenChange={setIsIngredientDialogOpen}>
                 <DialogContent>
                     <DialogHeader>
-                        <DialogTitle>Thông tin Nguyên liệu của Thiết bị</DialogTitle>
-                        <DialogDescription>
-                            Danh sách các thành phần (ingredients) của thiết bị đã chọn.
-                        </DialogDescription>
+                        <DialogTitle>Thông tin nguyên liệu</DialogTitle>
                     </DialogHeader>
                     <div className="space-y-4">
-                        {selectedDeviceIngredients.length > 0 ? (
-                            selectedDeviceIngredients.map((ingredient, index) => (
-                                <div key={index} className="border p-4 rounded-md">
-                                    <p><strong>Loại Nguyên liệu:</strong> {ingredient.ingredientType}</p>
-                                    <p><strong>Dung lượng tối đa:</strong> {ingredient.maxCapacity} {ingredient.unit}</p>
-                                    <p><strong>Dung lượng tối thiểu:</strong> {ingredient.minCapacity} {ingredient.unit}</p>
-                                    <p><strong>Dung lượng hiện tại:</strong> {ingredient.currentCapacity} {ingredient.unit}</p>
-                                    <p><strong>Mức cảnh báo:</strong> {ingredient.warningPercent}%</p>
-                                    <p><strong>Trạng thái cảnh báo:</strong> {ingredient.isWarning ? "Có" : "Không"}</p>
-                                    <p><strong>Có thể tái tạo:</strong> {ingredient.isRenewable ? "Có" : "Không"}</p>
-                                    <p><strong>Chính:</strong> {ingredient.isPrimary ? "Có" : "Không"}</p>
-                                </div>
-                            ))
-                        ) : (
-                            <p>Không có thông tin nguyên liệu cho thiết bị này.</p>
-                        )}
+                        {selectedDeviceIngredients.map((ingredient, index) => (
+                            <div key={index} className="border p-4 rounded-md">
+                                <p><strong>Loại nguyên liệu:</strong> {ingredient.ingredientType}</p>
+                                <p><strong>Dung lượng hiện tại:</strong> {ingredient.currentCapacity}</p>
+                                <p><strong>Trạng thái cảnh báo:</strong> {ingredient.isWarning ? "Có" : "Không"}</p>
+                            </div>
+                        ))}
                     </div>
                     <DialogFooter>
                         <Button onClick={() => setIsIngredientDialogOpen(false)}>Đóng</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Device Ingredient History Dialog */}
+            <Dialog open={isDeviceIngredientHistoryDialogOpen} onOpenChange={setIsDeviceIngredientHistoryDialogOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Lịch sử sử dụng nguyên liệu</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4 max-h-[60vh] overflow-y-auto">
+                        {selectedDeviceIngredientHistory.map((history, index) => (
+                            <div key={history.deviceIngredientHistoryId || index} className="border p-4 rounded-md">
+                                <p><strong>Thực hiện bởi:</strong> {history.performedBy}</p>
+                                <p><strong>Hành động:</strong> {history.action}</p>
+                                <p><strong>Lượng thay đổi:</strong> {history.deltaAmount}</p>
+                                <p><strong>Dung lượng trước:</strong> {history.oldCapacity}</p>
+                                <p><strong>Dung lượng sau:</strong> {history.newCapacity}</p>
+                            </div>
+                        ))}
+                    </div>
+                    <DialogFooter>
+                        <Button onClick={() => setIsDeviceIngredientHistoryDialogOpen(false)}>Đóng</Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+
+            {/* Delete Confirmation Dialog */}
+            <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Xác nhận xóa kiosk</DialogTitle>
+                    </DialogHeader>
+                    <DialogDescription>
+                        Bạn có chắc chắn muốn xóa kiosk này? Hành động này không thể hoàn tác.
+                    </DialogDescription>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
+                            Hủy
+                        </Button>
+                        <Button variant="destructive" onClick={handleDelete}>
+                            Xóa
+                        </Button>
+                    </DialogFooter>
+                </DialogContent>
+            </Dialog>
+
+            {/* Webhook Dialog */}
+            <Dialog open={isUpdateWebhookDialogOpen} onOpenChange={setIsUpdateWebhookDialogOpen}>
+                <DialogContent>
+                    <DialogHeader>
+                        <DialogTitle>Cập nhật Webhook</DialogTitle>
+                    </DialogHeader>
+                    <div className="space-y-4">
+                        <Input
+                            value={newWebhookUrl}
+                            onChange={(e) => setNewWebhookUrl(e.target.value)}
+                            placeholder="Nhập URL mới"
+                        />
+                    </div>
+                    <DialogFooter>
+                        <Button variant="outline" onClick={() => setIsUpdateWebhookDialogOpen(false)}>
+                            Hủy
+                        </Button>
+                        <Button onClick={handleUpdateWebhook}>
+                            Lưu
+                        </Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>
@@ -657,7 +846,6 @@ const KioskDetailPage = () => {
                             Thông tin kết nối của thiết bị "{selectedKioskDeviceForOnhub?.device.name}".
                         </DialogDescription>
                     </DialogHeader>
-
                     {loadingOnhub ? (
                         <div className="flex items-center justify-center p-4">
                             <Loader2 className="h-8 w-8 animate-spin" />
@@ -688,33 +876,8 @@ const KioskDetailPage = () => {
                     ) : (
                         <p>Không có thông tin OnHub cho thiết bị này.</p>
                     )}
-
                     <DialogFooter>
                         <Button onClick={() => setIsOnhubDialogOpen(false)}>Đóng</Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
-
-            <Dialog open={isUpdateWebhookDialogOpen} onOpenChange={setIsUpdateWebhookDialogOpen}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Cập nhật Webhook</DialogTitle>
-                        <DialogDescription>
-                            Nhập URL mới cho webhook "{selectedWebhook?.webhookType}".
-                        </DialogDescription>
-                    </DialogHeader>
-                    <div className="py-4">
-                        <Input
-                            value={newWebhookUrl}
-                            onChange={(e) => setNewWebhookUrl(e.target.value)}
-                            placeholder="Nhập URL mới"
-                        />
-                    </div>
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setIsUpdateWebhookDialogOpen(false)}>
-                            Hủy
-                        </Button>
-                        <Button onClick={handleUpdateWebhook}>Lưu</Button>
                     </DialogFooter>
                 </DialogContent>
             </Dialog>

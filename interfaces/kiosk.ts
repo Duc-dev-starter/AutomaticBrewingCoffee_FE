@@ -29,7 +29,20 @@ export interface KioskDevice {
     kioskDeviceMappingId: string;
     kioskId: string;
     status: EBaseStatus
+    deviceIngredientHistories: DeviceIngredientHistory[];
 }
+
+export interface DeviceIngredientHistory {
+    deviceIngredientHistoryId: string;
+    deviceIngredientStateId: string;
+    deviceId: string;
+    deltaAmount: number;
+    oldCapacity: number;
+    newCapacity: number;
+    performedBy: string;
+    action: 'Consumed' | 'Refilled' | 'Replaced' | string;
+}
+
 
 export interface KioskType {
     name: string;

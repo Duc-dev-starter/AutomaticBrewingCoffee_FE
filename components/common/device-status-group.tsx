@@ -12,14 +12,15 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigge
 import { Calendar, Info, MoreHorizontal, Package, RefreshCw, Tag } from "lucide-react"
 import { KioskDevice } from "@/interfaces/kiosk"
 
-interface DeviceStatusGroupProps {
+type DeviceStatusGroupProps = {
     kioskDevices: KioskDevice[];
     openReplaceDialog: (kioskDevice: KioskDevice) => void;
     openOnhubDialog: (kioskDevice: KioskDevice) => void;
     openOnplaceDialog: (kioskDevice: KioskDevice) => void;
     openDeviceIngredient: (kioskDevice: KioskDevice) => void;
+    openDeviceIngredientHistory: (kioskDevice: KioskDevice) => void;
 }
-export const DeviceStatusGroup = ({ kioskDevices, openReplaceDialog, openOnhubDialog, openOnplaceDialog, openDeviceIngredient }: DeviceStatusGroupProps) => {
+export const DeviceStatusGroup = ({ kioskDevices, openReplaceDialog, openOnhubDialog, openOnplaceDialog, openDeviceIngredient, openDeviceIngredientHistory }: DeviceStatusGroupProps) => {
     // Group devices by status
     const groupedDevices = kioskDevices.reduce(
         (acc, device) => {
@@ -88,6 +89,10 @@ export const DeviceStatusGroup = ({ kioskDevices, openReplaceDialog, openOnhubDi
                                                     <DropdownMenuItem onClick={() => openDeviceIngredient(kioskDevice)}>
                                                         <Info className="mr-2 h-4 w-4" />
                                                         Xem thông tin nguyên liệu
+                                                    </DropdownMenuItem>
+                                                    <DropdownMenuItem onClick={() => openDeviceIngredientHistory(kioskDevice)}>
+                                                        <Info className="mr-2 h-4 w-4" />
+                                                        Xem lịch sử sử dụng nguyên liệu
                                                     </DropdownMenuItem>
                                                 </DropdownMenuContent>
                                             </DropdownMenu>

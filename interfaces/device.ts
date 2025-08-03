@@ -1,5 +1,6 @@
 import { EBaseStatus } from "@/enum/base";
 import { EDeviceStatus, EFunctionParameterType } from "@/enum/device";
+import { EIngredientAction } from "@/enum/ingredient.enum";
 import { EIngredientType } from "@/enum/product";
 
 export interface Device {
@@ -13,6 +14,18 @@ export interface Device {
     deviceModel: DeviceModel;
     serialNumber: string;
     deviceIngredientStates: DeviceIngredientStates[];
+    deviceIngredientHistories: DeviceIngredientHistory[];
+}
+
+export interface DeviceIngredientHistory {
+    deviceIngredientHistoryId: string;
+    deviceIngredientStateId: string;
+    deviceId: string;
+    deltaAmount: number;
+    oldCapacity: number;
+    newCapacity: number;
+    performedBy: string;
+    action: EIngredientAction;
 }
 
 
@@ -61,7 +74,7 @@ export interface DeviceIngredient {
     deviceFunctionName: string | null,
     ingredientSelectorParameter: string | null,
     ingredientSelectorValue: string | null,
-    targetOverrideParameter: string | null
+    targetOverrideParameter: string | null,
 }
 
 export interface FunctionParameters {

@@ -756,13 +756,7 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
-                        <div className="space-y-3">
-                            <div className="flex items-center space-x-2 mb-2">
-                                <Slash className="w-4 h-4 text-primary-300" />
-                                <label className="text-sm font-medium text-gray-700 asterisk">Hoạt Động</label>
-                            </div>
-                        </div>
+                    <div className="grid grid-cols-1 gap-4">
                         <div className="space-y-3">
                             <div className="flex items-center space-x-2 mb-2">
                                 <List className="w-4 h-4 text-primary-300" />

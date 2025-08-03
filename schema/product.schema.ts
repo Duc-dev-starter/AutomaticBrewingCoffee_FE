@@ -12,6 +12,5 @@ export const productSchema = z.object({
     status: z.nativeEnum(EProductStatus),
     imageUrl: z.string().optional(),
     productCategoryId: z.string().trim().min(1, "Danh mục là bắt buộc"),
-    isActive: z.boolean(),
     description: z.string().trim().optional(),
 });

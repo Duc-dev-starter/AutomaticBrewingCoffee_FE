@@ -4,5 +4,6 @@ export const images = {
     momo: "/assets/momo-logo.jpg",
     vnpay: "/assets/vnpay-logo.jpg",
     defaultAvatar: "/assets/default-avatar.png",
+    mpos: "/assets/mpos-logo.jpg",
 
 };

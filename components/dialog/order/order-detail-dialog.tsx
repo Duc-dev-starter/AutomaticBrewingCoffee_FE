@@ -7,7 +7,7 @@ import { Receipt, CreditCard, Tag, Percent, FileText, ShoppingCart, Info, Calend
 import { formatCurrency } from "@/utils"
 import { ScrollArea } from "../../ui/scroll-area"
 import clsx from "clsx"
-import { getOrderStatusColor, getPaymentColor } from "@/utils/color"
+import { getOrderStatusColor } from "@/utils/color"
 import { images } from "@/public/assets"
 import { OrderDialogProps } from "@/types/dialog"
 
@@ -17,7 +17,7 @@ const OrderDetailDialog = ({ order, open, onOpenChange }: OrderDialogProps) => {
     if (!order) return null
 
     const paymentLogoMap: Record<EPaymentGateway, string> = {
-        [EPaymentGateway.MoMo]: images.momo,
+        [EPaymentGateway.MPOS]: images.mpos,
         [EPaymentGateway.VNPay]: images.vnpay,
     };
 

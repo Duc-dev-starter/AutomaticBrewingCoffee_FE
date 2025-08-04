@@ -10,27 +10,16 @@ export const getOrderStatusColor = (status: string) => {
         case EOrderStatus.Pending:
             return "bg-yellow-500"
         case EOrderStatus.Cancelled:
-            return "bg-red-500"
+            return "bg-gray-500"
         case EOrderStatus.Preparing:
             return "bg-blue-500"
         case EOrderStatus.Failed:
-            return "bg-red-700"
+            return "bg-red-600"
         default:
             return "bg-gray-500"
     }
 }
 
-// Xác định màu sắc cho loại thanh toán
-export const getPaymentColor = (method: EPaymentGateway) => {
-    switch (method) {
-        case EPaymentGateway.MoMo:
-            return "bg-gradient-to-r from-pink-400 to-pink-600 text-white"
-        case EPaymentGateway.VNPay:
-            return "bg-gradient-to-r from-red-500 to-blue-500 text-white"
-        default:
-            return "bg-gray-500 text-white"
-    }
-}
 
 // Xác định màu sắc cho trạng thái sản phẩm
 export const getProductStatusColor = (status: EProductStatus) => {

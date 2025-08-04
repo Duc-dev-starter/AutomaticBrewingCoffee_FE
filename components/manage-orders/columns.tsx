@@ -63,7 +63,7 @@ export const columns = (onAction: (order: Order, action: "view") => void): Colum
             const paymentGateway: EPaymentGateway = row.original.paymentGateway;
 
             const paymentLogoMap: Record<EPaymentGateway, string> = {
-                [EPaymentGateway.MoMo]: images.momo,
+                [EPaymentGateway.MPOS]: images.mpos,
                 [EPaymentGateway.VNPay]: images.vnpay,
             };
 

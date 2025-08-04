@@ -5,7 +5,7 @@ export enum EOrderType {
 
 export enum EPaymentGateway {
     VNPay = "VNPay",
-    MoMo = "MoMo"
+    MPOS = "MPOS",
 }
 
 export enum EOrderStatus {
@@ -32,6 +32,6 @@ export const EOrderTypeViMap: Record<string, string> = {
 
 export const EPaymentGatewayViMap: Record<string, string> = {
     [EPaymentGateway.VNPay]: "VNPay",
-    [EPaymentGateway.MoMo]: "MoMo",
+    [EPaymentGateway.MPOS]: "MPOS",
 };
 

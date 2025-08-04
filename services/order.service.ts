@@ -14,3 +14,8 @@ export const getOrder = async (id: string) => {
     const response = await BaseService.getById({ url: Api.ORDERS, id });
     return response;
 }
+
+export const refundOrder = async (orderId: string, payload: { content: string, refundAmount: number }) => {
+    const response = await BaseService.put({ url: `${Api.ORDERS}/${orderId}/refund`, payload });
+    return response;
+}

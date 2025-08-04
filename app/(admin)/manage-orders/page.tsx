@@ -1,7 +1,7 @@
-"use client";
+"use client"
 
-import React, { useCallback, useEffect, useState, useMemo } from "react";
-import { ChevronDownIcon } from "@radix-ui/react-icons";
+import React, { useCallback, useEffect, useState, useMemo } from "react"
+import { ChevronDownIcon } from "@radix-ui/react-icons"
 import {
     type ColumnFiltersState,
     type SortingState,
@@ -12,38 +12,40 @@ import {
     getPaginationRowModel,
     getSortedRowModel,
     useReactTable,
-} from "@tanstack/react-table";
-import { Button } from "@/components/ui/button";
+} from "@tanstack/react-table"
+import { Button } from "@/components/ui/button"
 import {
     DropdownMenu,
     DropdownMenuCheckboxItem,
     DropdownMenuContent,
     DropdownMenuTrigger,
-} from "@/components/ui/dropdown-menu";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Skeleton } from "@/components/ui/skeleton";
-import { ExportButton, NoResultsRow, Pagination, RefreshButton, SearchInput } from "@/components/common";
-import { multiSelectFilter } from "@/utils/table";
-import { useDebounce, useToast } from "@/hooks";
-import { useOrders } from "@/hooks/use-orders";
-import { OrderDetailDialog } from "@/components/dialog/order";
-import { columns, OrderFilter } from "@/components/manage-orders";
-import { Order } from "@/interfaces/order";
+} from "@/components/ui/dropdown-menu"
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table"
+import { Skeleton } from "@/components/ui/skeleton"
+import { ExportButton, NoResultsRow, Pagination, RefreshButton, SearchInput } from "@/components/common"
+import { multiSelectFilter } from "@/utils/table"
+import { useDebounce, useToast } from "@/hooks"
+import { useOrders } from "@/hooks/use-orders"
+import { OrderDetailDialog, OrderRefundDialog } from "@/components/dialog/order"
+import { columns, OrderFilter } from "@/components/manage-orders"
+import { Order } from "@/interfaces/order"
 
 const ManageOrders = () => {
-    const { toast } = useToast();
-    const [pageSize, setPageSize] = useState(10);
-    const [currentPage, setCurrentPage] = useState(1);
-    const [statusFilter, setStatusFilter] = useState<string>("");
-    const [sorting, setSorting] = useState<SortingState>([]);
-    const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([]);
-    const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({});
+    const { toast } = useToast()
+    const [pageSize, setPageSize] = useState(10)
+    const [currentPage, setCurrentPage] = useState(1)
+    const [statusFilter, setStatusFilter] = useState<string>("")
+    const [sorting, setSorting] = useState<SortingState>([])
+    const [columnFilters, setColumnFilters] = useState<ColumnFiltersState>([])
+    const [columnVisibility, setColumnVisibility] = useState<VisibilityState>({})
 
-    const [detailDialogOpen, setDetailDialogOpen] = useState(false);
-    const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+    const [detailDialogOpen, setDetailDialogOpen] = useState(false)
+    const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
+    const [refundDialogOpen, setRefundDialogOpen] = useState(false)
+    const [selectedOrderForRefund, setSelectedOrderForRefund] = useState<Order | null>(null)
 
-    const [searchValue, setSearchValue] = useState("");
-    const debouncedSearchValue = useDebounce(searchValue, 500);
+    const [searchValue, setSearchValue] = useState("")
+    const debouncedSearchValue = useDebounce(searchValue, 500)
 
     const params = {
         filterBy: debouncedSearchValue ? "orderId" : undefined,
@@ -53,11 +55,11 @@ const ManageOrders = () => {
         sortBy: sorting.length > 0 ? sorting[0]?.id : undefined,
         isAsc: sorting.length > 0 ? !sorting[0]?.desc : undefined,
         status: statusFilter || undefined,
-    };
+    }
 
-    const hasActiveFilters = statusFilter !== "" || searchValue !== "";
+    const hasActiveFilters = statusFilter !== "" || searchValue !== ""
 
-    const { data, error, isLoading, mutate } = useOrders(params);
+    const { data, error, isLoading, mutate } = useOrders(params)
 
     useEffect(() => {
         if (error) {
@@ -65,25 +67,33 @@ const ManageOrders = () => {
                 title: "Lỗi khi lấy danh sách đơn hàng",
                 description: error.message || "Đã xảy ra lỗi không xác định",
                 variant: "destructive",
-            });
+            })
         }
-    }, [error, toast]);
+    }, [error, toast])
+
+    const handleRefund = useCallback((order: Order) => {
+        setSelectedOrderForRefund(order)
+        setRefundDialogOpen(true)
+    }, [])
 
     const handleViewDetails = useCallback((order: Order) => {
-        setSelectedOrder(order);
-        setDetailDialogOpen(true);
-    }, []);
+        setSelectedOrder(order)
+        setDetailDialogOpen(true)
+    }, [])
 
     const clearAllFilters = () => {
-        setStatusFilter("");
-        setSearchValue("");
-        table.resetColumnFilters();
-    };
+        setStatusFilter("")
+        setSearchValue("")
+        table.resetColumnFilters()
+    }
 
     const columnsDef = useMemo(
-        () => columns((order) => handleViewDetails(order)),
-        [handleViewDetails]
-    );
+        () => columns({
+            onViewDetails: handleViewDetails,
+            onRefund: handleRefund,
+        }),
+        [handleViewDetails, handleRefund]
+    )
 
     const table = useReactTable({
         data: data?.items || [],
@@ -106,22 +116,22 @@ const ManageOrders = () => {
         manualSorting: true,
         pageCount: data?.totalPages || 1,
         filterFns: { multiSelect: multiSelectFilter },
-    });
+    })
 
     useEffect(() => {
-        table.setPageSize(pageSize);
-    }, [pageSize, table]);
+        table.setPageSize(pageSize)
+    }, [pageSize, table])
 
     useEffect(() => {
-        setCurrentPage(1);
-    }, [columnFilters]);
+        setCurrentPage(1)
+    }, [columnFilters])
 
     const visibleCount = useMemo(
         () => table.getAllColumns().filter((col) => col.getIsVisible()).length,
         [table.getState().columnVisibility]
-    );
+    )
 
-    const totalCount = useMemo(() => table.getAllColumns().length, []);
+    const totalCount = useMemo(() => table.getAllColumns().length, [])
 
     return (
         <div className="w-full">
@@ -222,7 +232,7 @@ const ManageOrders = () => {
                             {(!data && isLoading) ? (
                                 Array.from({ length: pageSize }).map((_, index) => (
                                     <TableRow key={`skeleton-${index}`} className="animate-pulse">
-                                        {columns(() => { }).map((column, cellIndex) => (
+                                        {columns({ onViewDetails: () => { }, onRefund: () => { } }).map((column, cellIndex) => (
                                             <TableCell key={`skeleton-cell-${cellIndex}`}>
                                                 {column.id === "orderId" ? (
                                                     <Skeleton className="h-5 w-24 mx-auto" />
@@ -256,7 +266,7 @@ const ManageOrders = () => {
                                     </TableRow>
                                 ))
                             ) : (
-                                <NoResultsRow columns={columns(() => { })} />
+                                <NoResultsRow columns={columns({ onViewDetails: () => { }, onRefund: () => { } })} />
                             )}
                         </TableBody>
                     </Table>
@@ -275,12 +285,22 @@ const ManageOrders = () => {
                 order={selectedOrder}
                 open={detailDialogOpen}
                 onOpenChange={(open) => {
-                    setDetailDialogOpen(open);
-                    if (!open) setSelectedOrder(null);
+                    setDetailDialogOpen(open)
+                    if (!open) setSelectedOrder(null)
                 }}
             />
+            {selectedOrderForRefund && (
+                <OrderRefundDialog
+                    order={selectedOrderForRefund}
+                    open={refundDialogOpen}
+                    onOpenChange={(open) => {
+                        setRefundDialogOpen(open)
+                        if (!open) setSelectedOrderForRefund(null)
+                    }}
+                />
+            )}
         </div>
-    );
-};
+    )
+}
 
-export default ManageOrders;
+export default ManageOrders

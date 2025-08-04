@@ -12,6 +12,7 @@ export interface Notification {
     createdBy: string;
     notificationRecipients: NotificationRecipient[];
     createdDate: string;
+    isRead: boolean;
 }
 
 export interface NotificationRecipient {

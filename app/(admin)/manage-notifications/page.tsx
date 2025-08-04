@@ -59,7 +59,6 @@ const ManageNotifications = () => {
 
     const handleViewDetails = useCallback(
         async (notification: Notification, event: React.MouseEvent) => {
-            // Prevent navigation if clicking on checkbox
             if ((event.target as HTMLElement).closest("[data-checkbox]")) {
                 return
             }
@@ -167,7 +166,6 @@ const ManageNotifications = () => {
                 return "🔔"; // Thông báo mặc định
         }
     };
-
 
     const hasActiveFilters = statusFilter !== "" || typeFilter !== "" || severityFilter !== "" || searchValue !== ""
     const allSelected = (data?.items?.length ?? 0) > 0 && selectedNotifications.length === (data?.items?.length ?? 0)
@@ -313,7 +311,7 @@ const ManageNotifications = () => {
                                 ))
                             ) : data?.items?.length ? (
                                 data.items.map((notification) => {
-                                    const isUnread = notification.notificationRecipients.some((r) => !r.isRead)
+                                    const isUnread = !notification.isRead
                                     const isSelected = selectedNotifications.includes(notification.notificationId)
 
                                     return (
@@ -371,8 +369,6 @@ const ManageNotifications = () => {
                                                                 : notification.message}
                                                         </p>
                                                     </div>
-
-
 
                                                     {/* Metadata */}
                                                     <div className="flex items-center justify-between">

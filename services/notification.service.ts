@@ -23,7 +23,7 @@ export const markReadNotification = async (notificationId: string) => {
 }
 
 export const markReadNotifications = async (notificationIds: string[],) => {
-    const response = await BaseService.put({ url: `${Api.NOTIFICATIONS}/read-notification`, payload: { notificationIds } });
+    const response = await BaseService.put({ url: `${Api.NOTIFICATIONS}/read-notifications`, payload: { notificationIds } });
     return response;
 }
 

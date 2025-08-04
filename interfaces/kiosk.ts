@@ -1,5 +1,5 @@
 import { EBaseStatus } from "@/enum/base";
-import { Device, DeviceModel } from "./device"
+import { Device, DeviceIngredientHistory, DeviceModel } from "./device"
 import { Store } from "./store";
 import { Webhook } from "./webhook";
 
@@ -31,18 +31,6 @@ export interface KioskDevice {
     status: EBaseStatus
     deviceIngredientHistories: DeviceIngredientHistory[];
 }
-
-export interface DeviceIngredientHistory {
-    deviceIngredientHistoryId: string;
-    deviceIngredientStateId: string;
-    deviceId: string;
-    deltaAmount: number;
-    oldCapacity: number;
-    newCapacity: number;
-    performedBy: string;
-    action: 'Consumed' | 'Refilled' | 'Replaced' | string;
-}
-
 
 export interface KioskType {
     name: string;

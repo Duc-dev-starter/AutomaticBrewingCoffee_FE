@@ -1,4 +1,4 @@
-import { EOrderStatus, EOrderType, EPaymentGateway } from "@/enum/order";
+import { EOrderStatus, EOrderType, EPaymentGateway, EPaymentStatus } from "@/enum/order";
 
 export interface OrderDetail {
     productName: string;
@@ -8,23 +8,57 @@ export interface OrderDetail {
     totalAmount: number;
 }
 
+export interface ProductStatus {
+    productId: string;
+    productName: string;
+    sellingPrice: number;
+}
+
+
+export interface Payment {
+    paymentId: string;
+    orderId: string;
+    paidAmount: number;
+    requiredAmount: number;
+    paymentStatus: EPaymentStatus;
+    paymentDate: string;
+    createdDate: string;
+    updatedDate: string;
+    expiredDate: string;
+}
+
+
+
 export interface Order {
     orderId: string;
+    clientId: string;
+    kioskId: string;
+    storeId: string;
+    organizationId: string;
+
     discount: number;
-    feeAmount: number;
-    feeDescription: string;
+    discountCode: string;
     finalAmount: number;
+    totalAmount: number;
+
+    status: EOrderStatus;
     orderType: EOrderType;
     paymentGateway: EPaymentGateway;
-    sessionId: string;
-    status: EOrderStatus;
-    totalAmount: number;
-    vat: number;
-    vatAmount: number;
+
     orderDetails: OrderDetail[];
-    paymentUrl: string;
-    paymentQr: string;
-    callbackUrl?: string;
-    createdDate?: string;
-    updatedDate?: string;
+    payments: Payment[];
+
+    completedProducts: ProductStatus[];
+    failedProducts: ProductStatus[];
+    preparingProducts: ProductStatus[];
+
+    createdDate: string;
+    updatedDate: string;
+
+    pendingDate: string | null;
+    preparingDate: string | null;
+    completedDate: string | null;
+    cancelledDate: string | null;
+    failedDate: string | null;
+
 }

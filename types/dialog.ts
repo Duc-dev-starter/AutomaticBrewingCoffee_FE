@@ -1,4 +1,4 @@
-import { Device, DeviceModel, DeviceType } from "@/interfaces/device";
+import { Device, DeviceIngredientHistory, DeviceIngredientStates, DeviceModel, DeviceType } from "@/interfaces/device";
 import { Product } from "../interfaces/product";
 import { Kiosk, KioskType, KioskVersion } from "@/interfaces/kiosk";
 import { Menu } from "@/interfaces/menu";
@@ -80,4 +80,12 @@ export type SyncEventDialogProps = BaseDialogProps & {
 
 export type SyncTaskDialogProps = BaseDialogProps & {
     syncTask?: SyncTask | null;
+}
+
+export type DeviceIngredientStatesDialogProps = BaseDialogProps & {
+    deviceIngredientStates: DeviceIngredientStates[];
+}
+
+export type DeviceIngredientHistoryDialogProps = BaseDialogProps & {
+    deviceIngredientHistory: DeviceIngredientHistory[];
 }

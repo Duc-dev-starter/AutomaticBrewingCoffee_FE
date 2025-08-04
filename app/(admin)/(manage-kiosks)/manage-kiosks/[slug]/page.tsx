@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useEffect } from "react"
+import React, { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { format } from "date-fns"
 import { EBaseStatusViMap } from "@/enum/base"
@@ -14,7 +14,6 @@ import {
     Package,
     Store,
     ArrowLeft,
-    RefreshCw,
     Loader2,
     Eye,
     EyeOff,
@@ -32,7 +31,7 @@ import { replaceDeviceByKioskId } from "@/services/kiosk.service"
 import { Button } from "@/components/ui/button"
 import { useToast } from "@/hooks/use-toast"
 import type { Kiosk, KioskDevice } from "@/interfaces/kiosk"
-import { RefreshButton } from "@/components/common"
+import { ConfirmDeleteDialog, RefreshButton } from "@/components/common"
 import {
     Dialog,
     DialogContent,
@@ -41,7 +40,6 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog"
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import type { Device, DeviceIngredientHistory, DeviceIngredientStates } from "@/interfaces/device"
 import { getDevicesToReplace } from "@/services/device.service"
 import { DeviceStatusGroup } from "@/components/common/device-status-group"
@@ -49,7 +47,7 @@ import { ErrorResponse } from "@/types/error"
 import { Webhook } from "@/interfaces/webhook"
 import { updateWebhook } from "@/services/webhook.service"
 import { Input } from "@/components/ui/input"
-import { OnplaceDialog } from "@/components/dialog/kiosk"
+import { DeviceIngredientHistoryDialog, KioskDeviceIngredientStatesDialog, KioskOnhubDialog, KioskReplaceDeviceDialog, KioskWebhookDialog, OnplaceDialog } from "@/components/dialog/kiosk"
 import { syncKiosk, syncOverrideKiosk } from "@/services/sync.service"
 import { deleteKiosk } from "@/services/kiosk.service"
 import axios from "axios"
@@ -88,10 +86,10 @@ const KioskDetailPage = () => {
     const [onplaceData, setOnplaceData] = useState<any>(null)
     const [loadingOnplace, setLoadingOnplace] = useState<boolean>(false)
     const [isIngredientDialogOpen, setIsIngredientDialogOpen] = useState(false)
-    const [selectedDeviceIngredients, setSelectedDeviceIngredients] = useState<DeviceIngredientStates[]>([])
+    const [selectedDeviceIngredientStates, setSelectedDeviceIngredientStates] = useState<DeviceIngredientStates[]>([])
     const [isDeviceIngredientHistoryDialogOpen, setIsDeviceIngredientHistoryDialogOpen] = useState(false)
     const [selectedDeviceIngredientHistory, setSelectedDeviceIngredientHistory] = useState<DeviceIngredientHistory[]>([])
-    const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+    const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
 
     const fetchKioskData = async () => {
         try {
@@ -242,7 +240,7 @@ const KioskDetailPage = () => {
     }
 
     const openIngredientDialog = (kioskDevice: KioskDevice) => {
-        setSelectedDeviceIngredients(kioskDevice.device.deviceIngredientStates || [])
+        setSelectedDeviceIngredientStates(kioskDevice.device.deviceIngredientStates || [])
         setIsIngredientDialogOpen(true)
     }
 
@@ -334,7 +332,7 @@ const KioskDetailPage = () => {
         }
     }
 
-    const handleDelete = async () => {
+    const confirmDelete = async () => {
         if (!kiosk?.kioskId) return
         try {
             await deleteKiosk(kiosk.kioskId)
@@ -458,7 +456,7 @@ const KioskDetailPage = () => {
                                     <Download className="mr-2 h-4 w-4" />
                                     Xuất file
                                 </DropdownMenuItem>
-                                <DropdownMenuItem onClick={() => setIsDeleteDialogOpen(true)}>
+                                <DropdownMenuItem onClick={() => setDeleteDialogOpen(true)}>
                                     <Trash2 className="mr-2 h-4 w-4" />
                                     Xóa
                                 </DropdownMenuItem>
@@ -679,156 +677,57 @@ const KioskDetailPage = () => {
             </div>
 
             {/* Replace Device Dialog */}
-            <Dialog open={isReplaceDialogOpen} onOpenChange={setIsReplaceDialogOpen}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Thay thế thiết bị</DialogTitle>
-                        <DialogDescription>
-                            Chọn thiết bị mới để thay thế cho "{selectedKioskDevice?.device.name}".
-                        </DialogDescription>
-                    </DialogHeader>
-                    <div className="py-4">
-                        <Select value={selectedReplacementDeviceId} onValueChange={setSelectedReplacementDeviceId}>
-                            <SelectTrigger>
-                                <SelectValue placeholder="Chọn thiết bị thay thế" />
-                            </SelectTrigger>
-                            <SelectContent>
-                                {loadingReplacements ? (
-                                    <div className="flex items-center justify-center p-2">
-                                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                                        <span>Đang tải...</span>
-                                    </div>
-                                ) : replacementDevices.length > 0 ? (
-                                    replacementDevices.map((device) => (
-                                        <SelectItem key={device.deviceId} value={device.deviceId}>
-                                            {device.name} - {device.serialNumber}
-                                        </SelectItem>
-                                    ))
-                                ) : (
-                                    <SelectItem value="no-devices" disabled>
-                                        Không có thiết bị khả dụng để thay thế
-                                    </SelectItem>
-                                )}
-                            </SelectContent>
-                        </Select>
-                    </div>
-                    <DialogFooter>
-                        <Button
-                            variant="outline"
-                            onClick={() => {
-                                setIsReplaceDialogOpen(false)
-                                setSelectedKioskDevice(null)
-                                setSelectedReplacementDeviceId("")
-                            }}
-                            disabled={processingAction}
-                        >
-                            Hủy
-                        </Button>
-                        <Button onClick={handleReplaceDevice} disabled={!selectedReplacementDeviceId || processingAction}>
-                            {processingAction ? (
-                                <>
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                    Đang xử lý...
-                                </>
-                            ) : (
-                                <>
-                                    <RefreshCw className="mr-2 h-4 w-4" />
-                                    Thay thế
-                                </>
-                            )}
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
+            <KioskReplaceDeviceDialog
+                open={isReplaceDialogOpen}
+                onOpenChange={setIsReplaceDialogOpen}
+                selectedKioskDevice={selectedKioskDevice}
+                replacementDevices={replacementDevices}
+                selectedReplacementDeviceId={selectedReplacementDeviceId}
+                setSelectedReplacementDeviceId={setSelectedReplacementDeviceId}
+                loadingReplacements={loadingReplacements}
+                processingAction={processingAction}
+                handleReplaceDevice={handleReplaceDevice}
+                onCancel={() => {
+                    setIsReplaceDialogOpen(false)
+                    setSelectedKioskDevice(null)
+                    setSelectedReplacementDeviceId("")
+                }}
+            />
 
             {/* Ingredient Dialog */}
-            <Dialog open={isIngredientDialogOpen} onOpenChange={setIsIngredientDialogOpen}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Thông tin nguyên liệu</DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-4">
-                        {selectedDeviceIngredients.map((ingredient, index) => (
-                            <div key={index} className="border p-4 rounded-md">
-                                <p><strong>Loại nguyên liệu:</strong> {ingredient.ingredientType}</p>
-                                <p><strong>Dung lượng hiện tại:</strong> {ingredient.currentCapacity}</p>
-                                <p><strong>Trạng thái cảnh báo:</strong> {ingredient.isWarning ? "Có" : "Không"}</p>
-                            </div>
-                        ))}
-                    </div>
-                    <DialogFooter>
-                        <Button onClick={() => setIsIngredientDialogOpen(false)}>Đóng</Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
+            <KioskDeviceIngredientStatesDialog
+                open={isIngredientDialogOpen}
+                onOpenChange={setIsIngredientDialogOpen}
+                deviceIngredientStates={selectedDeviceIngredientStates}
+            />
 
             {/* Device Ingredient History Dialog */}
-            <Dialog open={isDeviceIngredientHistoryDialogOpen} onOpenChange={setIsDeviceIngredientHistoryDialogOpen}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Lịch sử sử dụng nguyên liệu</DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-4 max-h-[60vh] overflow-y-auto">
-                        {selectedDeviceIngredientHistory.map((history, index) => (
-                            <div key={history.deviceIngredientHistoryId || index} className="border p-4 rounded-md">
-                                <p><strong>Thực hiện bởi:</strong> {history.performedBy}</p>
-                                <p><strong>Hành động:</strong> {history.action}</p>
-                                <p><strong>Lượng thay đổi:</strong> {history.deltaAmount}</p>
-                                <p><strong>Dung lượng trước:</strong> {history.oldCapacity}</p>
-                                <p><strong>Dung lượng sau:</strong> {history.newCapacity}</p>
-                            </div>
-                        ))}
-                    </div>
-                    <DialogFooter>
-                        <Button onClick={() => setIsDeviceIngredientHistoryDialogOpen(false)}>Đóng</Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
+            <DeviceIngredientHistoryDialog
+                open={isDeviceIngredientHistoryDialogOpen}
+                onOpenChange={setIsDeviceIngredientHistoryDialogOpen}
+                deviceIngredientHistory={selectedDeviceIngredientHistory}
+            />
 
 
             {/* Delete Confirmation Dialog */}
-            <Dialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Xác nhận xóa kiosk</DialogTitle>
-                    </DialogHeader>
-                    <DialogDescription>
-                        Bạn có chắc chắn muốn xóa kiosk này? Hành động này không thể hoàn tác.
-                    </DialogDescription>
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setIsDeleteDialogOpen(false)}>
-                            Hủy
-                        </Button>
-                        <Button variant="destructive" onClick={handleDelete}>
-                            Xóa
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
+            <React.Suspense fallback={<div className="hidden">Đang tải...</div>}>
+                <ConfirmDeleteDialog
+                    open={deleteDialogOpen}
+                    onOpenChange={setDeleteDialogOpen}
+                    description={`Bạn có chắc chắn muốn xóa kiosk ? Hành động này không thể hoàn tác.`}
+                    onConfirm={confirmDelete}
+                    onCancel={() => setDeleteDialogOpen(false)}
+                />
+            </React.Suspense>
 
             {/* Webhook Dialog */}
-            <Dialog open={isUpdateWebhookDialogOpen} onOpenChange={setIsUpdateWebhookDialogOpen}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Cập nhật Webhook</DialogTitle>
-                    </DialogHeader>
-                    <div className="space-y-4">
-                        <Input
-                            value={newWebhookUrl}
-                            onChange={(e) => setNewWebhookUrl(e.target.value)}
-                            placeholder="Nhập URL mới"
-                        />
-                    </div>
-                    <DialogFooter>
-                        <Button variant="outline" onClick={() => setIsUpdateWebhookDialogOpen(false)}>
-                            Hủy
-                        </Button>
-                        <Button onClick={handleUpdateWebhook}>
-                            Lưu
-                        </Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
+            <KioskWebhookDialog
+                isOpen={isUpdateWebhookDialogOpen}
+                onOpenChange={setIsUpdateWebhookDialogOpen}
+                webhookUrl={newWebhookUrl}
+                onWebhookUrlChange={setNewWebhookUrl}
+                onSubmit={handleUpdateWebhook}
+            />
 
             <OnplaceDialog
                 open={isOnplaceDialogOpen}
@@ -838,49 +737,13 @@ const KioskDetailPage = () => {
                 deviceName={selectedKioskDeviceForOnplace?.device?.name || ""}
             />
 
-            <Dialog open={isOnhubDialogOpen} onOpenChange={setIsOnhubDialogOpen}>
-                <DialogContent>
-                    <DialogHeader>
-                        <DialogTitle>Thông tin OnHub</DialogTitle>
-                        <DialogDescription>
-                            Thông tin kết nối của thiết bị "{selectedKioskDeviceForOnhub?.device.name}".
-                        </DialogDescription>
-                    </DialogHeader>
-                    {loadingOnhub ? (
-                        <div className="flex items-center justify-center p-4">
-                            <Loader2 className="h-8 w-8 animate-spin" />
-                        </div>
-                    ) : onhubData ? (
-                        <div className="space-y-4">
-                            <div>
-                                <h4 className="font-medium">Trạng thái</h4>
-                                <p>{onhubData.status}</p>
-                            </div>
-                            <div>
-                                <h4 className="font-medium">Trạng thái kết nối</h4>
-                                <p>{onhubData.connectionState}</p>
-                            </div>
-                            <div>
-                                <h4 className="font-medium">Thời gian cập nhật trạng thái kết nối</h4>
-                                <p>{format(new Date(onhubData.connectionStateUpdatedTime), "dd/MM/yyyy HH:mm")}</p>
-                            </div>
-                            <div>
-                                <h4 className="font-medium">Số lượng tin nhắn từ cloud đến thiết bị</h4>
-                                <p>{onhubData.cloudToDeviceMessageCount}</p>
-                            </div>
-                            <div>
-                                <h4 className="font-medium">Chuỗi kết nối</h4>
-                                <p className="break-all">{onhubData.connectionString}</p>
-                            </div>
-                        </div>
-                    ) : (
-                        <p>Không có thông tin OnHub cho thiết bị này.</p>
-                    )}
-                    <DialogFooter>
-                        <Button onClick={() => setIsOnhubDialogOpen(false)}>Đóng</Button>
-                    </DialogFooter>
-                </DialogContent>
-            </Dialog>
+            <KioskOnhubDialog
+                open={isOnhubDialogOpen}
+                onOpenChange={setIsOnhubDialogOpen}
+                loading={loadingOnhub}
+                onhubData={onhubData}
+                deviceName={selectedKioskDeviceForOnhub?.device.name || ""}
+            />
         </div>
     )
 }

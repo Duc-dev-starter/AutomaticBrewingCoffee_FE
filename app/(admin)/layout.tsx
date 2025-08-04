@@ -40,6 +40,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             toast({
                 title: notification.title || "Thông báo mới",
                 description: notification.message || "Bạn có thông báo mới",
+                variant: "info",
             });
             // Tăng số lượng chưa đọc nếu cần
             setUnreadCount(prev => prev + 1);

@@ -2,7 +2,8 @@ import { HttpStatus } from "@/enum/http";
 import axios from "axios";
 import { toastService } from "@/utils";
 import Cookies from "js-cookie"
-import { refreshToken } from "@/services/auth.service";
+import { logout, refreshToken } from "@/services/auth.service";
+import { Path } from "@/constants/path.constant";
 
 export const axiosInstance = axios.create({
     baseURL: process.env.NEXT_PUBLIC_API_BASE_URL,
@@ -77,17 +78,16 @@ axiosInstance.interceptors.response.use(
                     const newAccessToken = await refreshToken();
                     processQueue(null, newAccessToken);
                     originalRequest.headers['Authorization'] = `Bearer ${newAccessToken}`;
-                    return axiosInstance(originalRequest); // Thử lại request ban đầu
+                    return axiosInstance(originalRequest);
                 } catch (refreshError) {
                     processQueue(refreshError, null);
-                    setTimeout(() => {
-                        toastService.show({
-                            title: "Hệ thống gặp trục trặc",
-                            description: "Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.",
-                            variant: "warning"
-                        });
-                        // window.location.href = '/login';
-                    }, 5000)
+                    logout();
+                    toastService.show({
+                        title: "Hệ thống gặp trục trặc",
+                        description: "Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.",
+                        variant: "warning"
+                    });
+                    window.location.href = Path.LOGIN;
                     return Promise.reject(refreshError);
                 } finally {
                     isRefreshing = false;

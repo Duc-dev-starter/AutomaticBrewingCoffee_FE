@@ -1,4 +1,3 @@
-// RootLayout component updated
 "use client"
 
 import { AdminSearchbar, AdminSidebar } from "@/components/layout"
@@ -13,12 +12,13 @@ import { useToast } from "@/hooks/use-toast";
 import { registerToast } from "@/utils";
 import { useEffect, useState } from "react"; // Removed unused useState
 import { HubConnectionState } from "@microsoft/signalr";
-import { logout } from "@/services/auth.service";
+import { logout, refreshToken } from "@/services/auth.service";
 import { scheduleTokenRefresh } from "@/utils/cookie";
 import Cookies from 'js-cookie'
 import { NotificationBell } from "@/components/common";
 import { Notification } from "@/interfaces/notification";
-import { useNotifications } from "@/hooks"; // Assuming this is the import for useNotifications
+import { useNotifications } from "@/hooks";
+import { jwtDecode, JwtPayload } from "jwt-decode";
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
     const { toast } = useToast();
@@ -112,7 +112,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
     useEffect(() => {
         const accessToken = Cookies.get("accessToken");
         if (accessToken) {
-            scheduleTokenRefresh(accessToken);
+            scheduleTokenRefresh();
         }
     }, []);
 
@@ -123,6 +123,22 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         if (connectionState === HubConnectionState.Disconnected) return <span className="text-red-600">Mất kết nối!</span>
         return null;
     }
+
+    useEffect(() => {
+        const cleanup = scheduleTokenRefresh();
+
+        const handleVisibilityChange = () => {
+            if (document.visibilityState === 'visible') {
+                scheduleTokenRefresh(); // Recheck và reschedule khi tab active
+            }
+        };
+
+        document.addEventListener('visibilitychange', handleVisibilityChange);
+        return () => {
+            document.removeEventListener('visibilitychange', handleVisibilityChange);
+            if (cleanup) cleanup();
+        };
+    }, []);
 
     return (
         <SidebarProvider>
@@ -135,12 +151,10 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                         <div className="ml-2">{renderConnectionState()}</div>
                     </div>
 
-                    {/* Searchbar takes up remaining space */}
                     <div className="flex-1">
                         <AdminSearchbar />
                     </div>
 
-                    {/* Notification bell positioned at the far right */}
                     <div className="px-4">
                         <NotificationBell
                             notifications={data?.items || []}

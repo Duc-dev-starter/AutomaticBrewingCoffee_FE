@@ -1,20 +1,19 @@
 import { type ColumnDef } from "@tanstack/react-table";
 import { EWorkflowType, EWorkflowTypeViMap } from "@/enum/workflow";
 import { ActionDropdown } from "@/components/common";
-import Link from "next/link";
 import { Workflow } from "@/interfaces/workflow";
 import { Workflow as WorkflowIcon } from "lucide-react";
+import { Badge } from "../ui/badge";
+import clsx from "clsx";
 
 export const columns = ({
     onViewDetails,
     onEdit,
     onDelete,
-    onViewSteps,
 }: {
     onViewDetails: (workflow: Workflow) => void;
     onEdit: (workflow: Workflow) => void;
     onDelete: (workflow: Workflow) => void;
-    onViewSteps: (workflow: Workflow) => void;
 }): ColumnDef<Workflow>[] => [
         {
             id: "workflowId",
@@ -43,7 +42,20 @@ export const columns = ({
             cell: ({ row }) => {
                 const type: EWorkflowType = row.original.type;
                 const typeText = EWorkflowTypeViMap[type] ?? "Không rõ";
-                return <div className="text-center">{typeText}</div>;
+
+                const typeColorMap: Record<EWorkflowType, string> = {
+                    [EWorkflowType.Activity]: "bg-blue-500",
+                    [EWorkflowType.Callback]: "bg-yellow-500",
+                    [EWorkflowType.Clean]: "bg-green-500",
+                };
+
+                return (
+                    <div className="flex justify-center">
+                        <Badge className={clsx(typeColorMap[type] ?? "bg-gray-400", "text-white")}>
+                            {typeText}
+                        </Badge>
+                    </div>
+                );
             },
             enableSorting: false,
         },

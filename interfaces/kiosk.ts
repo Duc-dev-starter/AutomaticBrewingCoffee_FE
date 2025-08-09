@@ -21,6 +21,8 @@ export interface Kiosk {
     apiKey: string;
     webhooks?: Webhook[];
     menuId?: string;
+    isOnline: boolean;
+    isBusy: boolean;
 }
 
 export interface KioskDevice {

@@ -533,6 +533,7 @@ const KioskDetailPage = () => {
                                             </p>
                                         </div>
                                     </div>
+
                                     <div>
                                         <h3 className="text-sm font-medium text-muted-foreground">Thời hạn bảo hành</h3>
                                         <div className="flex items-center">
@@ -542,6 +543,7 @@ const KioskDetailPage = () => {
                                             </p>
                                         </div>
                                     </div>
+
                                     <div>
                                         <h3 className="text-sm font-medium text-muted-foreground">Trạng thái</h3>
                                         <div className="flex items-center">
@@ -550,7 +552,26 @@ const KioskDetailPage = () => {
                                             </Badge>
                                         </div>
                                     </div>
+
+                                    <div>
+                                        <h3 className="text-sm font-medium text-muted-foreground">Trực tuyến</h3>
+                                        <div className="flex items-center">
+                                            <Badge className={clsx("mt-1", kiosk.isOnline ? "bg-green-500" : "bg-gray-400")}>
+                                                {kiosk.isOnline ? "Online" : "Offline"}
+                                            </Badge>
+                                        </div>
+                                    </div>
+
+                                    <div>
+                                        <h3 className="text-sm font-medium text-muted-foreground">Bận rộn</h3>
+                                        <div className="flex items-center">
+                                            <Badge className={clsx("mt-1", kiosk.isBusy ? "bg-red-500" : "bg-green-500")}>
+                                                {kiosk.isBusy ? "Bận" : "Rảnh"}
+                                            </Badge>
+                                        </div>
+                                    </div>
                                 </div>
+
                             </div>
                         </CardContent>
                     </Card>

@@ -1,4 +1,4 @@
-import { Power, ShoppingCart, Store } from "lucide-react";
+import { Calendar, Power, ShoppingCart, Store } from "lucide-react";
 import { Badge } from "../ui/badge";
 import { ColumnDef } from "@tanstack/react-table";
 import { Order } from "@/interfaces/order";
@@ -7,6 +7,7 @@ import { getOrderStatusColor } from "@/utils/color";
 import { ActionDropdown } from "../common";
 import Image from "next/image";
 import { images } from "@/public/assets";
+import { formatDate } from "@/utils/date";
 
 const getOrderTypeConfig = (orderType: EOrderType) => {
     switch (orderType) {
@@ -111,6 +112,19 @@ export const columns = ({
             cell: ({ row }) => {
                 const finalAmount = row.original.finalAmount;
                 return <div className="text-center">{finalAmount.toLocaleString()} VND</div>;
+            },
+        },
+        {
+            id: "createdDate",
+            accessorKey: "createdDate",
+            header: "Ngày tạo",
+            cell: ({ row }) => {
+                return (
+                    <div className="flex items-center justify-center">
+                        <Calendar className="h-4 w-4 mr-1 text-muted-foreground" />
+                        <span>{formatDate(row.original.createdDate)}</span>
+                    </div>
+                );
             },
         },
         {

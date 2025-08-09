@@ -25,7 +25,7 @@ interface NotificationBellProps {
 export function NotificationBell({ className, notifications, isLoading, mutate }: NotificationBellProps) {
     const [isOpen, setIsOpen] = useState(false)
     const { toast } = useToast()
-    const router = useRouter() // Optional: for viewing details
+    const router = useRouter()
 
     const unreadCount = notifications.filter((n) => !n.isRead).length
 
@@ -81,7 +81,7 @@ export function NotificationBell({ className, notifications, isLoading, mutate }
     const markAsRead = async (notificationId: string) => {
         try {
             await markReadNotification(notificationId)
-            mutate() // Refetch to update list
+            mutate()
         } catch (err) {
             toast({
                 title: "Lỗi khi đánh dấu đã đọc",

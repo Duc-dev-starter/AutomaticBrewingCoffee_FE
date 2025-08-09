@@ -129,7 +129,6 @@ const ManageWorkflows = () => {
             onViewDetails: (workflow: Workflow) => router.push(`${Path.MANAGE_WORKFLOWS}/${workflow.workflowId}`),
             onEdit: (workflow: Workflow) => router.push(`${Path.UPDATE_WORKFLOW}/${workflow.workflowId}`),
             onDelete: handleDelete,
-            onViewSteps: (workflow: Workflow) => router.push(`${Path.MANAGE_WORKFLOWS}/${workflow.workflowId}`),
         }),
         [router]
     );
@@ -276,7 +275,7 @@ const ManageWorkflows = () => {
                             {(!data && isLoading) ? (
                                 Array.from({ length: pageSize }).map((_, index) => (
                                     <TableRow key={`skeleton-${index}`} className="animate-pulse">
-                                        {columns({ onViewDetails: () => { }, onEdit: () => { }, onDelete: () => { }, onViewSteps: () => { } }).map((column, cellIndex) => (
+                                        {columns({ onViewDetails: () => { }, onEdit: () => { }, onDelete: () => { }, }).map((column, cellIndex) => (
                                             <TableCell key={`skeleton-cell-${cellIndex}`}>
                                                 {column.id === "workflowId" ? (
                                                     <Skeleton className="h-5 w-24 mx-auto" />
@@ -308,7 +307,7 @@ const ManageWorkflows = () => {
                                     </TableRow>
                                 ))
                             ) : (
-                                <NoResultsRow columns={columns({ onViewDetails: () => { }, onEdit: () => { }, onDelete: () => { }, onViewSteps: () => { } })} />
+                                <NoResultsRow columns={columns({ onViewDetails: () => { }, onEdit: () => { }, onDelete: () => { }, })} />
                             )}
                         </TableBody>
                     </Table>

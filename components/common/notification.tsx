@@ -8,146 +8,26 @@ import { Badge } from "@/components/ui/badge"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
 import { cn } from "@/lib/utils"
-
-// Mock data based on your interfaces
-const mockNotifications = [
-    {
-        notificationId: "1",
-        title: "Đơn hàng mới",
-        message: "Bạn có một đơn hàng mới từ khách hàng Nguyễn Văn A",
-        notificationType: "ORDER",
-        referenceId: "ORD-001",
-        referenceType: "ORDER",
-        severity: "HIGH",
-        createdBy: "system",
-        createdAt: "2024-01-15T10:30:00Z",
-        notificationRecipients: [
-            {
-                notificationRecipientId: "1",
-                notificationId: "1",
-                accountRole: "ADMIN",
-                accountId: "admin-1",
-                isRead: false,
-                account: {
-                    accountId: "admin-1",
-                    username: "admin",
-                    email: "admin@example.com",
-                },
-            },
-        ],
-    },
-    {
-        notificationId: "2",
-        title: "Thanh toán thành công",
-        message: "Thanh toán cho đơn hàng #ORD-002 đã được xử lý thành công",
-        notificationType: "PAYMENT",
-        referenceId: "PAY-001",
-        referenceType: "PAYMENT",
-        severity: "MEDIUM",
-        createdBy: "system",
-        createdAt: "2024-01-15T09:15:00Z",
-        notificationRecipients: [
-            {
-                notificationRecipientId: "2",
-                notificationId: "2",
-                accountRole: "ADMIN",
-                accountId: "admin-1",
-                isRead: false,
-                account: {
-                    accountId: "admin-1",
-                    username: "admin",
-                    email: "admin@example.com",
-                },
-            },
-        ],
-    },
-    {
-        notificationId: "3",
-        title: "Cập nhật hệ thống",
-        message: "Hệ thống sẽ được bảo trì vào lúc 2:00 AM ngày mai",
-        notificationType: "SYSTEM",
-        referenceId: "SYS-001",
-        referenceType: "SYSTEM",
-        severity: "LOW",
-        createdBy: "system",
-        createdAt: "2024-01-15T08:00:00Z",
-        notificationRecipients: [
-            {
-                notificationRecipientId: "3",
-                notificationId: "3",
-                accountRole: "ADMIN",
-                accountId: "admin-1",
-                isRead: true,
-                readDate: "2024-01-15T08:30:00Z",
-                account: {
-                    accountId: "admin-1",
-                    username: "admin",
-                    email: "admin@example.com",
-                },
-            },
-        ],
-    },
-    {
-        notificationId: "4",
-        title: "Khách hàng mới đăng ký",
-        message: "Khách hàng Trần Thị B vừa đăng ký tài khoản mới",
-        notificationType: "USER",
-        referenceId: "USER-001",
-        referenceType: "USER",
-        severity: "MEDIUM",
-        createdBy: "system",
-        createdAt: "2024-01-15T07:45:00Z",
-        notificationRecipients: [
-            {
-                notificationRecipientId: "4",
-                notificationId: "4",
-                accountRole: "ADMIN",
-                accountId: "admin-1",
-                isRead: false,
-                account: {
-                    accountId: "admin-1",
-                    username: "admin",
-                    email: "admin@example.com",
-                },
-            },
-        ],
-    },
-    {
-        notificationId: "5",
-        title: "Báo cáo doanh thu",
-        message: "Báo cáo doanh thu tháng 1 đã sẵn sàng để xem",
-        notificationType: "REPORT",
-        referenceId: "RPT-001",
-        referenceType: "REPORT",
-        severity: "LOW",
-        createdBy: "system",
-        createdAt: "2024-01-15T06:00:00Z",
-        notificationRecipients: [
-            {
-                notificationRecipientId: "5",
-                notificationId: "5",
-                accountRole: "ADMIN",
-                accountId: "admin-1",
-                isRead: false,
-                account: {
-                    accountId: "admin-1",
-                    username: "admin",
-                    email: "admin@example.com",
-                },
-            },
-        ],
-    },
-]
+import { Notification } from "@/interfaces/notification"
+import { markReadNotification, markReadNotifications } from "@/services/notification.service"
+import { useToast } from "@/hooks/use-toast"
+import { Path } from "@/constants/path.constant"
+import { useRouter } from "next/navigation"
+import { ENotificationType, ESeverity } from "@/enum/notification"
 
 interface NotificationBellProps {
     className?: string
+    notifications: Notification[]
+    isLoading: boolean
+    mutate: () => void
 }
 
-export function NotificationBell({ className }: NotificationBellProps) {
-    const [notifications, setNotifications] = useState(mockNotifications)
+export function NotificationBell({ className, notifications, isLoading, mutate }: NotificationBellProps) {
     const [isOpen, setIsOpen] = useState(false)
+    const { toast } = useToast()
+    const router = useRouter() // Optional: for viewing details
 
-    const unreadCount = notifications.filter((n) => !n.notificationRecipients[0]?.isRead).length
+    const unreadCount = notifications.filter((n) => !n.isRead).length
 
     const formatTimeAgo = (dateString: string) => {
         const date = new Date(dateString)
@@ -162,11 +42,11 @@ export function NotificationBell({ className }: NotificationBellProps) {
 
     const getSeverityColor = (severity: string) => {
         switch (severity) {
-            case "HIGH":
+            case ESeverity.Critical:
                 return "bg-red-100 text-red-800 border-red-200"
-            case "MEDIUM":
+            case ESeverity.Warning:
                 return "bg-yellow-100 text-yellow-800 border-yellow-200"
-            case "LOW":
+            case ESeverity.Info:
                 return "bg-blue-100 text-blue-800 border-blue-200"
             default:
                 return "bg-gray-100 text-gray-800 border-gray-200"
@@ -175,6 +55,14 @@ export function NotificationBell({ className }: NotificationBellProps) {
 
     const getTypeIcon = (type: string) => {
         switch (type) {
+            case ENotificationType.KioskBusy:
+                return "⏳";
+            case ENotificationType.KioskNotWorking:
+                return "🛠️";
+            case ENotificationType.OrderCreateFailed:
+                return "❌";
+            case ENotificationType.OrderExecuteFailed:
+                return "🚫";
             case "ORDER":
                 return "🛒"
             case "PAYMENT":
@@ -186,42 +74,44 @@ export function NotificationBell({ className }: NotificationBellProps) {
             case "REPORT":
                 return "📊"
             default:
-                return "📢"
+                return "🔔"
         }
     }
 
-    const markAsRead = (notificationId: string) => {
-        setNotifications((prev) =>
-            prev.map((notification) =>
-                notification.notificationId === notificationId
-                    ? {
-                        ...notification,
-                        notificationRecipients: notification.notificationRecipients.map((recipient) => ({
-                            ...recipient,
-                            isRead: true,
-                            readDate: new Date().toISOString(),
-                        })),
-                    }
-                    : notification,
-            ),
-        )
+    const markAsRead = async (notificationId: string) => {
+        try {
+            await markReadNotification(notificationId)
+            mutate() // Refetch to update list
+        } catch (err) {
+            toast({
+                title: "Lỗi khi đánh dấu đã đọc",
+                description: "Không thể đánh dấu thông báo đã đọc",
+                variant: "destructive",
+            })
+        }
     }
 
-    const markAllAsRead = () => {
-        setNotifications((prev) =>
-            prev.map((notification) => ({
-                ...notification,
-                notificationRecipients: notification.notificationRecipients.map((recipient) => ({
-                    ...recipient,
-                    isRead: true,
-                    readDate: new Date().toISOString(),
-                })),
-            })),
-        )
+    const markAllAsRead = async () => {
+        const unreadIds = notifications.filter(n => !n.isRead).map(n => n.notificationId)
+        if (unreadIds.length === 0) return
+
+        try {
+            await markReadNotifications(unreadIds)
+            mutate()
+        } catch (err) {
+            toast({
+                title: "Lỗi khi đánh dấu đã đọc",
+                description: "Không thể đánh dấu các thông báo đã đọc",
+                variant: "destructive",
+            })
+        }
     }
 
-    const removeNotification = (notificationId: string) => {
-        setNotifications((prev) => prev.filter((notification) => notification.notificationId !== notificationId))
+
+
+    const handleViewAll = () => {
+        setIsOpen(false)
+        router.push(Path.MANAGE_NOTIFICATIONS)
     }
 
     return (
@@ -250,18 +140,23 @@ export function NotificationBell({ className }: NotificationBellProps) {
                 </div>
 
                 <ScrollArea className="h-96">
-                    {notifications.length === 0 ? (
+                    {isLoading ? (
+                        <div className="p-4 text-center text-muted-foreground">Đang tải...</div>
+                    ) : notifications.length === 0 ? (
                         <div className="p-4 text-center text-muted-foreground">Không có thông báo nào</div>
                     ) : (
                         <div className="divide-y">
                             {notifications.map((notification) => {
-                                const recipient = notification.notificationRecipients[0]
-                                const isRead = recipient?.isRead
+                                const isRead = notification.isRead
 
                                 return (
                                     <div
                                         key={notification.notificationId}
                                         className={cn("p-4 hover:bg-muted/50 transition-colors relative group", !isRead && "bg-blue-50/50")}
+                                        onClick={() => {
+                                            if (!isRead) markAsRead(notification.notificationId)
+                                            router.push(`${Path.MANAGE_NOTIFICATIONS}/${notification.notificationId}`)
+                                        }}
                                     >
                                         <div className="flex items-start gap-3">
                                             <div className="text-lg flex-shrink-0 mt-0.5">{getTypeIcon(notification.notificationType)}</div>
@@ -277,27 +172,22 @@ export function NotificationBell({ className }: NotificationBellProps) {
                                                             {notification.severity}
                                                         </Badge>
 
-                                                        <Button
-                                                            variant="ghost"
-                                                            size="icon"
-                                                            className="h-6 w-6 opacity-0 group-hover:opacity-100 transition-opacity"
-                                                            onClick={() => removeNotification(notification.notificationId)}
-                                                        >
-                                                            <X className="h-3 w-3" />
-                                                        </Button>
                                                     </div>
                                                 </div>
 
                                                 <p className="text-sm text-muted-foreground mt-1 line-clamp-2">{notification.message}</p>
 
                                                 <div className="flex items-center justify-between mt-2">
-                                                    <span className="text-xs text-muted-foreground">{formatTimeAgo(notification.createdAt)}</span>
+                                                    <span className="text-xs text-muted-foreground">{formatTimeAgo(notification.createdDate)}</span>
 
                                                     {!isRead && (
                                                         <Button
                                                             variant="ghost"
                                                             size="sm"
-                                                            onClick={() => markAsRead(notification.notificationId)}
+                                                            onClick={(e) => {
+                                                                e.stopPropagation()
+                                                                markAsRead(notification.notificationId)
+                                                            }}
                                                             className="text-xs h-6 px-2"
                                                         >
                                                             <Check className="h-3 w-3 mr-1" />
@@ -322,7 +212,7 @@ export function NotificationBell({ className }: NotificationBellProps) {
                     <>
                         <Separator />
                         <div className="p-2">
-                            <Button variant="ghost" className="w-full text-sm">
+                            <Button variant="ghost" className="w-full text-sm" onClick={handleViewAll}>
                                 Xem tất cả thông báo
                             </Button>
                         </div>

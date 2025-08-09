@@ -1,4 +1,6 @@
+// RootLayout component updated
 "use client"
+
 import { AdminSearchbar, AdminSidebar } from "@/components/layout"
 import { Separator } from "@/components/ui/separator"
 import {
@@ -9,24 +11,42 @@ import {
 import { useSignalR } from "@/contexts/signalR";
 import { useToast } from "@/hooks/use-toast";
 import { registerToast } from "@/utils";
-import { useEffect, useState } from "react";
+import { useEffect, useState } from "react"; // Removed unused useState
 import { HubConnectionState } from "@microsoft/signalr";
 import { logout } from "@/services/auth.service";
 import { scheduleTokenRefresh } from "@/utils/cookie";
 import Cookies from 'js-cookie'
 import { NotificationBell } from "@/components/common";
 import { Notification } from "@/interfaces/notification";
+import { useNotifications } from "@/hooks"; // Assuming this is the import for useNotifications
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
     const { toast } = useToast();
-    const [unreadCount, setUnreadCount] = useState<number>(3)
     useEffect(() => {
         registerToast(toast);
     }, [toast]);
     const { connection, invoke, off, startConnection, on } = useSignalR();
 
-
     const [connectionState, setConnectionState] = useState<HubConnectionState | null>(null);
+
+    const params = {
+        page: 1,
+        size: 5,
+        sortBy: "createdDate",
+        isAsc: false,
+    };
+
+    const { data, error, isLoading, mutate } = useNotifications(params);
+
+    useEffect(() => {
+        if (error) {
+            toast({
+                title: "Lỗi khi lấy danh sách thông báo",
+                description: error.message || "Đã xảy ra lỗi không xác định",
+                variant: "destructive",
+            });
+        }
+    }, [error, toast]);
 
     useEffect(() => {
         startConnection();
@@ -42,8 +62,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
                 description: notification.message || "Bạn có thông báo mới",
                 variant: "info",
             });
-            // Tăng số lượng chưa đọc nếu cần
-            setUnreadCount(prev => prev + 1);
+            mutate();
         };
 
         on("ForceLogout", handleForceLogout);
@@ -105,7 +124,6 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         return null;
     }
 
-
     return (
         <SidebarProvider>
             <AdminSidebar />
@@ -124,7 +142,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
                     {/* Notification bell positioned at the far right */}
                     <div className="px-4">
-                        <NotificationBell />
+                        <NotificationBell
+                            notifications={data?.items || []}
+                            isLoading={isLoading}
+                            mutate={mutate}
+                        />
                     </div>
                 </header>
                 {children}

@@ -40,6 +40,7 @@ export interface Order {
     discountCode: string;
     finalAmount: number;
     totalAmount: number;
+    orderCode: string;
 
     status: EOrderStatus;
     orderType: EOrderType;

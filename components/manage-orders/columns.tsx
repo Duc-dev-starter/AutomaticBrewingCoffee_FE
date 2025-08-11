@@ -46,6 +46,13 @@ export const columns = ({
             enableSorting: false,
         },
         {
+            id: "orderCode",
+            header: "Mã đơn hàng",
+            cell: ({ row }) => {
+                return <div className="text-center">{row.original.orderCode}</div>;
+            },
+        },
+        {
             id: "orderType",
             header: "Loại đơn hàng",
             cell: ({ row }) => {

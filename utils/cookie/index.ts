@@ -3,7 +3,6 @@ import Cookies from 'js-cookie'
 import { logout, refreshToken } from "@/services/auth.service";
 import { Path } from "@/constants/path.constant";
 
-
 interface JwtPayload {
     exp: number;
     aud: string;
@@ -55,6 +54,7 @@ export const scheduleTokenRefresh = () => {
     if (!accessToken || !refreshTokenValue) {
         logout();
         window.location.href = '/login';
+        alert("Phiên đăng nhập đã hết hạn. Vui lòng đăng nhập lại.");
         return;
     }
 

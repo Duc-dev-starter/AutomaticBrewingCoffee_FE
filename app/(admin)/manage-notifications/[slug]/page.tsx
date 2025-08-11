@@ -9,7 +9,7 @@ import { Badge } from "@/components/ui/badge"
 import { AlertTriangle, Clock, Info } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { Path } from "@/constants/path.constant"
-import { ENotificationType, ESeverity, ENotificationTypeViMap, ESeverityViMap } from "@/enum/notification"
+import { ENotificationType, ESeverity, ENotificationTypeViMap, ESeverityViMap, EReferenceType } from "@/enum/notification"
 import { Notification } from "@/interfaces/notification"
 import { formatDate } from "@/utils/date"
 import { Skeleton } from "@/components/ui/skeleton"
@@ -19,18 +19,17 @@ const NotificationDetail = () => {
     const { toast } = useToast()
     const router = useRouter()
     const params = useParams()
-    const notificationId = params.notificationId as string
+    const slug = params.slug as string;
 
     const [notification, setNotification] = useState<Notification | null>(null)
-    const [isLoading, setIsLoading] = useState(true)
+    const [loading, setLoading] = useState(true)
 
     const fetchNotification = async () => {
         try {
-            setIsLoading(true)
-            const data = await getNotification(notificationId)
-            console.log("Fetched Notification:", data)
-            //@ts-ignore
-            setNotification(data)
+            setLoading(true)
+            const data = await getNotification(slug)
+            console.log("Fetched Notification:", data.response)
+            setNotification(data.response)
         } catch (err) {
             toast({
                 title: "Lỗi khi lấy chi tiết thông báo",
@@ -39,15 +38,15 @@ const NotificationDetail = () => {
             })
             router.push(Path.MANAGE_NOTIFICATIONS)
         } finally {
-            setIsLoading(false)
+            setLoading(false)
         }
     }
 
     useEffect(() => {
-        if (notificationId) {
+        if (slug) {
             fetchNotification()
         }
-    }, [notificationId])
+    }, [slug])
 
     const getSeverityIcon = (severity: string) => {
         switch (severity) {
@@ -94,7 +93,7 @@ const NotificationDetail = () => {
         router.push(Path.MANAGE_NOTIFICATIONS)
     }
 
-    if (isLoading) {
+    if (loading) {
         return (
             <div className="w-full p-4 sm:p-6">
                 <Card>
@@ -173,13 +172,28 @@ const NotificationDetail = () => {
                                 <p className="text-sm font-medium">{notification.createdBy}</p>
                             </div>
                             <div>
-                                <p className="text-sm text-gray-500">ID tham chiếu</p>
-                                <p className="text-sm font-medium">{notification.referenceId}</p>
+                                <div className="flex items-center gap-2">
+                                    {notification.referenceType === EReferenceType.Kiosk && (
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => router.push(`${Path.MANAGE_KIOSKS}/${notification.referenceId}`)}
+                                        >
+                                            Xem
+                                        </Button>
+                                    )}
+                                    {notification.referenceType === EReferenceType.Order && (
+                                        <Button
+                                            variant="outline"
+                                            size="sm"
+                                            onClick={() => router.push(`${Path.MANAGE_ORDERS}/${notification.referenceId}`)}
+                                        >
+                                            Xem
+                                        </Button>
+                                    )}
+                                </div>
                             </div>
-                            <div>
-                                <p className="text-sm text-gray-500">Loại tham chiếu</p>
-                                <p className="text-sm font-medium">{notification.referenceType}</p>
-                            </div>
+
                             {notification.isRead && (
                                 <div>
                                     <p className="text-sm text-gray-500">Thời gian đọc</p>
@@ -193,12 +207,7 @@ const NotificationDetail = () => {
                         </div>
                     </div>
 
-                    {/* Actions */}
-                    <div className="flex items-center gap-2">
-                        <Button variant="outline" onClick={handleBack}>
-                            Quay lại danh sách
-                        </Button>
-                    </div>
+
                 </CardContent>
             </Card>
         </div>

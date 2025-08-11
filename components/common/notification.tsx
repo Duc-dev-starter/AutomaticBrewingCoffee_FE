@@ -152,7 +152,7 @@ export function NotificationBell({ className, notifications, isLoading, mutate }
                                 return (
                                     <div
                                         key={notification.notificationId}
-                                        className={cn("p-4 hover:bg-muted/50 transition-colors relative group", !isRead && "bg-blue-50/50")}
+                                        className={cn("p-4 hover:bg-muted/50 transition-colors relative group cursor-pointer", !isRead && "bg-blue-50/50")}
                                         onClick={() => {
                                             if (!isRead) markAsRead(notification.notificationId)
                                             router.push(`${Path.MANAGE_NOTIFICATIONS}/${notification.notificationId}`)

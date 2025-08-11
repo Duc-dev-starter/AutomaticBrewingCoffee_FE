@@ -13,6 +13,7 @@ export const getNotifications = async (params: PagingParams = {}): Promise<Pagin
 
 export const getNotification = async (id: string): Promise<ApiResponse<Notification>> => {
     const response = await BaseService.getById({ url: Api.NOTIFICATIONS, id });
+    console.log("Notification Service - Fetched Notification:", response);
     return response;
 };
 

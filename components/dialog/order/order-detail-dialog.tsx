@@ -146,7 +146,7 @@ const OrderDetailDialog = ({ order, open, onOpenChange }: OrderDialogProps) => {
                             <CardContent className="p-6 space-y-6">
                                 <h3 className="text-lg font-semibold text-primary-600 mb-4 flex items-center">
                                     <ShoppingCart className="w-5 h-5 mr-2 text-primary-500" />
-                                    Chi tiết sản phẩm ({order.orderDetails.length})
+                                    Chi tiết đơn hàng ({order.orderDetails.length})
                                 </h3>
                                 <div className="space-y-4">
                                     {order.orderDetails.map((detail, index) => (

@@ -22,6 +22,6 @@ export interface SyncTask {
     syncEventId: string;
     kioskId: string;
     syncEvent: SyncEvent;
-    createdAt: string;
+    createdDate: string;
     isSynced: boolean;
 }

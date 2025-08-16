@@ -269,7 +269,6 @@ const MenuDialog = ({ open, onOpenChange, onSuccess, menu }: MenuDialogProps) =>
                             error={errors.status}
                             focusedField={focusedField}
                             setFocusedField={setFocusedField}
-                            valid={validFields.status}
                             submitted={submitted}
                         />
                     </div>

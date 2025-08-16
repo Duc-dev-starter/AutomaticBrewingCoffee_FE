@@ -459,7 +459,7 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-[650px] p-0 border-0 bg-white backdrop-blur-xl shadow-2xl max-h-[90vh] overflow-y-auto hide-scrollbar">
+            <DialogContent className="sm:max-w-[950px] p-0 border-0 bg-white backdrop-blur-xl shadow-2xl max-h-[90vh] overflow-y-auto hide-scrollbar">
                 <div className="relative overflow-hidden bg-primary-100 rounded-tl-2xl rounded-tr-2xl">
                     <div className="relative px-8 py-6 border-b border-primary-300">
                         <div className="flex items-center space-x-4">

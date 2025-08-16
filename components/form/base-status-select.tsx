@@ -1,6 +1,6 @@
-import React, { useState } from "react";
-import { ChevronDown, Circle, CheckCircle2, AlertCircle } from "lucide-react";
-import { Select, SelectTrigger, SelectValue, SelectContent, SelectItem } from "@/components/ui/select";
+import React from "react";
+import { Circle } from "lucide-react";
+import { Select, SelectTrigger, SelectContent, SelectItem } from "@/components/ui/select";
 import { cn } from "@/lib/utils";
 import { EBaseStatusViMap } from "@/enum/base";
 
@@ -13,7 +13,6 @@ interface FormBaseStatusSelectFieldProps {
     disabled?: boolean;
     focusedField: string | null;
     setFocusedField: (field: string | null) => void;
-    valid: boolean;
     submitted?: boolean;
 }
 
@@ -26,11 +25,9 @@ const FormBaseStatusSelectField: React.FC<FormBaseStatusSelectFieldProps> = ({
     disabled = false,
     focusedField,
     setFocusedField,
-    valid,
     submitted,
 }) => {
     const isFocused = focusedField === "status";
-    const isFilled = !!value;
 
     return (
         <div className="space-y-3">
@@ -54,11 +51,9 @@ const FormBaseStatusSelectField: React.FC<FormBaseStatusSelectFieldProps> = ({
                 >
                     <SelectTrigger
                         className={cn(
-                            "h-12 text-base px-4 border-2 transition-all duration-300 bg-white/80 backdrop-blur-sm pr-10 w-full flex items-center justify-between rounded-md",
+                            "h-12 text-base px-4 border-2 transition-all duration-300 bg-white/80 backdrop-blur-sm w-full flex items-center justify-between rounded-md",
                             isFocused && "border-primary-300 ring-4 ring-primary-100 shadow-lg scale-[1.02]",
-                            !isFocused && valid && isFilled && "border-green-400 bg-green-50/50",
-                            !isFocused && !valid && isFilled && "border-red-300 bg-red-50/50",
-                            !isFocused && !isFilled && "border-gray-200 hover:border-gray-300"
+
                         )}
                     >
                         <span className="text-sm flex-1 truncate text-left">
@@ -80,23 +75,6 @@ const FormBaseStatusSelectField: React.FC<FormBaseStatusSelectFieldProps> = ({
                         ))}
                     </SelectContent>
                 </Select>
-
-                {valid && isFilled && (
-                    <CheckCircle2
-                        className={cn(
-                            "absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-green-500 animate-in zoom-in-50 transition-transform",
-                            isFocused && "translate-x-1"
-                        )}
-                    />
-                )}
-                {!valid && isFilled && (
-                    <AlertCircle
-                        className={cn(
-                            "absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-red-400 animate-in zoom-in-50 transition-transform",
-                            isFocused && "translate-x-1"
-                        )}
-                    />
-                )}
             </div>
 
             {submitted && error && (

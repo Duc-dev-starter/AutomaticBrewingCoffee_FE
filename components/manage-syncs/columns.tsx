@@ -98,7 +98,7 @@ export const syncTaskColumns = ({
             cell: ({ row }) => (
                 <div className="flex items-center justify-center">
                     <Calendar className="h-4 w-4 mr-1 text-muted-foreground" />
-                    <span>{formatDate(row.original.createdAt)}</span>
+                    <span>{formatDate(row.original.createdDate)}</span>
                 </div>
             ),
         },

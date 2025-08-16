@@ -623,7 +623,6 @@ const KioskDialog = ({ open, onOpenChange, onSuccess, kiosk }: KioskDialogProps)
                         error={errors.status}
                         focusedField={focusedField}
                         setFocusedField={setFocusedField}
-                        valid={validFields.status}
                         submitted={submitted}
                     />
 

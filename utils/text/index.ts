@@ -1,11 +1,15 @@
 export const textPieChart = (value: string) => {
     switch (value) {
-        case "finished":
+        case "completed":
             return "Hoàn tất"
-        case "rejected":
+        case "cancelled":
             return "Hủy đơn"
         case "pending":
             return "Đang đợi"
+        case "preparing":
+            return "Đang chuẩn bị"
+        case "failed":
+            return "Thất bại"
         default:
             return "Chưa rõ"
     }

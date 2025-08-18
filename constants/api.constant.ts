@@ -53,4 +53,7 @@ export const Api = {
     // NOTIFICATIONS
     NOTIFICATIONS: '/notifications',
 
+    // DASHBOARD
+    ORDER_SUMMARY: '/dashboard/order-summary',
+
 }

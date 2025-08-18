@@ -16,6 +16,9 @@ export interface PagingParams {
     organizationId?: string;
     isHasWorkflow?: boolean;
     storeId?: string;
+    kioskId?: string;
+    startDate?: string;
+    endDate?: string;
 }
 
 export interface PagingResponse<T> {

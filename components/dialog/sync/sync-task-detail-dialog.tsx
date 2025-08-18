@@ -4,7 +4,6 @@ import {
     DialogHeader,
     DialogTitle,
 } from "@/components/ui/dialog";
-import { format } from "date-fns";
 import { ScrollArea } from "@/components/ui/scroll-area";
 import { Card, CardContent } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -12,6 +11,7 @@ import { Info, Calendar, FileText, Ticket, MonitorSmartphone, CheckCircle } from
 import { SyncTaskDialogProps } from "@/types/dialog";
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden";
 import { InfoField } from "@/components/common";
+import { formatDate } from "@/utils/date";
 
 const SyncTaskDetailDialog = ({
     syncTask,
@@ -36,10 +36,10 @@ const SyncTaskDetailDialog = ({
                             <FileText className="mr-1 h-4 w-4" />
                             Mã tác vụ: <span className="font-medium ml-1">{syncTask.syncTaskId}</span>
                         </div>
-                        {syncTask.createdAt && (
+                        {syncTask.createdDate && (
                             <div className="flex items-center">
                                 <Calendar className="mr-1 h-4 w-4" />
-                                {format(new Date(syncTask.createdAt), "dd/MM/yyyy HH:mm")}
+                                {formatDate(syncTask.createdDate)}
                             </div>
                         )}
                     </div>

@@ -45,6 +45,7 @@ export function useCrossTabSWR<T>(
             "swr-broadcast",
             JSON.stringify({ swrKey: storageKey, timestamp: Date.now() })
         );
+        setTimeout(() => localStorage.removeItem("swr-broadcast"), 200);
         return mutate(...args);
     };
 

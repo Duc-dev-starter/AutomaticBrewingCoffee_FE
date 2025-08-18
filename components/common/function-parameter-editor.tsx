@@ -18,6 +18,11 @@ interface FunctionParameter {
     max?: string
 }
 
+interface OptionParamter {
+    name: string;
+    description: string;
+}
+
 interface FunctionParameterEditorProps {
     deviceFunctionId: string
     deviceModels: DeviceModel[]

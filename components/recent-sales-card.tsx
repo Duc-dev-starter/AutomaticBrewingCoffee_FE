@@ -1,30 +1,25 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { Order } from "@/interfaces/order";
+import { formatDate } from "@/utils/date";
 
-const salesData = [
-    { product: "Trà đào", amount: "25.000đ", time: "23/03/2025 10:45", paymentMethod: "Momo" },
-    { product: "Cà phê sữa", amount: "20.000đ", time: "23/03/2025 10:50", paymentMethod: "Tiền mặt" },
-    { product: "Nước cam", amount: "30.000đ", time: "23/03/2025 11:00", paymentMethod: "Thẻ" },
-    { product: "Sữa tươi trân châu", amount: "35.000đ", time: "23/03/2025 11:15", paymentMethod: "ZaloPay" },
-];
-
-export default function RecentSalesCard() {
+export default function RecentSalesCard({ data }: { data?: Order[] }) {
     return (
         <Card className="w-full max-w-md">
             <CardHeader>
                 <CardTitle>Giao dịch gần đây</CardTitle>
-                <p className="text-sm text-muted-foreground">{salesData.length} đơn gần nhất.</p>
+                <p className="text-sm text-muted-foreground">{data?.length} đơn gần nhất.</p>
             </CardHeader>
             <CardContent>
                 <div className="space-y-4">
-                    {salesData.map((sale, index) => (
-                        <div key={index} className="flex flex-col border-b pb-3">
+                    {data?.map((sale) => (
+                        <div key={sale.orderId} className="flex flex-col border-b pb-3">
                             <div className="flex justify-between items-center">
-                                <p className="font-medium">{sale.product}</p>
-                                <p className="font-semibold text-green-600">+{sale.amount}</p>
+                                <p className="font-medium">{sale.orderCode}</p>
+                                <p className="font-semibold text-green-600">+{sale.finalAmount}</p>
                             </div>
                             <div className="text-sm text-muted-foreground flex justify-between">
-                                <span>{sale.time}</span>
-                                <span>{sale.paymentMethod}</span>
+                                <span>{formatDate(sale.createdDate)}</span>
+                                <span>{sale.paymentGateway}</span>
                             </div>
                         </div>
                     ))}

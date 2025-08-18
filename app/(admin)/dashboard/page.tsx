@@ -8,7 +8,7 @@ import {
 } from "@/components/chart"
 import { SectionCards } from "@/components/section-card"
 import RecentSalesCard from "@/components/recent-sales-card"
-import { useOrderSummary } from "@/hooks"
+import { useDashboardSummary } from "@/hooks"
 
 const Dashboard = () => {
     const params = {
@@ -19,7 +19,10 @@ const Dashboard = () => {
         endDate: "",
     }
 
-    const { data, isLoading, error } = useOrderSummary(params)
+    const { order, kiosk, revenue, isLoading, error } = useDashboardSummary(params);
+
+    console.log("Dashboard Summary:", { order, kiosk, revenue });
+
 
     return (
         <div>
@@ -38,11 +41,11 @@ const Dashboard = () => {
                     ) : error ? (
                         <div>Lỗi tải dữ liệu</div>
                     ) : (
-                        <PieChartComponent data={data} />
+                        <PieChartComponent data={order.data} />
                     )}
 
                     <DayTimeChart />
-                    <RecentSalesCard />
+                    <RecentSalesCard data={order.data?.recentOrders} />
                 </div>
 
                 <AreaChartInteractiveCustom />

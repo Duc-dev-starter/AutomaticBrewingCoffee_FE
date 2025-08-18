@@ -16,7 +16,7 @@ import { useSyncEvents, useSyncTasks } from './sync'
 import { useCategories } from './use-categories'
 import { useIngredientTypes } from './use-ingredient-types'
 import { useNotifications } from './use-notifications'
-import { useOrderSummary } from './dashboard'
+import { useDashboardSummary } from './use-dashboard-summary'
 
 export {
     useDebounce, useDeviceTypes, useKioskTypes, useIsMobile, useToast, useScrollPosition, useDeviceModels, useDevices,
@@ -35,5 +35,5 @@ export {
     useCategories,
     useIngredientTypes,
     useNotifications,
-    useOrderSummary
+    useDashboardSummary
 }

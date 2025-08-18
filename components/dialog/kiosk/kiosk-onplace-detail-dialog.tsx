@@ -21,7 +21,8 @@ const formatKey = (key: string) => {
         .replace(/([A-Z])([A-Z][a-z])/g, "$1 $2")
 }
 
-const getWorkingStatusBadge = (status: string) => {
+const getWorkingStatusBadge = (status: string, labels: any) => {
+    const displayStatus = labels?.[status] || status
     const isActive = status?.toLowerCase().includes("active") || status?.toLowerCase().includes("hoạt động")
     return (
         <Badge
@@ -32,7 +33,7 @@ const getWorkingStatusBadge = (status: string) => {
             }
         >
             {isActive ? <CheckCircle className="mr-1 h-3 w-3" /> : <AlertCircle className="mr-1 h-3 w-3" />}
-            {status}
+            {displayStatus}
         </Badge>
     )
 }
@@ -61,7 +62,7 @@ export const OnplaceDialog = ({ open, onOpenChange, data, loading, deviceName }:
                                 <p className="text-white/80 text-lg">Chi tiết trạng thái và thông số thiết bị</p>
                             </div>
                         </div>
-                        {data?.workingStatus && getWorkingStatusBadge(data.workingStatus)}
+                        {data?.status?.CurrentSystemStatus && getWorkingStatusBadge(data.status.CurrentSystemStatus, data.labels)}
                     </div>
 
                     <div className="mt-6 bg-white/20 border border-white/30 rounded-xl p-4 shadow-md">
@@ -120,7 +121,7 @@ export const OnplaceDialog = ({ open, onOpenChange, data, loading, deviceName }:
                                                     </div>
                                                     <div className="bg-primary-100 border-2 border-primary-200 rounded-xl p-4 group-hover:shadow-md transition-all duration-300">
                                                         <Badge className="bg-primary-200 text-white border-0 shadow-sm text-base px-3 py-1">
-                                                            {data.status.CurrentSystemStatus}
+                                                            {data.labels?.[data.status.CurrentSystemStatus] || data.status.CurrentSystemStatus}
                                                         </Badge>
                                                     </div>
                                                 </div>
@@ -142,8 +143,24 @@ export const OnplaceDialog = ({ open, onOpenChange, data, loading, deviceName }:
                                                                 <div className="bg-white border-2 border-gray-200 rounded-xl p-4 group-hover:border-primary-200 group-hover:shadow-md transition-all duration-300">
                                                                     <div className="flex items-center justify-between">
                                                                         <div>
-                                                                            <p className="text-sm font-medium text-gray-600 mb-1">{formatKey(key)}</p>
-                                                                            <p className="text-lg font-semibold text-gray-800">{String(value)}</p>
+                                                                            <p className="text-sm font-medium text-gray-600 mb-1">{data.labels?.[key] || formatKey(key)}</p>
+                                                                            {typeof value === "boolean" ? (
+                                                                                value ? (
+                                                                                    <div className="flex items-center">
+                                                                                        <AlertCircle className="h-6 w-6 text-red-500 mr-2" />
+                                                                                        <p className="text-lg font-semibold text-gray-800">Có vấn đề</p>
+                                                                                    </div>
+                                                                                ) : (
+                                                                                    <div className="flex items-center">
+                                                                                        <CheckCircle className="h-6 w-6 text-green-500 mr-2" />
+                                                                                        <p className="text-lg font-semibold text-gray-800">Không có vấn đề</p>
+                                                                                    </div>
+                                                                                )
+                                                                            ) : (
+                                                                                <p className="text-lg font-semibold text-gray-800">
+                                                                                    {data.labels?.[value] || String(value)}
+                                                                                </p>
+                                                                            )}
                                                                         </div>
                                                                         <div className="w-8 h-8 bg-primary-100 rounded-lg flex items-center justify-center">
                                                                             <Activity className="w-4 h-4 text-primary-300" />

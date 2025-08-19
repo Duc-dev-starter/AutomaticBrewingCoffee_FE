@@ -9,7 +9,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible"
 import { Trash2, Plus, ChevronDown, ChevronRight, Settings } from 'lucide-react'
 import { DeviceFunction } from "@/interfaces/device"
-import { EBaseStatus, EBaseStatusViMap } from "@/enum/base"
+import { EBaseStatusViMap } from "@/enum/base"
 import { EFunctionParameterType } from "@/enum/device"
 import { DynamicOptionsInput } from "./dynamic-option-input"
 

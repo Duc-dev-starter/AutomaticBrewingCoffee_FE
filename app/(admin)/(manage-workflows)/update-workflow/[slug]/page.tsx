@@ -219,7 +219,6 @@ const UpdateWorkflow = () => {
             if (pageNumber === 1) setLoadingDeviceModels(true)
             try {
                 const response = await getDeviceModels({ kioskVersionId: selectedKioskVersion, page: pageNumber, size: 10 })
-                // Merge new device models, avoiding duplicates
                 setDeviceModels(prev => {
                     const existingIds = new Set(prev.map(dm => dm.deviceModelId));
                     const newItems = response.items.filter(item => !existingIds.has(item.deviceModelId));
@@ -262,14 +261,9 @@ const UpdateWorkflow = () => {
     }, [fetchProducts, fetchWorkflows, fetchKioskVersions])
 
     useEffect(() => {
-        // Fetch device models for the selected Kiosk version.
-        // Don't clear the existing models if they might be relevant from the initial workflow load.
         if (selectedKioskVersion) {
             fetchDeviceModels(1);
         } else {
-            // If no Kiosk version is selected, we might want to clear the device models list,
-            // or keep the ones from the initial load if that's desired behavior.
-            // For now, let's clear it to ensure consistency.
             setDeviceModels([]);
         }
     }, [selectedKioskVersion, fetchDeviceModels]);
@@ -829,7 +823,7 @@ const UpdateWorkflow = () => {
                 <Card className="mb-6">
                     <CardHeader>
                         <div className="flex items-center justify-between">
-                            <div>
+                            <div className="mr-2">
                                 <CardTitle>Sơ đồ quy trình</CardTitle>
                                 <CardDescription>Click vào bước để sửa, hoặc kéo thả tay cầm để nối các bước.</CardDescription>
                             </div>

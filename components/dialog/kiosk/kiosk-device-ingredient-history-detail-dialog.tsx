@@ -14,13 +14,14 @@ export default function DeviceIngredientHistoryDialog({
                     <DialogTitle>Lịch sử sử dụng nguyên liệu</DialogTitle>
                 </DialogHeader>
                 <div className="space-y-4 max-h-[60vh] overflow-y-auto">
-                    {deviceIngredientHistory.map((item, index) => (
-                        <div key={item.deviceIngredientHistoryId || index} className="border p-4 rounded-md">
+                    {deviceIngredientHistory.map((item) => (
+                        <div key={item.deviceIngredientHistoryId} className="border p-4 rounded-md">
                             <p><strong>Thực hiện bởi:</strong> {item.performedBy}</p>
                             <p><strong>Hành động:</strong> {item.action}</p>
                             <p><strong>Lượng thay đổi:</strong> {item.deltaAmount}</p>
                             <p><strong>Dung lượng trước:</strong> {item.oldCapacity}</p>
                             <p><strong>Dung lượng sau:</strong> {item.newCapacity}</p>
+                            <p><strong>Loại nguyên liệu:</strong> {item.ingredientType}</p>
                         </div>
                     ))}
                 </div>

@@ -26,6 +26,7 @@ export interface DeviceIngredientHistory {
     newCapacity: number;
     performedBy: string;
     action: EIngredientAction;
+    ingredientType: string;
 }
 
 
@@ -82,11 +83,16 @@ export interface FunctionParameters {
     deviceFunctionId?: string;
     functionParameterId?: string;
     min: string | null;
-    options: string[] | null;
+    options: OptionParamter[] | null;
     max: string | null,
     description: string | null,
     type: EFunctionParameterType,
     default: string
+}
+
+export interface OptionParamter {
+    name: string;
+    description: string | null;
 }
 
 

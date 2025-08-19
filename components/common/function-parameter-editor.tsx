@@ -1,9 +1,8 @@
-// @ts-nocheck
 "use client"
 
 import type React from "react"
 import { useEffect } from "react"
-import type { DeviceModel } from "@/interfaces/device"
+import type { DeviceModel, OptionParamter } from "@/interfaces/device"
 import JsonEditorComponent from "./json-editor"
 
 interface FunctionParameter {
@@ -11,16 +10,11 @@ interface FunctionParameter {
     deviceFunctionId: string
     name: string
     type: string
-    options: any[]
+    options: OptionParamter[]
     default: string
     description?: string
     min?: string
     max?: string
-}
-
-interface OptionParamter {
-    name: string;
-    description: string;
 }
 
 interface FunctionParameterEditorProps {
@@ -42,6 +36,7 @@ const FunctionParameterEditor: React.FC<FunctionParameterEditorProps> = ({
         for (const deviceModel of deviceModels) {
             const deviceFunction = deviceModel.deviceFunctions?.find((df) => df.deviceFunctionId === deviceFunctionId)
             if (deviceFunction) {
+                // @ts-ignore
                 return deviceFunction.functionParameters || []
             }
         }
@@ -83,7 +78,7 @@ const FunctionParameterEditor: React.FC<FunctionParameterEditorProps> = ({
                         defaultValue = Number.parseFloat(defaultValue as string) || 0.0
                         break
                     case "boolean":
-                        defaultValue = defaultValue === "true" || defaultValue === true
+                        defaultValue = (typeof defaultValue === "string" ? defaultValue === "true" : defaultValue === true)
                         break
                     case "text":
                         defaultValue = String(defaultValue)

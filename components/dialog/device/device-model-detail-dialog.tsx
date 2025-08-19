@@ -97,25 +97,6 @@ const DeviceModelDetailDialog = ({ deviceModel, open, onOpenChange }: DeviceDial
                                             icon={<Calendar className="w-4 h-4 text-primary-500" />}
                                         />
                                     </div>
-                                    <div className="border-t pt-4 flex items-center text-sm text-gray-500">
-                                        ID:
-                                        <code className="mx-2 bg-gray-100 text-gray-700 px-2 py-1 rounded font-mono">{deviceModel.deviceModelId}</code>
-                                        <Tooltip>
-                                            <TooltipTrigger asChild>
-                                                <Button
-                                                    variant="ghost"
-                                                    size="icon"
-                                                    className="h-6 w-6"
-                                                    onClick={() => copyToClipboard(deviceModel.deviceModelId, "model_id")}
-                                                >
-                                                    {copiedText === 'model_id' ? <CheckCircle2 className="h-4 w-4 text-green-500" /> : <Copy className="h-4 w-4" />}
-                                                </Button>
-                                            </TooltipTrigger>
-                                            <TooltipContent>
-                                                <p>{copiedText === "model_id" ? "Đã sao chép!" : "Sao chép ID"}</p>
-                                            </TooltipContent>
-                                        </Tooltip>
-                                    </div>
                                 </CardContent>
                             </Card>
 
@@ -157,7 +138,11 @@ const DeviceModelDetailDialog = ({ deviceModel, open, onOpenChange }: DeviceDial
                                                                     {param.options && param.options.length > 0 && (
                                                                         <div className="text-xs text-gray-500 mt-1.5 flex items-center gap-1.5 flex-wrap">
                                                                             <span>Tùy chọn:</span>
-                                                                            {param.options.map(opt => <Badge key={opt} variant="outline">{opt}</Badge>)}
+                                                                            {param.options.map(opt => <>
+                                                                                <Badge key={opt.name} variant="outline" title={opt.description || ""}>
+                                                                                    {opt.name}
+                                                                                </Badge>
+                                                                            </>)}
                                                                         </div>
                                                                     )}
                                                                 </div>

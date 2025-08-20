@@ -38,6 +38,7 @@ const initialFormData = {
     imageUrl: "",
     productCategoryId: "",
     productAttributes: [] as ProductAttribute[],
+    tagName: "",
 };
 
 const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialogProps) => {
@@ -170,6 +171,7 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                 imageUrl: product.imageUrl || "",
                 productCategoryId: product.productCategoryId || "",
                 productAttributes: product.productAttributes || [],
+                tagName: product.tagName || "",
             });
             setImagePreview(product.imageUrl || null);
             setImageTab(product.imageUrl ? "url" : "upload");
@@ -427,6 +429,7 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                 imageUrl: formData.imageUrl || undefined,
                 productCategoryId: formData.productCategoryId,
                 productAttributes: formData.productAttributes.length > 0 ? formData.productAttributes : undefined,
+                tagName: formData.tagName || undefined,
             };
 
             if (product) {
@@ -607,14 +610,15 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                                 <label className="text-sm font-medium text-gray-700">Sản Phẩm Cha</label>
                             </div>
                             <Select
-                                value={formData.parentId}
-                                onValueChange={(value) => handleChange("parentId", value)}
+                                value={formData.parentId ? formData.parentId : "none"}
+                                onValueChange={(value) => handleChange("parentId", value === "none" ? "" : value)}
                                 disabled={loading}
                             >
                                 <SelectTrigger className="h-12 text-sm px-4 border-2 bg-white/80 backdrop-blur-sm">
                                     <SelectValue placeholder="Chọn sản phẩm cha (tùy chọn)" />
                                 </SelectTrigger>
                                 <SelectContent>
+                                    <SelectItem value="none">Không có</SelectItem>
                                     <div className="p-2">
                                         <Input
                                             placeholder="Tìm kiếm sản phẩm cha..."
@@ -756,7 +760,7 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-1 gap-4">
+                    <div className="grid grid-cols-2 gap-4">
                         <div className="space-y-3">
                             <div className="flex items-center space-x-2 mb-2">
                                 <List className="w-4 h-4 text-primary-300" />
@@ -799,6 +803,30 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                             </Select>
                             {submitted && errors.productCategoryId && (
                                 <p className="text-red-500 text-xs mt-1">{errors.productCategoryId}</p>
+                            )}
+                        </div>
+
+                        <div className="space-y-3">
+                            <div className="flex items-center space-x-2 mb-2">
+                                <Monitor className="w-4 h-4 text-primary-300" />
+                                <label className="text-sm font-medium text-gray-700">Nhãn sản phẩm</label>
+                            </div>
+                            <div className="relative group">
+                                <Input
+                                    placeholder="Nhập nhãn sản phẩm"
+                                    value={formData.tagName}
+                                    onChange={(e) => handleChange("tagName", e.target.value)}
+                                    onFocus={() => setFocusedField("tagName")}
+                                    onBlur={() => setFocusedField(null)}
+                                    disabled={loading}
+                                    className={cn(
+                                        "h-12 text-base px-4 border-2 transition-all duration-300 bg-white/80 backdrop-blur-sm pr-10",
+                                        focusedField === "tagName" && "border-primary-300 ring-4 ring-primary-100 shadow-lg scale-[1.02]"
+                                    )}
+                                />
+                            </div>
+                            {submitted && errors.tagName && (
+                                <p className="text-red-500 text-xs mt-1">{errors.tagName}</p>
                             )}
                         </div>
                     </div>
@@ -1024,6 +1052,7 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                                     ))}
                                     <Button
                                         type="button"
+                                        className="ml-2"
                                         variant="outline"
                                         size="sm"
                                         onClick={() => addAttributeOption(attrIndex)}

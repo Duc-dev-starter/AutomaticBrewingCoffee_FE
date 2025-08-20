@@ -104,6 +104,11 @@ const ProductDetailDialog = ({ product, open, onOpenChange }: ProductDialogProps
                                         icon={<DollarSign className="w-4 h-4 text-primary-500" />}
                                     />
                                     <InfoField
+                                        label="Nhãn sản phẩm"
+                                        value={product.tagName || "Không có"}
+                                        icon={<ShoppingBag className="w-4 h-4 text-primary-500" />}
+                                    />
+                                    <InfoField
                                         label="Mô tả"
                                         value={product.description || "Không có mô tả"}
                                         icon={<AlignLeft className="w-4 h-4 text-primary-500" />}

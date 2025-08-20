@@ -158,6 +158,8 @@ const ManageNotifications = () => {
                 return "⏳";
             case ENotificationType.KioskNotWorking:
                 return "🛠️";
+            case ENotificationType.KioskNotEnoughIngredient:
+                return "📦";
             case ENotificationType.OrderCreateFailed:
                 return "❌";
             case ENotificationType.OrderExecuteFailed:

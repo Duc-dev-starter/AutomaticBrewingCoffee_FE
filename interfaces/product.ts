@@ -18,6 +18,7 @@ export interface Product {
     status: EProductStatus
     createdDate: string;
     updatedDate: string;
+    tagName: string;
     productAttributes: ProductAttribute[];
 }
 

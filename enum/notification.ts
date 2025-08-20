@@ -7,6 +7,7 @@ export enum ESeverity {
 export enum ENotificationType {
     KioskNotWorking = "KioskNotWorking",
     KioskBusy = "KioskBusy",
+    KioskNotEnoughIngredient = "KioskNotEnoughIngredient",
     OrderCreateFailed = "OrderCreateFailed",
     OrderExecuteFailed = "OrderExecuteFailed",
 }
@@ -20,6 +21,7 @@ export enum EReferenceType {
 export const ENotificationTypeViMap: Record<string, string> = {
     [ENotificationType.KioskBusy]: "Kiosk bận",
     [ENotificationType.KioskNotWorking]: "Kiosk không hoạt động",
+    [ENotificationType.KioskNotEnoughIngredient]: "Kiosk không đủ nguyên liệu",
     [ENotificationType.OrderCreateFailed]: "Đặt hàng không thành công",
     [ENotificationType.OrderExecuteFailed]: "Thực hiện đơn hàng không thành công",
 };

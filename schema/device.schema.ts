@@ -26,7 +26,10 @@ export const deviceModelSchema = z.object({
                     name: z.string().trim().min(1, "Tên tham số là bắt buộc"),
                     min: z.string().nullable().optional(),
                     max: z.string().nullable().optional(),
-                    options: z.array(z.string()).nullable().optional(),
+                    options: z.array(z.object({
+                        name: z.string().trim().optional(),
+                        description: z.string().trim().max(450, "Mô tả tùy chọn không được quá 450 ký tự.").optional(),
+                    })).nullable().optional(),
                     description: z.string().trim().max(450, "Mô tả tham số của hàm không được quá 450 ký tự.").optional(),
                     type: z.nativeEnum(EFunctionParameterType),
                     default: z.string().trim().min(1, "Giá trị mặc định là bắt buộc"),

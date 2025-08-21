@@ -1,32 +1,65 @@
 import { useCrossTabSWR } from "@/lib/swr";
-import { getKioskSummary, getOrderSummary, getRevenueSummary } from "@/services/dashboard.service";
-import { PagingParams } from "@/types/paging";
+import { getAccountSummary, getKioskSummary, getOrderSummary, getOrderTrafficSummary, getOrganizationSummary, getRevenueSummary, getStoreSummary } from "@/services/dashboard.service";
+import { DashboardParams } from "@/types/dashboard";
 
-export function useOrderSummary(params: PagingParams) {
+export function useOrderSummary(params: DashboardParams) {
     return useCrossTabSWR(
         ["orderSummary", params],
         () => getOrderSummary(params)
     );
 }
 
-export function useKioskSummary(params: PagingParams) {
+export function useKioskSummary(params: DashboardParams) {
     return useCrossTabSWR(
         ["kioskSummary", params],
         () => getKioskSummary(params)
     );
 }
 
-export function useRevenueSummary(params: PagingParams) {
+export function useRevenueSummary(params: DashboardParams) {
     return useCrossTabSWR(
         ["revenueSummary", params],
         () => getRevenueSummary(params)
     );
 }
 
-export function useDashboardSummary(params: PagingParams) {
+export function useAccountSummary(params: DashboardParams) {
+    return useCrossTabSWR(
+        ["accountSummary", params],
+        () => getAccountSummary(params)
+    );
+}
+
+export function useOrderTrafficSummary(params: DashboardParams) {
+    return useCrossTabSWR(
+        ["orderTraffic", params],
+        () => getOrderTrafficSummary(params)
+    );
+}
+
+export function useOrganizationSummary(params: DashboardParams) {
+    return useCrossTabSWR(
+        ["organzationSummary", params],
+        () => getOrganizationSummary(params)
+    );
+}
+
+export function useStoreSummary(params: DashboardParams) {
+    return useCrossTabSWR(
+        ["storeSummary", params],
+        () => getStoreSummary(params)
+    );
+}
+
+export function useDashboardSummary(params: DashboardParams) {
     const order = useOrderSummary(params);
     const kiosk = useKioskSummary(params);
     const revenue = useRevenueSummary(params);
+    const orderTraffic = useOrderTrafficSummary(params);
+    const account = useAccountSummary(params);
+    const store = useStoreSummary(params);
+    const organization = useOrganizationSummary(params);
+
 
     console.log(order)
 
@@ -34,7 +67,12 @@ export function useDashboardSummary(params: PagingParams) {
         order,
         kiosk,
         revenue,
-        isLoading: order.isLoading || kiosk.isLoading || revenue.isLoading,
-        error: order.error || kiosk.error || revenue.error,
+        orderTraffic,
+        account,
+        store,
+        organization,
+
+        isLoading: order.isLoading || kiosk.isLoading || revenue.isLoading || orderTraffic.isLoading || account.isLoading || store.isLoading || organization.isLoading,
+        error: order.error || kiosk.error || revenue.error || orderTraffic.error || account.error || store.error || organization.error,
     };
 }

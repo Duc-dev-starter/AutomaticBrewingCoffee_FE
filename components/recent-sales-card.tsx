@@ -13,10 +13,13 @@ export default function RecentSalesCard({ data }: { data?: Order[] }) {
                 <div className="space-y-4">
                     {data?.map((sale) => (
                         <div key={sale.orderId} className="flex flex-col border-b pb-3">
-                            <div className="flex justify-between items-center">
-                                <p className="font-medium">{sale.orderCode}</p>
-                                <p className="font-semibold text-green-600">+{sale.finalAmount}</p>
+                            <div className="flex justify-between items-center flex-wrap gap-2">
+                                <p className="font-medium break-all">{sale.orderCode}</p>
+                                <p className="font-semibold text-green-600 whitespace-nowrap">
+                                    +{sale.finalAmount}
+                                </p>
                             </div>
+
                             <div className="text-sm text-muted-foreground flex justify-between">
                                 <span>{formatDate(sale.createdDate)}</span>
                                 <span>{sale.paymentGateway}</span>

@@ -20,3 +20,35 @@ export interface KioskSummary {
     active: number
     inactive: number
 }
+
+export interface OrderTrafficSummary {
+    windowDays: number;
+    totalCurrentPeriod: number;
+    totalPreviousPeriod: number;
+    trafficByShift: OrderTrafficByShift[];
+}
+
+export interface OrderTrafficByShift {
+    dow: number;
+    dowLabel: string;
+    shift: string;
+    count: number;
+}
+
+export interface StoreSummary {
+    total: number
+    active: number
+    inactive: number
+}
+
+export interface AccountSummary {
+    total: number
+    active: number
+    inactive: number
+}
+
+export interface OrganizationSummary {
+    total: number
+    active: number
+    inactive: number
+}

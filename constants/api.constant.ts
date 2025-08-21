@@ -55,7 +55,10 @@ export const Api = {
 
     // DASHBOARD
     ORDER_SUMMARY: '/dashboard/order-summary',
-    REVENUE_SUMMARY: '/dashboard/revenue-summary',
+    REVENUE_SUMMARY: '/dashboard/total-revenue',
     KIOSK_SUMMARY: '/dashboard/kiosk-summary',
-
+    ORGANIZATION_SUMMARY: '/dashboard/organization-summary',
+    STORE_SUMMARY: '/dashboard/store-summary',
+    ACCOUNT_SUMMARY: '/dashboard/account-summary',
+    ORDER_TRAFFIC_SUMMARY: '/dashboard/order-traffic',
 }

@@ -23,33 +23,50 @@ import {
     ChartTooltip,
     ChartTooltipContent,
 } from "@/components/ui/chart"
+import { OrderTrafficSummary } from "@/interfaces/dashboard"
 
-const chartData = [
-    { time: "Hai", day: 150, night: 134 },
-    { time: "Ba", day: 180, night: 104 },
-    { time: "Tư", day: 200, night: 84 },
-    { time: "Năm", day: 170, night: 114 },
-    { time: "Sáu", day: 190, night: 94 },
-    { time: "Bảy", day: 220, night: 64 },
-]
+interface DayTimeChartProps {
+    data?: OrderTrafficSummary;
+}
 
-const chartConfig = {
-    day: {
-        label: "Ban ngày",
-        color: "hsl(var(--chart-1))",
-    },
-    night: {
-        label: "Ban đêm",
-        color: "hsl(var(--chart-2))",
-    },
-} satisfies ChartConfig
+export function DayTimeChart({ data }: DayTimeChartProps) {
+    const chartData = [
+        { time: "Hai", day: 0, night: 0 },
+        { time: "Ba", day: 0, night: 0 },
+        { time: "Tư", day: 0, night: 0 },
+        { time: "Năm", day: 0, night: 0 },
+        { time: "Sáu", day: 0, night: 0 },
+        { time: "Bảy", day: 0, night: 0 },
+        { time: "CN", day: 0, night: 0 },
+    ];
 
-export function DayTimeChart() {
+    data?.trafficByShift.forEach((item) => {
+        const dayIndex = chartData.findIndex((d) => d.time === item.dowLabel);
+        if (dayIndex !== -1) {
+            if (item.shift === "day") {
+                chartData[dayIndex].day = item.count;
+            } else if (item.shift === "night") {
+                chartData[dayIndex].night = item.count;
+            }
+        }
+    });
+
+    const chartConfig = {
+        day: {
+            label: "Ban ngày",
+            color: "hsl(var(--chart-1))",
+        },
+        night: {
+            label: "Ban đêm",
+            color: "hsl(var(--chart-2))",
+        },
+    } satisfies ChartConfig;
+
     return (
         <Card>
             <CardHeader>
                 <CardTitle>Biểu đồ khách hàng</CardTitle>
-                <CardDescription>So sánh ban ngày và ban đêm (Thứ 2 - Thứ 7)</CardDescription>
+                <CardDescription>So sánh ban ngày và ban đêm (Thứ 2 - CN)</CardDescription>
             </CardHeader>
             <CardContent>
                 <ChartContainer config={chartConfig}>
@@ -115,7 +132,7 @@ export function DayTimeChart() {
                             Tăng 5.2% trong tháng này <TrendingUp className="h-4 w-4" />
                         </div>
                         <div className="flex items-center gap-2 leading-none text-muted-foreground">
-                            Hiển thị tổng số khách hàng trong 6 ngày qua
+                            Hiển thị tổng số khách hàng trong 7 ngày qua
                         </div>
                     </div>
                 </div>

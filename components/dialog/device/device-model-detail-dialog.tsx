@@ -15,20 +15,11 @@ import { getBaseStatusColor } from "@/utils/color"
 import type { DeviceDialogProps } from "@/types/dialog"
 import { EBaseStatusViMap } from "@/enum/base"
 import { InfoField } from "@/components/common/info-field"
-import { Button } from "@/components/ui/button"
 
 
 const DeviceModelDetailDialog = ({ deviceModel, open, onOpenChange }: DeviceDialogProps) => {
-    const [copiedText, setCopiedText] = useState<string | null>(null)
 
     if (!deviceModel) return null
-
-    const copyToClipboard = (text: string | undefined | null, label: string) => {
-        if (!text) return;
-        navigator.clipboard.writeText(text)
-        setCopiedText(label)
-        setTimeout(() => setCopiedText(null), 2000)
-    }
 
     const ParameterBadge = ({ type }: { type: string }) => {
         const isText = type.toLowerCase() === 'text'
@@ -111,7 +102,7 @@ const DeviceModelDetailDialog = ({ deviceModel, open, onOpenChange }: DeviceDial
 
                                     <div className="space-y-4">
                                         {(deviceModel.deviceFunctions && deviceModel.deviceFunctions.length > 0) ? (
-                                            deviceModel.deviceFunctions.map((func, index) => (
+                                            deviceModel.deviceFunctions.map((func) => (
                                                 <div key={func.deviceFunctionId} className="border border-gray-200 bg-gray-50/50 rounded-lg p-4">
                                                     <div className="flex items-start justify-between">
                                                         <h4 className="font-semibold text-gray-700 flex items-center mb-2">
@@ -119,7 +110,7 @@ const DeviceModelDetailDialog = ({ deviceModel, open, onOpenChange }: DeviceDial
                                                             {func.name}
                                                         </h4>
                                                         <Badge className={clsx("px-2 py-0.5 text-xs", getBaseStatusColor(func.status))}>
-                                                            {EBaseStatusViMap[func.status] || "N/A"}
+                                                            {EBaseStatusViMap[func.status] || "Chưa có"}
                                                         </Badge>
                                                     </div>
 
@@ -133,7 +124,7 @@ const DeviceModelDetailDialog = ({ deviceModel, open, onOpenChange }: DeviceDial
                                                                     </div>
                                                                     <p className="text-xs text-gray-500 mt-1">
                                                                         Giá trị mặc định:
-                                                                        <code className="ml-1 bg-gray-200 text-gray-700 px-1 rounded">{param.default || 'N/A'}</code>
+                                                                        <code className="ml-1 bg-gray-200 text-gray-700 px-1 rounded">{param.default || "Chưa có"}</code>
                                                                     </p>
                                                                     {param.options && param.options.length > 0 && (
                                                                         <div className="text-xs text-gray-500 mt-1.5 flex items-center gap-1.5 flex-wrap">

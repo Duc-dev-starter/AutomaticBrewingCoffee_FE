@@ -1,4 +1,5 @@
 import { EOrderStatus, EOrderType, EPaymentGateway, EPaymentStatus } from "@/enum/order";
+import { Kiosk } from "./kiosk";
 
 export interface OrderDetail {
     productName: string;
@@ -61,5 +62,7 @@ export interface Order {
     completedDate: string | null;
     cancelledDate: string | null;
     failedDate: string | null;
+
+    kiosk: Kiosk;
 
 }

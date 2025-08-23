@@ -1,5 +1,5 @@
 export const formatDate = (dateString: string) => {
-    if (!dateString) return "N/A"
+    if (!dateString) return "Chưa có"
     const date = new Date(dateString)
     return new Intl.DateTimeFormat("vi-VN", {
         day: "2-digit",

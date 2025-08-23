@@ -17,3 +17,5 @@ export const EDeviceStatusViMap: Record<string, string> = {
     [EDeviceStatus.Working]: "Đang hoạt động",
     [EDeviceStatus.Maintain]: "Bảo trì",
 };
+
+

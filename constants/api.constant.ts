@@ -61,4 +61,5 @@ export const Api = {
     STORE_SUMMARY: '/dashboard/store-summary',
     ACCOUNT_SUMMARY: '/dashboard/account-summary',
     ORDER_TRAFFIC_SUMMARY: '/dashboard/order-traffic',
+    HOURLY_PEAK: '/dashboard/hourly-peak',
 }

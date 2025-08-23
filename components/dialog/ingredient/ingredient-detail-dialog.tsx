@@ -72,11 +72,6 @@ const IngredientTypeDetailDialog = ({ ingredientType, open, onOpenChange }: Ingr
                                         value={ingredientType.ingredientTypeId}
                                         icon={<FileText className="w-4 h-4 text-primary-500" />}
                                     />
-                                    <InfoField
-                                        label="Trạng thái"
-                                        value={EBaseStatusViMap[ingredientType.status] || ingredientType.status}
-                                        icon={<CheckCircle className="w-4 h-4 text-primary-500" />}
-                                    />
                                     {ingredientType.description && (
                                         <InfoField
                                             label="Mô tả"

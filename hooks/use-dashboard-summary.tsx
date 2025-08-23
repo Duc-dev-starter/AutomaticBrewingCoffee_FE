@@ -1,5 +1,5 @@
 import { useCrossTabSWR } from "@/lib/swr";
-import { getAccountSummary, getKioskSummary, getOrderSummary, getOrderTrafficSummary, getOrganizationSummary, getRevenueSummary, getStoreSummary } from "@/services/dashboard.service";
+import { getAccountSummary, getHourlyPeak, getKioskSummary, getOrderSummary, getOrderTrafficSummary, getOrganizationSummary, getRevenueSummary, getStoreSummary } from "@/services/dashboard.service";
 import { DashboardParams } from "@/types/dashboard";
 
 export function useOrderSummary(params: DashboardParams) {
@@ -51,6 +51,13 @@ export function useStoreSummary(params: DashboardParams) {
     );
 }
 
+export function useHourlyPeak(params: DashboardParams) {
+    return useCrossTabSWR(
+        ["hourlyPeak", params],
+        () => getHourlyPeak(params)
+    );
+}
+
 export function useDashboardSummary(params: DashboardParams) {
     const order = useOrderSummary(params);
     const kiosk = useKioskSummary(params);
@@ -59,9 +66,8 @@ export function useDashboardSummary(params: DashboardParams) {
     const account = useAccountSummary(params);
     const store = useStoreSummary(params);
     const organization = useOrganizationSummary(params);
+    const hourlyPeak = useHourlyPeak(params);
 
-
-    console.log(order)
 
     return {
         order,
@@ -71,8 +77,9 @@ export function useDashboardSummary(params: DashboardParams) {
         account,
         store,
         organization,
+        hourlyPeak,
 
-        isLoading: order.isLoading || kiosk.isLoading || revenue.isLoading || orderTraffic.isLoading || account.isLoading || store.isLoading || organization.isLoading,
-        error: order.error || kiosk.error || revenue.error || orderTraffic.error || account.error || store.error || organization.error,
+        isLoading: order.isLoading || kiosk.isLoading || revenue.isLoading || orderTraffic.isLoading || account.isLoading || store.isLoading || organization.isLoading || hourlyPeak.isLoading,
+        error: order.error || kiosk.error || revenue.error || orderTraffic.error || account.error || store.error || organization.error || hourlyPeak.error,
     };
 }

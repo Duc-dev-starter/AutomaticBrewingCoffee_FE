@@ -1,74 +1,87 @@
-import React from "react";
-import {
-    LineChart,
-    Line,
-    XAxis,
-    YAxis,
-    Tooltip,
-    ResponsiveContainer,
-    ReferenceDot,
-    CartesianGrid,
-} from "recharts";
-import { Card, CardHeader, CardContent } from "../ui/card"; // nếu dùng shadcn/ui
+"use client"
 
-interface SalesData {
-    time: string;
-    sales: number;
+import { Line, LineChart, CartesianGrid, XAxis, YAxis, ReferenceDot } from "recharts"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { type ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
+import { HourlyPeak } from "@/interfaces/dashboard"
+
+
+interface SalesPeakChartProps {
+    data?: HourlyPeak
 }
 
-const mockData: SalesData[] = [
-    { time: "06:00", sales: 10 },
-    { time: "07:00", sales: 20 },
-    { time: "08:00", sales: 45 },
-    { time: "09:00", sales: 80 },
-    { time: "10:00", sales: 65 },
-    { time: "11:00", sales: 90 },
-    { time: "12:00", sales: 50 },
-    { time: "13:00", sales: 70 },
-    { time: "14:00", sales: 120 },
-    { time: "15:00", sales: 90 },
-    { time: "16:00", sales: 60 },
-    { time: "17:00", sales: 40 },
-    { time: "18:00", sales: 20 },
-    { time: "19:00", sales: 15 },
-    { time: "20:00", sales: 5 },
-];
+const chartConfig = {
+    totalAmount: {
+        label: "Doanh số",
+        color: "hsl(var(--chart-1))",
+    },
+} satisfies ChartConfig
 
-const SalesPeakChart: React.FC = () => {
-    const peak = mockData.reduce((prev, curr) =>
-        curr.sales > prev.sales ? curr : prev
-    );
+export function SalesPeakChart({ data }: SalesPeakChartProps) {
+    const chartData = data?.points?.map((point) => ({
+        hour: point.hour,
+        totalAmount: point.totalAmount,
+        isPeak: point.isPeak,
+        orderCount: point.orderCount,
+    })) || [
+            { hour: "06:00", totalAmount: 186000, isPeak: false, orderCount: 12 },
+            { hour: "07:00", totalAmount: 305000, isPeak: false, orderCount: 18 },
+            { hour: "08:00", totalAmount: 237000, isPeak: false, orderCount: 15 },
+            { hour: "09:00", totalAmount: 273000, isPeak: false, orderCount: 16 },
+            { hour: "10:00", totalAmount: 209000, isPeak: false, orderCount: 14 },
+            { hour: "11:00", totalAmount: 414000, isPeak: true, orderCount: 25 },
+            { hour: "12:00", totalAmount: 314000, isPeak: false, orderCount: 20 },
+        ]
+
+    const peak = data?.peak || chartData.find((item) => item.isPeak) || chartData[5]
 
     return (
-        <Card className="w-full">
-            <CardHeader className="text-xl font-semibold">Doanh số bán hàng cao nhất mỗi giờ</CardHeader>
-            <CardContent className="h-[300px]">
-                <ResponsiveContainer width="100%" height="100%">
-                    <LineChart data={mockData}>
-                        <CartesianGrid strokeDasharray="3 3" />
-                        <XAxis dataKey="time" />
-                        <YAxis />
-                        <Tooltip />
-                        <Line type="monotone" dataKey="sales" stroke="#8884d8" strokeWidth={2} />
+        <Card>
+            <CardHeader>
+                <CardTitle>Đỉnh doanh số theo giờ</CardTitle>
+                <CardDescription>
+                    {data ? `Từ ${data.windowStartHour} đến ${data.windowEndHour}` : "Doanh số theo giờ trong ngày"}
+                </CardDescription>
+            </CardHeader>
+            <CardContent>
+                <ChartContainer config={chartConfig}>
+                    <LineChart
+                        accessibilityLayer
+                        data={chartData}
+                        margin={{
+                            left: 12,
+                            right: 12,
+                            top: 20,
+                        }}
+                    >
+                        <CartesianGrid vertical={false} />
+                        <XAxis dataKey="hour" tickLine={false} axisLine={false} tickMargin={8} />
+                        <YAxis
+                            tickLine={false}
+                            axisLine={false}
+                            tickMargin={8}
+                            tickFormatter={(value) => `${(value / 1000).toFixed(0)}K`}
+                        />
+                        <ChartTooltip
+                            cursor={false}
+                            content={
+                                <ChartTooltipContent
+                                    formatter={(value, name) => [`${(Number(value) / 1000).toFixed(0)}K VNĐ`, "Doanh số"]}
+                                />
+                            }
+                        />
+                        <Line dataKey="totalAmount" type="monotone" stroke="var(--color-totalAmount)" strokeWidth={2} dot={false} />
                         <ReferenceDot
-                            x={peak.time}
-                            y={peak.sales}
+                            x={peak.hour}
+                            y={peak.totalAmount}
                             r={6}
-                            fill="red"
+                            fill="hsl(var(--destructive))"
                             stroke="white"
                             strokeWidth={2}
-                            label={{
-                                position: "top",
-                                value: `🔥 Peak: ${peak.sales}`,
-                                fill: "red",
-                                fontSize: 12,
-                            }}
                         />
                     </LineChart>
-                </ResponsiveContainer>
+                </ChartContainer>
             </CardContent>
         </Card>
-    );
-};
-
-export default SalesPeakChart;
+    )
+}

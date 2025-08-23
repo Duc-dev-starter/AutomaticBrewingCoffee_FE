@@ -5,4 +5,5 @@ export interface DashboardParams {
     startDate?: string;
     endDate?: string;
     includeSunday?: boolean;
+    timeZoneId?: string;
 }

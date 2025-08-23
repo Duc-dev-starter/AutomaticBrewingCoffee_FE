@@ -70,6 +70,26 @@ const ProductDetailDialog = ({ product, open, onOpenChange }: ProductDialogProps
                 {/* Body */}
                 <ScrollArea className="flex-1 px-8 bg-white overflow-y-auto hide-scrollbar">
                     <div className="space-y-6 py-6">
+                        {/* Hình ảnh */}
+                        {product.imageUrl && (
+                            <Card className="border border-gray-100 shadow-sm">
+                                <CardContent className="p-6 space-y-6">
+                                    <h3 className="text-lg font-semibold text-primary-600 mb-4 flex items-center">
+                                        <ImageIcon className="w-5 h-5 mr-2 text-primary-500" />
+                                        Hình ảnh
+                                    </h3>
+                                    <div className="flex justify-center">
+                                        <img
+                                            src={product.imageUrl}
+                                            alt="Product"
+                                            className="max-h-[200px] object-contain rounded border"
+                                        />
+                                    </div>
+                                    <p className="text-xs text-muted-foreground text-center break-all">{product.imageUrl}</p>
+                                </CardContent>
+                            </Card>
+                        )}
+
                         {/* Thông tin cơ bản */}
                         <Card className="border border-gray-100 shadow-sm">
                             <CardContent className="p-6 space-y-6">
@@ -118,25 +138,7 @@ const ProductDetailDialog = ({ product, open, onOpenChange }: ProductDialogProps
                             </CardContent>
                         </Card>
 
-                        {/* Hình ảnh */}
-                        {product.imageUrl && (
-                            <Card className="border border-gray-100 shadow-sm">
-                                <CardContent className="p-6 space-y-6">
-                                    <h3 className="text-lg font-semibold text-primary-600 mb-4 flex items-center">
-                                        <ImageIcon className="w-5 h-5 mr-2 text-primary-500" />
-                                        Hình ảnh
-                                    </h3>
-                                    <div className="flex justify-center">
-                                        <img
-                                            src={product.imageUrl}
-                                            alt="Product"
-                                            className="max-h-[200px] object-contain rounded border"
-                                        />
-                                    </div>
-                                    <p className="text-xs text-muted-foreground text-center break-all">{product.imageUrl}</p>
-                                </CardContent>
-                            </Card>
-                        )}
+
 
                         {/* Thời gian */}
                         <Card className="border border-gray-100 shadow-sm">

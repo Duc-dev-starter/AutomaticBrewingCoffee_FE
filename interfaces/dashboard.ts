@@ -1,3 +1,4 @@
+import { string } from "zod"
 import { Order } from "./order"
 
 export interface OrderSummary {
@@ -51,4 +52,25 @@ export interface OrganizationSummary {
     total: number
     active: number
     inactive: number
+}
+
+export interface HourlyPeak {
+    windowStartHour: string;
+    windowEndHour: string;
+    points: Point[];
+    peak: Peak;
+}
+
+export interface Peak {
+    hour: string,
+    totalAmount: number,
+    isPeak: boolean,
+    orderCount: number
+}
+
+export interface Point {
+    hour: string,
+    totalAmount: number,
+    isPeak: boolean,
+    orderCount: number
 }

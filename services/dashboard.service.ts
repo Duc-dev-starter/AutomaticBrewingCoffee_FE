@@ -1,7 +1,6 @@
-import { Order } from '@/interfaces/order';
 import { BaseService } from "./base.service";
 import { Api } from "@/constants/api.constant";
-import { AccountSummary, KioskSummary, OrderSummary, OrderTrafficSummary, OrganizationSummary, RevenueSummary, StoreSummary } from "@/interfaces/dashboard";
+import { AccountSummary, HourlyPeak, KioskSummary, OrderSummary, OrderTrafficSummary, OrganizationSummary, RevenueSummary, StoreSummary } from "@/interfaces/dashboard";
 import { DashboardParams } from "@/types/dashboard";
 
 export const getOrderSummary = async (params: DashboardParams = {}): Promise<OrderSummary> => {
@@ -62,6 +61,15 @@ export const getOrganizationSummary = async (params: DashboardParams = {}): Prom
 export const getOrderTrafficSummary = async (params: DashboardParams = {}): Promise<OrderTrafficSummary> => {
     const response = await BaseService.get<OrderTrafficSummary>({
         url: Api.ORDER_TRAFFIC_SUMMARY,
+        payload: params,
+    });
+    // @ts-ignore
+    return response.response;
+};
+
+export const getHourlyPeak = async (params: DashboardParams = {}): Promise<HourlyPeak> => {
+    const response = await BaseService.get<HourlyPeak>({
+        url: Api.HOURLY_PEAK,
         payload: params,
     });
     // @ts-ignore

@@ -56,7 +56,7 @@ export const columns = ({
         },
         {
             id: "isBanned",
-            header: "Đã khóa",
+            header: "Khóa tài khoản",
             cell: ({ row }) => (
                 <div className="text-center">
                     <Switch

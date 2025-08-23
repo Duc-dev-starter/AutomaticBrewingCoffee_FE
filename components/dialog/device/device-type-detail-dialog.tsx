@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Info, Monitor, Calendar, FileText, Smartphone } from "lucide-react"
+import { Info, Monitor, Calendar, FileText, Smartphone, Check, X } from "lucide-react"
 import { format } from "date-fns"
 import clsx from "clsx"
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden"
@@ -60,14 +60,13 @@ const DeviceTypeDetailDialog = ({ deviceType, open, onOpenChange }: DeviceDialog
                                         icon={<Monitor className="w-4 h-4 text-primary-500" />}
                                     />
                                     <InfoField
-                                        label="Là thiết bị di động"
+                                        label="Thiết bị di động"
                                         value={
-                                            <Badge
-                                                variant={deviceType.isMobileDevice ? "default" : "secondary"}
-                                                className={clsx(deviceType.isMobileDevice ? "bg-green-100 text-green-800" : "")}
-                                            >
-                                                {deviceType.isMobileDevice ? "Có" : "Không"}
-                                            </Badge>
+                                            deviceType.isMobileDevice ? (
+                                                <Check className="w-4 h-4 text-green-500" />
+                                            ) : (
+                                                <X className="w-4 h-4 text-red-500" />
+                                            )
                                         }
                                         icon={<Smartphone className="w-4 h-4 text-primary-500" />}
                                     />

@@ -742,7 +742,7 @@ const DeviceModelDialog = ({ open, onOpenChange, onSuccess, deviceModel }: Devic
                                                 )}
                                             </div>
                                             <div className="space-y-2">
-                                                <Label>Là chính</Label>
+                                                <Label>Nguyên liệu chính</Label>
                                                 <Select
                                                     value={ingredient.isPrimary ? "true" : "false"}
                                                     onValueChange={(value) => handleDeviceIngredientChange(index, "isPrimary", value === "true")}
@@ -752,7 +752,7 @@ const DeviceModelDialog = ({ open, onOpenChange, onSuccess, deviceModel }: Devic
                                                         <SelectValue />
                                                     </SelectTrigger>
                                                     <SelectContent>
-                                                        <SelectItem value="true">Có</SelectItem>
+                                                        <SelectItem value="true">Phải</SelectItem>
                                                         <SelectItem value="false">Không</SelectItem>
                                                     </SelectContent>
                                                 </Select>

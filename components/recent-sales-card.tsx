@@ -1,5 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Order } from "@/interfaces/order";
+import { formatCurrency } from "@/utils";
 import { formatDate } from "@/utils/date";
 
 export default function RecentSalesCard({ data }: { data?: Order[] }) {
@@ -16,7 +17,7 @@ export default function RecentSalesCard({ data }: { data?: Order[] }) {
                             <div className="flex justify-between items-center flex-wrap gap-2">
                                 <p className="font-medium break-all">{sale.orderCode}</p>
                                 <p className="font-semibold text-green-600 whitespace-nowrap">
-                                    +{sale.finalAmount}
+                                    +{formatCurrency(sale.totalAmount)}
                                 </p>
                             </div>
 

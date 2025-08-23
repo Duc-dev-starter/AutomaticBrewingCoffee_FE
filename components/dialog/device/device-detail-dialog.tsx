@@ -16,7 +16,6 @@ import {
     Beaker,
     AlertTriangle,
 } from "lucide-react"
-import { format } from "date-fns"
 import { EDeviceStatus, EDeviceStatusViMap } from "@/enum/device"
 import { EBaseStatusViMap } from "@/enum/base"
 import { getDeviceStatusColor, getBaseStatusColor } from "@/utils/color"
@@ -24,6 +23,7 @@ import type { DeviceDialogProps } from "@/types/dialog"
 import { InfoField } from "@/components/common"
 import { DeviceIngredientStates } from "@/interfaces/device"
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden"
+import { formatDate } from "@/utils/date"
 
 const DeviceDetailDialog = ({ device, open, onOpenChange }: DeviceDialogProps) => {
     if (!device) return null
@@ -71,7 +71,6 @@ const DeviceDetailDialog = ({ device, open, onOpenChange }: DeviceDialogProps) =
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <InfoField label="Tên thiết bị" value={device.name} icon={<Monitor className="w-4 h-4 text-primary-500" />} />
                                     <InfoField label="Số Serial" value={device.serialNumber || "Không có"} icon={<Hash className="w-4 h-4 text-primary-500" />} />
-                                    <InfoField label="Mã thiết bị" value={device.deviceId} icon={<FileText className="w-4 h-4 text-primary-500" />} />
                                     {device.description && (
                                         <InfoField label="Mô tả" value={device.description} icon={<FileText className="w-4 h-4 text-primary-500" />} className="col-span-2" />
                                     )}
@@ -138,12 +137,12 @@ const DeviceDetailDialog = ({ device, open, onOpenChange }: DeviceDialogProps) =
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <InfoField
                                         label="Ngày tạo"
-                                        value={device.createdDate ? format(new Date(device.createdDate), "dd/MM/yyyy HH:mm") : "Không có"}
+                                        value={device.createdDate ? formatDate(device.createdDate) : "Không có"}
                                         icon={<Calendar className="w-4 h-4 text-primary-500" />}
                                     />
                                     <InfoField
                                         label="Ngày cập nhật"
-                                        value={device.updatedDate ? format(new Date(device.updatedDate), "dd/MM/yyyy HH:mm") : "Chưa cập nhật"}
+                                        value={device.updatedDate ? formatDate(device.updatedDate) : "Chưa cập nhật"}
                                         icon={<Calendar className="w-4 h-4 text-primary-500" />}
                                     />
                                 </div>

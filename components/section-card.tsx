@@ -3,6 +3,7 @@ import { TrendingDownIcon, TrendingUpIcon } from "lucide-react"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import type { AccountSummary, KioskSummary, OrderSummary, RevenueSummary } from "@/interfaces/dashboard"
+import { formatCurrency } from "@/utils"
 
 interface SectionCardsProps {
     order?: OrderSummary
@@ -28,7 +29,7 @@ export function SectionCards({ order, kiosk, revenue, account }: SectionCardsPro
                 <CardHeader className="relative">
                     <CardDescription>Tổng Doanh Thu</CardDescription>
                     <CardTitle className="@[250px]/card:text-3xl text-2xl font-semibold tabular-nums">
-                        ${revenue?.revenue.toLocaleString("vi-VN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
+                        {formatCurrency(revenue?.revenue ?? 0)}
                     </CardTitle>
                     <div className="absolute right-4 top-4">
                         <Badge variant="outline" className="flex gap-1 rounded-lg text-xs">

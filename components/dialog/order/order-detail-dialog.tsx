@@ -4,11 +4,23 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { FileText, Info, ShoppingCart, CreditCard, Percent, Tag, Calendar } from "lucide-react"
+import {
+    FileText,
+    Info,
+    ShoppingCart,
+    CreditCard,
+    Percent,
+    Tag,
+    Calendar,
+    MapPin,
+    Building,
+    Phone,
+    Mail,
+} from "lucide-react"
 import { formatCurrency } from "@/utils"
 import { formatDate } from "@/utils/date"
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden"
-import { OrderDialogProps } from "@/types/dialog"
+import type { OrderDialogProps } from "@/types/dialog"
 import { EOrderStatusViMap, EOrderTypeViMap, EPaymentGateway } from "@/enum/order"
 import { images } from "@/public/assets"
 import clsx from "clsx"
@@ -51,6 +63,8 @@ const OrderDetailDialog = ({ order, open, onOpenChange }: OrderDialogProps) => {
                 {/* Body */}
                 <ScrollArea className="flex-1 px-8 bg-white overflow-y-auto hide-scrollbar">
                     <div className="space-y-6 py-6">
+
+
                         {/* Thông tin đơn hàng */}
                         <Card className="border border-gray-100 shadow-sm">
                             <CardContent className="p-6 space-y-6">
@@ -76,27 +90,27 @@ const OrderDetailDialog = ({ order, open, onOpenChange }: OrderDialogProps) => {
                                     />
                                     <InfoField
                                         label="Ngày chờ"
-                                        value={formatDate(order.pendingDate || '') || "Không có"}
+                                        value={formatDate(order.pendingDate || "") || "Không có"}
                                         icon={<Calendar className="w-4 h-4 text-primary-500" />}
                                     />
                                     <InfoField
                                         label="Ngày hoàn thành"
-                                        value={formatDate(order.completedDate || '') || "Không có"}
+                                        value={formatDate(order.completedDate || "") || "Không có"}
                                         icon={<Calendar className="w-4 h-4 text-primary-500" />}
                                     />
                                     <InfoField
                                         label="Ngày hủy"
-                                        value={formatDate(order.cancelledDate || '') || "Không có"}
+                                        value={formatDate(order.cancelledDate || "") || "Không có"}
                                         icon={<Calendar className="w-4 h-4 text-primary-500" />}
                                     />
                                     <InfoField
                                         label="Ngày thất bại"
-                                        value={formatDate(order.failedDate || '') || "Không có"}
+                                        value={formatDate(order.failedDate || "") || "Không có"}
                                         icon={<Calendar className="w-4 h-4 text-primary-500" />}
                                     />
                                     <InfoField
                                         label="Ngày chuẩn bị"
-                                        value={formatDate(order.preparingDate || '') || "Không có"}
+                                        value={formatDate(order.preparingDate || "") || "Không có"}
                                         icon={<Calendar className="w-4 h-4 text-primary-500" />}
                                     />
                                 </div>
@@ -115,7 +129,7 @@ const OrderDetailDialog = ({ order, open, onOpenChange }: OrderDialogProps) => {
                                         label="Hình thức thanh toán"
                                         value={
                                             <img
-                                                src={paymentLogoMap[order.paymentGateway]}
+                                                src={paymentLogoMap[order.paymentGateway] || "/placeholder.svg"}
                                                 alt={order.paymentGateway}
                                                 className="h-6 w-auto object-contain mt-1"
                                             />
@@ -154,7 +168,9 @@ const OrderDetailDialog = ({ order, open, onOpenChange }: OrderDialogProps) => {
                                             <div className="flex justify-between items-start">
                                                 <div className="flex-1">
                                                     <h4 className="font-medium text-sm">{detail.productName}</h4>
-                                                    <p className="text-xs text-gray-500 line-clamp-2">{detail.productDescription || "Không có"}</p>
+                                                    <p className="text-xs text-gray-500 line-clamp-2">
+                                                        {detail.productDescription || "Không có"}
+                                                    </p>
                                                 </div>
                                                 <div className="text-right">
                                                     <div className="font-medium text-sm">{formatCurrency(detail.sellingPrice)}</div>
@@ -171,6 +187,79 @@ const OrderDetailDialog = ({ order, open, onOpenChange }: OrderDialogProps) => {
                                         </div>
                                     ))}
                                 </div>
+                            </CardContent>
+                        </Card>
+
+                        {/* Thông tin kiosk */}
+                        <Card className="border border-gray-100 shadow-sm">
+                            <CardContent className="p-6 space-y-6">
+
+                                {/* Thông tin cửa hàng */}
+                                {order.kiosk?.store && (
+                                    <div className="rounded-lg p-4 border border-green-100">
+                                        <h4 className="text-md font-semibold mb-3 flex items-center">
+                                            <Building className="w-4 h-4 mr-2" />
+                                            Cửa hàng: {order.kiosk.store.name}
+                                        </h4>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <InfoField
+                                                label="Địa chỉ cửa hàng"
+                                                value={order.kiosk.store.locationAddress || "Không có"}
+                                                icon={<MapPin className="w-4 h-4 text-primary-500" />}
+                                            />
+                                            <InfoField
+                                                label="Số điện thoại"
+                                                value={order.kiosk.store.contactPhone || "Không có"}
+                                                icon={<Phone className="w-4 h-4 text-primary-500" />}
+                                            />
+
+                                        </div>
+                                    </div>
+                                )}
+
+                                {/* Thông tin tổ chức */}
+                                {order.kiosk?.store?.organization && (
+                                    <div className="rounded-lg p-4 border border-purple-100">
+                                        <h4 className="text-md font-semibold mb-3 flex items-center">
+                                            <Building className="w-4 h-4 mr-2" />
+                                            Tổ chức: {order.kiosk.store.organization.name}
+                                        </h4>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                            <div className="flex items-start space-x-3">
+                                                <div className="flex-shrink-0">
+                                                    {order.kiosk.store.organization.logoUrl ? (
+                                                        <img
+                                                            src={order.kiosk.store.organization.logoUrl || "/placeholder.svg"}
+                                                            alt={order.kiosk.store.organization.name}
+                                                            className="w-12 h-12 rounded-lg object-cover border border-gray-200"
+                                                        />
+                                                    ) : (
+                                                        <div className="w-12 h-12 bg-gray-100 rounded-lg flex items-center justify-center">
+                                                            <Building className="w-6 h-6 text-gray-400" />
+                                                        </div>
+                                                    )}
+                                                </div>
+                                                <div>
+                                                    <p className="font-medium text-primary-500">{order.kiosk.store.organization.name}</p>
+                                                    <p className="text-sm text-primary-500">{order.kiosk.store.organization.organizationCode}</p>
+                                                    <p className="text-sm text-primary-500 mt-1">{order.kiosk.store.organization.description}</p>
+                                                </div>
+                                            </div>
+                                            <div className="space-y-3">
+                                                <InfoField
+                                                    label="Số điện thoại"
+                                                    value={order.kiosk.store.organization.contactPhone || "Không có"}
+                                                    icon={<Phone className="w-4 h-4 text-primary-500" />}
+                                                />
+                                                <InfoField
+                                                    label="Email liên hệ"
+                                                    value={order.kiosk.store.organization.contactEmail || "Không có"}
+                                                    icon={<Mail className="w-4 h-4 text-primary-500" />}
+                                                />
+                                            </div>
+                                        </div>
+                                    </div>
+                                )}
                             </CardContent>
                         </Card>
                     </div>

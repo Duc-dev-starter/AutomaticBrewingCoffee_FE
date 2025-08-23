@@ -11,15 +11,17 @@ import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Check, ChevronDown, AlertTriangle } from "lucide-react"
+import { Check, ChevronDown, AlertTriangle, Info } from "lucide-react"
 import { cn } from "@/lib/utils"
+import { OptionParamter } from "@/interfaces/device"
+import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip"
 
 interface FunctionParameter {
     functionParameterId: string
     deviceFunctionId: string
     name: string
     type: string
-    options: any[]
+    options: OptionParamter[]
     default: string
     description?: string
     min?: string
@@ -289,7 +291,7 @@ const JsonEditorComponent: React.FC<JsonEditorComponentProps> = ({
 
         if (param && param.options && param.options.length > 0) {
             return (
-                <div className="flex items-center gap-2">
+                <div className="flex w-full items-center gap-2">
                     <Select
                         value={value !== undefined && value !== null ? String(value) : ""}
                         onValueChange={(newValue) => {
@@ -299,31 +301,53 @@ const JsonEditorComponent: React.FC<JsonEditorComponentProps> = ({
                     >
                         <SelectTrigger
                             className={cn(
-                                "w-32 flex items-center justify-between px-2 py-1 text-sm border rounded",
+                                "flex-1 w-full text-sm border rounded",
                                 hasError && "border-red-500 bg-red-50"
                             )}
                         >
-                            <span className="text-green-600 font-medium">
+                            <span className="text-green-600 font-medium truncate">
                                 {value !== undefined && value !== null ? String(value) : "Chọn giá trị"}
                             </span>
                         </SelectTrigger>
                         <SelectContent>
-                            {param.options.map((option) => (
-                                <SelectItem key={option} value={String(option)}>
-                                    {option}
-                                </SelectItem>
-                            ))}
+                            {param.options.map((option, index) => {
+
+                                const isObjectOption = typeof option === 'object' && option !== null && 'name' in option;
+
+                                const optionValue = isObjectOption ? option.name : String(option);
+                                const optionLabel = optionValue;
+                                const optionDescription = isObjectOption ? option.description : null;
+
+                                return (
+                                    <SelectItem key={`${optionValue}-${index}`} value={optionValue}>
+                                        <div className="flex items-center justify-between w-full">
+                                            <span>{optionLabel}</span>
+                                            {optionDescription && (
+                                                <Tooltip>
+                                                    <TooltipTrigger asChild onClick={(e) => e.stopPropagation()}>
+                                                        <Info className="h-4 w-4 ml-2 text-gray-400 cursor-help flex-shrink-0" />
+                                                    </TooltipTrigger>
+                                                    <TooltipContent side="right">
+                                                        <p>{optionDescription}</p>
+                                                    </TooltipContent>
+                                                </Tooltip>
+                                            )}
+                                        </div>
+                                    </SelectItem>
+                                );
+                            })}
                         </SelectContent>
                     </Select>
-                    {param.description && (
-                        <span className="text-xs text-gray-400" title={param.description}>
-                            ℹ️
-                        </span>
-                    )}
+
                     {hasError && (
-                        <span className="text-xs text-red-500" title={hasError}>
-                            <AlertTriangle className="h-3 w-3" />
-                        </span>
+                        <Tooltip>
+                            <TooltipTrigger>
+                                <AlertTriangle className="h-4 w-4 text-red-500" />
+                            </TooltipTrigger>
+                            <TooltipContent side="right">
+                                <p>{hasError}</p>
+                            </TooltipContent>
+                        </Tooltip>
                     )}
                 </div>
             )

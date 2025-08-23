@@ -3,12 +3,10 @@
 import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Card, CardContent } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
 import {
     Info,
     Monitor,
     Calendar,
-    FileText,
 } from "lucide-react"
 import type { LocationTypeDialogProps } from "@/types/dialog"
 import { InfoField } from "@/components/common"
@@ -20,7 +18,7 @@ const LocationTypeDetailDialog = ({ locationType, open, onOpenChange }: Location
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-[800px] max-h-[90vh] overflow-hidden flex flex-col p-0 bg-white rounded-lg">
+            <DialogContent className="sm:max-w-[650px] max-h-[90vh] overflow-hidden flex flex-col p-0 bg-white rounded-lg">
                 <DialogTitle asChild>
                     <VisuallyHidden>Chi tiết</VisuallyHidden>
                 </DialogTitle>
@@ -36,10 +34,6 @@ const LocationTypeDetailDialog = ({ locationType, open, onOpenChange }: Location
                                 <p className="text-gray-500 text-sm">Thông tin chi tiết loại địa điểm</p>
                             </div>
                         </div>
-                        <Badge className="bg-primary-500 text-white px-3 py-1">
-                            <FileText className="mr-1 h-3 w-3" />
-                            {locationType.locationTypeId}
-                        </Badge>
                     </div>
                 </div>
 
@@ -58,6 +52,7 @@ const LocationTypeDetailDialog = ({ locationType, open, onOpenChange }: Location
                                         label="Tên thiết bị"
                                         value={locationType.name}
                                         icon={<Monitor className="w-4 h-4 text-primary-500" />}
+                                        className="col-span-2"
                                     />
                                     <InfoField
                                         label="Mô tả"

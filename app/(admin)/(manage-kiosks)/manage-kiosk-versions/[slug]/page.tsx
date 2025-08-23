@@ -22,6 +22,7 @@ import type { KioskVersion, KioskVersionDeviceModelMappings } from "@/interfaces
 import type { DeviceModel } from "@/interfaces/device"
 import type { Product, SupportProduct } from "@/interfaces/product"
 import type { ErrorResponse } from "@/types/error"
+import { formatDate } from "@/utils/date"
 
 const KioskVersionDetailPage = () => {
     const { slug } = useParams()
@@ -279,7 +280,7 @@ const KioskVersionDetailPage = () => {
                         </div>
                         <div className="flex justify-between">
                             <span className="font-medium">Loại Kiosk:</span>
-                            <span>{kioskVersion.kioskType?.name || "N/A"}</span>
+                            <span>{kioskVersion.kioskType?.name || "Chưa có"}</span>
                         </div>
                     </div>
                     <div className="space-y-2">
@@ -429,13 +430,13 @@ const KioskVersionDetailPage = () => {
                                                     </div>
                                                 ) : (
                                                     <div className="h-10 w-10 rounded-md bg-muted flex items-center justify-center">
-                                                        <span className="text-xs text-muted-foreground">N/A</span>
+                                                        <span className="text-xs text-muted-foreground">Chưa có</span>
                                                     </div>
                                                 )}
                                             </TableCell>
                                             <TableCell className="font-medium">{item.product.name}</TableCell>
-                                            <TableCell className="max-w-[200px] truncate" title={item.product.description || "N/A"}>
-                                                {item.product.description || "N/A"}
+                                            <TableCell className="max-w-[200px] truncate" title={item.product.description || "Chưa có"}>
+                                                {item.product.description || "Chưa có"}
                                             </TableCell>
                                             <TableCell>{item.product.price.toLocaleString()} VND</TableCell>
                                             <TableCell>{item.product.size}</TableCell>
@@ -490,22 +491,18 @@ const KioskVersionDetailPage = () => {
                                     {mappings.map((mapping, index) => (
                                         <TableRow key={index}>
                                             <TableCell>{index + 1}</TableCell>
-                                            <TableCell className="font-medium">{mapping.deviceModel?.modelName || "N/A"}</TableCell>
-                                            <TableCell>{mapping.deviceModel?.manufacturer || "N/A"}</TableCell>
-                                            <TableCell>{mapping.deviceModel?.deviceType?.name || "N/A"}</TableCell>
+                                            <TableCell className="font-medium">{mapping.deviceModel?.modelName || "Chưa có"}</TableCell>
+                                            <TableCell>{mapping.deviceModel?.manufacturer || "Chưa có"}</TableCell>
+                                            <TableCell>{mapping.deviceModel?.deviceType?.name || "Chưa có"}</TableCell>
                                             <TableCell>
                                                 <Badge variant={mapping.deviceModel?.status === "Active" ? "default" : "secondary"}>
-                                                    {mapping.deviceModel?.status || "N/A"}
+                                                    {mapping.deviceModel?.status || "Chưa có"}
                                                 </Badge>
                                             </TableCell>
                                             <TableCell>
                                                 {mapping.deviceModel?.createdDate
-                                                    ? new Date(mapping.deviceModel.createdDate).toLocaleDateString("vi-VN", {
-                                                        year: "numeric",
-                                                        month: "2-digit",
-                                                        day: "2-digit",
-                                                    })
-                                                    : "N/A"}
+                                                    ? formatDate(mapping.deviceModel.createdDate)
+                                                    : "Chưa có"}
                                             </TableCell>
                                             <TableCell className="text-right font-medium">{mapping.quantity}</TableCell>
                                         </TableRow>

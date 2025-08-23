@@ -55,7 +55,7 @@ const KioskTypeDetailDialog = ({ kioskType, open, onOpenChange }: KioskDialogPro
                                 </h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <InfoField
-                                        label="Tên kiosk"
+                                        label="Tên loại kiosk"
                                         value={kioskType.name}
                                         icon={<Monitor className="w-4 h-4 text-primary-500" />}
                                     />

@@ -50,8 +50,8 @@ export const columns = ({
             id: "deviceInfo",
             header: "Thông tin thiết bị",
             cell: ({ row }) => {
-                const modelName = row.original.deviceModel?.modelName || "N/A";
-                const deviceTypeName = row.original.deviceModel?.deviceType?.name || "N/A";
+                const modelName = row.original.deviceModel?.modelName || "Chưa có";
+                const deviceTypeName = row.original.deviceModel?.deviceType?.name || "Chưa có";
 
                 return (
                     <div className="flex flex-col items-center justify-center h-full text-center">

@@ -12,7 +12,6 @@ import DateFilterGroup from "@/components/dashboard/date-filter-group"
 const MemoizedPieChart = React.memo(PieChartComponent)
 const MemoizedDayTimeChart = React.memo(DayTimeChart)
 const MemoizedRecentSalesCard = React.memo(RecentSalesCard)
-const MemoizedAreaChart = React.memo(AreaChartInteractiveCustom)
 const MemoizedSalesPeakChart = React.memo(SalesPeakChart)
 const MemoizedSectionCards = React.memo(SectionCards)
 
@@ -30,7 +29,7 @@ const Dashboard = () => {
         [dateRange],
     )
 
-    const { order, kiosk, revenue, isLoading, error, account, orderTraffic } = useDashboardSummary(params)
+    const { order, kiosk, revenue, isLoading, error, account, orderTraffic, hourlyPeak } = useDashboardSummary(params)
 
     const handleDateChange = useCallback((range: DateRange) => {
         setDateRange(range)
@@ -46,9 +45,9 @@ const Dashboard = () => {
         [error],
     )
 
-    if (isLoading) {
-        return loadingComponent
-    }
+    // if (isLoading) {
+    //     return loadingComponent
+    // }
 
     if (error) {
         return errorComponent
@@ -73,9 +72,8 @@ const Dashboard = () => {
                     <MemoizedRecentSalesCard data={order.data?.recentOrders} />
                 </div>
 
-                <MemoizedAreaChart />
                 <div>
-                    <MemoizedSalesPeakChart />
+                    <MemoizedSalesPeakChart data={hourlyPeak.data} />
                 </div>
             </div>
         </div>

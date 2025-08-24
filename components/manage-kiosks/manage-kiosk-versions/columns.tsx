@@ -49,7 +49,7 @@ export const columns = ({
             id: "kioskTypeName",
             header: "Tên loại kiosk",
             cell: ({ row }) => (
-                <div className="text-center">{row.original.kioskType?.name || "Không có"}</div>
+                <div className="text-center">{row.original.kioskType?.name || "Chưa có"}</div>
             ),
         },
         {

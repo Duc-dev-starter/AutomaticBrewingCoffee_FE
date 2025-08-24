@@ -368,7 +368,7 @@ const ManageProducts = () => {
                                                     <TableCell
                                                         colSpan={visibleLeafColumnsCount}
                                                         className="p-4 text-center text-muted-foreground bg-gray-50">
-                                                        Sản phẩm này không có sản phẩm con nào.
+                                                        Sản phẩm này chưa có sản phẩm con nào.
                                                     </TableCell>
                                                 </TableRow>))}
                                         </React.Fragment>

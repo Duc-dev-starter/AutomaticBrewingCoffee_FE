@@ -27,7 +27,7 @@ export const columns = ({
             header: "Tên tài khoản",
             cell: ({ row }) => (
                 <div className="text-center">
-                    {row.original.fullName || "Không có"}
+                    {row.original.fullName || "Chưa có"}
                 </div>
             ),
             enableSorting: false,
@@ -37,7 +37,7 @@ export const columns = ({
             header: "Vai trò",
             cell: ({ row }) => (
                 <div className="text-center">
-                    {row.original.roleName || "Không có"}
+                    {row.original.roleName || "Chưa có"}
                 </div>
             ),
             enableSorting: false,

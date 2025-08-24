@@ -765,7 +765,7 @@ const CreateWorkflow = () => {
                                     </div>
                                 ) : !loadingKioskVersions && kioskVersions.length === 0 ? (
                                     <div className="p-4 text-center text-gray-500">
-                                        <p className="text-sm">Không có phiên bản kiosk nào</p>
+                                        <p className="text-sm">Chưa có phiên bản kiosk nào</p>
                                     </div>
                                 ) : (
                                     <ScrollArea className="h-[200px]">
@@ -936,7 +936,7 @@ const CreateWorkflow = () => {
                                                     </SelectItem>
                                                 ))}
                                                 {!loadingProducts && products.length === 0 && (
-                                                    <div className="p-2 text-center text-sm text-gray-500">Không có sản phẩm.</div>
+                                                    <div className="p-2 text-center text-sm text-gray-500">Chưa có sản phẩm.</div>
                                                 )}
                                             </InfiniteScroll>
                                         </ScrollArea>
@@ -1188,7 +1188,7 @@ const CreateWorkflow = () => {
                                                             </SelectItem>
                                                         ))}
                                                         {!loadingDeviceModels && deviceModels.length === 0 && (
-                                                            <div className="p-2 text-center text-sm text-gray-500">Không có mẫu thiết bị.</div>
+                                                            <div className="p-2 text-center text-sm text-gray-500">Chưa có mẫu thiết bị.</div>
                                                         )}
                                                     </InfiniteScroll>
                                                 </ScrollArea>
@@ -1220,7 +1220,7 @@ const CreateWorkflow = () => {
                                                     !formData.steps[editingStepIndex].deviceModelId
                                                         ? "Chọn mẫu thiết bị trước"
                                                         : getDeviceFunctionsForModel(formData.steps[editingStepIndex].deviceModelId).length === 0
-                                                            ? "Không có chức năng"
+                                                            ? "Chưa có chức năng"
                                                             : "Chọn chức năng"
                                                 }
                                             />
@@ -1273,7 +1273,7 @@ const CreateWorkflow = () => {
                                                         </SelectItem>
                                                     ))}
                                                     {!loadingWorkflows && workflows.length === 0 && (
-                                                        <div className="p-2 text-center text-sm text-gray-500">Không có quy trình.</div>
+                                                        <div className="p-2 text-center text-sm text-gray-500">Chưa có quy trình.</div>
                                                     )}
                                                 </InfiniteScroll>
                                             </ScrollArea>

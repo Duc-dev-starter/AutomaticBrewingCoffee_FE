@@ -28,8 +28,8 @@ import {
 } from "@/enum/product"
 import { getProductStatusColor } from "@/utils/color"
 import { formatCurrency } from "@/utils"
-import { format } from "date-fns"
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden"
+import { formatDate } from "@/utils/date"
 
 const ProductDetailDialog = ({ product, open, onOpenChange }: ProductDialogProps) => {
     if (!product) return null
@@ -100,12 +100,12 @@ const ProductDetailDialog = ({ product, open, onOpenChange }: ProductDialogProps
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <InfoField
                                         label="Tên sản phẩm"
-                                        value={product.name || "Không có"}
+                                        value={product.name || "Chưa có"}
                                         icon={<ShoppingBag className="w-4 h-4 text-primary-500" />}
                                     />
                                     <InfoField
                                         label="Sản phẩm cha"
-                                        value={product.productParentName || "Không có"}
+                                        value={product.productParentName || "Chưa có"}
                                         icon={<ShoppingBag className="w-4 h-4 text-primary-500" />}
                                     />
                                     <InfoField
@@ -125,12 +125,12 @@ const ProductDetailDialog = ({ product, open, onOpenChange }: ProductDialogProps
                                     />
                                     <InfoField
                                         label="Nhãn sản phẩm"
-                                        value={product.tagName || "Không có"}
+                                        value={product.tagName || "Chưa có"}
                                         icon={<ShoppingBag className="w-4 h-4 text-primary-500" />}
                                     />
                                     <InfoField
                                         label="Mô tả"
-                                        value={product.description || "Không có mô tả"}
+                                        value={product.description || "Chưa có mô tả"}
                                         icon={<AlignLeft className="w-4 h-4 text-primary-500" />}
                                         className="col-span-2"
                                     />
@@ -150,12 +150,12 @@ const ProductDetailDialog = ({ product, open, onOpenChange }: ProductDialogProps
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <InfoField
                                         label="Ngày tạo"
-                                        value={product.createdDate ? format(new Date(product.createdDate), "dd/MM/yyyy HH:mm") : "Không có"}
+                                        value={product.createdDate ? formatDate(product.createdDate) : "Chưa có"}
                                         icon={<Calendar className="w-4 h-4 text-primary-500" />}
                                     />
                                     <InfoField
                                         label="Ngày cập nhật"
-                                        value={product.updatedDate ? format(new Date(product.updatedDate), "dd/MM/yyyy HH:mm") : "Chưa cập nhật"}
+                                        value={product.updatedDate ? formatDate(product.updatedDate) : "Chưa cập nhật"}
                                         icon={<Calendar className="w-4 h-4 text-primary-500" />}
                                     />
                                 </div>

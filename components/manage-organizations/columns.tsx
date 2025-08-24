@@ -31,7 +31,7 @@ export const columns = ({
                 return (
                     <div className="font-medium text-center">
                         {
-                            row.original.organizationCode ? <span>{row.original.organizationCode}</span> : <span className="text-muted-foreground">Không có</span>
+                            row.original.organizationCode ? <span>{row.original.organizationCode}</span> : <span className="text-muted-foreground">Chưa có</span>
                         }
                     </div>
                 )
@@ -52,7 +52,7 @@ export const columns = ({
                                 className="w-10 h-10 object-contain rounded"
                             />
                         ) : (
-                            <span className="text-muted-foreground">Không có</span>
+                            <span className="text-muted-foreground">Chưa có</span>
                         )}
                     </div>
                 );
@@ -91,7 +91,7 @@ export const columns = ({
                                 <span>{contactPhone}</span>
                             </div>
                         )}
-                        {!contactEmail && !contactPhone && <span className="text-muted-foreground">Không có</span>}
+                        {!contactEmail && !contactPhone && <span className="text-muted-foreground">Chưa có</span>}
                     </div>
                 )
             },
@@ -105,7 +105,7 @@ export const columns = ({
                 return (
                     <div className="flex items-center justify-center">
                         <FileText className="h-4 w-4 mr-1 text-muted-foreground" />
-                        <span>{taxId || "Không có"}</span>
+                        <span>{taxId || "Chưa có"}</span>
                     </div>
                 )
             },

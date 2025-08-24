@@ -43,7 +43,7 @@ export const columns = ({
                                 className="w-16 h-16 object-cover rounded-md border"
                             />
                         ) : (
-                            <span className="text-muted-foreground">Không có ảnh</span>
+                            <span className="text-muted-foreground">Chưa có ảnh</span>
                         )}
                     </div>
                 );
@@ -87,7 +87,7 @@ export const columns = ({
             header: "Tên danh mục",
             cell: ({ row }) => (
                 <div className="text-center">
-                    {row.original.productCategory?.name || <span className="text-muted-foreground">Không có</span>}
+                    {row.original.productCategory?.name || <span className="text-muted-foreground">Chưa có</span>}
                 </div>
             ),
             enableSorting: false,
@@ -97,7 +97,7 @@ export const columns = ({
             header: "Có quy trình",
             cell: ({ row }) => (
                 <div className="text-center">
-                    {row.original.isHasWorkflow ? <span className="text-muted-foreground">Có</span> : <span className="text-muted-foreground">Không Có</span>}
+                    {row.original.isHasWorkflow ? <span className="text-muted-foreground">Có</span> : <span className="text-muted-foreground">Chưa có</span>}
                 </div>
             ),
             enableSorting: false,

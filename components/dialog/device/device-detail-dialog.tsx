@@ -70,7 +70,7 @@ const DeviceDetailDialog = ({ device, open, onOpenChange }: DeviceDialogProps) =
                                 </h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <InfoField label="Tên thiết bị" value={device.name} icon={<Monitor className="w-4 h-4 text-primary-500" />} />
-                                    <InfoField label="Số Serial" value={device.serialNumber || "Không có"} icon={<Hash className="w-4 h-4 text-primary-500" />} />
+                                    <InfoField label="Số Serial" value={device.serialNumber || "Chưa có"} icon={<Hash className="w-4 h-4 text-primary-500" />} />
                                     {device.description && (
                                         <InfoField label="Mô tả" value={device.description} icon={<FileText className="w-4 h-4 text-primary-500" />} className="col-span-2" />
                                     )}
@@ -137,7 +137,7 @@ const DeviceDetailDialog = ({ device, open, onOpenChange }: DeviceDialogProps) =
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <InfoField
                                         label="Ngày tạo"
-                                        value={device.createdDate ? formatDate(device.createdDate) : "Không có"}
+                                        value={device.createdDate ? formatDate(device.createdDate) : "Chưa có"}
                                         icon={<Calendar className="w-4 h-4 text-primary-500" />}
                                     />
                                     <InfoField

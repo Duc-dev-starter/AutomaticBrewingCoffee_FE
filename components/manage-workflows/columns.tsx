@@ -64,7 +64,7 @@ export const columns = ({
             accessorKey: "description",
             header: "Mô tả",
             cell: ({ row }) => (
-                <div className="text-center">{row.original.description || "Không có"}</div>
+                <div className="text-center">{row.original.description || "Chưa có"}</div>
             ),
             enableSorting: false,
         },

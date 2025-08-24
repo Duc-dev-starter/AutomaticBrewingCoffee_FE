@@ -15,7 +15,7 @@ export const InfoField = ({
             <span>{label}</span>
         </div>
         <div className="bg-gray-50 border border-gray-200 rounded-lg p-3 text-gray-800">
-            {value || <span className="text-gray-400 italic">Không có</span>}
+            {value || <span className="text-gray-400 italic">Chưa có</span>}
         </div>
     </div>
 )

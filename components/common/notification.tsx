@@ -143,7 +143,7 @@ export function NotificationBell({ className, notifications, isLoading, mutate }
                     {isLoading ? (
                         <div className="p-4 text-center text-muted-foreground">Đang tải...</div>
                     ) : notifications.length === 0 ? (
-                        <div className="p-4 text-center text-muted-foreground">Không có thông báo nào</div>
+                        <div className="p-4 text-center text-muted-foreground">Chưa có thông báo nào</div>
                     ) : (
                         <div className="divide-y">
                             {notifications.map((notification) => {

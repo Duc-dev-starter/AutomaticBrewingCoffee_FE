@@ -240,7 +240,6 @@ const JsonEditorComponent: React.FC<JsonEditorComponentProps> = ({
         }
     }
 
-    // ===== THAY ĐỔI BẮT ĐẦU: SỬA LẠI COMPONENT `ParameterValueInput` =====
     const ParameterValueInput: React.FC<{
         paramKey: string
         value: any
@@ -362,8 +361,8 @@ const JsonEditorComponent: React.FC<JsonEditorComponentProps> = ({
                     type="text"
                     value={inputValue} // Luôn sử dụng state cục bộ
                     onChange={(e) => setInputValue(e.target.value)} // Chỉ cập nhật state cục bộ, không gọi prop onChange
-                    onBlur={handleCommit} // Gọi hàm commit khi mất focus
-                    onKeyDown={handleKeyDown} // Gọi hàm commit khi nhấn Enter
+                    onBlur={handleCommit}
+                    onKeyDown={handleKeyDown}
                     className={cn("text-green-600 font-medium border rounded p-1", hasError && "border-red-500 bg-red-50")}
                     disabled={disabled}
                     placeholder={placeholder}
@@ -377,15 +376,13 @@ const JsonEditorComponent: React.FC<JsonEditorComponentProps> = ({
             </div>
         )
     }
-    // ===== THAY ĐỔI KẾT THÚC =====
 
     const renderUIView = (data: any, indent = 0): React.JSX.Element[] => {
         const items: React.JSX.Element[] = []
         const spacing = (level: number) => <span style={{ paddingLeft: `${level * 20}px` }} />
 
         if (Array.isArray(data)) {
-            // Phần render mảng chưa được implement, tạm thời giữ nguyên
-            // ...
+
         } else if (typeof data === "object" && data !== null) {
             Object.entries(data).forEach(([key, value], i) => {
                 const param = functionParameters.find((p) => p.name === key)

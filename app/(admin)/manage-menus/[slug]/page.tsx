@@ -379,7 +379,7 @@ const MenuDetail = () => {
                                                         </div>
                                                         <div>
                                                             <p className="text-sm text-muted-foreground">Mô tả:</p>
-                                                            <p className="font-medium">{menu.description || "Không có"}</p>
+                                                            <p className="font-medium">{menu.description || "Chưa có"}</p>
                                                         </div>
                                                         <div>
                                                             <p className="text-sm text-muted-foreground">Trạng thái:</p>
@@ -602,7 +602,7 @@ const MenuDetail = () => {
             <ConfirmDeleteDialog
                 open={deleteProductDialogOpen}
                 onOpenChange={setDeleteProductDialogOpen}
-                description={`Bạn có chắc chắn muốn xóa sản phẩm "${selectedMapping?.product?.name || "Không có tên"}" khỏi menu? Hành động này không thể hoàn tác.`}
+                description={`Bạn có chắc chắn muốn xóa sản phẩm "${selectedMapping?.product?.name || "Chưa có tên"}" khỏi menu? Hành động này không thể hoàn tác.`}
                 onConfirm={handleDeleteProduct}
                 onCancel={() => setSelectedMapping(null)}
             />

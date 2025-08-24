@@ -2,7 +2,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog"
 import { Button } from "@/components/ui/button"
 import { Loader2 } from "lucide-react"
-import { format } from "date-fns"
+import { formatDate } from "@/utils/date"
 
 export interface OnhubData {
     status: string
@@ -52,7 +52,7 @@ export const KioskOnhubDialog = ({
                         </div>
                         <div>
                             <h4 className="font-medium">Thời gian cập nhật trạng thái kết nối</h4>
-                            <p>{format(new Date(onhubData.connectionStateUpdatedTime), "dd/MM/yyyy HH:mm")}</p>
+                            <p>{formatDate(onhubData.connectionStateUpdatedTime)}</p>
                         </div>
                         <div>
                             <h4 className="font-medium">Số lượng tin nhắn từ cloud đến thiết bị</h4>
@@ -64,7 +64,7 @@ export const KioskOnhubDialog = ({
                         </div>
                     </div>
                 ) : (
-                    <p>Không có thông tin OnHub cho thiết bị này.</p>
+                    <p>Chưa có thông tin OnHub cho thiết bị này.</p>
                 )}
                 <DialogFooter>
                     <Button onClick={() => onOpenChange(false)}>Đóng</Button>

@@ -18,7 +18,7 @@ export const columns = ({
             cell: ({ row }) => (
                 <img
                     src={row.original.product?.imageUrl || "/placeholder.svg"}
-                    alt={row.original.product?.name || "Không có tên"}
+                    alt={row.original.product?.name || "Chưa có tên"}
                     className="h-10 w-10 rounded-md object-cover mx-auto"
                 />
             ),
@@ -29,7 +29,7 @@ export const columns = ({
             header: "Tên sản phẩm",
             cell: ({ row }) => (
                 <div className="font-medium">
-                    {row.original.product?.name || "Không có tên"}
+                    {row.original.product?.name || "Chưa có tên"}
                 </div>
             ),
             enableHiding: true,

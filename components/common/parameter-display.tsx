@@ -95,7 +95,7 @@ export function ParametersDisplay({ parameters, className, compact = false }: Pa
                 <CardContent className="p-3">
                     <div className="flex items-center gap-2 text-gray-500">
                         <Code2 className="h-4 w-4" />
-                        <span className="text-sm">Không có tham số</span>
+                        <span className="text-sm">Chưa có tham số</span>
                     </div>
                 </CardContent>
             </Card>

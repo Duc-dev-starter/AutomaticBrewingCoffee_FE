@@ -58,6 +58,7 @@ import {
     DropdownMenuItem,
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
+import { formatDate } from "@/utils/date"
 
 
 const KioskDetailPage = () => {
@@ -478,30 +479,30 @@ const KioskDetailPage = () => {
                                 <div className="space-y-4">
                                     <div>
                                         <h3 className="text-sm font-medium text-muted-foreground">Vị trí</h3>
-                                        <p className="font-medium">{kiosk.position || "Không có"}</p>
+                                        <p className="font-medium">{kiosk.position || "Chưa có"}</p>
                                     </div>
                                     <div>
                                         <h3 className="text-sm font-medium text-muted-foreground">Địa chỉ</h3>
-                                        <p className="font-medium">{kiosk.location || "Không có"}</p>
+                                        <p className="font-medium">{kiosk.location || "Chưa có"}</p>
                                     </div>
                                     <div>
                                         <h3 className="text-sm font-medium text-muted-foreground">Chi nhánh</h3>
-                                        <p className="font-medium">{kiosk.store?.name || "Không có"}</p>
+                                        <p className="font-medium">{kiosk.store?.name || "Chưa có"}</p>
                                     </div>
                                     <div>
                                         <h3 className="text-sm font-medium text-muted-foreground">Địa chỉ chi nhánh</h3>
-                                        <p className="font-medium">{kiosk.store?.locationAddress || "Không có"}</p>
+                                        <p className="font-medium">{kiosk.store?.locationAddress || "Chưa có"}</p>
                                     </div>
                                 </div>
                                 <div className="space-y-4">
                                     <div>
                                         <h3 className="text-sm font-medium text-muted-foreground">Số điện thoại liên hệ</h3>
-                                        <p className="font-medium">{kiosk.store?.contactPhone || "Không có"}</p>
+                                        <p className="font-medium">{kiosk.store?.contactPhone || "Chưa có"}</p>
                                     </div>
                                     <div>
                                         <h3 className="text-sm font-medium text-muted-foreground">Phiên bản Kiosk</h3>
                                         <p className="font-medium">
-                                            {kiosk.kioskVersion?.versionTitle || "Không có"} ({kiosk.kioskVersion?.versionNumber || "N/A"})
+                                            {kiosk.kioskVersion?.versionTitle || "Chưa có"} ({kiosk.kioskVersion?.versionNumber || "Chưa có"})
                                         </p>
                                     </div>
                                     <div>
@@ -509,7 +510,7 @@ const KioskDetailPage = () => {
                                         <div className="flex items-center">
                                             <Clock className="h-4 w-4 mr-1 text-muted-foreground" />
                                             <p className="font-medium">
-                                                {kiosk.createdDate ? format(new Date(kiosk.createdDate), "dd/MM/yyyy HH:mm") : "Không có"}
+                                                {kiosk.createdDate ? formatDate(kiosk.createdDate) : "Chưa có"}
                                             </p>
                                         </div>
                                     </div>
@@ -518,7 +519,7 @@ const KioskDetailPage = () => {
                                         <div className="flex items-center">
                                             <Clock className="h-4 w-4 mr-1 text-muted-foreground" />
                                             <p className="font-medium">
-                                                {kiosk.updatedDate ? format(new Date(kiosk.updatedDate), "dd/MM/yyyy HH:mm") : "Chưa cập nhật"}
+                                                {kiosk.updatedDate ? formatDate(kiosk.updatedDate) : "Chưa cập nhật"}
                                             </p>
                                         </div>
                                     </div>
@@ -529,7 +530,7 @@ const KioskDetailPage = () => {
                                         <div className="flex items-center">
                                             <Calendar className="h-4 w-4 mr-1 text-muted-foreground" />
                                             <p className="font-medium">
-                                                {kiosk.installedDate ? format(new Date(kiosk.installedDate), "dd/MM/yyyy") : "Không có"}
+                                                {kiosk.installedDate ? formatDate(kiosk.installedDate) : "Chưa có"}
                                             </p>
                                         </div>
                                     </div>
@@ -539,7 +540,7 @@ const KioskDetailPage = () => {
                                         <div className="flex items-center">
                                             <Calendar className="h-4 w-4 mr-1 text-muted-foreground" />
                                             <p className="font-medium">
-                                                {kiosk.warrantyTime ? format(new Date(kiosk.warrantyTime), "dd/MM/yyyy") : "Không có"}
+                                                {kiosk.warrantyTime ? formatDate(kiosk.warrantyTime) : "Chưa có"}
                                             </p>
                                         </div>
                                     </div>
@@ -689,7 +690,7 @@ const KioskDetailPage = () => {
                             ) : (
                                 <div className="text-center py-8 text-muted-foreground">
                                     <Package className="h-12 w-12 mx-auto mb-3 opacity-20" />
-                                    <p>Không có thiết bị nào được thêm vào kiosk này</p>
+                                    <p>Chưa có thiết bị nào được thêm vào kiosk này</p>
                                 </div>
                             )}
                         </CardContent>

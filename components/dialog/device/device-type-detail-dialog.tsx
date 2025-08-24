@@ -5,7 +5,6 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Info, Monitor, Calendar, FileText, Smartphone, Check, X } from "lucide-react"
-import { format } from "date-fns"
 import clsx from "clsx"
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden"
 
@@ -13,6 +12,7 @@ import type { DeviceDialogProps } from "@/types/dialog"
 import { getBaseStatusColor } from "@/utils/color"
 import { EBaseStatusViMap } from "@/enum/base"
 import { InfoField } from "@/components/common/info-field"
+import { formatDate } from "@/utils/date"
 
 const DeviceTypeDetailDialog = ({ deviceType, open, onOpenChange }: DeviceDialogProps) => {
     if (!deviceType) return null
@@ -56,7 +56,7 @@ const DeviceTypeDetailDialog = ({ deviceType, open, onOpenChange }: DeviceDialog
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <InfoField
                                         label="Tên loại thiết bị"
-                                        value={deviceType.name || "Không có"}
+                                        value={deviceType.name || "Chưa có"}
                                         icon={<Monitor className="w-4 h-4 text-primary-500" />}
                                     />
                                     <InfoField
@@ -72,7 +72,7 @@ const DeviceTypeDetailDialog = ({ deviceType, open, onOpenChange }: DeviceDialog
                                     />
                                     <InfoField
                                         label="Mô tả"
-                                        value={deviceType.description || "Không có mô tả"}
+                                        value={deviceType.description || "Chưa có mô tả"}
                                         icon={<FileText className="w-4 h-4 text-primary-500" />}
                                         className="col-span-2"
                                     />
@@ -90,12 +90,12 @@ const DeviceTypeDetailDialog = ({ deviceType, open, onOpenChange }: DeviceDialog
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <InfoField
                                         label="Ngày tạo"
-                                        value={deviceType.createdDate ? format(new Date(deviceType.createdDate), "dd/MM/yyyy HH:mm") : "Không có"}
+                                        value={deviceType.createdDate ? formatDate(deviceType.createdDate) : "Chưa có"}
                                         icon={<Calendar className="w-4 h-4 text-primary-500" />}
                                     />
                                     <InfoField
                                         label="Ngày cập nhật"
-                                        value={deviceType.updatedDate ? format(new Date(deviceType.updatedDate), "dd/MM/yyyy HH:mm") : "Chưa cập nhật"}
+                                        value={deviceType.updatedDate ? formatDate(deviceType.updatedDate) : "Chưa cập nhật"}
                                         icon={<Calendar className="w-4 h-4 text-primary-500" />}
                                     />
                                 </div>

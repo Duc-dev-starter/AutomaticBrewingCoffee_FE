@@ -200,7 +200,7 @@ const NotificationDetail = () => {
                                     <p className="text-sm font-medium">
                                         {notification.notificationRecipients[0]?.readDate
                                             ? formatDate(notification.notificationRecipients[0].readDate)
-                                            : "N/A"}
+                                            : "Chưa có"}
                                     </p>
                                 </div>
                             )}

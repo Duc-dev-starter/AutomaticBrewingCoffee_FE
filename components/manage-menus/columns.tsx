@@ -38,7 +38,7 @@ export const columns = ({
             id: "organizationName",
             header: "Tên tổ chức",
             cell: ({ row }) => (
-                <div className="text-center">{row.original.organization?.name || "Không có"}</div>
+                <div className="text-center">{row.original.organization?.name || "Chưa có"}</div>
             ),
         },
         {

@@ -80,7 +80,7 @@ const OrderDetailDialog = ({ order, open, onOpenChange }: OrderDialogProps) => {
                                     />
                                     <InfoField
                                         label="Ngày tạo"
-                                        value={formatDate(order.createdDate) || "Không có"}
+                                        value={formatDate(order.createdDate) || "Chưa có"}
                                         icon={<Calendar className="w-4 h-4 text-primary-500" />}
                                     />
                                     <InfoField
@@ -90,27 +90,27 @@ const OrderDetailDialog = ({ order, open, onOpenChange }: OrderDialogProps) => {
                                     />
                                     <InfoField
                                         label="Ngày chờ"
-                                        value={formatDate(order.pendingDate || "") || "Không có"}
+                                        value={formatDate(order.pendingDate || "") || "Chưa có"}
                                         icon={<Calendar className="w-4 h-4 text-primary-500" />}
                                     />
                                     <InfoField
                                         label="Ngày hoàn thành"
-                                        value={formatDate(order.completedDate || "") || "Không có"}
+                                        value={formatDate(order.completedDate || "") || "Chưa có"}
                                         icon={<Calendar className="w-4 h-4 text-primary-500" />}
                                     />
                                     <InfoField
                                         label="Ngày hủy"
-                                        value={formatDate(order.cancelledDate || "") || "Không có"}
+                                        value={formatDate(order.cancelledDate || "") || "Chưa có"}
                                         icon={<Calendar className="w-4 h-4 text-primary-500" />}
                                     />
                                     <InfoField
                                         label="Ngày thất bại"
-                                        value={formatDate(order.failedDate || "") || "Không có"}
+                                        value={formatDate(order.failedDate || "") || "Chưa có"}
                                         icon={<Calendar className="w-4 h-4 text-primary-500" />}
                                     />
                                     <InfoField
                                         label="Ngày chuẩn bị"
-                                        value={formatDate(order.preparingDate || "") || "Không có"}
+                                        value={formatDate(order.preparingDate || "") || "Chưa có"}
                                         icon={<Calendar className="w-4 h-4 text-primary-500" />}
                                     />
                                 </div>
@@ -169,7 +169,7 @@ const OrderDetailDialog = ({ order, open, onOpenChange }: OrderDialogProps) => {
                                                 <div className="flex-1">
                                                     <h4 className="font-medium text-sm">{detail.productName}</h4>
                                                     <p className="text-xs text-gray-500 line-clamp-2">
-                                                        {detail.productDescription || "Không có"}
+                                                        {detail.productDescription || "Chưa có"}
                                                     </p>
                                                 </div>
                                                 <div className="text-right">
@@ -204,12 +204,12 @@ const OrderDetailDialog = ({ order, open, onOpenChange }: OrderDialogProps) => {
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <InfoField
                                                 label="Địa chỉ cửa hàng"
-                                                value={order.kiosk.store.locationAddress || "Không có"}
+                                                value={order.kiosk.store.locationAddress || "Chưa có"}
                                                 icon={<MapPin className="w-4 h-4 text-primary-500" />}
                                             />
                                             <InfoField
                                                 label="Số điện thoại"
-                                                value={order.kiosk.store.contactPhone || "Không có"}
+                                                value={order.kiosk.store.contactPhone || "Chưa có"}
                                                 icon={<Phone className="w-4 h-4 text-primary-500" />}
                                             />
 
@@ -248,12 +248,12 @@ const OrderDetailDialog = ({ order, open, onOpenChange }: OrderDialogProps) => {
                                             <div className="space-y-3">
                                                 <InfoField
                                                     label="Số điện thoại"
-                                                    value={order.kiosk.store.organization.contactPhone || "Không có"}
+                                                    value={order.kiosk.store.organization.contactPhone || "Chưa có"}
                                                     icon={<Phone className="w-4 h-4 text-primary-500" />}
                                                 />
                                                 <InfoField
                                                     label="Email liên hệ"
-                                                    value={order.kiosk.store.organization.contactEmail || "Không có"}
+                                                    value={order.kiosk.store.organization.contactEmail || "Chưa có"}
                                                     icon={<Mail className="w-4 h-4 text-primary-500" />}
                                                 />
                                             </div>

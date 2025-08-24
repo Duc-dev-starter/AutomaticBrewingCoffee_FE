@@ -6,12 +6,12 @@ import { Card, CardContent } from "@/components/ui/card"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Separator } from "@/components/ui/separator"
 import { Calendar, Clock, FileText, Info, Package, Store, Tag } from "lucide-react"
-import { format } from "date-fns"
 import clsx from "clsx"
 import { EBaseStatusViMap } from "@/enum/base"
 import { getBaseStatusColor } from "@/utils/color"
 import type { KioskDialogProps } from "@/types/dialog"
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden"
+import { formatDate } from "@/utils/date"
 
 const KioskDetailDialog = ({ kiosk, open, onOpenChange }: KioskDialogProps) => {
     if (!kiosk) return null
@@ -55,12 +55,12 @@ const KioskDetailDialog = ({ kiosk, open, onOpenChange }: KioskDialogProps) => {
                                     <div className="flex flex-col">
                                         <span className="text-muted-foreground">Franchise</span>
                                         <span className="font-medium">
-                                            {kiosk.store?.name || "Không có"}
+                                            {kiosk.store?.name || "Chưa có"}
                                         </span>
                                     </div>
                                     <div className="flex flex-col">
                                         <span className="text-muted-foreground">Địa chỉ</span>
-                                        <span className="font-medium">{kiosk.location || "Không có"}</span>
+                                        <span className="font-medium">{kiosk.location || "Chưa có"}</span>
                                     </div>
                                 </div>
 
@@ -73,15 +73,15 @@ const KioskDetailDialog = ({ kiosk, open, onOpenChange }: KioskDialogProps) => {
                                             <Calendar className="h-3 w-3 mr-1 text-muted-foreground" />
                                             <span className="font-medium">
                                                 {kiosk.installedDate
-                                                    ? format(new Date(kiosk.installedDate), "dd/MM/yyyy")
-                                                    : "Không có"}
+                                                    ? formatDate(kiosk.installedDate)
+                                                    : "Chưa có"}
                                             </span>
                                         </div>
                                     </div>
                                     <div className="flex flex-col">
                                         <span className="text-muted-foreground">Tên chi nhánh</span>
                                         <span className="font-medium">
-                                            {kiosk.store?.name || "Không có"}
+                                            {kiosk.store?.name || "Chưa có"}
                                         </span>
                                     </div>
                                 </div>
@@ -104,7 +104,7 @@ const KioskDetailDialog = ({ kiosk, open, onOpenChange }: KioskDialogProps) => {
                                                     <div className="flex-1">
                                                         <h4 className="font-medium">{device.name}</h4>
                                                         <p className="text-sm text-muted-foreground line-clamp-2">
-                                                            {device.description || "Không có mô tả"}
+                                                            {device.description || "Chưa có mô tả"}
                                                         </p>
                                                     </div>
                                                     <Badge className={clsx("ml-2", getBaseStatusColor(device.status))}>
@@ -131,7 +131,7 @@ const KioskDetailDialog = ({ kiosk, open, onOpenChange }: KioskDialogProps) => {
                                         ))
                                     ) : (
                                         <div className="text-sm text-muted-foreground italic">
-                                            Không có thiết bị
+                                            Chưa có thiết bị
                                         </div>
                                     )}
                                 </div>
@@ -150,15 +150,15 @@ const KioskDetailDialog = ({ kiosk, open, onOpenChange }: KioskDialogProps) => {
                                         <span className="text-muted-foreground">Ngày tạo</span>
                                         <span className="font-medium">
                                             {kiosk.createdDate
-                                                ? format(new Date(kiosk.createdDate), "dd/MM/yyyy HH:mm")
-                                                : "Không có"}
+                                                ? formatDate(kiosk.createdDate)
+                                                : "Chưa có"}
                                         </span>
                                     </div>
                                     <div className="flex flex-col">
                                         <span className="text-muted-foreground">Ngày cập nhật</span>
                                         <span className="font-medium">
                                             {kiosk.updatedDate
-                                                ? format(new Date(kiosk.updatedDate), "dd/MM/yyyy HH:mm")
+                                                ? formatDate(kiosk.updatedDate)
                                                 : "Chưa cập nhật"}
                                         </span>
                                     </div>

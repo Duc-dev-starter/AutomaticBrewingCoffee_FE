@@ -53,7 +53,7 @@ const DeviceModelDropdown = ({ value, onChange, deviceModels, disabled }: Device
                             </button>
                         ))
                     ) : (
-                        <div className="p-2 text-center text-sm text-muted-foreground">Không có mẫu thiết bị nào.</div>
+                        <div className="p-2 text-center text-sm text-muted-foreground">Chưa có mẫu thiết bị nào.</div>
                     )}
                 </div>
             )}

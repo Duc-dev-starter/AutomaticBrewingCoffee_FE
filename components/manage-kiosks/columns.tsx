@@ -49,7 +49,7 @@ export const columns = ({
             header: "Tên cửa hàng",
             cell: ({ row }) => (
                 <div className="text-center">
-                    {row.original.store?.name || "Không có"}
+                    {row.original.store?.name || "Chưa có"}
                 </div>
             ),
             enableSorting: false,
@@ -61,7 +61,7 @@ export const columns = ({
                 const devices = row.original.kioskDevices || [];
                 return (
                     <div className="text-center">
-                        {devices.length > 0 ? `${devices.length} thiết bị` : "Không có thiết bị"}
+                        {devices.length > 0 ? `${devices.length} thiết bị` : "Chưa có thiết bị"}
                     </div>
                 );
             },

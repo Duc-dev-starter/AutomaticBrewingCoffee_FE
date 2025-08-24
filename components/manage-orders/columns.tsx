@@ -57,7 +57,7 @@ export const columns = ({
             header: "Loại đơn hàng",
             cell: ({ row }) => {
                 const orderType = row.original.orderType as EOrderType;
-                const orderTypeText = orderType ? EOrderTypeViMap[orderType] || "Không có" : "Không có";
+                const orderTypeText = orderType ? EOrderTypeViMap[orderType] || "Chưa có" : "Chưa có";
                 const { color, icon } = getOrderTypeConfig(orderType);
                 return (
                     <div className="flex justify-center items-center w-full">

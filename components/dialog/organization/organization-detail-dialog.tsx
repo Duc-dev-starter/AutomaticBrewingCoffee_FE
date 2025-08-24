@@ -88,7 +88,7 @@ const OrganizationDetailDialog = ({
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <InfoField
                                         label="Mã code"
-                                        value={organization.organizationCode || "Không có"}
+                                        value={organization.organizationCode || "Chưa có"}
                                         icon={<FileText className="w-4 h-4 text-primary-500" />}
                                     />
                                     <InfoField
@@ -98,7 +98,7 @@ const OrganizationDetailDialog = ({
                                     />
                                     <InfoField
                                         label="Mô tả"
-                                        value={organization.description || "Không có"}
+                                        value={organization.description || "Chưa có"}
                                         icon={<Info className="w-4 h-4 text-primary-500" />}
                                         className="col-span-2"
                                     />
@@ -116,12 +116,12 @@ const OrganizationDetailDialog = ({
                                 <div className="grid grid-cols-2 gap-6">
                                     <InfoField
                                         label="Email"
-                                        value={organization.contactEmail || "Không có"}
+                                        value={organization.contactEmail || "Chưa có"}
                                         icon={<Mail className="w-4 h-4 text-primary-500" />}
                                     />
                                     <InfoField
                                         label="Số điện thoại"
-                                        value={organization.contactPhone || "Không có"}
+                                        value={organization.contactPhone || "Chưa có"}
                                         icon={<Mail className="w-4 h-4 text-primary-500" />}
                                     />
                                 </div>
@@ -138,7 +138,7 @@ const OrganizationDetailDialog = ({
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <InfoField
                                         label="Ngày tạo"
-                                        value={formatDate(organization.createdDate) || "Không có"}
+                                        value={formatDate(organization.createdDate) || "Chưa có"}
                                         icon={<Calendar className="w-4 h-4 text-primary-500" />}
                                     />
                                     <InfoField

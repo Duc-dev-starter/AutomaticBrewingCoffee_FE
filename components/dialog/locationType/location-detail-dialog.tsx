@@ -56,7 +56,7 @@ const LocationTypeDetailDialog = ({ locationType, open, onOpenChange }: Location
                                     />
                                     <InfoField
                                         label="Mô tả"
-                                        value={locationType.description || "Không có"}
+                                        value={locationType.description || "Chưa có"}
                                         icon={<Info className="w-4 h-4 text-primary-500" />}
                                         className="col-span-2"
                                     />
@@ -74,7 +74,7 @@ const LocationTypeDetailDialog = ({ locationType, open, onOpenChange }: Location
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <InfoField
                                         label="Ngày tạo"
-                                        value={formatDate(locationType.createdDate) || "Không có"}
+                                        value={formatDate(locationType.createdDate) || "Chưa có"}
                                         icon={<Calendar className="w-4 h-4 text-primary-500" />}
                                     />
                                     <InfoField

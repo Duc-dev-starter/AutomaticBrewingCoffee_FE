@@ -58,19 +58,19 @@ const StoreDetailDialog = ({ store, open, onOpenChange }: StoreDialogProps) => {
 
                                     <InfoField
                                         label="Số điện thoại"
-                                        value={store.contactPhone || "Không có"}
+                                        value={store.contactPhone || "Chưa có"}
                                         icon={<Phone className="w-4 h-4 text-primary-500" />} />
                                     <InfoField
                                         label="Địa chỉ"
-                                        value={store.locationAddress || "Không có"}
+                                        value={store.locationAddress || "Chưa có"}
                                         icon={<MapPin className="w-4 h-4 text-primary-500" />} />
                                     <InfoField
                                         label="Loại địa điểm"
-                                        value={store.locationType?.name || "Không có"}
+                                        value={store.locationType?.name || "Chưa có"}
                                         icon={<Tag className="w-4 h-4 text-primary-500" />} />
                                     <InfoField
                                         label="Mô tả"
-                                        value={store.description || "Không có"}
+                                        value={store.description || "Chưa có"}
                                         icon={<Info className="w-4 h-4 text-primary-500" />}
                                         className="col-span-2" />
                                 </div>
@@ -88,7 +88,7 @@ const StoreDetailDialog = ({ store, open, onOpenChange }: StoreDialogProps) => {
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <InfoField
                                             label="Tên tổ chức"
-                                            value={store.organization.name || "Không có"}
+                                            value={store.organization.name || "Chưa có"}
                                             icon={<Users className="w-4 h-4 text-primary-500" />} />
                                     </div>
                                 </CardContent>
@@ -123,18 +123,18 @@ const StoreDetailDialog = ({ store, open, onOpenChange }: StoreDialogProps) => {
                                                     <InfoField
                                                         label="Vị trí"
                                                         icon={<MapPin className="w-4 h-4 text-muted-foreground" />}
-                                                        value={kiosk.location || kiosk.position || "Không có"} />
+                                                        value={kiosk.location || kiosk.position || "Chưa có"} />
                                                     <InfoField
                                                         label="Phiên bản"
                                                         icon={<Package className="w-4 h-4 text-muted-foreground" />}
-                                                        value={kiosk.kioskVersion?.versionTitle || "Không có"} />
+                                                        value={kiosk.kioskVersion?.versionTitle || "Chưa có"} />
                                                     <InfoField
                                                         label="Ngày lắp đặt"
                                                         icon={<CalendarDays className="w-4 h-4 text-muted-foreground" />}
                                                         value={
                                                             kiosk.installedDate
                                                                 ? new Date(kiosk.installedDate).toLocaleDateString()
-                                                                : "Không có"
+                                                                : "Chưa có"
                                                         } />
                                                     <InfoField
                                                         label="Thiết bị"

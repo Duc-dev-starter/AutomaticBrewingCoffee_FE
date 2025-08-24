@@ -38,7 +38,7 @@ export const columns = ({
                                 className="w-10 h-10 object-contain rounded"
                             />
                         ) : (
-                            <span className="text-muted-foreground">Không có</span>
+                            <span className="text-muted-foreground">Chưa có</span>
                         )}
                     </div>
                 );
@@ -50,7 +50,7 @@ export const columns = ({
             header: "Tên danh mục",
             cell: ({ row }) => (
                 <div className="text-center">
-                    {row.original.name || "Không có"}
+                    {row.original.name || "Chưa có"}
                 </div>
             ),
             enableSorting: false,
@@ -70,7 +70,7 @@ export const columns = ({
             header: "Thứ tự",
             cell: ({ row }) => (
                 <div className="text-center">
-                    {row.original.displayOrder || "Không có"}
+                    {row.original.displayOrder || "Chưa có"}
                 </div>
             ),
             enableSorting: false,

@@ -70,7 +70,7 @@ export const Pagination = ({
                 ) : (
                     <div className="flex items-center gap-1.5">
                         {totalPages === 0 ? (
-                            <span className="text-sm text-muted-foreground">Không có dữ liệu</span>
+                            <span className="text-sm text-muted-foreground">Chưa có dữ liệu</span>
                         ) : (
                             <>
                                 <span className="text-sm font-medium">Trang {currentPage}</span>

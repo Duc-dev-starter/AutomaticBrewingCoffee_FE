@@ -198,7 +198,7 @@ function WeekView({
                                         </div>
                                     ))
                                 ) : (
-                                    <div className="text-xs text-muted-foreground text-center">Không có nhắc nhở</div>
+                                    <div className="text-xs text-muted-foreground text-center">Chưa có nhắc nhở</div>
                                 )}
 
                                 {dayReminders.length > 2 && (

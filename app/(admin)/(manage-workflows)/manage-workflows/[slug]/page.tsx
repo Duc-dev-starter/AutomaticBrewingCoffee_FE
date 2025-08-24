@@ -87,7 +87,7 @@ const WorkflowDetail = () => {
                                             <WorkflowIcon className="h-6 w-6 mr-2 text-[#68e0df]" />
                                             <div>
                                                 <CardTitle className="text-xl text-[#295959] dark:text-[#68e0df]">{workflow.name}</CardTitle>
-                                                <CardDescription>{workflow.description || "Không có mô tả"}</CardDescription>
+                                                <CardDescription>{workflow.description || "Chưa có mô tả"}</CardDescription>
                                             </div>
                                         </div>
                                         <div className="flex gap-2">
@@ -124,7 +124,7 @@ const WorkflowDetail = () => {
                                                     {workflow.product ? (
                                                         workflow.product.name
                                                     ) : (
-                                                        <span className="text-gray-400 italic">Không có sản phẩm</span>
+                                                        <span className="text-gray-400 italic">Chưa có sản phẩm</span>
                                                     )}
                                                 </span>
                                             </div>

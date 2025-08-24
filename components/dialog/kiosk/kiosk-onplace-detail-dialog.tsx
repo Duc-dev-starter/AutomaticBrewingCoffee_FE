@@ -153,7 +153,7 @@ export const OnplaceDialog = ({ open, onOpenChange, data, loading, deviceName }:
                                                                                 ) : (
                                                                                     <div className="flex items-center">
                                                                                         <CheckCircle className="h-6 w-6 text-green-500 mr-2" />
-                                                                                        <p className="text-lg font-semibold text-gray-800">Không có vấn đề</p>
+                                                                                        <p className="text-lg font-semibold text-gray-800">Chưa có vấn đề</p>
                                                                                     </div>
                                                                                 )
                                                                             ) : (
@@ -183,7 +183,7 @@ export const OnplaceDialog = ({ open, onOpenChange, data, loading, deviceName }:
                             <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
                                 <AlertCircle className="h-8 w-8 text-gray-400" />
                             </div>
-                            <p className="text-gray-600 font-medium">Không có thông tin OnPlace</p>
+                            <p className="text-gray-600 font-medium">Chưa có thông tin OnPlace</p>
                             <p className="text-gray-400 text-sm mt-1">Thiết bị này chưa có dữ liệu OnPlace</p>
                         </div>
                     </div>

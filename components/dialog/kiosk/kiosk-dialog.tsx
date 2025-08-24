@@ -503,7 +503,7 @@ const KioskDialog = ({ open, onOpenChange, onSuccess, kiosk }: KioskDialogProps)
                                             </InfiniteScroll>
                                         ) : (
                                             <div className="p-3 text-center text-sm text-muted-foreground">
-                                                {formData.kioskVersionId ? "Không có thiết bị hợp lệ" : "Vui lòng chọn phiên bản kiosk"}
+                                                {formData.kioskVersionId ? "Chưa có thiết bị hợp lệ" : "Vui lòng chọn phiên bản kiosk"}
                                             </div>
                                         )}
                                     </div>

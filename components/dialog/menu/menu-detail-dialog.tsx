@@ -61,7 +61,7 @@ const MenuDetailDialog = ({ menu, open, onOpenChange }: MenuDialogProps) => {
                                     />
                                     <InfoField
                                         label="Mô tả"
-                                        value={menu.description || "Không có"}
+                                        value={menu.description || "Chưa có"}
                                         icon={<Info className="w-4 h-4 text-primary-500" />}
                                         className="col-span-2"
                                     />

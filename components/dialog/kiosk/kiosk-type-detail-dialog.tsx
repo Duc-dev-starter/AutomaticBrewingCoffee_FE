@@ -4,14 +4,14 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { Info, Monitor, Calendar, FileText } from "lucide-react"
-import { format } from "date-fns"
+import { Info, Monitor, Calendar } from "lucide-react"
 import clsx from "clsx"
 import { getBaseStatusColor } from "@/utils/color"
 import { EBaseStatusViMap } from "@/enum/base"
 import type { KioskDialogProps } from "@/types/dialog"
 import { InfoField } from "@/components/common"
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden"
+import { formatDate } from "@/utils/date"
 
 const KioskTypeDetailDialog = ({ kioskType, open, onOpenChange }: KioskDialogProps) => {
     if (!kioskType) return null
@@ -61,7 +61,7 @@ const KioskTypeDetailDialog = ({ kioskType, open, onOpenChange }: KioskDialogPro
                                     />
                                     <InfoField
                                         label="Mô tả"
-                                        value={kioskType.description || "Không có"}
+                                        value={kioskType.description || "Chưa có"}
                                         icon={<Info className="w-4 h-4 text-primary-500" />}
                                         className="col-span-2"
                                     />
@@ -81,8 +81,8 @@ const KioskTypeDetailDialog = ({ kioskType, open, onOpenChange }: KioskDialogPro
                                         label="Ngày tạo"
                                         value={
                                             kioskType.createdDate
-                                                ? format(new Date(kioskType.createdDate), "dd/MM/yyyy HH:mm")
-                                                : "Không có"
+                                                ? formatDate(kioskType.createdDate)
+                                                : "Chưa có"
                                         }
                                         icon={<Calendar className="w-4 h-4 text-primary-500" />}
                                     />
@@ -90,7 +90,7 @@ const KioskTypeDetailDialog = ({ kioskType, open, onOpenChange }: KioskDialogPro
                                         label="Ngày cập nhật"
                                         value={
                                             kioskType.updatedDate
-                                                ? format(new Date(kioskType.updatedDate), "dd/MM/yyyy HH:mm")
+                                                ? formatDate(kioskType.updatedDate)
                                                 : "Chưa cập nhật"
                                         }
                                         icon={<Calendar className="w-4 h-4 text-primary-500" />}

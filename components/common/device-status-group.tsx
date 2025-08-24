@@ -11,6 +11,7 @@ import clsx from "clsx"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
 import { Calendar, Info, MoreHorizontal, Package, RefreshCw, Tag } from "lucide-react"
 import { KioskDevice } from "@/interfaces/kiosk"
+import { formatDate } from "@/utils/date"
 
 type DeviceStatusGroupProps = {
     kioskDevices: KioskDevice[];
@@ -60,7 +61,7 @@ export const DeviceStatusGroup = ({ kioskDevices, openReplaceDialog, openOnhubDi
                                         <div className="flex-1">
                                             <h4 className="font-medium">{kioskDevice.device.name}</h4>
                                             <p className="text-sm text-muted-foreground line-clamp-2">
-                                                {kioskDevice.device.description || "Không có mô tả"}
+                                                {kioskDevice.device.description || "Chưa có mô tả"}
                                             </p>
                                         </div>
                                         <div className="flex items-center gap-2">
@@ -115,7 +116,7 @@ export const DeviceStatusGroup = ({ kioskDevices, openReplaceDialog, openOnhubDi
                                                 <Tag className="h-3 w-3 mr-1 text-muted-foreground" />
                                                 <span className="text-muted-foreground">Serial Number:</span>
                                             </div>
-                                            <div className="font-medium text-sm">{kioskDevice.device.serialNumber || "N/A"}</div>
+                                            <div className="font-medium text-sm">{kioskDevice.device.serialNumber || "Chưa có"}</div>
                                         </div>
 
                                         <div className="flex justify-between items-center">
@@ -123,7 +124,7 @@ export const DeviceStatusGroup = ({ kioskDevices, openReplaceDialog, openOnhubDi
                                                 <Tag className="h-3 w-3 mr-1 text-muted-foreground" />
                                                 <span className="text-muted-foreground">Model thiết bị:</span>
                                             </div>
-                                            <div className="font-medium text-sm">{kioskDevice.device.deviceModel?.modelName || "N/A"}</div>
+                                            <div className="font-medium text-sm">{kioskDevice.device.deviceModel?.modelName || "Chưa có"}</div>
                                         </div>
 
                                         <div className="flex justify-between items-center">
@@ -131,7 +132,7 @@ export const DeviceStatusGroup = ({ kioskDevices, openReplaceDialog, openOnhubDi
                                                 <Tag className="h-3 w-3 mr-1 text-muted-foreground" />
                                                 <span className="text-muted-foreground">Loại thiết bị:</span>
                                             </div>
-                                            <div className="font-medium text-sm">{kioskDevice.device.deviceModel?.deviceType?.name || "N/A"}</div>
+                                            <div className="font-medium text-sm">{kioskDevice.device.deviceModel?.deviceType?.name || "Chưa có"}</div>
                                         </div>
 
                                         <div className="flex justify-between items-center">
@@ -141,8 +142,8 @@ export const DeviceStatusGroup = ({ kioskDevices, openReplaceDialog, openOnhubDi
                                             </div>
                                             <div className="font-medium text-sm">
                                                 {kioskDevice.device.createdDate
-                                                    ? format(new Date(kioskDevice.device.createdDate), "dd/MM/yyyy")
-                                                    : "N/A"}
+                                                    ? formatDate(kioskDevice.device.createdDate)
+                                                    : "Chưa có"}
                                             </div>
                                         </div>
 
@@ -153,7 +154,7 @@ export const DeviceStatusGroup = ({ kioskDevices, openReplaceDialog, openOnhubDi
                                             </div>
                                             <div className="font-medium text-sm">
                                                 {kioskDevice.device.updatedDate
-                                                    ? format(new Date(kioskDevice.device.updatedDate), "dd/MM/yyyy")
+                                                    ? formatDate(kioskDevice.device.updatedDate)
                                                     : "Chưa cập nhật"}
                                             </div>
                                         </div>
@@ -168,7 +169,7 @@ export const DeviceStatusGroup = ({ kioskDevices, openReplaceDialog, openOnhubDi
             {orderedStatuses.length === 0 && (
                 <div className="text-center py-8 text-muted-foreground">
                     <Package className="h-12 w-12 mx-auto mb-3 opacity-20" />
-                    <p>Không có thiết bị nào được thêm vào kiosk này</p>
+                    <p>Chưa có thiết bị nào được thêm vào kiosk này</p>
                 </div>
             )}
         </div>

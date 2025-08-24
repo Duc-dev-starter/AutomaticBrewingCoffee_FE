@@ -108,7 +108,7 @@ const CategoryDetailDialog = ({ category, open, onOpenChange }: CategoryDialogPr
                                 </h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <InfoField label="Tên danh mục" value={category.name} icon={<Hash className="w-4 h-4 text-primary-500" />} />
-                                    <InfoField label="Thứ tự hiển thị" value={category.displayOrder || "Không có"} icon={<ArrowUpDown className="w-4 h-4 text-primary-500" />} />
+                                    <InfoField label="Thứ tự hiển thị" value={category.displayOrder || "Chưa có"} icon={<ArrowUpDown className="w-4 h-4 text-primary-500" />} />
                                     {category.description && (
                                         <InfoField label="Mô tả" value={category.description} icon={<Sparkles className="w-4 h-4 text-primary-500" />} className="col-span-2" />
                                     )}

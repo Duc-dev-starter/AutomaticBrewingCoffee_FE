@@ -3,13 +3,9 @@
 import {
     LayoutDashboard,
     ShoppingCart,
-    Layers,
     Computer,
     Tablet,
-    DollarSign,
-    Box,
     Store,
-    Menu,
     ChevronRight,
     Settings,
     Cpu,
@@ -146,22 +142,33 @@ export function NavMain({ roleName }: { roleName: string | undefined }) {
         if (roleName === Roles.ADMIN || !roleName) {
             return menuSections
         } else if (roleName === Roles.ORGANIZATION) {
-            return menuSections.map(section => {
-                if (section.title === "Quản lý kinh doanh") {
-                    return {
-                        ...section,
-                        items: section.items.filter(item =>
-                            item.title !== "Quản lý location" &&
-                            item.title !== "Quản lý tổ chức" &&
-                            item.title !== "Quản lý tài khoản"
-                        ),
+            return menuSections
+                // filter bỏ hẳn section không cần
+                .filter(section => section.title !== "Quản lý đồng bộ")
+                // map lại để tùy biến item bên trong
+                .map(section => {
+                    if (section.title === "Quản lý kinh doanh") {
+                        return {
+                            ...section,
+                            items: section.items.filter(item =>
+                                item.title !== "Quản lý location" &&
+                                item.title !== "Quản lý tổ chức" &&
+                                item.title !== "Quản lý tài khoản" &&
+                                item.title !== "Quản lý loại nguyên liệu" &&
+                                item.title !== "Quản lý sản phẩm" &&
+                                item.title !== "Quản lý danh mục"
+                            ),
+                        }
                     }
-                }
-                return section
-            })
+                    else if (section.title === "Quản lý thiết bị") {
+
+                    }
+                    return section
+                })
         }
         return menuSections
     }, [roleName])
+
 
     const isDropdownActive = (children: StandardMenuItem[]) => {
         return children.some(child => child.url === path)

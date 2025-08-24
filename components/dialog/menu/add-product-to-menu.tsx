@@ -119,7 +119,7 @@ const AddProductToMenuDialog = ({ open, onOpenChange, onSuccess, menuId, existin
                                     ))
                                 ) : (
                                     <div className="px-4 py-2 text-sm text-muted-foreground">
-                                        Không có sản phẩm nào để thêm
+                                        Chưa có sản phẩm nào để thêm
                                     </div>
                                 )}
                             </SelectContent>
@@ -143,7 +143,7 @@ const AddProductToMenuDialog = ({ open, onOpenChange, onSuccess, menuId, existin
                                         Giá: {selectedProduct.price.toLocaleString()} VNĐ
                                     </p>
                                     <p className="text-sm text-muted-foreground">
-                                        Mô tả: {selectedProduct.description || "Không có"}
+                                        Mô tả: {selectedProduct.description || "Chưa có"}
                                     </p>
                                 </div>
                             </div>

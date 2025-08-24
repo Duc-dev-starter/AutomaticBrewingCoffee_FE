@@ -77,7 +77,7 @@ const KioskReplaceDeviceDialog: FC<ReplaceDeviceDialogProps> = ({
                                 ))
                             ) : (
                                 <SelectItem value="no-devices" disabled>
-                                    Không có thiết bị khả dụng để thay thế
+                                    Chưa có thiết bị khả dụng để thay thế
                                 </SelectItem>
                             )}
                         </SelectContent>

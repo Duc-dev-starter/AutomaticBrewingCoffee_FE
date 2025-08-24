@@ -10,10 +10,10 @@ import { ScrollArea } from "@/components/ui/scroll-area"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { FileText, Calendar, Info, Tag, Hash, Landmark, CheckCircle, XCircle } from "lucide-react"
-import { format } from "date-fns"
 import { InfoField } from "@/components/common"
 import { SyncEventDialogProps } from "@/types/dialog"
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden"
+import { formatDate } from "@/utils/date"
 
 
 const SyncEventDetailDialog = ({
@@ -72,7 +72,7 @@ const SyncEventDetailDialog = ({
                                     />
                                     <InfoField
                                         label="Ngày tạo"
-                                        value={format(new Date(syncEvent.createdDate), "dd/MM/yyyy HH:mm")}
+                                        value={formatDate(syncEvent.createdDate)}
                                         icon={<Calendar className="w-4 h-4 text-primary-500" />}
                                     />
                                 </div>
@@ -109,7 +109,7 @@ const SyncEventDetailDialog = ({
                                         ))}
                                     </ul>
                                 ) : (
-                                    <p className="text-sm text-muted-foreground">Không có tác vụ</p>
+                                    <p className="text-sm text-muted-foreground">Chưa có tác vụ</p>
                                 )}
                             </CardContent>
                         </Card>

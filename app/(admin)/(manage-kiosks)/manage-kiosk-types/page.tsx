@@ -30,8 +30,8 @@ import { columns } from "@/components/manage-kiosks/manage-kiosk-types/columns";
 import { BaseFilterBadges } from "@/components/common/base-filter-badges";
 import { ErrorResponse } from "@/types/error";
 import { useDebounce, useKioskTypes, useToast } from "@/hooks";
-import { useRouter } from "next/navigation";
 import { deleteKioskType } from "@/services/kiosk.service";
+import { useAppStore } from "@/stores/use-app-store";
 
 const KioskTypeDialog = React.lazy(() => import("@/components/dialog/kiosk").then(module => ({ default: module.KioskTypeDialog })));
 const KioskTypeDetailDialog = React.lazy(() => import("@/components/dialog/kiosk").then(module => ({ default: module.KioskTypeDetailDialog })));
@@ -39,7 +39,7 @@ const ConfirmDeleteDialog = React.lazy(() => import("@/components/common").then(
 
 const ManageKioskTypes = () => {
     const { toast } = useToast();
-    const router = useRouter();
+    const { account } = useAppStore();
 
     const [pageSize, setPageSize] = useState<number>(10);
     const [currentPage, setCurrentPage] = useState<number>(1);
@@ -250,10 +250,12 @@ const ManageKioskTypes = () => {
                                     ))}
                             </DropdownMenuContent>
                         </DropdownMenu>
-                        <Button onClick={handleAdd} disabled={isLoading}>
-                            <PlusCircle className="mr-2 h-4 w-4" />
-                            Thêm
-                        </Button>
+                        {account?.roleName === "Admin" &&
+                            <Button onClick={handleAdd}>
+                                <PlusCircle className="mr-2 h-4 w-4" />
+                                Thêm
+                            </Button>
+                        }
                     </div>
                 </div>
 

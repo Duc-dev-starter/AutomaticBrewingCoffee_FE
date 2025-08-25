@@ -29,7 +29,7 @@ const Dashboard = () => {
         [dateRange],
     )
 
-    const { order, kiosk, revenue, isLoading, error, account, orderTraffic, hourlyPeak } = useDashboardSummary(params)
+    const { order, kiosk, revenue, isLoading, error, account, orderTraffic, hourlyPeak, store } = useDashboardSummary(params)
 
     const handleDateChange = useCallback((range: DateRange) => {
         setDateRange(range)
@@ -62,7 +62,7 @@ const Dashboard = () => {
             </div>
 
             <div className="mb-5 px-4 lg:px-6">
-                <MemoizedSectionCards order={order.data} kiosk={kiosk.data} revenue={revenue.data} account={account.data} />
+                <MemoizedSectionCards order={order.data} kiosk={kiosk.data} revenue={revenue.data} account={account.data} store={store.data} />
             </div>
 
             <div className="flex flex-1 flex-col gap-10 p-4 pt-0">

@@ -145,6 +145,7 @@ export function NavMain({ roleName }: { roleName: string | undefined }) {
             return menuSections
                 // filter bỏ hẳn section không cần
                 .filter(section => section.title !== "Quản lý đồng bộ")
+                .filter(section => section.title !== "Quản lý sản xuất")
                 // map lại để tùy biến item bên trong
                 .map(section => {
                     if (section.title === "Quản lý kinh doanh") {
@@ -161,7 +162,12 @@ export function NavMain({ roleName }: { roleName: string | undefined }) {
                         }
                     }
                     else if (section.title === "Quản lý thiết bị") {
-
+                        return {
+                            ...section,
+                            items: section.items.filter(item =>
+                                item.title !== "Quản lý thiết bị"
+                            ),
+                        }
                     }
                     return section
                 })

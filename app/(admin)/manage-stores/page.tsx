@@ -31,12 +31,14 @@ import { columns } from "@/components/manage-stores/columns";
 import { BaseFilterBadges } from "@/components/common/base-filter-badges";
 import { ErrorResponse } from "@/types/error";
 import { useDebounce, useStores, useToast } from "@/hooks";
+import { useAppStore } from "@/stores/use-app-store";
 const StoreDialog = React.lazy(() => import("@/components/dialog/store").then(module => ({ default: module.StoreDialog })));
 const StoreDetailDialog = React.lazy(() => import("@/components/dialog/store").then(module => ({ default: module.StoreDetailDialog })));
 const ConfirmDeleteDialog = React.lazy(() => import("@/components/common").then(module => ({ default: module.ConfirmDeleteDialog })));
 
 const ManageStores = () => {
     const { toast } = useToast();
+    const { account } = useAppStore();
     const [pageSize, setPageSize] = useState<number>(10);
     const [currentPage, setCurrentPage] = useState<number>(1);
     const [statusFilter, setStatusFilter] = useState<string>("");
@@ -248,10 +250,12 @@ const ManageStores = () => {
                                     ))}
                             </DropdownMenuContent>
                         </DropdownMenu>
-                        <Button onClick={handleAdd}>
-                            <PlusCircle className="mr-2 h-4 w-4" />
-                            Thêm
-                        </Button>
+                        {account?.roleName === "Admin" &&
+                            <Button onClick={handleAdd}>
+                                <PlusCircle className="mr-2 h-4 w-4" />
+                                Thêm
+                            </Button>
+                        }
                     </div>
                 </div>
 

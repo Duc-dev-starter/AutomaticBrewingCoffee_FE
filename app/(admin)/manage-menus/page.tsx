@@ -38,6 +38,7 @@ const ConfirmDeleteDialog = React.lazy(() => import("@/components/common").then(
 
 const ManageMenus = () => {
     const { toast } = useToast();
+    const { account } = useAppStore();
     const [pageSize, setPageSize] = useState(10);
     const [currentPage, setCurrentPage] = useState(1);
     const [statusFilter, setStatusFilter] = useState<string>("");
@@ -250,10 +251,12 @@ const ManageMenus = () => {
                                     ))}
                             </DropdownMenuContent>
                         </DropdownMenu>
-                        <Button onClick={handleAdd}>
-                            <PlusCircle className="mr-2 h-4 w-4" />
-                            Thêm
-                        </Button>
+                        {account?.roleName === "Admin" &&
+                            <Button onClick={handleAdd}>
+                                <PlusCircle className="mr-2 h-4 w-4" />
+                                Thêm
+                            </Button>
+                        }
                     </div>
                 </div>
                 <div className="rounded-md border">

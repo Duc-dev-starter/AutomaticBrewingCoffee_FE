@@ -1,6 +1,7 @@
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel, DropdownMenuSeparator, DropdownMenuTrigger } from "@/components/ui/dropdown-menu";
 import { Button } from "@/components/ui/button";
 import { MoreHorizontal } from "lucide-react";
+import { useAppStore } from "@/stores/use-app-store";
 
 type ActionDropdownProps<T> = {
     item: T;
@@ -14,6 +15,7 @@ type ActionDropdownProps<T> = {
     onExport?: (item: T) => void;
     onSyncOverride?: (item: T) => void;
     onRefund?: (item: T) => void;
+    onMenuClone?: (item: T) => void;
 }
 
 export function ActionDropdown<T>({
@@ -28,7 +30,9 @@ export function ActionDropdown<T>({
     onExport,
     onSyncOverride,
     onRefund,
+    onMenuClone
 }: ActionDropdownProps<T>) {
+    const { account } = useAppStore();
     return (
         <div className="flex justify-center">
             <DropdownMenu>
@@ -60,9 +64,14 @@ export function ActionDropdown<T>({
                             Liên kết web
                         </DropdownMenuItem>
                     )}
-                    {onClone && (
+                    {onClone && account?.roleName === "Admin" && (
                         <DropdownMenuItem onClick={() => onClone(item)}>
-                            Nhân bản
+                            Nhân bản sản phẩm
+                        </DropdownMenuItem>
+                    )}
+                    {onMenuClone && (
+                        <DropdownMenuItem onClick={() => onMenuClone(item)}>
+                            Nhân bản menu
                         </DropdownMenuItem>
                     )}
                     {onExport && (
@@ -81,7 +90,7 @@ export function ActionDropdown<T>({
                             Xem chi tiết
                         </DropdownMenuItem>
                     )}
-                    {onEdit && (
+                    {onEdit && account?.roleName === "Admin" && (
                         <DropdownMenuItem onClick={() => onEdit(item)}>
                             Chỉnh sửa
                         </DropdownMenuItem>

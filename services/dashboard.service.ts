@@ -3,6 +3,7 @@ import { Api } from "@/constants/api.constant";
 import { AccountSummary, HourlyPeak, KioskSummary, OrderSummary, OrderTrafficSummary, OrganizationSummary, RevenueSummary, StoreSummary } from "@/interfaces/dashboard";
 import { DashboardParams } from "@/types/dashboard";
 
+
 export const getOrderSummary = async (params: DashboardParams = {}): Promise<OrderSummary> => {
     const response = await BaseService.get<OrderSummary>({
         url: Api.ORDER_SUMMARY,

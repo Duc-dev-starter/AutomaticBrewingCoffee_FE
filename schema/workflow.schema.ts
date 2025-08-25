@@ -2,8 +2,8 @@ import { z } from "zod";
 import { EExpressionType, EOperation, EWorkflowType } from "@/enum/workflow";
 
 const conditionSchema = z.object({
-    name: z.string().min(1, "Tên điều kiện là bắt buộc"),
-    description: z.string().optional(),
+    name: z.string().min(1, "Tên điều kiện là bắt buộc").max(100, "Tên điều kiện không được quá 100 ký tự."),
+    description: z.string().max(450, "Mô tả không được quá 450 ký tự.").optional(),
     expression: z.object({
         left: z.object({
             type: z.nativeEnum(EExpressionType),
@@ -18,7 +18,7 @@ const conditionSchema = z.object({
 })
 
 const stepSchema = z.object({
-    name: z.string().min(1, "Tên bước là bắt buộc"),
+    name: z.string().min(1, "Tên bước là bắt buộc").max(100, "Tên bước không được quá 100 ký tự."),
     type: z.string().min(1, "Loại bước là bắt buộc"),
     deviceModelId: z.string().optional(),
     deviceFunctionId: z.string().optional(),
@@ -32,9 +32,9 @@ const stepSchema = z.object({
 })
 
 export const workflowSchema = z.object({
-    name: z.string().trim().min(1, "Tên quy trình không được để trống."),
+    name: z.string().trim().min(1, "Tên quy trình không được để trống.").max(100, "Tên quy trình không được quá 100 ký tự."),
     productId: z.string().trim().optional().nullable(),
-    description: z.string().trim().optional().nullable(),
+    description: z.string().trim().max(450, "Mô tả không được quá 450 ký tự.").optional().nullable(),
     type: z.nativeEnum(EWorkflowType, {
         errorMap: () => ({ message: "Loại quy trình không hợp lệ." }),
     }),

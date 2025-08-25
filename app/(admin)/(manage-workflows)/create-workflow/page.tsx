@@ -1229,7 +1229,7 @@ const CreateWorkflow = () => {
                                             {getDeviceFunctionsForModel(formData.steps[editingStepIndex].deviceModelId).map((df) => (
                                                 <SelectItem key={df.deviceFunctionId || df.name} value={df.deviceFunctionId || df.name}>
                                                     <div className="flex flex-col">
-                                                        <span className="font-medium">{df.name}</span>
+                                                        <span className="font-medium">{df.label}</span>
                                                         {df.functionParameters && df.functionParameters.length > 0 && (
                                                             <span className="text-xs text-muted-foreground">{df.functionParameters.length} tham số</span>
                                                         )}

@@ -3,6 +3,7 @@
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { useAppStore } from "@/stores/use-app-store";
 
 type UpdateWebhookDialogProps = {
     isOpen: boolean;
@@ -19,6 +20,9 @@ export const KioskWebhookDialog = ({
     onWebhookUrlChange,
     onSubmit,
 }: UpdateWebhookDialogProps) => {
+    const { account } = useAppStore();
+    if (account?.roleName !== "Admin") return null;
+
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
             <DialogContent>

@@ -423,9 +423,6 @@ const KioskDetailPage = () => {
                                 Chi tiết Kiosk
                             </h2>
                             <div className="flex items-center text-sm text-muted-foreground mt-1">
-                                <FileText className="mr-1 h-4 w-4" />
-                                Mã kiosk: <span className="font-medium ml-1">{kiosk.kioskId}</span>
-                            </div>
                         </div>
                     </div>
                     <div className="flex items-center gap-2">

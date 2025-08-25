@@ -10,8 +10,7 @@ import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { Label } from "@/components/ui/label"
-import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover"
-import { Check, ChevronDown, AlertTriangle, Info } from "lucide-react"
+import { AlertTriangle } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { OptionParamter } from "@/interfaces/device"
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip"
@@ -314,23 +313,12 @@ const JsonEditorComponent: React.FC<JsonEditorComponentProps> = ({
                                 const isObjectOption = typeof option === 'object' && option !== null && 'name' in option;
 
                                 const optionValue = isObjectOption ? option.name : String(option);
-                                const optionLabel = optionValue;
                                 const optionDescription = isObjectOption ? option.description : null;
 
                                 return (
                                     <SelectItem key={`${optionValue}-${index}`} value={optionValue}>
                                         <div className="flex items-center justify-between w-full">
-                                            <span>{optionLabel}</span>
-                                            {optionDescription && (
-                                                <Tooltip>
-                                                    <TooltipTrigger asChild onClick={(e) => e.stopPropagation()}>
-                                                        <Info className="h-4 w-4 ml-2 text-gray-400 cursor-help flex-shrink-0" />
-                                                    </TooltipTrigger>
-                                                    <TooltipContent side="right">
-                                                        <p>{optionDescription}</p>
-                                                    </TooltipContent>
-                                                </Tooltip>
-                                            )}
+                                            <span>{optionDescription}</span>
                                         </div>
                                     </SelectItem>
                                 );

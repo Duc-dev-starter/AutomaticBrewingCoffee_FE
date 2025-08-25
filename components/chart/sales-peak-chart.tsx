@@ -66,7 +66,7 @@ export function SalesPeakChart({ data }: SalesPeakChartProps) {
                             cursor={false}
                             content={
                                 <ChartTooltipContent
-                                    formatter={(value, name) => [`${(Number(value) / 1000).toFixed(0)}K VNĐ`, "Doanh số"]}
+                                    formatter={(value, name) => [`${(Number(value) / 1000).toFixed(0)}K VNĐ`]}
                                 />
                             }
                         />

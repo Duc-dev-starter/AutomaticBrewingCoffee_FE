@@ -36,6 +36,7 @@ import Cookies from "js-cookie"
 import { useDebounce, useKiosks, useToast } from "@/hooks";
 import { Path } from "@/constants/path.constant";
 import { syncOverrideKiosk } from "@/services/sync.service";
+import { useAppStore } from "@/stores/use-app-store";
 const KioskDialog = React.lazy(() => import("@/components/dialog/kiosk").then(module => ({ default: module.KioskDialog })));
 const KioskDetailDialog = React.lazy(() => import("@/components/dialog/kiosk").then(module => ({ default: module.KioskDetailDialog })));
 const WebhookDialog = React.lazy(() => import("@/components/dialog/webhook").then(module => ({ default: module.WebhookDialog })));
@@ -43,6 +44,7 @@ const ConfirmDeleteDialog = React.lazy(() => import("@/components/common").then(
 
 const ManageKiosks = () => {
     const router = useRouter();
+    const { account } = useAppStore();
     const { toast } = useToast();
     const [pageSize, setPageSize] = useState<number>(10);
     const [currentPage, setCurrentPage] = useState<number>(1);
@@ -346,10 +348,12 @@ const ManageKiosks = () => {
                                     ))}
                             </DropdownMenuContent>
                         </DropdownMenu>
-                        <Button onClick={handleAdd}>
-                            <PlusCircle className="mr-2 h-4 w-4" />
-                            Thêm
-                        </Button>
+                        {account?.roleName === "Admin" &&
+                            <Button onClick={handleAdd}>
+                                <PlusCircle className="mr-2 h-4 w-4" />
+                                Thêm
+                            </Button>
+                        }
                     </div>
                 </div>
 

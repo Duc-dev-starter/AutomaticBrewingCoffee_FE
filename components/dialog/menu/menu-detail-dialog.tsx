@@ -27,8 +27,8 @@ const MenuDetailDialog = ({ menu, open, onOpenChange }: MenuDialogProps) => {
                                 <LayoutList className="w-8 h-8 text-primary-500" />
                             </div>
                             <div>
-                                <h1 className="text-2xl font-semibold text-gray-800">Chi tiết menu</h1>
-                                <p className="text-gray-500 text-sm">Thông tin chi tiết của menu đang chọn</p>
+                                <h1 className="text-2xl font-semibold text-gray-800">Chi tiết thực đơn</h1>
+                                <p className="text-gray-500 text-sm">Thông tin chi tiết của thực đơn đang chọn</p>
                             </div>
                         </div>
                         <Badge className="bg-primary-500 text-white px-3 py-1">
@@ -46,11 +46,11 @@ const MenuDetailDialog = ({ menu, open, onOpenChange }: MenuDialogProps) => {
                             <CardContent className="p-6 space-y-6">
                                 <h3 className="text-lg font-semibold text-primary-600 mb-4 flex items-center">
                                     <Info className="w-5 h-5 mr-2 text-primary-500" />
-                                    Thông tin menu
+                                    Thông tin thực đơn
                                 </h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <InfoField
-                                        label="Tên menu"
+                                        label="Tên thực đơn"
                                         value={menu.name}
                                         icon={<ClipboardList className="w-4 h-4 text-primary-500" />}
                                     />

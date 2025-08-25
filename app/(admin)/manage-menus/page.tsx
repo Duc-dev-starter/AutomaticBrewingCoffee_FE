@@ -24,7 +24,7 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { PlusCircle } from "lucide-react";
 import { Skeleton } from "@/components/ui/skeleton";
 import { BaseStatusFilter, ExportButton, NoResultsRow, Pagination, RefreshButton, SearchInput } from "@/components/common";
-import { deleteMenu } from "@/services/menu.service";
+import { cloneMenu, deleteMenu } from "@/services/menu.service";
 import { Menu } from "@/interfaces/menu";
 import { multiSelectFilter } from "@/utils/table";
 import { useDebounce, useMenus, useToast } from "@/hooks"
@@ -135,6 +135,24 @@ const ManageMenus = () => {
         setDialogOpen(true);
     };
 
+    const handleMenuClone = async (menu: Menu) => {
+        try {
+            await cloneMenu(menu.menuId);
+            mutate();
+            toast({
+                title: "Thành công",
+                description: `Thực đơn "${menu.name}" đã được nhân bản.`
+            });
+        } catch (error) {
+            const err = error as ErrorResponse;
+            toast({
+                title: "Lỗi khi nhân bản thực đơn",
+                description: err.message,
+                variant: "destructive"
+            });
+        }
+    };
+
     const clearAllFilters = () => {
         setStatusFilter("");
         setSearchValue("");
@@ -146,6 +164,7 @@ const ManageMenus = () => {
             onViewDetails: handleViewDetails,
             onEdit: handleEdit,
             onDelete: handleDelete,
+            onMenuClone: handleMenuClone
         }),
         [handleViewDetails, handleEdit, handleDelete]
     );
@@ -199,8 +218,8 @@ const ManageMenus = () => {
             <div className="flex flex-col space-y-4 p-4 sm:p-6">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                     <div>
-                        <h2 className="text-2xl font-bold tracking-tight">Quản lý menu</h2>
-                        <p className="text-muted-foreground">Quản lý và giám sát tất cả menu.</p>
+                        <h2 className="text-2xl font-bold tracking-tight">Quản lý thực đơn</h2>
+                        <p className="text-muted-foreground">Quản lý và giám sát tất cả thực đơn.</p>
                     </div>
                     <div className="flex items-center gap-2">
                         <ExportButton loading={isLoading} />
@@ -211,7 +230,7 @@ const ManageMenus = () => {
                     <div className="relative w-full sm:w-72">
                         <SearchInput
                             loading={isLoading}
-                            placeHolderText="Tìm kiếm tên menu..."
+                            placeHolderText="Tìm kiếm tên thực đơn..."
                             searchValue={searchValue}
                             setSearchValue={setSearchValue}
                         />
@@ -291,7 +310,7 @@ const ManageMenus = () => {
                             {(!data && isLoading) ? (
                                 Array.from({ length: pageSize }).map((_, index) => (
                                     <TableRow key={`skeleton-${index}`} className="animate-pulse">
-                                        {columns({ onViewDetails: () => { }, onEdit: () => { }, onDelete: () => { } }).map((column, cellIndex) => (
+                                        {columns({ onViewDetails: () => { }, onEdit: () => { }, onDelete: () => { }, onMenuClone() { }, }).map((column, cellIndex) => (
                                             <TableCell key={`skeleton-cell-${cellIndex}`}>
                                                 {column.id === "menuId" ? (
                                                     <Skeleton className="h-5 w-24 mx-auto" />
@@ -324,7 +343,7 @@ const ManageMenus = () => {
                                     </TableRow>
                                 ))
                             ) : (
-                                <NoResultsRow columns={columns({ onViewDetails: () => { }, onEdit: () => { }, onDelete: () => { } })} />
+                                <NoResultsRow columns={columns({ onViewDetails: () => { }, onEdit: () => { }, onDelete: () => { }, onMenuClone: () => { } })} />
                             )}
                         </TableBody>
                     </Table>

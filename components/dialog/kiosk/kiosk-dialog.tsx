@@ -316,7 +316,7 @@ const KioskDialog = ({ open, onOpenChange, onSuccess, kiosk }: KioskDialogProps)
                         <div className="space-y-3">
                             <div className="flex items-center space-x-2 mb-2">
                                 <Settings className="w-4 h-4 text-primary-300" />
-                                <label className="text-sm font-medium text-gray-700">Menu (tùy chọn)</label>
+                                <label className="text-sm font-medium text-gray-700">Thực đơn (tùy chọn)</label>
                             </div>
                             <Select
                                 value={formData.menuId}

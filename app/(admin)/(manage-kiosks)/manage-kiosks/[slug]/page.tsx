@@ -2,7 +2,6 @@
 
 import React, { useState, useEffect } from "react"
 import { useParams, useRouter } from "next/navigation"
-import { format } from "date-fns"
 import { EBaseStatusViMap } from "@/enum/base"
 import { Badge } from "@/components/ui/badge"
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card"
@@ -32,21 +31,12 @@ import { Button } from "@/components/ui/button"
 import { useToast } from "@/hooks/use-toast"
 import type { Kiosk, KioskDevice } from "@/interfaces/kiosk"
 import { ConfirmDeleteDialog, RefreshButton } from "@/components/common"
-import {
-    Dialog,
-    DialogContent,
-    DialogDescription,
-    DialogFooter,
-    DialogHeader,
-    DialogTitle,
-} from "@/components/ui/dialog"
 import type { Device, DeviceIngredientHistory, DeviceIngredientStates } from "@/interfaces/device"
 import { getDevicesToReplace } from "@/services/device.service"
 import { DeviceStatusGroup } from "@/components/common/device-status-group"
 import { ErrorResponse } from "@/types/error"
 import { Webhook } from "@/interfaces/webhook"
 import { updateWebhook } from "@/services/webhook.service"
-import { Input } from "@/components/ui/input"
 import { DeviceIngredientHistoryDialog, KioskDeviceIngredientStatesDialog, KioskOnhubDialog, KioskReplaceDeviceDialog, KioskWebhookDialog, OnplaceDialog } from "@/components/dialog/kiosk"
 import { syncKiosk, syncOverrideKiosk } from "@/services/sync.service"
 import { deleteKiosk } from "@/services/kiosk.service"

@@ -29,6 +29,7 @@ import { SearchInput } from "@/components/common/search-input"
 import { ErrorResponse } from "@/types/error"
 import { DragDropContext, Droppable, Draggable } from 'react-beautiful-dnd'
 import EditPriceDialog from "@/components/dialog/menu/edit-price-in-menu"
+import { useAppStore } from "@/stores/use-app-store"
 
 export type MenuDetailType = Menu & {
     menuProductMappings: MenuProductMapping[]
@@ -38,6 +39,7 @@ const MenuDetail = () => {
     const params = useParams();
     const slug = params.slug as string;
     const { toast } = useToast();
+    const { account } = useAppStore();
 
     const [menu, setMenu] = useState<MenuDetailType | null>(null);
     const [filteredMappings, setFilteredMappings] = useState<MenuProductMapping[]>([]);
@@ -407,7 +409,7 @@ const MenuDetail = () => {
                     <TabsContent value="stores">
                         <Card>
                             <CardContent className="pt-6">
-                                <p className="text-muted-foreground">Chưa có cửa hàng nào áp dụng menu này.</p>
+                                <p className="text-muted-foreground">Chưa có cửa hàng nào áp dụng thực đơn này.</p>
                             </CardContent>
                         </Card>
                     </TabsContent>
@@ -417,7 +419,7 @@ const MenuDetail = () => {
                 <div className="flex justify-between items-center mb-6">
                     <div>
                         <h2 className="text-2xl font-bold">Danh sách sản phẩm</h2>
-                        <p className="text-muted-foreground">Quản lý và giám sát tất cả sản phẩm trong menu.</p>
+                        <p className="text-muted-foreground">Quản lý và giám sát tất cả sản phẩm trong thực đơn.</p>
                     </div>
                     <div className="flex items-center gap-2">
                         <ExportButton loading={loading} />
@@ -474,10 +476,12 @@ const MenuDetail = () => {
                                 )}
                             </DropdownMenuContent>
                         </DropdownMenu>
-                        <Button onClick={() => setAddProductDialogOpen(true)}>
-                            <PlusCircle className="mr-2 h-4 w-4" />
-                            Thêm
-                        </Button>
+                        {account?.roleName === "Admin" && (
+                            <Button onClick={() => setAddProductDialogOpen(true)}>
+                                <PlusCircle className="mr-2 h-4 w-4" />
+                                Thêm
+                            </Button>)
+                        }
                     </div>
                 </div>
                 <Card>

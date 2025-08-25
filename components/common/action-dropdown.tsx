@@ -2,6 +2,7 @@ import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuLabel,
 import { Button } from "@/components/ui/button";
 import { MoreHorizontal } from "lucide-react";
 import { useAppStore } from "@/stores/use-app-store";
+import { Path } from "@/constants/path.constant";
 
 type ActionDropdownProps<T> = {
     item: T;
@@ -33,6 +34,8 @@ export function ActionDropdown<T>({
     onMenuClone
 }: ActionDropdownProps<T>) {
     const { account } = useAppStore();
+    const canAccess =
+        account?.roleName === "Admin" || Path.MANAGE_STORES;
     return (
         <div className="flex justify-center">
             <DropdownMenu>
@@ -64,7 +67,7 @@ export function ActionDropdown<T>({
                             Liên kết web
                         </DropdownMenuItem>
                     )}
-                    {onClone && account?.roleName === "Admin" && (
+                    {onClone && (
                         <DropdownMenuItem onClick={() => onClone(item)}>
                             Nhân bản sản phẩm
                         </DropdownMenuItem>
@@ -90,7 +93,7 @@ export function ActionDropdown<T>({
                             Xem chi tiết
                         </DropdownMenuItem>
                     )}
-                    {onEdit && account?.roleName === "Admin" && (
+                    {onEdit && canAccess && (
                         <DropdownMenuItem onClick={() => onEdit(item)}>
                             Chỉnh sửa
                         </DropdownMenuItem>

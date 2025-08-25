@@ -145,17 +145,17 @@ const MenuDialog = ({ open, onOpenChange, onSuccess, menu }: MenuDialogProps) =>
             };
             if (menu) {
                 await updateMenu(menu.menuId, data);
-                toast({ title: "Thành công", description: "Cập nhật menu thành công", variant: "success" });
+                toast({ title: "Thành công", description: "Cập nhật thực đơn thành công", variant: "success" });
             } else {
                 await createMenu(data);
-                toast({ title: "Thành công", description: "Thêm menu mới thành công", variant: "success" });
+                toast({ title: "Thành công", description: "Thêm thực đơn mới thành công", variant: "success" });
             }
             onSuccess?.();
             onOpenChange(false);
         } catch (error) {
             const err = error as ErrorResponse;
-            console.error("Lỗi khi xử lý menu:", error);
-            toast({ title: "Lỗi khi xử lý menu", description: err.message, variant: "destructive" });
+            console.error("Lỗi khi xử lý thực đơn:", error);
+            toast({ title: "Lỗi khi xử lý thực đơn", description: err.message, variant: "destructive" });
         } finally {
             setLoading(false);
         }
@@ -172,9 +172,9 @@ const MenuDialog = ({ open, onOpenChange, onSuccess, menu }: MenuDialogProps) =>
                             </div>
                             <div>
                                 <h1 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
-                                    {isUpdate ? "Cập nhật Menu" : "Tạo Menu Mới"}
+                                    {isUpdate ? "Cập nhật thực đơn" : "Tạo thực đơn mới"}
                                 </h1>
-                                <p className="text-gray-500">{isUpdate ? "Chỉnh sửa thông tin menu" : "Thêm menu mới vào hệ thống"}</p>
+                                <p className="text-gray-500">{isUpdate ? "Chỉnh sửa thông tin thực đơn" : "Thêm thực đơn mới vào hệ thống"}</p>
                             </div>
                         </div>
                     </div>
@@ -186,12 +186,12 @@ const MenuDialog = ({ open, onOpenChange, onSuccess, menu }: MenuDialogProps) =>
                         <div className="space-y-3">
                             <div className="flex items-center space-x-2 mb-2">
                                 <Monitor className="w-4 h-4 text-primary-300" />
-                                <label className="text-sm font-medium text-gray-700 asterisk">Tên Menu</label>
+                                <label className="text-sm font-medium text-gray-700 asterisk">Tên thực đơn</label>
                             </div>
                             <div className="relative group">
                                 <Input
                                     ref={nameInputRef}
-                                    placeholder="Nhập tên menu"
+                                    placeholder="Nhập tên thực đơn"
                                     value={formData.name}
                                     onChange={(e) => handleChange("name", e.target.value)}
                                     disabled={loading}
@@ -279,7 +279,7 @@ const MenuDialog = ({ open, onOpenChange, onSuccess, menu }: MenuDialogProps) =>
                         icon={<Edit3 className="w-4 h-4 text-primary-300" />}
                         value={formData.description}
                         onChange={(val) => handleChange("description", val)}
-                        placeholder="Nhập mô tả menu"
+                        placeholder="Nhập mô tả thực đơn"
                         disabled={loading}
                         error={errors.description}
                         maxLength={450}

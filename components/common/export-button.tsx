@@ -1,4 +1,4 @@
-import { Download, RefreshCw } from "lucide-react";
+import { Download } from "lucide-react";
 import { Button } from "../ui/button";
 
 type ExportButtonProps = {
@@ -13,10 +13,10 @@ const ExportButton: React.FC<ExportButtonProps> = ({ loading, onExport }) => {
             disabled={loading}
             variant="outline"
             effect="shineHover"
-            className="h-10 px-4 flex items-center border border-gray-600hover:bg-gray-800 transition"
+            className="h-10 px-4 flex items-center"
         >
-            <Download className={`mr-2 h-5 w-5`} />
-            Xuất dữ liệu
+            <Download className="mr-2 h-5 w-5" />
+            {loading ? "Đang xuất dữ liệu..." : "Xuất dữ liệu"}
         </Button>
     );
 };

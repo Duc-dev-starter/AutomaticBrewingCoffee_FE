@@ -28,7 +28,6 @@ const NotificationDetail = () => {
         try {
             setLoading(true)
             const data = await getNotification(slug)
-            console.log("Fetched Notification:", data.response)
             setNotification(data.response)
         } catch (err) {
             toast({

@@ -58,3 +58,8 @@ export const reorderMenuProducts = async (menuId: string, payload: { dragProduct
     const response = await BaseService.put({ url: `${Api.MENUS}/${menuId}${Api.MENU_PRODUCTS}/reorder`, payload })
     return response;
 }
+
+export const cloneMenu = async (menuId: string) => {
+    const response = await BaseService.post({ url: `${Api.MENUS}/clone`, payload: { menuId } });
+    return response;
+}

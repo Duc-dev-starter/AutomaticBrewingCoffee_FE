@@ -27,7 +27,6 @@ const WorkflowDetail = () => {
             try {
                 setLoading(true)
                 const response = await getWorkflow(slug as string)
-                console.log(response)
 
                 // Sort steps by sequence to ensure correct order
                 const workflowData = {

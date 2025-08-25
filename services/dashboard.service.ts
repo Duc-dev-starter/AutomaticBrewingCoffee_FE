@@ -9,7 +9,6 @@ export const getOrderSummary = async (params: DashboardParams = {}): Promise<Ord
         url: Api.ORDER_SUMMARY,
         payload: params,
     });
-    console.log("Order Summary Service - Fetched Data:", response);
     // @ts-ignore
     return response.response;
 };

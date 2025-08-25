@@ -20,6 +20,7 @@ import InfiniteScroll from "react-infinite-scroll-component";
 import { useDebounce } from "@/hooks";
 import { FormDescriptionField, FormFooterActions } from "@/components/form";
 import { parseErrors } from "@/utils";
+import { useAppStore } from "@/stores/use-app-store";
 
 const initialFormData = {
     organizationId: "",
@@ -48,6 +49,7 @@ const StoreDialog = ({ open, onOpenChange, onSuccess, store }: StoreDialogProps)
     const [orgSearchQuery, setOrgSearchQuery] = useState("");
     const [locSearchQuery, setLocSearchQuery] = useState("");
     const nameInputRef = useRef<HTMLInputElement>(null);
+    const { account } = useAppStore();
 
     const debouncedOrgSearchQuery = useDebounce(orgSearchQuery, 300);
     const debouncedLocSearchQuery = useDebounce(locSearchQuery, 300);
@@ -310,50 +312,52 @@ const StoreDialog = ({ open, onOpenChange, onSuccess, store }: StoreDialogProps)
                         </div>
 
                         {/* Tổ chức */}
-                        <div className="space-y-3">
-                            <div className="flex items-center space-x-2 mb-2">
-                                <Building2 className="w-4 h-4 text-primary-300" />
-                                <label className="text-sm font-medium text-gray-700 asterisk">Tổ chức</label>
+                        {account?.roleName === "Admin" && (
+                            <div className="space-y-3">
+                                <div className="flex items-center space-x-2 mb-2">
+                                    <Building2 className="w-4 h-4 text-primary-300" />
+                                    <label className="text-sm font-medium text-gray-700 asterisk">Tổ chức</label>
+                                </div>
+                                <Select
+                                    value={formData.organizationId}
+                                    onValueChange={(value) => handleChange("organizationId", value)}
+                                    disabled={loading}
+                                >
+                                    <SelectTrigger className="h-12 text-sm px-4 border-2 bg-white/80 backdrop-blur-sm">
+                                        <SelectValue placeholder="Chọn tổ chức" />
+                                    </SelectTrigger>
+                                    <SelectContent>
+                                        <div className="p-2">
+                                            <Input
+                                                placeholder="Tìm kiếm tổ chức..."
+                                                className="h-10 text-xs px-3"
+                                                value={orgSearchQuery}
+                                                onChange={(e) => setOrgSearchQuery(e.target.value)}
+                                                disabled={loading}
+                                            />
+                                        </div>
+                                        <div id="org-scroll" className="max-h-[200px] overflow-y-auto">
+                                            <InfiniteScroll
+                                                dataLength={organizations.length}
+                                                next={loadMoreOrganizations}
+                                                hasMore={hasMoreOrgs}
+                                                loader={<div className="p-2 text-center text-sm">Đang tải thêm...</div>}
+                                                scrollableTarget="org-scroll"
+                                            >
+                                                {organizations.map((org) => (
+                                                    <SelectItem key={org.organizationId} value={org.organizationId}>
+                                                        {org.name}
+                                                    </SelectItem>
+                                                ))}
+                                            </InfiniteScroll>
+                                        </div>
+                                    </SelectContent>
+                                </Select>
+                                {submitted && errors.organizationId && (
+                                    <p className="text-red-500 text-xs mt-1">{errors.organizationId}</p>
+                                )}
                             </div>
-                            <Select
-                                value={formData.organizationId}
-                                onValueChange={(value) => handleChange("organizationId", value)}
-                                disabled={loading}
-                            >
-                                <SelectTrigger className="h-12 text-sm px-4 border-2 bg-white/80 backdrop-blur-sm">
-                                    <SelectValue placeholder="Chọn tổ chức" />
-                                </SelectTrigger>
-                                <SelectContent>
-                                    <div className="p-2">
-                                        <Input
-                                            placeholder="Tìm kiếm tổ chức..."
-                                            className="h-10 text-xs px-3"
-                                            value={orgSearchQuery}
-                                            onChange={(e) => setOrgSearchQuery(e.target.value)}
-                                            disabled={loading}
-                                        />
-                                    </div>
-                                    <div id="org-scroll" className="max-h-[200px] overflow-y-auto">
-                                        <InfiniteScroll
-                                            dataLength={organizations.length}
-                                            next={loadMoreOrganizations}
-                                            hasMore={hasMoreOrgs}
-                                            loader={<div className="p-2 text-center text-sm">Đang tải thêm...</div>}
-                                            scrollableTarget="org-scroll"
-                                        >
-                                            {organizations.map((org) => (
-                                                <SelectItem key={org.organizationId} value={org.organizationId}>
-                                                    {org.name}
-                                                </SelectItem>
-                                            ))}
-                                        </InfiniteScroll>
-                                    </div>
-                                </SelectContent>
-                            </Select>
-                            {submitted && errors.organizationId && (
-                                <p className="text-red-500 text-xs mt-1">{errors.organizationId}</p>
-                            )}
-                        </div>
+                        )}
                     </div>
 
                     <div className="grid grid-cols-2 gap-4">

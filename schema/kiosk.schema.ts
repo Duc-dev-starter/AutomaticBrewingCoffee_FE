@@ -13,11 +13,11 @@ export const kioskVersionSchema = z.object({
     versionTitle: z.string().trim().min(1, "Tiêu đề phiên bản không được để trống.").max(100, "Tiêu đề phiên bản không được quá 100 ký tự."),
     description: z.string().trim().max(450, "Mô tả không được quá 450 ký tự.").optional(),
     versionNumber: z.string().trim().min(1, "Số phiên bản không được để trống.").max(100, "Số phiên bản không được quá 100 ký tự."),
-    status: z.enum([EBaseStatus.Active, EBaseStatus.Inactive], { message: "Vui lòng chọn trạng thái cho menu." }),
+    status: z.enum([EBaseStatus.Active, EBaseStatus.Inactive], { message: "Vui lòng chọn trạng thái cho thực đơn." }),
 });
 
 export const kioskTypeSchema = z.object({
     name: z.string().trim().min(1, "Tên loại kiosk không được để trống.").max(100, "Tên loại kiosk không được quá 100 ký tự."),
-    status: z.enum([EBaseStatus.Active, EBaseStatus.Inactive], { message: "Vui lòng chọn trạng thái cho menu." }),
+    status: z.enum([EBaseStatus.Active, EBaseStatus.Inactive], { message: "Vui lòng chọn trạng thái cho thực đơn." }),
     description: z.string().trim().max(450, "Mô tả không được quá 450 ký tự.").optional(),
 });

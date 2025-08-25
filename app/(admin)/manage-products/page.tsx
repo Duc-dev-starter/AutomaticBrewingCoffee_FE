@@ -152,6 +152,7 @@ const ManageProducts = () => {
             });
         }
     };
+
     const hasActiveFilters = statusFilter !== "" || productTypeFilter !== "" || productSizeFilter !== "" || debouncedSearchValue !== "";
 
     const columnsDef = useMemo(() => columns({ onViewDetails: handleViewDetails, onEdit: handleEdit, onDelete: handleDelete, onClone: handleClone }), [handleViewDetails]);
@@ -328,7 +329,23 @@ const ManageProducts = () => {
 
                 <div className="rounded-md border">
                     <Table>
-                        <TableHeader>{table.getHeaderGroups().map((hg) => (<TableRow key={hg.id}>{hg.headers.map((h) => (<TableHead key={h.id} className="text-center">{h.isPlaceholder ? null : (h.column.getCanSort() ? (<Button variant="ghost" onClick={() => h.column.toggleSorting(h.column.getIsSorted() === "asc")}>{flexRender(h.column.columnDef.header, h.getContext())}{h.column.getIsSorted() ? (h.column.getIsSorted() === "asc" ? " ↑" : " ↓") : null}</Button>) : (flexRender(h.column.columnDef.header, h.getContext())))}</TableHead>))}</TableRow>))}</TableHeader>
+                        <TableHeader>{table.getHeaderGroups().map((hg) => (
+                            <TableRow key={hg.id}>
+                                {hg.headers.map((h) => (
+                                    <TableHead key={h.id} className="text-center">
+                                        {h.isPlaceholder ? null : (h.column.getCanSort() ? (
+                                            <Button
+                                                variant="ghost"
+                                                onClick={() => h.column.toggleSorting(h.column.getIsSorted() === "asc")}>
+                                                {flexRender(h.column.columnDef.header, h.getContext())}
+                                                {h.column.getIsSorted() ? (h.column.getIsSorted() === "asc" ? " ↑" : " ↓") : null}
+                                            </Button>
+                                        ) : (flexRender(h.column.columnDef.header, h.getContext())))}
+                                    </TableHead>
+                                ))}
+                            </TableRow>
+                        ))}
+                        </TableHeader>
                         <TableBody>
                             {isLoading ? (
                                 Array.from({ length: pageSize }).map((_, i) => (<TableRow key={`skeleton-${i}`}>{table.getVisibleLeafColumns().map((c) => (<TableCell key={c.id}><Skeleton className="h-5 w-full" /></TableCell>))}</TableRow>))

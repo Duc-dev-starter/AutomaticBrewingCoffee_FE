@@ -8,10 +8,12 @@ export const columns = ({
     onViewDetails,
     onEdit,
     onDelete,
+    onMenuClone,
 }: {
     onViewDetails: (menu: Menu) => void;
     onEdit: (menu: Menu) => void;
     onDelete: (menu: Menu) => void;
+    onMenuClone: (menu: Menu) => void;
 }): ColumnDef<Menu>[] => [
         {
             id: "menuId",
@@ -63,6 +65,7 @@ export const columns = ({
                     onViewDetails={(item) => onViewDetails(item)}
                     onEdit={(item) => onEdit(item)}
                     onDelete={(item) => onDelete(item)}
+                    onMenuClone={(item) => onMenuClone(item)}
                 />
             ),
             enableSorting: false,

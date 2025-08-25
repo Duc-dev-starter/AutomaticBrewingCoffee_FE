@@ -123,7 +123,7 @@ const menuSections: MenuSection[] = [
             { title: "Quản lý sản phẩm", url: Path.MANAGE_PRODUCTS, icon: PackageCheck },
             { title: "Quản lý danh mục", url: Path.MANAGE_CATEGORIES, icon: Tags },
             { title: "Quản lý cửa hàng", url: Path.MANAGE_STORES, icon: Store },
-            { title: "Quản lý menu", url: Path.MANAGE_MENUS, icon: List },
+            { title: "Quản lý thực đơn", url: Path.MANAGE_MENUS, icon: List },
             { title: "Quản lý location", url: Path.MANAGE_LOCATION_TYPES, icon: MapPin },
             { title: "Quản lý loại nguyên liệu", url: Path.MANAGE_INGREDIENT_TYPE, icon: UtensilsCrossed },
         ],

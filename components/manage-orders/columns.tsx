@@ -37,15 +37,6 @@ export const columns = ({
     onRefund: (order: Order) => void;
 }): ColumnDef<Order>[] => [
         {
-            id: "orderId",
-            header: "Mã đơn hàng",
-            cell: ({ row }) => {
-                const orderId = row.original.orderId || "";
-                return <div className="font-medium text-center">ORD-{orderId.substring(0, 8)}</div>;
-            },
-            enableSorting: false,
-        },
-        {
             id: "orderCode",
             header: "Mã đơn hàng",
             cell: ({ row }) => {

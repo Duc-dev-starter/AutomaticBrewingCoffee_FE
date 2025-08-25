@@ -29,6 +29,16 @@ import { useOrders } from "@/hooks/use-orders"
 import { OrderDetailDialog, OrderRefundDialog } from "@/components/dialog/order"
 import { columns, OrderFilter } from "@/components/manage-orders"
 import { Order } from "@/interfaces/order"
+import Cookies from "js-cookie"
+import axios from "axios"
+import { ErrorResponse } from "@/types/error"
+import { DateRange } from "react-day-picker"
+import { Download } from "lucide-react"
+import { format } from "date-fns"
+import { Calendar } from "@/components/ui/calendar"
+import { Dialog, DialogClose, DialogContent, DialogDescription, DialogFooter, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { vi } from "date-fns/locale"
+
 
 const ManageOrders = () => {
     const { toast } = useToast()
@@ -43,6 +53,9 @@ const ManageOrders = () => {
     const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
     const [refundDialogOpen, setRefundDialogOpen] = useState(false)
     const [selectedOrderForRefund, setSelectedOrderForRefund] = useState<Order | null>(null)
+
+    const [dateRange, setDateRange] = useState<DateRange | undefined>()
+    const [isExportDialogOpen, setIsExportDialogOpen] = useState(false)
 
     const [searchValue, setSearchValue] = useState("")
     const debouncedSearchValue = useDebounce(searchValue, 500)
@@ -85,6 +98,66 @@ const ManageOrders = () => {
         setStatusFilter("")
         setSearchValue("")
         table.resetColumnFilters()
+        setDateRange(undefined)
+    }
+
+    const handleExport = async () => {
+        try {
+            const token = Cookies.get('accessToken')
+            const headers: any = {
+                'accept': 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+            }
+            if (token) {
+                headers['Authorization'] = `Bearer ${token}`
+            }
+
+            const exportParams: any = {};
+            if (dateRange?.from) {
+                exportParams.startDate = dateRange.from.toISOString();
+            }
+            if (dateRange?.to) {
+                exportParams.endDate = dateRange.to.toISOString();
+            }
+
+            const response = await axios.get(
+                `${process.env.NEXT_PUBLIC_API_BASE_URL}/orders/export`,
+                {
+                    responseType: 'blob',
+                    headers: headers,
+                    params: exportParams
+                }
+            )
+
+            const contentType = response.headers['content-type'];
+            if (contentType.includes('spreadsheetml.sheet') || contentType.includes('vnd.ms-excel')) {
+
+                const blob = new Blob([response.data], { type: contentType })
+                const url = window.URL.createObjectURL(blob)
+                const link = document.createElement('a')
+                link.href = url
+
+                const fromDate = dateRange?.from ? format(dateRange.from, "yyyy-MM-dd") : 'start';
+                const toDate = dateRange?.to ? format(dateRange.to, "yyyy-MM-dd") : 'end';
+                link.download = `orders_${fromDate}_to_${toDate}.xlsx`
+
+                link.click()
+                window.URL.revokeObjectURL(url)
+                toast({
+                    title: "Thành công",
+                    description: "Tải file Excel thành công!",
+                })
+            } else {
+                throw new Error("Server không trả về file Excel")
+            }
+        } catch (error) {
+            const err = error as ErrorResponse
+            console.error("Error exporting orders:", error)
+            toast({
+                title: "Lỗi",
+                description: err.message || "Xuất dữ liệu thất bại",
+                variant: "destructive",
+            })
+        }
     }
 
     const columnsDef = useMemo(
@@ -142,7 +215,47 @@ const ManageOrders = () => {
                         <p className="text-muted-foreground">Quản lý và giám sát tất cả các đơn hàng.</p>
                     </div>
                     <div className="flex items-center gap-2">
-                        <ExportButton loading={isLoading} />
+                        <Dialog open={isExportDialogOpen} onOpenChange={setIsExportDialogOpen}>
+                            <DialogTrigger asChild>
+                                <Button
+                                    variant="outline"
+                                    effect="shineHover"
+                                    className="h-10 px-4 flex items-center"
+                                >
+                                    <Download className="mr-2 h-5 w-5" />
+                                    Xuất dữ liệu
+                                </Button>
+                            </DialogTrigger>
+                            <DialogContent className="sm:max-w-[625px]">
+                                <DialogHeader>
+                                    <DialogTitle>Xuất dữ liệu đơn hàng</DialogTitle>
+                                    <DialogDescription>
+                                        Chọn khoảng thời gian bạn muốn xuất file Excel. Để trống nếu muốn xuất tất cả.
+                                    </DialogDescription>
+                                </DialogHeader>
+                                <div className="py-4">
+                                    <div className="flex justify-center">
+                                        <Calendar
+                                            mode="range"
+                                            selected={dateRange}
+                                            onSelect={setDateRange}
+                                            className="rounded-md border"
+                                            numberOfMonths={2}
+                                            locale={vi}
+                                        />
+                                    </div>
+                                </div>
+                                <DialogFooter>
+                                    <DialogClose asChild>
+                                        <Button variant="outline">Hủy</Button>
+                                    </DialogClose>
+                                    <Button onClick={handleExport} disabled={isLoading}>
+                                        {isLoading ? "Đang xuất..." : "Xác nhận & Xuất file"}
+                                    </Button>
+                                </DialogFooter>
+                            </DialogContent>
+                        </Dialog>
+
                         <RefreshButton loading={isLoading} toggleLoading={mutate} />
                     </div>
                 </div>
@@ -155,6 +268,8 @@ const ManageOrders = () => {
                             setSearchValue={setSearchValue}
                         />
                     </div>
+
+
                     <div className="flex items-center gap-2 ml-auto">
                         <OrderFilter
                             statusFilter={statusFilter}
@@ -182,7 +297,7 @@ const ManageOrders = () => {
                                             checked={column.getIsVisible()}
                                             onCheckedChange={(value) => column.toggleVisibility(!!value)}
                                         >
-                                            {column.id === "orderId"
+                                            {column.id === "orderCode"
                                                 ? "Mã đơn hàng"
                                                 : column.id === "status"
                                                     ? "Trạng thái"
@@ -234,7 +349,7 @@ const ManageOrders = () => {
                                     <TableRow key={`skeleton-${index}`} className="animate-pulse">
                                         {columns({ onViewDetails: () => { }, onRefund: () => { } }).map((column, cellIndex) => (
                                             <TableCell key={`skeleton-cell-${cellIndex}`}>
-                                                {column.id === "orderId" ? (
+                                                {column.id === "orderCode" ? (
                                                     <Skeleton className="h-5 w-24 mx-auto" />
                                                 ) : column.id === "status" ? (
                                                     <Skeleton className="h-6 w-24 rounded-full mx-auto" />

@@ -80,7 +80,7 @@ const AddProductToMenuDialog = ({ open, onOpenChange, onSuccess, menuId, existin
             });
             toast({
                 title: "Thành công",
-                description: "Đã thêm sản phẩm vào menu.",
+                description: "Đã thêm sản phẩm vào thực đơn.",
             });
             onSuccess();
             onOpenChange(false);
@@ -88,7 +88,7 @@ const AddProductToMenuDialog = ({ open, onOpenChange, onSuccess, menuId, existin
             const err = error as ErrorResponse;
             console.error("Lỗi khi xử lý kiosk:", error);
             toast({
-                title: "Lỗi khi thêm sản phẩm vào menu",
+                title: "Lỗi khi thêm sản phẩm vào thực đơn",
                 description: err.message,
                 variant: "destructive",
             });
@@ -101,7 +101,7 @@ const AddProductToMenuDialog = ({ open, onOpenChange, onSuccess, menuId, existin
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-[425px]">
                 <DialogHeader>
-                    <DialogTitle>Thêm sản phẩm vào menu</DialogTitle>
+                    <DialogTitle>Thêm sản phẩm vào thực đơn</DialogTitle>
                 </DialogHeader>
                 <div className="grid gap-4 py-4">
                     <div className="grid gap-2">

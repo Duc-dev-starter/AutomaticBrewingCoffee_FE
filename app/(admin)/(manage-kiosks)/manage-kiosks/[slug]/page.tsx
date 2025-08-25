@@ -422,7 +422,6 @@ const KioskDetailPage = () => {
                                 <Info className="mr-2 h-5 w-5" />
                                 Chi tiết Kiosk
                             </h2>
-                            <div className="flex items-center text-sm text-muted-foreground mt-1">
                         </div>
                     </div>
                     <div className="flex items-center gap-2">

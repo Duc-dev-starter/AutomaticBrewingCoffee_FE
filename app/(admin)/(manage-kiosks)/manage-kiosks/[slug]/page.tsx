@@ -1,6 +1,6 @@
 "use client"
 
-import React, { useState, useEffect } from "react"
+import React, { useState, useEffect, useMemo } from "react"
 import { useParams, useRouter } from "next/navigation"
 import { EBaseStatusViMap } from "@/enum/base"
 import { Badge } from "@/components/ui/badge"
@@ -49,6 +49,7 @@ import {
     DropdownMenuTrigger,
 } from "@/components/ui/dropdown-menu"
 import { formatDate } from "@/utils/date"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 
 
 const KioskDetailPage = () => {
@@ -130,6 +131,16 @@ const KioskDetailPage = () => {
             setLoadingOnhub(false)
         }
     }
+
+    const activeDevices = useMemo(
+        () => kiosk?.kioskDevices?.filter((kd) => !kd.isDisposed) || [],
+        [kiosk?.kioskDevices]
+    )
+
+    const disposedDevices = useMemo(
+        () => kiosk?.kioskDevices?.filter((kd) => kd.isDisposed) || [],
+        [kiosk?.kioskDevices]
+    )
 
     const openUpdateWebhookDialog = (webhook: Webhook) => {
         setSelectedWebhook(webhook)
@@ -415,9 +426,6 @@ const KioskDetailPage = () => {
                         </div>
                     </div>
                     <div className="flex items-center gap-2">
-                        <Badge className={clsx("px-3 py-1", getBaseStatusColor(kiosk.status))}>
-                            {EBaseStatusViMap[kiosk.status]}
-                        </Badge>
                         <RefreshButton loading={loading} toggleLoading={fetchKioskData} />
 
                         <DropdownMenu>
@@ -660,25 +668,41 @@ const KioskDetailPage = () => {
                         <CardHeader>
                             <CardTitle className="text-lg flex items-center">
                                 <Package className="mr-2 h-5 w-5" />
-                                Danh sách thiết bị ({kiosk.kioskDevices?.length || 0})
+                                Danh sách thiết bị
                             </CardTitle>
                         </CardHeader>
                         <CardContent>
-                            {kiosk.kioskDevices && kiosk.kioskDevices.length > 0 ? (
-                                <DeviceStatusGroup
-                                    kioskDevices={kiosk.kioskDevices}
-                                    openReplaceDialog={openReplaceDialog}
-                                    openOnhubDialog={openOnhubDialog}
-                                    openOnplaceDialog={openOnplaceDialog}
-                                    openDeviceIngredient={openIngredientDialog}
-                                    openDeviceIngredientHistory={openDeviceIngredientHistory}
-                                />
-                            ) : (
-                                <div className="text-center py-8 text-muted-foreground">
-                                    <Package className="h-12 w-12 mx-auto mb-3 opacity-20" />
-                                    <p>Chưa có thiết bị nào được thêm vào kiosk này</p>
-                                </div>
-                            )}
+                            <Tabs defaultValue="active" className="w-full">
+                                <TabsList className="grid w-full grid-cols-2">
+                                    <TabsTrigger value="active">
+                                        Đang hoạt động ({activeDevices.length})
+                                    </TabsTrigger>
+                                    <TabsTrigger value="disposed">
+                                        Đã gỡ ({disposedDevices.length})
+                                    </TabsTrigger>
+                                </TabsList>
+
+                                <TabsContent value="active" className="mt-4">
+                                    <DeviceStatusGroup
+                                        kioskDevices={activeDevices}
+                                        openReplaceDialog={openReplaceDialog}
+                                        openOnhubDialog={openOnhubDialog}
+                                        openOnplaceDialog={openOnplaceDialog}
+                                        openDeviceIngredient={openIngredientDialog}
+                                        openDeviceIngredientHistory={openDeviceIngredientHistory}
+                                    />
+                                </TabsContent>
+                                <TabsContent value="disposed" className="mt-4">
+                                    <DeviceStatusGroup
+                                        kioskDevices={disposedDevices}
+                                        openReplaceDialog={openReplaceDialog}
+                                        openOnhubDialog={openOnhubDialog}
+                                        openOnplaceDialog={openOnplaceDialog}
+                                        openDeviceIngredient={openIngredientDialog}
+                                        openDeviceIngredientHistory={openDeviceIngredientHistory}
+                                    />
+                                </TabsContent>
+                            </Tabs>
                         </CardContent>
                     </Card>
                 </div>

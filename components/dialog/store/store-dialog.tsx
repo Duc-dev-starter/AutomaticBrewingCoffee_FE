@@ -114,6 +114,9 @@ const StoreDialog = ({ open, onOpenChange, onSuccess, store }: StoreDialogProps)
 
     const fetchOrganizations = async (pageNumber: number, query: string) => {
         try {
+            if (account?.roleName !== "Admin") {
+                setOrganizations([]);
+            }
             const response = await getOrganizations({
                 page: pageNumber,
                 size: 10,
@@ -278,7 +281,7 @@ const StoreDialog = ({ open, onOpenChange, onSuccess, store }: StoreDialogProps)
                 <div className="px-6 py-8 pt-2 space-y-8">
                     <div className="grid grid-cols-2 gap-4">
                         {/* Tên Cửa Hàng */}
-                        <div className="space-y-3">
+                        <div className={`space-y-3 ${account?.roleName !== "Admin" ? "col-span-2" : ""}`}>
                             <div className="flex items-center space-x-2 mb-2">
                                 <Monitor className="w-4 h-4 text-primary-300" />
                                 <label className="text-sm font-medium text-gray-700 asterisk">Tên Cửa Hàng</label>

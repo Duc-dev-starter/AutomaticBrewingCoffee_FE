@@ -29,15 +29,6 @@ const KioskDetailDialog = ({ kiosk, open, onOpenChange }: KioskDialogProps) => {
                             <Info className="mr-2 h-5 w-5" />
                             Chi tiết Kiosk
                         </DialogTitle>
-                        <Badge className={clsx("mr-4", getBaseStatusColor(kiosk.status))}>
-                            {EBaseStatusViMap[kiosk.status]}
-                        </Badge>
-                    </div>
-                    <div className="flex items-center justify-between text-sm text-muted-foreground mt-2">
-                        <div className="flex items-center">
-                            <FileText className="mr-1 h-4 w-4" />
-                            Mã kiosk: <span className="font-medium ml-1">{kiosk.kioskId}</span>
-                        </div>
                     </div>
                 </DialogHeader>
 
@@ -53,7 +44,7 @@ const KioskDetailDialog = ({ kiosk, open, onOpenChange }: KioskDialogProps) => {
                                 </h3>
                                 <div className="grid grid-cols-2 gap-3 text-sm">
                                     <div className="flex flex-col">
-                                        <span className="text-muted-foreground">Franchise</span>
+                                        <span className="text-muted-foreground">Tên cửa hàng</span>
                                         <span className="font-medium">
                                             {kiosk.store?.name || "Chưa có"}
                                         </span>

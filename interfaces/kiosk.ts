@@ -31,6 +31,7 @@ export interface KioskDevice {
     kioskDeviceMappingId: string;
     kioskId: string;
     status: EBaseStatus
+    isDisposed: boolean;
     deviceIngredientHistories: DeviceIngredientHistory[];
 }
 

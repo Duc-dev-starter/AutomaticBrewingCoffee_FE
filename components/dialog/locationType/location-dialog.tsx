@@ -25,8 +25,6 @@ const LocationTypeDialog = ({ open, onOpenChange, onSuccess, locationType }: Loc
     const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState(initialFormData);
     const [focusedField, setFocusedField] = useState<string | null>(null);
-    const [validFields, setValidFields] = useState<Record<string, boolean>>({});
-    const [submitted, setSubmitted] = useState(false);
     const [errors, setErrors] = useState<Record<string, string>>({});
     const nameInputRef = useRef<HTMLInputElement>(null);
     const isUpdate = !!locationType;
@@ -35,8 +33,8 @@ const LocationTypeDialog = ({ open, onOpenChange, onSuccess, locationType }: Loc
     useEffect(() => {
         if (!open) {
             setFormData(initialFormData);
-            setValidFields({});
             setFocusedField(null);
+            setErrors({});
         }
     }, [open]);
 
@@ -54,10 +52,6 @@ const LocationTypeDialog = ({ open, onOpenChange, onSuccess, locationType }: Loc
                 name: locationType.name,
                 description: locationType.description,
             });
-            setValidFields({
-                name: locationType.name.trim().length >= 2 && locationType.name.length <= 100,
-                description: locationType.description.length <= 450,
-            });
         }
     }, [locationType]);
 
@@ -74,25 +68,14 @@ const LocationTypeDialog = ({ open, onOpenChange, onSuccess, locationType }: Loc
         return () => document.removeEventListener("keydown", handleKeyDown);
     }, [open, formData]);
 
-    const validateField = (field: string, value: string) => {
-        const newValidFields = { ...validFields };
-        switch (field) {
-            case "name":
-                newValidFields.name = value.trim().length >= 2 && value.length <= 100;
-                break;
-            case "description":
-                newValidFields.description = value.length <= 450;
-                break;
-        }
-        setValidFields(newValidFields);
-    };
-
     const handleChange = (field: string, value: string) => {
         if (field === "description" && value.length > 450) {
             value = value.substring(0, 450);
         }
+        if (field === "name" && value.length > 100) {
+            value = value.substring(0, 100);
+        }
         setFormData((prev) => ({ ...prev, [field]: value }));
-        validateField(field, value);
     };
 
     const handleSubmit = async (e: React.FormEvent) => {
@@ -121,7 +104,7 @@ const LocationTypeDialog = ({ open, onOpenChange, onSuccess, locationType }: Loc
 
             toast({
                 title: "🎉 Thành công",
-                description: isUpdate ? "Cập nhật location thành công" : "Thêm location mới thành công",
+                description: isUpdate ? "Cập nhật loại địa điểm thành công" : "Thêm loại địa điểm mới thành công",
             });
             onSuccess?.();
             onOpenChange(false);
@@ -129,7 +112,7 @@ const LocationTypeDialog = ({ open, onOpenChange, onSuccess, locationType }: Loc
             const err = error as ErrorResponse;
             console.error("Lỗi khi xử lý location:", error);
             toast({
-                title: "Lỗi khi xử lý location type",
+                title: "Lỗi khi xử lý loại địa điểm",
                 description: err.message,
                 variant: "destructive",
             });
@@ -142,10 +125,10 @@ const LocationTypeDialog = ({ open, onOpenChange, onSuccess, locationType }: Loc
         <Dialog open={open} onOpenChange={onOpenChange}>
             <DialogContent className="sm:max-w-[600px] p-0 border-0 bg-white backdrop-blur-xl shadow-2xl">
                 <DialogTitle className="sr-only">
-                    {isUpdate ? "Cập nhật Location" : "Tạo Location Mới"}
+                    {isUpdate ? "Cập nhật loại địa điểm" : "Tạo loại địa điểm Mới"}
                 </DialogTitle>
                 <DialogDescription className="sr-only">
-                    Form thêm mới location. Nhập tên và mô tả location.
+                    Form thêm mới loại địa điểm. Nhập tên và mô tả loại địa điểm.
                 </DialogDescription>
                 {/* Header */}
                 <div className="relative overflow-hidden bg-primary-100 rounded-tl-2xl rounded-tr-2xl">
@@ -157,10 +140,10 @@ const LocationTypeDialog = ({ open, onOpenChange, onSuccess, locationType }: Loc
                             </div>
                             <div>
                                 <h1 className="text-2xl font-bold bg-gradient-to-r from-gray-900 to-gray-700 bg-clip-text text-transparent">
-                                    {isUpdate ? "Cập nhật Location" : "Tạo Location Mới"}
+                                    {isUpdate ? "Cập nhật loại địa điểm" : "Tạo loại địa điểm mới"}
                                 </h1>
                                 <p className="text-gray-500">
-                                    {isUpdate ? "Chỉnh sửa thông tin location" : "Thêm location mới vào hệ thống"}
+                                    {isUpdate ? "Chỉnh sửa thông tin loại địa điểm" : "Thêm loại địa điểm mới vào hệ thống"}
                                 </p>
                             </div>
                         </div>
@@ -173,7 +156,7 @@ const LocationTypeDialog = ({ open, onOpenChange, onSuccess, locationType }: Loc
                         <div className="flex items-center space-x-2 mb-2">
                             <MapPin className="w-4 h-4 text-primary-300" />
                             <label className="text-sm font-medium text-gray-700">
-                                Tên Location <span className="text-red-500">*</span>
+                                Tên loại địa điểm <span className="text-red-500">*</span>
                             </label>
                         </div>
 
@@ -187,34 +170,22 @@ const LocationTypeDialog = ({ open, onOpenChange, onSuccess, locationType }: Loc
                                 onBlur={() => setFocusedField(null)}
                                 disabled={loading}
                                 className={cn(
-                                    "h-12 text-base px-4 border-2 transition-all duration-300 bg-white/80 backdrop-blur-sm pr-10", // Thêm pr-10
+                                    "h-12 text-base px-4 border-2 transition-all duration-300 bg-white/80 backdrop-blur-sm pr-10",
                                     focusedField === "name" && "border-primary-300 ring-4 ring-primary-100 shadow-lg scale-[1.02]",
-                                    validFields.name && "border-green-400 bg-green-50/50",
-                                    !validFields.name && formData.name && "border-red-300 bg-red-50/50",
                                 )}
                             />
-                            {validFields.name && (
-                                <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-green-500 animate-in zoom-in-50" />
-                            )}
-                            {!validFields.name && formData.name && (
-                                <AlertCircle className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-red-400 animate-in zoom-in-50" />
-                            )}
                         </div>
 
                         <div className="flex justify-between items-center text-xs">
                             <span
                                 className={cn(
                                     "transition-colors",
-                                    !validFields.name && formData.name ? "text-red-500" : "text-gray-500",
+                                    formData.name ? "text-red-500" : "text-gray-500",
                                 )}
                             >
-                                {!validFields.name && formData.name
-                                    ? formData.name.trim().length < 2
-                                        ? "Tên phải có ít nhất 2 ký tự"
-                                        : formData.name.length > 100
-                                            ? "Tên không được vượt quá 100 ký tự"
-                                            : "Tên không hợp lệ"
-                                    : "Tên sẽ hiển thị trong danh sách locations"}
+                                {errors.name && (
+                                    <p className="text-red-500 text-xs mt-1">{errors.name}</p>
+                                )}
                             </span>
                             <span
                                 className={cn("transition-colors", formData.name.length > 80 ? "text-orange-500" : "text-gray-400")}
@@ -232,7 +203,7 @@ const LocationTypeDialog = ({ open, onOpenChange, onSuccess, locationType }: Loc
 
                         <div className="relative group">
                             <Textarea
-                                placeholder="Mô tả chi tiết về location, chức năng, vị trí, đặc điểm..."
+                                placeholder="Mô tả chi tiết về loại địa điểm, chức năng, vị trí, đặc điểm..."
                                 value={formData.description}
                                 onChange={(e) => handleChange("description", e.target.value)}
                                 onFocus={() => setFocusedField("description")}
@@ -241,12 +212,8 @@ const LocationTypeDialog = ({ open, onOpenChange, onSuccess, locationType }: Loc
                                 className={cn(
                                     "min-h-[100px] text-base p-4 border-2 transition-all duration-300 bg-white/80 backdrop-blur-sm resize-none",
                                     focusedField === "description" && "border-primary-300 ring-4 ring-primary-100 shadow-lg scale-[1.01]",
-                                    validFields.description && "border-green-400 bg-green-50/50",
                                 )}
                             />
-                            {validFields.description && (
-                                <CheckCircle2 className="absolute right-3 top-3 w-5 h-5 text-green-500 animate-in zoom-in-50" />
-                            )}
                         </div>
 
                         <div className="flex justify-between items-center text-xs">

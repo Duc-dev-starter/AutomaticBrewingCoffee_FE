@@ -75,7 +75,7 @@ const ManageLocationTypes = () => {
     useEffect(() => {
         if (error) {
             toast({
-                title: "Lỗi khi lấy danh sách loại vị trí",
+                title: "Lỗi khi lấy danh sách loại địa điểm",
                 description: error.message || "Đã xảy ra lỗi không xác định",
                 variant: "destructive",
             });
@@ -109,14 +109,14 @@ const ManageLocationTypes = () => {
             await deleteLocationType(locationTypeToDelete.locationTypeId);
             toast({
                 title: "Thành công",
-                description: `Location "${locationTypeToDelete.name}" đã được xóa.`,
+                description: `Loại địa điểm "${locationTypeToDelete.name}" đã được xóa.`,
             });
             mutate();
         } catch (error: unknown) {
             const err = error as ErrorResponse;
             console.error("Lỗi khi xóa location:", err);
             toast({
-                title: "Lỗi khi xóa loại location",
+                title: "Lỗi khi xóa loại địa điểm",
                 description: err.message,
                 variant: "destructive",
             });
@@ -195,8 +195,8 @@ const ManageLocationTypes = () => {
             <div className="flex flex-col space-y-4 p-4 sm:p-6">
                 <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                     <div>
-                        <h2 className="text-2xl font-bold tracking-tight">Quản lý location</h2>
-                        <p className="text-muted-foreground">Quản lý và giám sát tất cả các location pha cà phê tự động.</p>
+                        <h2 className="text-2xl font-bold tracking-tight">Quản lý loại địa điểm</h2>
+                        <p className="text-muted-foreground">Quản lý và giám sát tất cả các loại địa điểm pha cà phê tự động.</p>
                     </div>
                     <div className="flex items-center gap-2">
                         <ExportButton loading={isLoading} />
@@ -238,8 +238,8 @@ const ManageLocationTypes = () => {
                                             checked={column.getIsVisible()}
                                             onCheckedChange={(value) => column.toggleVisibility(!!value)}
                                         >
-                                            {column.id === "locationId" ? "Mã location" :
-                                                column.id === "name" ? "Tên location" :
+                                            {column.id === "locationId" ? "Mã địa điểm" :
+                                                column.id === "name" ? "Tên địa điểm" :
                                                     column.id === "createdDate" ? "Ngày tạo" :
                                                         column.id === "updatedDate" ? "Ngày cập nhật" :
                                                             column.id === "actions" ? "Hành động" : column.id
@@ -363,7 +363,7 @@ const ManageLocationTypes = () => {
                 <ConfirmDeleteDialog
                     open={deleteDialogOpen}
                     onOpenChange={setDeleteDialogOpen}
-                    description={`Bạn có chắc chắn muốn xóa location "${locationTypeToDelete?.name}"? Hành động này không thể hoàn tác.`}
+                    description={`Bạn có chắc chắn muốn xóa loại địa điểm "${locationTypeToDelete?.name}"? Hành động này không thể hoàn tác.`}
                     onConfirm={confirmDelete}
                     onCancel={() => setLocationTypeToDelete(null)}
                 />

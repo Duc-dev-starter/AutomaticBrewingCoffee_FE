@@ -111,8 +111,8 @@ const menuSections: MenuSection[] = [
     {
         title: "Quản lý đồng bộ",
         items: [
-            { title: "Quản lý đồng bộ event", url: Path.MANAGE_SYNC_EVENT, icon: CalendarCheck },
-            { title: "Quản lý đồng bộ task", url: Path.MANAGE_SYNC_TASKS, icon: ListChecks },
+            { title: "Quản lý đồng bộ sự kiện", url: Path.MANAGE_SYNC_EVENT, icon: CalendarCheck },
+            { title: "Quản lý đồng bộ công việc", url: Path.MANAGE_SYNC_TASKS, icon: ListChecks },
         ],
     },
     {
@@ -124,7 +124,7 @@ const menuSections: MenuSection[] = [
             { title: "Quản lý danh mục", url: Path.MANAGE_CATEGORIES, icon: Tags },
             { title: "Quản lý cửa hàng", url: Path.MANAGE_STORES, icon: Store },
             { title: "Quản lý thực đơn", url: Path.MANAGE_MENUS, icon: List },
-            { title: "Quản lý location", url: Path.MANAGE_LOCATION_TYPES, icon: MapPin },
+            { title: "Quản lý loại địa chỉ", url: Path.MANAGE_LOCATION_TYPES, icon: MapPin },
             { title: "Quản lý loại nguyên liệu", url: Path.MANAGE_INGREDIENT_TYPE, icon: UtensilsCrossed },
         ],
     },

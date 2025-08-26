@@ -35,8 +35,6 @@ const MenuDialog = ({ open, onOpenChange, onSuccess, menu }: MenuDialogProps) =>
     const [organizationSearchQuery, setOrganizationSearchQuery] = useState("");
     const [pageOrganizations, setPageOrganizations] = useState(1);
     const [hasMoreOrganizations, setHasMoreOrganizations] = useState(true);
-    const [submitted, setSubmitted] = useState(false)
-    const [validFields, setValidFields] = useState<Record<string, boolean>>({})
     const [focusedField, setFocusedField] = useState<string | null>(null)
     const nameInputRef = useRef<HTMLInputElement>(null);
 
@@ -259,7 +257,7 @@ const MenuDialog = ({ open, onOpenChange, onSuccess, menu }: MenuDialogProps) =>
                         </div>
                     </div>
 
-                    <div className="grid grid-cols-2 gap-4">
+                    <div className="col-span-2">
                         {/* Trạng thái */}
                         <FormBaseStatusSelectField
                             label="Trạng thái"
@@ -269,7 +267,7 @@ const MenuDialog = ({ open, onOpenChange, onSuccess, menu }: MenuDialogProps) =>
                             error={errors.status}
                             focusedField={focusedField}
                             setFocusedField={setFocusedField}
-                            submitted={submitted}
+                            submitted={loading}
                         />
                     </div>
 

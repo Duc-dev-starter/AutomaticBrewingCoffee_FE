@@ -9,7 +9,7 @@ export const useAppStore = createStore<AccountSlice>(
     }),
     {
         name: 'app-store',
-        storage: isClient ? sessionStorage : undefined,
+        storage: isClient ? localStorage : undefined,
         enableDevtools: true,
     }
 );

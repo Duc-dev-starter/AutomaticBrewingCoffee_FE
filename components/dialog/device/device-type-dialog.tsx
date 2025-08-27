@@ -197,16 +197,8 @@ const DeviceTypeDialog = ({ open, onOpenChange, onSuccess, deviceType }: DeviceD
                                 className={cn(
                                     "h-12 text-base px-4 border-2 transition-all duration-300 bg-white/80 backdrop-blur-sm pr-10",
                                     focusedField === "name" && "border-primary-300 ring-4 ring-primary-100 shadow-lg scale-[1.02]",
-                                    validFields.name && "border-green-400 bg-green-50/50",
-                                    !validFields.name && formData.name && "border-red-300 bg-red-50/50",
                                 )}
                             />
-                            {validFields.name && (
-                                <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-green-500 animate-in zoom-in-50" />
-                            )}
-                            {!validFields.name && formData.name && (
-                                <AlertCircle className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-red-400 animate-in zoom-in-50" />
-                            )}
                             {submitted && errors.name && (
                                 <p className="text-red-500 text-xs mt-1">{errors.name}</p>
                             )}
@@ -266,9 +258,6 @@ const DeviceTypeDialog = ({ open, onOpenChange, onSuccess, deviceType }: DeviceD
                                     validFields.description && "border-green-400 bg-green-50/50",
                                 )}
                             />
-                            {validFields.description && (
-                                <CheckCircle2 className="absolute right-3 top-3 w-5 h-5 text-green-500 animate-in zoom-in-50" />
-                            )}
                         </div>
 
                         <div className="flex justify-between items-center text-xs">

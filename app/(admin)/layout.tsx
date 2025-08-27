@@ -13,7 +13,7 @@ import { registerToast } from "@/utils";
 import { useEffect, useState } from "react"; // Removed unused useState
 import { HubConnectionState } from "@microsoft/signalr";
 import { logout, refreshToken } from "@/services/auth.service";
-import { scheduleTokenRefresh } from "@/utils/cookie";
+// import { scheduleTokenRefresh } from "@/utils/cookie";
 import Cookies from 'js-cookie'
 import { NotificationBell } from "@/components/common";
 import { Notification } from "@/interfaces/notification";
@@ -109,12 +109,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         }
     }, [connection]);
 
-    useEffect(() => {
-        const accessToken = Cookies.get("accessToken");
-        if (accessToken) {
-            scheduleTokenRefresh();
-        }
-    }, []);
+    // useEffect(() => {
+    //     const accessToken = Cookies.get("accessToken");
+    //     if (accessToken) {
+    //         scheduleTokenRefresh();
+    //     }
+    // }, []);
 
     const renderConnectionState = () => {
         if (connectionState === HubConnectionState.Connected) return <span className="text-green-600">Đã kết nối server</span>
@@ -124,21 +124,21 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
         return null;
     }
 
-    useEffect(() => {
-        const cleanup = scheduleTokenRefresh();
+    // useEffect(() => {
+    //     const cleanup = scheduleTokenRefresh();
 
-        const handleVisibilityChange = () => {
-            if (document.visibilityState === 'visible') {
-                scheduleTokenRefresh(); // Recheck và reschedule khi tab active
-            }
-        };
+    //     const handleVisibilityChange = () => {
+    //         if (document.visibilityState === 'visible') {
+    //             scheduleTokenRefresh(); // Recheck và reschedule khi tab active
+    //         }
+    //     };
 
-        document.addEventListener('visibilitychange', handleVisibilityChange);
-        return () => {
-            document.removeEventListener('visibilitychange', handleVisibilityChange);
-            if (cleanup) cleanup();
-        };
-    }, []);
+    //     document.addEventListener('visibilitychange', handleVisibilityChange);
+    //     return () => {
+    //         document.removeEventListener('visibilitychange', handleVisibilityChange);
+    //         if (cleanup) cleanup();
+    //     };
+    // }, []);
 
     return (
         <SidebarProvider>

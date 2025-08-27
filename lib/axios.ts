@@ -52,10 +52,9 @@ axiosInstance.interceptors.response.use(
     },
     async (error) => {
         console.log(error.response);
+        const originalRequest = error.config;
+        const { data } = error.response;
         if (error.response) {
-            const originalRequest = error.config;
-            const { data } = error.response;
-
             // Xử lý lỗi 401
             if (error.response.status === HttpStatus.Unauthorized && !originalRequest._retry && error.response?.message?.includes("làm mới")) {
                 if (isRefreshing) {
@@ -123,7 +122,7 @@ axiosInstance.interceptors.response.use(
                             title: "Hệ thống gặp trục trặc",
                             description: `${data.message || data.Message}`,
                         })
-                        // toast.error(data.message || data.Message);
+                        // toast.error(data.message || data.Message);                                           
                         //     switch(user.role){
                         //       case "member":
                         //         window.location.href = Path.NOTFOUND;

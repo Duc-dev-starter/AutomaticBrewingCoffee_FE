@@ -245,16 +245,8 @@ const DeviceDialog = ({ open, onOpenChange, onSuccess, device }: DeviceDialogPro
                                     className={cn(
                                         "h-12 text-base px-4 border-2 transition-all duration-300 bg-white/80 backdrop-blur-sm pr-10",
                                         focusedField === "name" && "border-primary-300 ring-4 ring-primary-100 shadow-lg scale-[1.02]",
-                                        validFields.name && "border-green-400 bg-green-50/50",
-                                        !validFields.name && formData.name && "border-red-300 bg-red-50/50"
                                     )}
                                 />
-                                {validFields.name && (
-                                    <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-green-500 animate-in zoom-in-50" />
-                                )}
-                                {!validFields.name && formData.name && (
-                                    <AlertCircle className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-red-400 animate-in zoom-in-50" />
-                                )}
                             </div>
                             {submitted && errors.name && (
                                 <p className="text-red-500 text-xs mt-1">{errors.name}</p>
@@ -323,16 +315,8 @@ const DeviceDialog = ({ open, onOpenChange, onSuccess, device }: DeviceDialogPro
                                     className={cn(
                                         "h-12 text-base px-4 border-2 transition-all duration-300 bg-white/80 backdrop-blur-sm pr-10",
                                         focusedField === "serialNumber" && "border-primary-300 ring-4 ring-primary-100 shadow-lg scale-[1.02]",
-                                        validFields.serialNumber && "border-green-400 bg-green-50/50",
-                                        !validFields.serialNumber && formData.serialNumber && "border-red-300 bg-red-50/50"
                                     )}
                                 />
-                                {validFields.serialNumber && (
-                                    <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-green-500 animate-in zoom-in-50" />
-                                )}
-                                {!validFields.serialNumber && formData.serialNumber && (
-                                    <AlertCircle className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-red-400 animate-in zoom-in-50" />
-                                )}
                             </div>
                             {submitted && errors.serialNumber && <p className="text-red-500 text-xs mt-1">{errors.serialNumber}</p>}
                         </div>
@@ -361,7 +345,6 @@ const DeviceDialog = ({ open, onOpenChange, onSuccess, device }: DeviceDialogPro
                         disabled={loading}
                         error={errors.description}
                         submitted={submitted}
-                        valid={validFields.description}
                         focused={focusedField === "description"}
                     />
 

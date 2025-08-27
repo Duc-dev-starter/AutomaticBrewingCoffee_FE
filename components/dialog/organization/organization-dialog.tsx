@@ -407,16 +407,8 @@ const OrganizationDialog = ({ open, onOpenChange, onSuccess, organization }: Org
                                     className={cn(
                                         "h-12 text-base px-4 border-2 transition-all duration-300 bg-white/80 backdrop-blur-sm pr-10",
                                         focusedField === "name" && "border-primary-300 ring-4 ring-primary-100 shadow-lg scale-[1.02]",
-                                        validFields.name && "border-green-400 bg-green-50/50",
-                                        !validFields.name && formData.name && "border-red-300 bg-red-50/50"
                                     )}
                                 />
-                                {validFields.name && (
-                                    <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-green-500 animate-in zoom-in-50" />
-                                )}
-                                {!validFields.name && formData.name && (
-                                    <AlertCircle className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-red-400 animate-in zoom-in-50" />
-                                )}
                             </div>
                             {submitted && errors.name && (
                                 <p className="text-red-500 text-xs mt-1">{errors.name}</p>
@@ -439,16 +431,8 @@ const OrganizationDialog = ({ open, onOpenChange, onSuccess, organization }: Org
                                     className={cn(
                                         "h-12 text-base px-4 border-2 transition-all duration-300 bg-white/80 backdrop-blur-sm pr-10",
                                         focusedField === "taxId" && "border-primary-300 ring-4 ring-primary-100 shadow-lg scale-[1.02]",
-                                        validFields.taxId && "border-green-400 bg-green-50/50",
-                                        !validFields.taxId && formData.taxId && "border-red-300 bg-red-50/50"
                                     )}
                                 />
-                                {validFields.taxId && (
-                                    <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-green-500 animate-in zoom-in-50" />
-                                )}
-                                {!validFields.taxId && formData.taxId && (
-                                    <AlertCircle className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-red-400 animate-in zoom-in-50" />
-                                )}
                             </div>
                             {submitted && errors.taxId && (
                                 <p className="text-red-500 text-xs mt-1">{errors.taxId}</p>
@@ -474,16 +458,8 @@ const OrganizationDialog = ({ open, onOpenChange, onSuccess, organization }: Org
                                     className={cn(
                                         "h-12 text-base px-4 border-2 transition-all duration-300 bg-white/80 backdrop-blur-sm pr-10",
                                         focusedField === "contactEmail" && "border-primary-300 ring-4 ring-primary-100 shadow-lg scale-[1.02]",
-                                        validFields.contactEmail && "border-green-400 bg-green-50/50",
-                                        !validFields.contactEmail && formData.contactEmail && "border-red-300 bg-red-50/50"
                                     )}
                                 />
-                                {validFields.contactEmail && (
-                                    <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-green-500 animate-in zoom-in-50" />
-                                )}
-                                {!validFields.contactEmail && formData.contactEmail && (
-                                    <AlertCircle className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-red-400 animate-in zoom-in-50" />
-                                )}
                             </div>
                             {submitted && errors.contactEmail && (
                                 <p className="text-red-500 text-xs mt-1">{errors.contactEmail}</p>
@@ -506,16 +482,8 @@ const OrganizationDialog = ({ open, onOpenChange, onSuccess, organization }: Org
                                     className={cn(
                                         "h-12 text-base px-4 border-2 transition-all duration-300 bg-white/80 backdrop-blur-sm pr-10",
                                         focusedField === "contactPhone" && "border-primary-300 ring-4 ring-primary-100 shadow-lg scale-[1.02]",
-                                        validFields.contactPhone && "border-green-400 bg-green-50/50",
-                                        !validFields.contactPhone && formData.contactPhone && "border-red-300 bg-red-50/50"
                                     )}
                                 />
-                                {validFields.contactPhone && (
-                                    <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-green-500 animate-in zoom-in-50" />
-                                )}
-                                {!validFields.contactPhone && formData.contactPhone && (
-                                    <AlertCircle className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-red-400 animate-in zoom-in-50" />
-                                )}
                             </div>
                             {submitted && errors.contactPhone && (
                                 <p className="text-red-500 text-xs mt-1">{errors.contactPhone}</p>

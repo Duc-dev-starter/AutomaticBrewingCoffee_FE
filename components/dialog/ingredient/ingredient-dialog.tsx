@@ -149,9 +149,6 @@ const IngredientTypeDialog = ({ open, onOpenChange, onSuccess, ingredientType }:
                                 disabled={loading}
                                 className="h-12 text-base px-4 border-2 transition-all duration-300 bg-white/80 backdrop-blur-sm pr-10"
                             />
-                            {errors.name && (
-                                <AlertCircle className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-red-400 animate-in zoom-in-50" />
-                            )}
                         </div>
                         {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
                     </div>

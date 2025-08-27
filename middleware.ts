@@ -27,7 +27,7 @@ export function middleware(req: NextRequest) {
 
     const isPublicPath = pathname === Path.LOGIN || pathname === Path.HOME;
 
-    if (!accessToken || !refreshToken) {
+    if (!accessToken) {
         if (!isPublicPath) {
             url.pathname = Path.LOGIN;
             url.searchParams.set("redirect", pathname);
@@ -36,7 +36,21 @@ export function middleware(req: NextRequest) {
         return NextResponse.next();
     }
 
-    if (accessToken && refreshToken && pathname === Path.LOGIN) {
+    // if (!accessToken || !refreshToken) {
+    //     if (!isPublicPath) {
+    //         url.pathname = Path.LOGIN;
+    //         url.searchParams.set("redirect", pathname);
+    //         return NextResponse.redirect(url);
+    //     }
+    //     return NextResponse.next();
+    // }
+
+    // if (accessToken && refreshToken && pathname === Path.LOGIN) {
+    //     url.pathname = Path.INVALID_REQUEST;
+    //     return NextResponse.redirect(url);
+    // }
+
+    if (accessToken && pathname === Path.LOGIN) {
         url.pathname = Path.INVALID_REQUEST;
         return NextResponse.redirect(url);
     }

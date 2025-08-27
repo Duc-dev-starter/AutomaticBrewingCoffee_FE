@@ -237,16 +237,8 @@ const KioskVersionDialog = ({ open, onOpenChange, onSuccess, kioskVersion }: Kio
                                 className={cn(
                                     "h-12 text-base px-4 border-2 transition-all duration-300 bg-white/80 backdrop-blur-sm pr-10",
                                     focusedField === "versionTitle" && "border-primary-300 ring-4 ring-primary-100 shadow-lg scale-[1.02]",
-                                    validFields.versionTitle && "border-green-400 bg-green-50/50",
-                                    !validFields.versionTitle && formData.versionTitle && "border-red-300 bg-red-50/50",
                                 )}
                             />
-                            {validFields.versionTitle && (
-                                <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-green-500 animate-in zoom-in-50" />
-                            )}
-                            {!validFields.versionTitle && formData.versionTitle && (
-                                <AlertCircle className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-red-400 animate-in zoom-in-50" />
-                            )}
                         </div>
                         <div className="flex justify-between items-center text-xs">
                             <span
@@ -288,16 +280,8 @@ const KioskVersionDialog = ({ open, onOpenChange, onSuccess, kioskVersion }: Kio
                                 className={cn(
                                     "h-12 text-base px-4 border-2 transition-all duration-300 bg-white/80 backdrop-blur-sm pr-10",
                                     focusedField === "versionNumber" && "border-primary-300 ring-4 ring-primary-100 shadow-lg scale-[1.02]",
-                                    validFields.versionNumber && "border-green-400 bg-green-50/50",
-                                    !validFields.versionNumber && formData.versionNumber && "border-red-300 bg-red-50/50",
                                 )}
                             />
-                            {validFields.versionNumber && (
-                                <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-green-500 animate-in zoom-in-50" />
-                            )}
-                            {!validFields.versionNumber && formData.versionNumber && (
-                                <AlertCircle className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-red-400 animate-in zoom-in-50" />
-                            )}
                         </div>
                         <div className="flex justify-between items-center text-xs">
                             <span
@@ -440,12 +424,8 @@ const KioskVersionDialog = ({ open, onOpenChange, onSuccess, kioskVersion }: Kio
                                 className={cn(
                                     "min-h-[100px] text-base p-4 border-2 transition-all duration-300 bg-white/80 backdrop-blur-sm resize-none",
                                     focusedField === "description" && "border-primary-300 ring-4 ring-primary-100 shadow-lg scale-[1.01]",
-                                    validFields.description && "border-green-400 bg-green-50/50",
                                 )}
                             />
-                            {validFields.description && (
-                                <CheckCircle2 className="absolute right-3 top-3 w-5 h-5 text-green-500 animate-in zoom-in-50" />
-                            )}
                         </div>
                         <div className="flex justify-between items-center text-xs">
                             <span className="text-gray-500">Mô tả giúp phân biệt phiên bản kiosk này với các phiên bản khác</span>

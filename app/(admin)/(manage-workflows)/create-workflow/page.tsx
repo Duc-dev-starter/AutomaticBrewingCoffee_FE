@@ -164,7 +164,7 @@ const CreateWorkflow = () => {
         async (pageNumber: number) => {
             if (pageNumber === 1) setLoadingProducts(true)
             try {
-                const response = await getProducts({ page: pageNumber, size: 100 })
+                const response = await getProducts({ page: pageNumber, size: 100, isHasWorkflow: false, productType: "Child" })
                 setProducts((prev) => (pageNumber === 1 ? response.items : [...prev, ...response.items]))
                 setProductPage(pageNumber)
                 setHasMoreProducts(response.items.length >= 10)

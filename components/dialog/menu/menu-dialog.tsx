@@ -198,12 +198,6 @@ const MenuDialog = ({ open, onOpenChange, onSuccess, menu }: MenuDialogProps) =>
                                         errors.name && "border-red-300 bg-red-50/50"
                                     )}
                                 />
-                                {!errors.name && formData.name && (
-                                    <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-green-500 animate-in zoom-in-50" />
-                                )}
-                                {errors.name && (
-                                    <AlertCircle className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-red-400 animate-in zoom-in-50" />
-                                )}
                             </div>
                             {errors.name && (
                                 <p className="text-red-500 text-xs mt-1">{errors.name}</p>

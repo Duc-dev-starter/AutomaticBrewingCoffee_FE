@@ -21,7 +21,7 @@ export function createStore<T>(
         immer(initializer),
         {
             name: options.name,
-            storage: createJSONStorage(() => options.storage ?? sessionStorage),
+            storage: createJSONStorage(() => options.storage ?? localStorage),
         }
     );
 

@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Textarea } from "@/components/ui/textarea"
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import { EBaseStatus, EBaseStatusViMap } from "@/enum/base"
-import { PlusCircle, Loader2, Edit, Upload, X, LinkIcon, ImageIcon, CheckCircle2, AlertCircle, Save, Zap, Monitor, Circle, Edit3 } from "lucide-react"
+import { PlusCircle, Edit, Upload, X, LinkIcon, ImageIcon, Monitor, Circle, Edit3 } from "lucide-react"
 import { useToast } from "@/hooks/use-toast"
 import { createCategory, updateCategory } from "@/services/category.service"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
@@ -368,16 +368,8 @@ const CategoryDialog = ({ open, onOpenChange, onSuccess, category }: CategoryDia
                                 className={cn(
                                     "h-12 text-base px-4 border-2 transition-all duration-300 bg-white/80 backdrop-blur-sm pr-10",
                                     focusedField === "name" && "border-primary-300 ring-4 ring-primary-100 shadow-lg scale-[1.02]",
-                                    validFields.name && "border-green-400 bg-green-50/50",
-                                    !validFields.name && formData.name && "border-red-300 bg-red-50/50"
                                 )}
                             />
-                            {validFields.name && (
-                                <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-green-500 animate-in zoom-in-50" />
-                            )}
-                            {!validFields.name && formData.name && (
-                                <AlertCircle className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-red-400 animate-in zoom-in-50" />
-                            )}
                         </div>
                         {submitted && errors.name && (
                             <p className="text-red-500 text-xs mt-1">{errors.name}</p>
@@ -394,7 +386,7 @@ const CategoryDialog = ({ open, onOpenChange, onSuccess, category }: CategoryDia
                             onValueChange={(value) => handleChange("status", value)}
                             disabled={loading}
                         >
-                            <SelectTrigger className="h-12 text-base px-4 border-2 bg-white/80 backdrop-blur-sm">
+                            <SelectTrigger className="h-12 text-sm px-4 border-2 bg-white/80 backdrop-blur-sm">
                                 <SelectValue placeholder="Chọn trạng thái" />
                             </SelectTrigger>
                             <SelectContent>

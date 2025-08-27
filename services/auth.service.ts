@@ -75,7 +75,7 @@ export const logout = async () => {
     });
 
     if (typeof window !== 'undefined') {
-        sessionStorage.clear();
+        localStorage.clear();
     }
 };
 

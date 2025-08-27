@@ -15,7 +15,6 @@ interface FormDescriptionFieldProps {
     error?: string;
     maxLength?: number;
     showCounter?: boolean;
-    valid?: boolean;
     focused?: boolean;
     submitted?: boolean;
 }
@@ -32,7 +31,6 @@ const FormDescriptionField: React.FC<FormDescriptionFieldProps> = ({
     error,
     maxLength = 450,
     showCounter = true,
-    valid = false,
     focused = false,
     submitted = false,
 }) => {
@@ -53,15 +51,8 @@ const FormDescriptionField: React.FC<FormDescriptionFieldProps> = ({
                     className={cn(
                         "min-h-[100px] text-base p-4 border-2 transition-all duration-300 bg-white/80 backdrop-blur-sm resize-none",
                         focused && "border-primary-300 ring-4 ring-primary-100 shadow-lg scale-[1.01]",
-                        valid && "border-green-400 bg-green-50/50"
                     )}
                 />
-                {valid && !error && (
-                    <CheckCircle2 className="absolute right-3 top-3 w-5 h-5 text-green-500 animate-in zoom-in-50" />
-                )}
-                {error && submitted && (
-                    <AlertCircle className="absolute right-3 top-3 w-5 h-5 text-red-400 animate-in zoom-in-50" />
-                )}
             </div>
 
             {showCounter && (

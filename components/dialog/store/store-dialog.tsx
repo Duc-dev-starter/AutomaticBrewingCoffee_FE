@@ -4,7 +4,7 @@ import { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { PlusCircle, Edit, CheckCircle2, AlertCircle, Building2, Monitor, MapPin, Phone, Circle } from "lucide-react";
+import { PlusCircle, Edit, Building2, Monitor, MapPin, Phone, Circle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { EBaseStatus, EBaseStatusViMap } from "@/enum/base";
 import { createStore, updateStore } from "@/services/store.service";
@@ -55,11 +55,32 @@ const StoreDialog = ({ open, onOpenChange, onSuccess, store }: StoreDialogProps)
     const debouncedLocSearchQuery = useDebounce(locSearchQuery, 300);
     const isUpdate = !!store;
 
-    // Reset state when dialog closes
     useEffect(() => {
-        if (!open) {
-            setFormData(initialFormData);
-            setValidFields({});
+        if (open) {
+            if (store) {
+                setFormData({
+                    organizationId: store.organization?.organizationId || "",
+                    name: store.name,
+                    description: store.description ?? "",
+                    contactPhone: store.contactPhone || "",
+                    locationAddress: store.locationAddress || "",
+                    status: store.status,
+                    locationTypeId: store.locationTypeId || "",
+                });
+                setValidFields({
+                    name: store.name.trim().length >= 1,
+                    description: (store.description || "").length <= 450,
+                    contactPhone: store.contactPhone?.trim().length >= 1,
+                    locationAddress: store.locationAddress?.trim().length >= 1,
+                    organizationId: !!store.organization?.organizationId,
+                    locationTypeId: !!store.locationTypeId,
+                });
+            }
+            else {
+                setFormData(initialFormData);
+                setValidFields({});
+            }
+
             setFocusedField(null);
             setSubmitted(false);
             setErrors({});
@@ -71,38 +92,9 @@ const StoreDialog = ({ open, onOpenChange, onSuccess, store }: StoreDialogProps)
             setHasMoreLocs(true);
             setOrgSearchQuery("");
             setLocSearchQuery("");
-        }
-    }, [open]);
 
-    // Auto-focus name field when dialog opens
-    useEffect(() => {
-        if (open && nameInputRef.current) {
-            setTimeout(() => nameInputRef.current?.focus(), 200);
         }
-    }, [open]);
-
-    // Populate form data for editing
-    useEffect(() => {
-        if (store) {
-            setFormData({
-                organizationId: store.organization?.organizationId || "",
-                name: store.name,
-                description: store.description ?? "",
-                contactPhone: store.contactPhone || "",
-                locationAddress: store.locationAddress || "",
-                status: store.status,
-                locationTypeId: store.locationTypeId || "",
-            });
-            setValidFields({
-                name: store.name.trim().length >= 1,
-                description: (store.description || "").length <= 450,
-                contactPhone: store.contactPhone?.trim().length >= 1,
-                locationAddress: store.locationAddress?.trim().length >= 1,
-                organizationId: !!store.organization?.organizationId,
-                locationTypeId: !!store.locationTypeId,
-            });
-        }
-    }, [store]);
+    }, [open, store]);
 
     // Fetch organizations and location types with debounced search
     useEffect(() => {
@@ -298,16 +290,8 @@ const StoreDialog = ({ open, onOpenChange, onSuccess, store }: StoreDialogProps)
                                     className={cn(
                                         "h-12 text-base px-4 border-2 transition-all duration-300 bg-white/80 backdrop-blur-sm pr-10",
                                         focusedField === "name" && "border-primary-300 ring-4 ring-primary-100 shadow-lg scale-[1.02]",
-                                        validFields.name && "border-green-400 bg-green-50/50",
-                                        !validFields.name && formData.name && "border-red-300 bg-red-50/50"
                                     )}
                                 />
-                                {validFields.name && (
-                                    <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-green-500 animate-in zoom-in-50" />
-                                )}
-                                {!validFields.name && formData.name && (
-                                    <AlertCircle className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-red-400 animate-in zoom-in-50" />
-                                )}
                             </div>
                             {submitted && errors.name && (
                                 <p className="text-red-500 text-xs mt-1">{errors.name}</p>
@@ -456,16 +440,8 @@ const StoreDialog = ({ open, onOpenChange, onSuccess, store }: StoreDialogProps)
                                     className={cn(
                                         "h-12 text-base px-4 border-2 transition-all duration-300 bg-white/80 backdrop-blur-sm pr-10",
                                         focusedField === "contactPhone" && "border-primary-300 ring-4 ring-primary-100 shadow-lg scale-[1.02]",
-                                        validFields.contactPhone && "border-green-400 bg-green-50/50",
-                                        !validFields.contactPhone && formData.contactPhone && "border-red-300 bg-red-50/50"
                                     )}
                                 />
-                                {validFields.contactPhone && (
-                                    <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-green-500 animate-in zoom-in-50" />
-                                )}
-                                {!validFields.contactPhone && formData.contactPhone && (
-                                    <AlertCircle className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-red-400 animate-in zoom-in-50" />
-                                )}
                             </div>
                             {submitted && errors.contactPhone && (
                                 <p className="text-red-500 text-xs mt-1">{errors.contactPhone}</p>
@@ -489,16 +465,8 @@ const StoreDialog = ({ open, onOpenChange, onSuccess, store }: StoreDialogProps)
                                     className={cn(
                                         "h-12 text-base px-4 border-2 transition-all duration-300 bg-white/80 backdrop-blur-sm pr-10",
                                         focusedField === "locationAddress" && "border-primary-300 ring-4 ring-primary-100 shadow-lg scale-[1.02]",
-                                        validFields.locationAddress && "border-green-400 bg-green-50/50",
-                                        !validFields.locationAddress && formData.locationAddress && "border-red-300 bg-red-50/50"
                                     )}
                                 />
-                                {validFields.locationAddress && (
-                                    <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-green-500 animate-in zoom-in-50" />
-                                )}
-                                {!validFields.locationAddress && formData.locationAddress && (
-                                    <AlertCircle className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-red-400 animate-in zoom-in-50" />
-                                )}
                             </div>
                             {submitted && errors.locationAddress && (
                                 <p className="text-red-500 text-xs mt-1">{errors.locationAddress}</p>
@@ -515,7 +483,6 @@ const StoreDialog = ({ open, onOpenChange, onSuccess, store }: StoreDialogProps)
                         disabled={loading}
                         error={errors.description}
                         submitted={submitted}
-                        valid={validFields.description}
                         focused={focusedField === "description"}
                     />
 

@@ -374,6 +374,7 @@ const JsonEditorComponent: React.FC<JsonEditorComponentProps> = ({
         } else if (typeof data === "object" && data !== null) {
             Object.entries(data).forEach(([key, value], i) => {
                 const param = functionParameters.find((p) => p.name === key)
+                const displayText = param?.description && param.description.trim() !== "" ? param.description : key;
                 const paramType = param?.type || "unknown"
                 const hasError = validationErrors[key]
                 const isNumeric = param && ["integer", "int", "double", "float"].includes(param.type.toLowerCase())
@@ -386,7 +387,7 @@ const JsonEditorComponent: React.FC<JsonEditorComponentProps> = ({
                     >
                         {spacing(indent)}
                         <div className="flex items-center gap-2">
-                            <span className="text-blue-600 font-semibold">{key}</span>
+                            <span className="text-blue-600 font-semibold">{displayText}</span>
                             <span className="text-xs bg-gray-100 text-gray-600 px-1 rounded">{paramType}</span>
                             {hasConstraints && (
                                 <span className="text-xs bg-orange-100 text-orange-600 px-1 rounded">

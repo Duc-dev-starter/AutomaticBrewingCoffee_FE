@@ -14,6 +14,8 @@ import { Notification } from "@/interfaces/notification"
 import { formatDate } from "@/utils/date"
 import { Skeleton } from "@/components/ui/skeleton"
 import { getNotification } from "@/services/notification.service"
+import { Order } from "@/interfaces/order"
+import { getOrder } from "@/services/order.service"
 
 const NotificationDetail = () => {
     const { toast } = useToast()
@@ -23,6 +25,9 @@ const NotificationDetail = () => {
 
     const [notification, setNotification] = useState<Notification | null>(null)
     const [loading, setLoading] = useState(true)
+    const [isDetailDialogOpen, setIsDetailDialogOpen] = useState(false)
+    const [selectedOrder, setSelectedOrder] = useState<Order | null>(null)
+    const [isFetchingOrder, setIsFetchingOrder] = useState(false)
 
     const fetchNotification = async () => {
         try {
@@ -38,6 +43,24 @@ const NotificationDetail = () => {
             router.push(Path.MANAGE_NOTIFICATIONS)
         } finally {
             setLoading(false)
+        }
+    }
+
+    const handleViewOrder = async (orderId: string) => {
+        setIsFetchingOrder(true)
+        try {
+            const orderData = await getOrder(orderId)
+            setSelectedOrder(orderData.response)
+            setIsDetailDialogOpen(true)
+        } catch (error) {
+            console.error("Failed to fetch order details:", error)
+            toast({
+                title: "Lỗi",
+                description: "Không thể tải chi tiết đơn hàng.",
+                variant: "destructive",
+            })
+        } finally {
+            setIsFetchingOrder(false)
         }
     }
 
@@ -185,9 +208,10 @@ const NotificationDetail = () => {
                                         <Button
                                             variant="outline"
                                             size="sm"
-                                            onClick={() => router.push(`${Path.MANAGE_ORDERS}/${notification.referenceId}`)}
+                                            onClick={() => handleViewOrder(notification.referenceId)}
+                                            disabled={isFetchingOrder}
                                         >
-                                            Xem
+                                            {isFetchingOrder ? "Đang tải..." : "Xem Đơn Hàng"}
                                         </Button>
                                     )}
                                 </div>

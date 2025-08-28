@@ -7,7 +7,7 @@ export default function RecentSalesCard({ data }: { data?: Order[] }) {
     return (
         <Card className="w-full max-w-md">
             <CardHeader>
-                <CardTitle>Giao dịch gần đây</CardTitle>
+                <CardTitle>Đơn hàng gần đây</CardTitle>
                 <p className="text-sm text-muted-foreground">{data?.length} đơn gần nhất.</p>
             </CardHeader>
             <CardContent>
@@ -17,7 +17,7 @@ export default function RecentSalesCard({ data }: { data?: Order[] }) {
                             <div className="flex justify-between items-center flex-wrap gap-2">
                                 <p className="font-medium break-all">{sale.orderCode}</p>
                                 <p className="font-semibold text-green-600 whitespace-nowrap">
-                                    +{formatCurrency(sale.totalAmount)}
+                                    {formatCurrency(sale.totalAmount)}
                                 </p>
                             </div>
 

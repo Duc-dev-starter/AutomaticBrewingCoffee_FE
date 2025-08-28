@@ -108,14 +108,18 @@ export function NavUser({
                         </DropdownMenuGroup>
                         <DropdownMenuSeparator />
                         <DropdownMenuGroup>
-                            <DropdownMenuItem className="hover:bg-[#e1f9f9] dark:hover:bg-[#1a3333] focus:bg-[#e1f9f9] dark:focus:bg-[#1a3333]">
-                                <BadgeCheck className="mr-2 h-4 w-4 text-[#68e0df]" />
-                                Tài khoản
-                            </DropdownMenuItem>
-                            <DropdownMenuItem className="hover:bg-[#e1f9f9] dark:hover:bg-[#1a3333] focus:bg-[#e1f9f9] dark:focus:bg-[#1a3333]">
-                                <Bell className="mr-2 h-4 w-4 text-[#68e0df]" />
-                                Thông báo
-                            </DropdownMenuItem>
+                            <Link href={Path.PROFILE}>
+                                <DropdownMenuItem className="hover:bg-[#e1f9f9] dark:hover:bg-[#1a3333] focus:bg-[#e1f9f9] dark:focus:bg-[#1a3333]">
+                                    <BadgeCheck className="mr-2 h-4 w-4 text-[#68e0df]" />
+                                    Tài khoản
+                                </DropdownMenuItem>
+                            </Link>
+                            <Link href={Path.MANAGE_NOTIFICATIONS}>
+                                <DropdownMenuItem className="hover:bg-[#e1f9f9] dark:hover:bg-[#1a3333] focus:bg-[#e1f9f9] dark:focus:bg-[#1a3333]">
+                                    <Bell className="mr-2 h-4 w-4 text-[#68e0df]" />
+                                    Thông báo
+                                </DropdownMenuItem>
+                            </Link>
                             <DropdownMenuSeparator />
                             <DropdownMenuItem className="hover:bg-[#e1f9f9] dark:hover:bg-[#1a3333] focus:bg-[#e1f9f9] dark:focus:bg-[#1a3333]">
                                 <ThemeSelector />

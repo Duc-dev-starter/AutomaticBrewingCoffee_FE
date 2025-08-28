@@ -60,7 +60,6 @@ export function SalesPeakChart({ data }: SalesPeakChartProps) {
                             tickLine={false}
                             axisLine={false}
                             tickMargin={8}
-                            tickFormatter={(value) => `${(value / 1000).toFixed(0)}K`}
                         />
                         <ChartTooltip
                             cursor={false}
@@ -73,7 +72,7 @@ export function SalesPeakChart({ data }: SalesPeakChartProps) {
                         <Line dataKey="totalAmount" type="monotone" stroke="var(--color-totalAmount)" strokeWidth={2} dot={false} />
                         <ReferenceDot
                             x={peak.hour}
-                            y={peak.totalAmount}
+                            y={peak.orderCount}
                             r={6}
                             fill="hsl(var(--destructive))"
                             stroke="white"

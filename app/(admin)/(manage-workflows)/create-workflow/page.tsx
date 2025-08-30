@@ -274,6 +274,7 @@ const CreateWorkflow = () => {
                     currentStep.parameters = ""
                 } else if (field === "deviceFunctionId") {
                     currentStep.deviceFunctionId = (value as string) || ""
+                    currentStep.parameters = ""
                     if (currentStep.deviceFunctionId && currentStep.deviceModelId) {
                         const deviceModel = deviceModels.find((dm) => dm.deviceModelId === currentStep.deviceModelId)
                         const selectedFunction = deviceModel?.deviceFunctions?.find(

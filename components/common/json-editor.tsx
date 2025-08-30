@@ -288,6 +288,7 @@ const JsonEditorComponent: React.FC<JsonEditorComponentProps> = ({
 
 
         if (param && param.options && param.options.length > 0) {
+            console.log('Select value:', value, typeof value);
             return (
                 <div className="flex w-full items-center gap-2">
                     <Select
@@ -309,19 +310,16 @@ const JsonEditorComponent: React.FC<JsonEditorComponentProps> = ({
                         </SelectTrigger>
                         <SelectContent>
                             {param.options.map((option, index) => {
-
-                                const isObjectOption = typeof option === 'object' && option !== null && 'name' in option;
-
-                                const optionValue = isObjectOption ? option.name : String(option);
-                                const optionDescription = isObjectOption ? option.description : null;
-
+                                // Luôn ép kiểu string cho value
+                                const optionValue = typeof option === 'object' && option !== null && 'name' in option
+                                    ? String(option.name)
+                                    : String(option);
+                                console.log('optionValue:', optionValue);
                                 return (
                                     <SelectItem key={`${optionValue}-${index}`} value={optionValue}>
-                                        <div className="flex items-center justify-between w-full">
-                                            <span>{optionDescription}</span>
-                                        </div>
+                                        <span>{optionValue}</span>
                                     </SelectItem>
-                                );
+                                )
                             })}
                         </SelectContent>
                     </Select>

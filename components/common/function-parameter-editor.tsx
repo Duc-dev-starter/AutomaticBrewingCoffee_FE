@@ -87,31 +87,25 @@ const FunctionParameterEditor: React.FC<FunctionParameterEditorProps> = ({
         return parameterObject
     }, [functionParameters])
 
-    // --- THAY ĐỔI 3: Sửa lại useEffect để phá vỡ vòng lặp vô hạn ---
-    // useEffect này bây giờ chỉ phụ thuộc vào `functionParameters`.
-    // Khi bạn chọn một chức năng mới -> `functionParameters` thay đổi -> effect chạy.
-    // Nó sẽ không còn phụ thuộc vào `onChange` để tránh vòng lặp.
     useEffect(() => {
         if (functionParameters.length > 0) {
             const defaultParams = generateParameterObject()
             const newJsonValue = JSON.stringify(defaultParams, null, 2)
-            // Chỉ gọi onChange nếu giá trị mặc định mới khác với giá trị hiện tại
-            // để tránh các lần update không cần thiết.
+            let isInvalid = false;
             try {
-                if (JSON.stringify(JSON.parse(value)) !== JSON.stringify(defaultParams)) {
-                    onChange(newJsonValue);
-                }
+                JSON.parse(value)
             } catch {
-                // Nếu `value` hiện tại không phải là JSON hợp lệ, cứ cập nhật
-                onChange(newJsonValue);
+                isInvalid = true;
+            }
+            if (isInvalid || value === "{}" || value.trim() === "" || value === undefined) {
+                onChange(newJsonValue)
             }
         } else {
-            // Nếu không có tham số, reset về object rỗng
             if (value !== "{}") {
                 onChange("{}")
             }
         }
-    }, [functionParameters, generateParameterObject, onChange, value]) // Thêm value và onChange để tuân thủ quy tắc hook, nhưng logic bên trong đã ngăn vòng lặp
+    }, [functionParameters, generateParameterObject, onChange])
 
     if (!deviceFunctionId || functionParameters.length === 0) {
         return <JsonEditorComponent value={value} onChange={onChange} disabled={disabled} height="250px" />

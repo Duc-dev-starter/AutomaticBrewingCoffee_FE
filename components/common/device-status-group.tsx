@@ -81,11 +81,11 @@ export const DeviceStatusGroup = ({ kioskDevices, openReplaceDialog, openOnhubDi
                                                     </DropdownMenuItem>
                                                     <DropdownMenuItem onClick={() => openOnhubDialog(kioskDevice)}>
                                                         <Info className="mr-2 h-4 w-4" />
-                                                        Xem thông tin OnHub
+                                                        Xem thông tin kết nối
                                                     </DropdownMenuItem>
                                                     <DropdownMenuItem onClick={() => openOnplaceDialog(kioskDevice)}>
                                                         <Info className="mr-2 h-4 w-4" />
-                                                        Xem thông tin Onplace
+                                                        Xem thông tin tại máy
                                                     </DropdownMenuItem>
                                                     <DropdownMenuItem onClick={() => openDeviceIngredient(kioskDevice)}>
                                                         <Info className="mr-2 h-4 w-4" />
@@ -169,7 +169,7 @@ export const DeviceStatusGroup = ({ kioskDevices, openReplaceDialog, openOnhubDi
             {orderedStatuses.length === 0 && (
                 <div className="text-center py-8 text-muted-foreground">
                     <Package className="h-12 w-12 mx-auto mb-3 opacity-20" />
-                    <p>Chưa có thiết bị nào được thêm vào kiosk này</p>
+                    <p>Chưa có lịch sử</p>
                 </div>
             )}
         </div>

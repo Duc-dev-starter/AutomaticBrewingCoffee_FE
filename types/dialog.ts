@@ -84,8 +84,10 @@ export type SyncTaskDialogProps = BaseDialogProps & {
 
 export type DeviceIngredientStatesDialogProps = BaseDialogProps & {
     deviceIngredientStates: DeviceIngredientStates[];
+    deviceName: string;
 }
 
 export type DeviceIngredientHistoryDialogProps = BaseDialogProps & {
     deviceIngredientHistory: DeviceIngredientHistory[];
+    deviceName: string;
 }

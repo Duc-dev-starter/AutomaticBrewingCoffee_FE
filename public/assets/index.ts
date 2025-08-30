@@ -5,5 +5,5 @@ export const images = {
     vnpay: "/assets/vnpay-logo.jpg",
     defaultAvatar: "/assets/default-avatar.png",
     mpos: "/assets/mpos-logo.jpg",
-
+    azureIotHub: "/assets/azure-IoT-Hub-icon.svg"
 };

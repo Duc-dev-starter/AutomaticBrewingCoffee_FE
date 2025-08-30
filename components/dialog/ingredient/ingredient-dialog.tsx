@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogDescription, DialogTitle } from "@/compone
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Package, Edit, CheckCircle2, AlertCircle, Save, X } from "lucide-react";
+import { Package, Edit, Edit3, Circle } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { createIngredientType, updateIngredientType } from "@/services/ingredientType.service";
 import { ErrorResponse } from "@/types/error";
@@ -15,6 +15,7 @@ import { EBaseStatus, EBaseStatusViMap } from "@/enum/base";
 import { FormFooterActions } from "@/components/form";
 import { parseErrors } from "@/utils";
 import { ingredientTypeSchema } from "@/schema/ingredient.schema";
+import { cn } from "@/lib/utils";
 
 const initialFormData = {
     name: "",
@@ -26,34 +27,43 @@ const IngredientTypeDialog = ({ open, onOpenChange, onSuccess, ingredientType }:
     const { toast } = useToast();
     const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState(initialFormData);
+    const [focusedField, setFocusedField] = useState<string | null>(null);
     const [errors, setErrors] = useState<Record<string, string>>({});
     const nameInputRef = useRef<HTMLInputElement>(null);
     const isUpdate = !!ingredientType;
 
     useEffect(() => {
-        if (!open) {
-            setFormData(initialFormData);
+        if (open) {
+            if (ingredientType) {
+                setFormData({
+                    name: ingredientType.name,
+                    description: ingredientType.description || "",
+                    status: ingredientType.status,
+                });
+            } else {
+                setFormData(initialFormData);
+            }
             setErrors({});
+            setFocusedField(null);
         }
-    }, [open]);
+    }, [open, ingredientType]);
 
     useEffect(() => {
-        if (open && nameInputRef.current) {
-            setTimeout(() => nameInputRef.current?.focus(), 200);
-        }
-    }, [open]);
-
-    useEffect(() => {
-        if (ingredientType) {
-            setFormData({
-                name: ingredientType.name,
-                description: ingredientType.description || "",
-                status: ingredientType.status,
-            });
-        }
-    }, [ingredientType]);
+        const handleKeyDown = (e: KeyboardEvent) => {
+            if (!open) return;
+            if ((e.ctrlKey || e.metaKey) && e.key === "Enter") {
+                e.preventDefault();
+                handleSubmit(e as any);
+            }
+        };
+        document.addEventListener("keydown", handleKeyDown);
+        return () => document.removeEventListener("keydown", handleKeyDown);
+    }, [open, formData]);
 
     const handleChange = (field: string, value: string) => {
+        if (field === "name" && value.length > 100) value = value.substring(0, 100);
+        if (field === "description" && value.length > 450) value = value.substring(0, 450);
+
         setFormData((prev) => ({ ...prev, [field]: value }));
         if (errors[field]) {
             setErrors((prev) => ({ ...prev, [field]: "" }));
@@ -112,9 +122,9 @@ const IngredientTypeDialog = ({ open, onOpenChange, onSuccess, ingredientType }:
                 <DialogDescription className="sr-only">
                     Form thêm mới hoặc cập nhật loại nguyên liệu. Nhập tên, mô tả và trạng thái.
                 </DialogDescription>
+
                 {/* Header */}
                 <div className="relative overflow-hidden bg-primary-100 rounded-tl-2xl rounded-tr-2xl">
-                    <div className="absolute inset-0"></div>
                     <div className="relative px-8 py-6 border-b border-primary-300">
                         <div className="flex items-center space-x-4">
                             <div className="w-14 h-14 bg-gradient-to-r from-primary-400 to-primary-500 rounded-2xl flex items-center justify-center shadow-lg">
@@ -133,6 +143,7 @@ const IngredientTypeDialog = ({ open, onOpenChange, onSuccess, ingredientType }:
                 </div>
 
                 <form onSubmit={handleSubmit} className="px-8 py-8 pt-2 space-y-8">
+                    {/* Tên Loại Nguyên Liệu */}
                     <div className="space-y-3">
                         <div className="flex items-center space-x-2 mb-2">
                             <Package className="w-4 h-4 text-primary-300" />
@@ -146,38 +157,32 @@ const IngredientTypeDialog = ({ open, onOpenChange, onSuccess, ingredientType }:
                                 placeholder="Ví dụ: Cà phê, Sữa, Đường..."
                                 value={formData.name}
                                 onChange={(e) => handleChange("name", e.target.value)}
+                                onFocus={() => setFocusedField("name")}
+                                onBlur={() => setFocusedField(null)}
                                 disabled={loading}
-                                className="h-12 text-base px-4 border-2 transition-all duration-300 bg-white/80 backdrop-blur-sm pr-10"
+                                className={cn(
+                                    "h-12 text-base px-4 border-2 transition-all duration-300 bg-white/80 backdrop-blur-sm",
+                                    focusedField === "name" && "border-primary-300 ring-4 ring-primary-100 shadow-lg scale-[1.02]",
+                                )}
                             />
                         </div>
-                        {errors.name && <p className="text-red-500 text-xs mt-1">{errors.name}</p>}
+                        <div className="flex justify-between items-center text-xs">
+                            <span className="text-red-500">{errors.name}</span>
+                            <span className={cn("transition-colors text-gray-400", formData.name.length > 80 && "text-orange-500")}>
+                                {formData.name.length}/100
+                            </span>
+                        </div>
                     </div>
 
+                    {/* Trạng thái */}
                     <div className="space-y-3">
                         <div className="flex items-center space-x-2 mb-2">
-                            <Edit className="w-4 h-4 text-primary-300" />
-                            <label className="text-sm font-medium text-gray-700">Mô tả</label>
-                        </div>
-                        <div className="relative group">
-                            <Textarea
-                                placeholder="Mô tả chi tiết về loại nguyên liệu..."
-                                value={formData.description}
-                                onChange={(e) => handleChange("description", e.target.value)}
-                                disabled={loading}
-                                className="min-h-[100px] text-base p-4 border-2 transition-all duration-300 bg-white/80 backdrop-blur-sm resize-none"
-                            />
-                        </div>
-                        {errors.description && <p className="text-red-500 text-xs mt-1">{errors.description}</p>}
-                    </div>
-
-                    <div className="space-y-3">
-                        <div className="flex items-center space-x-2 mb-2">
-                            <CheckCircle2 className="w-4 h-4 text-primary-300" />
-                            <label className="text-sm font-medium text-gray-700">Trạng thái</label>
+                            <Circle className="w-4 h-4 text-primary-300" />
+                            <label className="text-sm font-medium text-gray-700">Trạng thái <span className="text-red-500">*</span></label>
                         </div>
                         <Select
                             value={formData.status}
-                            onValueChange={(value) => handleChange("status", value)}
+                            onValueChange={(value) => handleChange("status", value as EBaseStatus)}
                             disabled={loading}
                         >
                             <SelectTrigger className="h-12 text-sm px-4 border-2 bg-white/80 backdrop-blur-sm">
@@ -191,7 +196,35 @@ const IngredientTypeDialog = ({ open, onOpenChange, onSuccess, ingredientType }:
                                 ))}
                             </SelectContent>
                         </Select>
-                        {errors.status && <p className="text-red-500 text-xs mt-1">{errors.status}</p>}
+                        <span className="text-red-500 text-xs">{errors.status}</span>
+                    </div>
+
+                    {/* Mô tả */}
+                    <div className="space-y-3">
+                        <div className="flex items-center space-x-2 mb-2">
+                            <Edit3 className="w-4 h-4 text-primary-300" />
+                            <label className="text-sm font-medium text-gray-700">Mô tả</label>
+                        </div>
+                        <div className="relative group">
+                            <Textarea
+                                placeholder="Mô tả chi tiết về loại nguyên liệu, mục đích sử dụng, nguồn gốc..."
+                                value={formData.description}
+                                onChange={(e) => handleChange("description", e.target.value)}
+                                onFocus={() => setFocusedField("description")}
+                                onBlur={() => setFocusedField(null)}
+                                disabled={loading}
+                                className={cn(
+                                    "min-h-[100px] text-base p-4 border-2 transition-all duration-300 bg-white/80 backdrop-blur-sm resize-none",
+                                    focusedField === "description" && "border-primary-300 ring-4 ring-primary-100 shadow-lg scale-[1.01]",
+                                )}
+                            />
+                        </div>
+                        <div className="flex justify-between items-center text-xs">
+                            <span className="text-gray-500">Mô tả giúp phân biệt các loại nguyên liệu.</span>
+                            <span className={cn("transition-colors text-gray-400", formData.description.length > 400 && "text-orange-500")}>
+                                {formData.description.length}/450
+                            </span>
+                        </div>
                     </div>
 
                     <FormFooterActions

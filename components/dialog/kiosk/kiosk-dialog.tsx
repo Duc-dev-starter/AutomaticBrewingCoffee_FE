@@ -566,16 +566,8 @@ const KioskDialog = ({ open, onOpenChange, onSuccess, kiosk }: KioskDialogProps)
                                     className={cn(
                                         "h-12 text-base px-4 border-2 transition-all duration-300 bg-white/80 backdrop-blur-sm pr-10",
                                         focusedField === "location" && "border-primary-300 ring-4 ring-primary-100 shadow-lg scale-[1.02]",
-                                        validFields.location && "border-green-400 bg-green-50/50",
-                                        !validFields.location && formData.location && "border-red-300 bg-red-50/50"
                                     )}
                                 />
-                                {validFields.location && (
-                                    <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-green-500 animate-in zoom-in-50" />
-                                )}
-                                {!validFields.location && formData.location && (
-                                    <AlertCircle className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-red-400 animate-in zoom-in-50" />
-                                )}
                             </div>
                             {submitted && errors.location && (
                                 <p className="text-red-500 text-xs mt-1">{errors.location}</p>
@@ -598,16 +590,8 @@ const KioskDialog = ({ open, onOpenChange, onSuccess, kiosk }: KioskDialogProps)
                                     className={cn(
                                         "h-12 text-base px-4 border-2 transition-all duration-300 bg-white/80 backdrop-blur-sm pr-10",
                                         focusedField === "position" && "border-primary-300 ring-4 ring-primary-100 shadow-lg scale-[1.02]",
-                                        validFields.position && "border-green-400 bg-green-50/50",
-                                        !validFields.position && formData.position && "border-red-300 bg-red-50/50"
                                     )}
                                 />
-                                {validFields.position && (
-                                    <CheckCircle2 className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-green-500 animate-in zoom-in-50" />
-                                )}
-                                {!validFields.position && formData.position && (
-                                    <AlertCircle className="absolute right-3 top-1/2 -translate-y-1/2 w-5 h-5 text-red-400 animate-in zoom-in-50" />
-                                )}
                             </div>
                             {submitted && errors.position && (
                                 <p className="text-red-500 text-xs mt-1">{errors.position}</p>

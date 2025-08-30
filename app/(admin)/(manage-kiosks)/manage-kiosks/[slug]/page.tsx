@@ -37,7 +37,6 @@ import { DeviceStatusGroup } from "@/components/common/device-status-group"
 import { ErrorResponse } from "@/types/error"
 import { Webhook } from "@/interfaces/webhook"
 import { updateWebhook } from "@/services/webhook.service"
-import { DeviceIngredientHistoryDialog, KioskDeviceIngredientStatesDialog, KioskOnhubDialog, KioskReplaceDeviceDialog, KioskWebhookDialog, OnplaceDialog } from "@/components/dialog/kiosk"
 import { syncKiosk, syncOverrideKiosk } from "@/services/sync.service"
 import { deleteKiosk } from "@/services/kiosk.service"
 import axios from "axios"
@@ -50,6 +49,13 @@ import {
 } from "@/components/ui/dropdown-menu"
 import { formatDate } from "@/utils/date"
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+const KioskOnhubDialog = React.lazy(() => import("@/components/dialog/kiosk").then(module => ({ default: module.KioskOnhubDialog })));
+const OnplaceDialog = React.lazy(() => import("@/components/dialog/kiosk").then(module => ({ default: module.OnplaceDialog })));
+const KioskWebhookDialog = React.lazy(() => import("@/components/dialog/kiosk").then(module => ({ default: module.KioskWebhookDialog })));
+const KioskReplaceDeviceDialog = React.lazy(() => import("@/components/dialog/kiosk").then(module => ({ default: module.KioskReplaceDeviceDialog })));
+const KioskDeviceIngredientStatesDialog = React.lazy(() => import("@/components/dialog/kiosk").then(module => ({ default: module.KioskDeviceIngredientStatesDialog })));
+const DeviceIngredientHistoryDialog = React.lazy(() => import("@/components/dialog/kiosk").then(module => ({ default: module.DeviceIngredientHistoryDialog })));
+
 
 
 const KioskDetailPage = () => {
@@ -82,6 +88,8 @@ const KioskDetailPage = () => {
     const [isDeviceIngredientHistoryDialogOpen, setIsDeviceIngredientHistoryDialogOpen] = useState(false)
     const [selectedDeviceIngredientHistory, setSelectedDeviceIngredientHistory] = useState<DeviceIngredientHistory[]>([])
     const [deleteDialogOpen, setDeleteDialogOpen] = useState(false)
+    const [selectedDeviceForIngredientHistory, setSelectedDeviceForIngredientHistory] = useState<string>("");
+    const [selectedDeviceForIngredientState, setSelectedDeviceForIngredientState] = useState<string>("");
 
     const fetchKioskData = async () => {
         try {
@@ -117,7 +125,9 @@ const KioskDetailPage = () => {
         try {
             setLoadingOnhub(true)
             const response = await getOnhub(kioskDeviceId)
-            setOnhubData(response)
+            console.log(response)
+            //@ts-ignore
+            setOnhubData(response.response)
         } catch (error) {
             const err = error as ErrorResponse
             console.error("Error fetching onhub data:", error)
@@ -154,6 +164,8 @@ const KioskDetailPage = () => {
         setOnhubData(null)
         fetchOnhubData(kioskDevice.kioskDeviceMappingId)
     }
+
+
 
     const openOnplaceDialog = async (kioskDevice: KioskDevice) => {
         setSelectedKioskDeviceForOnplace(kioskDevice)
@@ -242,11 +254,13 @@ const KioskDetailPage = () => {
     }
 
     const openIngredientDialog = (kioskDevice: KioskDevice) => {
+        setSelectedDeviceForIngredientState(kioskDevice.device.name);
         setSelectedDeviceIngredientStates(kioskDevice.device.deviceIngredientStates || [])
         setIsIngredientDialogOpen(true)
     }
 
     const openDeviceIngredientHistory = async (kioskDevice: KioskDevice) => {
+        setSelectedDeviceForIngredientHistory(kioskDevice.device.name);
         setSelectedDeviceIngredientHistory(kioskDevice.device.deviceIngredientHistories || [])
         setIsDeviceIngredientHistoryDialogOpen(true)
     }
@@ -678,7 +692,7 @@ const KioskDetailPage = () => {
                                         Đang hoạt động ({activeDevices.length})
                                     </TabsTrigger>
                                     <TabsTrigger value="disposed">
-                                        Đã gỡ ({disposedDevices.length})
+                                        Lịch sử thay thế ({disposedDevices.length})
                                     </TabsTrigger>
                                 </TabsList>
 
@@ -709,37 +723,44 @@ const KioskDetailPage = () => {
             </div>
 
             {/* Replace Device Dialog */}
-            <KioskReplaceDeviceDialog
-                open={isReplaceDialogOpen}
-                onOpenChange={setIsReplaceDialogOpen}
-                selectedKioskDevice={selectedKioskDevice}
-                replacementDevices={replacementDevices}
-                selectedReplacementDeviceId={selectedReplacementDeviceId}
-                setSelectedReplacementDeviceId={setSelectedReplacementDeviceId}
-                loadingReplacements={loadingReplacements}
-                processingAction={processingAction}
-                handleReplaceDevice={handleReplaceDevice}
-                onCancel={() => {
-                    setIsReplaceDialogOpen(false)
-                    setSelectedKioskDevice(null)
-                    setSelectedReplacementDeviceId("")
-                }}
-            />
+            <React.Suspense fallback={<div className="hidden">Đang tải...</div>}>
+                <KioskReplaceDeviceDialog
+                    open={isReplaceDialogOpen}
+                    onOpenChange={setIsReplaceDialogOpen}
+                    selectedKioskDevice={selectedKioskDevice}
+                    replacementDevices={replacementDevices}
+                    selectedReplacementDeviceId={selectedReplacementDeviceId}
+                    setSelectedReplacementDeviceId={setSelectedReplacementDeviceId}
+                    loadingReplacements={loadingReplacements}
+                    processingAction={processingAction}
+                    handleReplaceDevice={handleReplaceDevice}
+                    onCancel={() => {
+                        setIsReplaceDialogOpen(false)
+                        setSelectedKioskDevice(null)
+                        setSelectedReplacementDeviceId("")
+                    }}
+                />
+            </React.Suspense>
 
             {/* Ingredient Dialog */}
-            <KioskDeviceIngredientStatesDialog
-                open={isIngredientDialogOpen}
-                onOpenChange={setIsIngredientDialogOpen}
-                deviceIngredientStates={selectedDeviceIngredientStates}
-            />
+            <React.Suspense fallback={<div className="hidden">Đang tải...</div>}>
+                <KioskDeviceIngredientStatesDialog
+                    open={isIngredientDialogOpen}
+                    onOpenChange={setIsIngredientDialogOpen}
+                    deviceIngredientStates={selectedDeviceIngredientStates}
+                    deviceName={selectedDeviceForIngredientState || ""}
+                />
+            </React.Suspense>
 
             {/* Device Ingredient History Dialog */}
-            <DeviceIngredientHistoryDialog
-                open={isDeviceIngredientHistoryDialogOpen}
-                onOpenChange={setIsDeviceIngredientHistoryDialogOpen}
-                deviceIngredientHistory={selectedDeviceIngredientHistory}
-            />
-
+            <React.Suspense fallback={<div className="hidden">Đang tải...</div>}>
+                <DeviceIngredientHistoryDialog
+                    open={isDeviceIngredientHistoryDialogOpen}
+                    onOpenChange={setIsDeviceIngredientHistoryDialogOpen}
+                    deviceIngredientHistory={selectedDeviceIngredientHistory}
+                    deviceName={selectedDeviceForIngredientHistory || ""}
+                />
+            </React.Suspense>
 
             {/* Delete Confirmation Dialog */}
             <React.Suspense fallback={<div className="hidden">Đang tải...</div>}>
@@ -753,29 +774,35 @@ const KioskDetailPage = () => {
             </React.Suspense>
 
             {/* Webhook Dialog */}
-            <KioskWebhookDialog
-                isOpen={isUpdateWebhookDialogOpen}
-                onOpenChange={setIsUpdateWebhookDialogOpen}
-                webhookUrl={newWebhookUrl}
-                onWebhookUrlChange={setNewWebhookUrl}
-                onSubmit={handleUpdateWebhook}
-            />
+            <React.Suspense fallback={<div className="hidden">Đang tải...</div>}>
+                <KioskWebhookDialog
+                    isOpen={isUpdateWebhookDialogOpen}
+                    onOpenChange={setIsUpdateWebhookDialogOpen}
+                    webhookUrl={newWebhookUrl}
+                    onWebhookUrlChange={setNewWebhookUrl}
+                    onSubmit={handleUpdateWebhook}
+                />
+            </React.Suspense>
 
-            <OnplaceDialog
-                open={isOnplaceDialogOpen}
-                onOpenChange={setIsOnplaceDialogOpen}
-                data={onplaceData}
-                loading={loadingOnplace}
-                deviceName={selectedKioskDeviceForOnplace?.device?.name || ""}
-            />
+            <React.Suspense fallback={<div className="hidden">Đang tải...</div>}>
+                <OnplaceDialog
+                    open={isOnplaceDialogOpen}
+                    onOpenChange={setIsOnplaceDialogOpen}
+                    data={onplaceData}
+                    loading={loadingOnplace}
+                    deviceName={selectedKioskDeviceForOnplace?.device?.name || ""}
+                />
+            </React.Suspense>
 
-            <KioskOnhubDialog
-                open={isOnhubDialogOpen}
-                onOpenChange={setIsOnhubDialogOpen}
-                loading={loadingOnhub}
-                onhubData={onhubData}
-                deviceName={selectedKioskDeviceForOnhub?.device.name || ""}
-            />
+            <React.Suspense fallback={<div className="hidden">Đang tải...</div>}>
+                <KioskOnhubDialog
+                    open={isOnhubDialogOpen}
+                    onOpenChange={setIsOnhubDialogOpen}
+                    loading={loadingOnhub}
+                    onhubData={onhubData}
+                    deviceName={selectedKioskDeviceForOnhub?.device.name || ""}
+                />
+            </React.Suspense>
         </div>
     )
 }

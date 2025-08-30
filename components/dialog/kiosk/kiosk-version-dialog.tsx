@@ -79,8 +79,8 @@ const KioskVersionDialog = ({ open, onOpenChange, onSuccess, kioskVersion }: Kio
                 status: kioskVersion.status || EBaseStatus.Active,
             });
             setValidFields({
-                versionTitle: kioskVersion.versionTitle?.trim().length >= 2 && kioskVersion.versionTitle?.length <= 100,
-                versionNumber: kioskVersion.versionNumber?.trim().length >= 1 && kioskVersion.versionNumber?.length <= 50,
+                versionTitle: kioskVersion.versionTitle?.length <= 100,
+                versionNumber: kioskVersion.versionNumber?.length <= 100,
                 description: (kioskVersion.description || "").length <= 450,
             });
         } else {

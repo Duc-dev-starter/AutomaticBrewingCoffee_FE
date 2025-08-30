@@ -109,4 +109,5 @@ export interface DeviceIngredientStates {
     isWarning: boolean;
     isRenewable: boolean;
     isPrimary: boolean;
+    lastRefilledDate: string | null;
 }

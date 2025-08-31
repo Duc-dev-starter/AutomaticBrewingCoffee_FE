@@ -46,13 +46,6 @@ const DeviceTypeDialog = ({ open, onOpenChange, onSuccess, deviceType }: DeviceD
         }
     }, [open]);
 
-    // Auto-focus trường name khi dialog mở
-    useEffect(() => {
-        if (open && nameInputRef.current) {
-            setTimeout(() => nameInputRef.current?.focus(), 200);
-        }
-    }, [open]);
-
     // Điền dữ liệu khi chỉnh sửa
     useEffect(() => {
         if (deviceType) {
@@ -255,7 +248,6 @@ const DeviceTypeDialog = ({ open, onOpenChange, onSuccess, deviceType }: DeviceD
                                 className={cn(
                                     "min-h-[100px] text-base p-4 border-2 transition-all duration-300 bg-white/80 backdrop-blur-sm resize-none",
                                     focusedField === "description" && "border-primary-300 ring-4 ring-primary-100 shadow-lg scale-[1.01]",
-                                    validFields.description && "border-green-400 bg-green-50/50",
                                 )}
                             />
                         </div>

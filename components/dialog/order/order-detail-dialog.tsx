@@ -16,16 +16,33 @@ import {
     Building,
     Phone,
     Mail,
+    History, // Icon mới cho lịch sử thanh toán
+    AlertCircle,
+    CheckCircle2,
+    Clock,
 } from "lucide-react"
 import { formatCurrency } from "@/utils"
 import { formatDate } from "@/utils/date"
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden"
 import type { OrderDialogProps } from "@/types/dialog"
-import { EOrderStatusViMap, EOrderTypeViMap, EPaymentGateway } from "@/enum/order"
+import { EOrderStatusViMap, EOrderTypeViMap, EPaymentGateway, EPaymentStatus, EPaymentStatusViMap } from "@/enum/order"
 import { images } from "@/public/assets"
 import clsx from "clsx"
 import { getOrderStatusColor } from "@/utils/color"
 import { InfoField } from "@/components/common"
+import { Payment } from "@/interfaces/order"
+
+// Helper function to get payment status color
+const getPaymentStatusColor = (status: EPaymentStatus) => {
+    switch (status) {
+        case EPaymentStatus.Success:
+            return "text-green-600";
+        case EPaymentStatus.Pending:
+            return "text-yellow-600";
+        default:
+            return "text-red-600";
+    }
+}
 
 const OrderDetailDialog = ({ order, open, onOpenChange }: OrderDialogProps) => {
     if (!order) return null
@@ -33,6 +50,17 @@ const OrderDetailDialog = ({ order, open, onOpenChange }: OrderDialogProps) => {
     const paymentLogoMap: Record<EPaymentGateway, string> = {
         [EPaymentGateway.MPOS]: images.mpos,
         [EPaymentGateway.VNPay]: images.vnpay,
+    }
+
+    const renderPaymentStatusIcon = (status: EPaymentStatus) => {
+        switch (status) {
+            case EPaymentStatus.Success:
+                return <CheckCircle2 className="w-4 h-4 mr-2 text-green-500" />
+            case EPaymentStatus.Pending:
+                return <Clock className="w-4 h-4 mr-2 text-yellow-500" />
+            default:
+                return <AlertCircle className="w-4 h-4 mr-2 text-red-500" />
+        }
     }
 
     return (
@@ -53,7 +81,7 @@ const OrderDetailDialog = ({ order, open, onOpenChange }: OrderDialogProps) => {
                                 <p className="text-gray-500 text-sm">Thông tin chi tiết đơn hàng</p>
                             </div>
                         </div>
-                        <Badge className={clsx("bg-primary-500 text-white px-3 py-1", getOrderStatusColor(order.status))}>
+                        <Badge className={clsx("text-white px-3 py-1", getOrderStatusColor(order.status))}>
                             <FileText className="mr-1 h-3 w-3" />
                             {EOrderStatusViMap[order.status]}
                         </Badge>
@@ -73,6 +101,7 @@ const OrderDetailDialog = ({ order, open, onOpenChange }: OrderDialogProps) => {
                                     Thông tin đơn hàng
                                 </h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    {/* ... Các InfoField khác giữ nguyên ... */}
                                     <InfoField
                                         label="Loại đơn hàng"
                                         value={EOrderTypeViMap[order.orderType]}
@@ -126,7 +155,7 @@ const OrderDetailDialog = ({ order, open, onOpenChange }: OrderDialogProps) => {
                                 </h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     <InfoField
-                                        label="Hình thức thanh toán"
+                                        label="Cổng thanh toán"
                                         value={
                                             <img
                                                 src={paymentLogoMap[order.paymentGateway] || "/placeholder.svg"}
@@ -154,6 +183,42 @@ const OrderDetailDialog = ({ order, open, onOpenChange }: OrderDialogProps) => {
                                 </div>
                             </CardContent>
                         </Card>
+
+                        {/* Lịch sử thanh toán - Đã thêm mới */}
+                        {order.payments && order.payments.length > 0 && (
+                            <Card className="border border-gray-100 shadow-sm">
+                                <CardContent className="p-6 space-y-4">
+                                    <h3 className="text-lg font-semibold text-primary-600 mb-4 flex items-center">
+                                        <History className="w-5 h-5 mr-2 text-primary-500" />
+                                        Lịch sử thanh toán ({order.payments.length})
+                                    </h3>
+                                    <div className="space-y-4">
+                                        {order.payments.map((payment: Payment) => (
+                                            <div key={payment.paymentId} className="border rounded-lg p-4 space-y-3 bg-gray-50">
+                                                <div className="flex justify-between items-center">
+                                                    <div className="flex items-center font-semibold">
+                                                        {renderPaymentStatusIcon(payment.paymentStatus)}
+                                                        <span className={clsx("font-semibold", getPaymentStatusColor(payment.paymentStatus))}>
+                                                            {EPaymentStatusViMap[payment.paymentStatus]}
+                                                        </span>
+                                                    </div>
+                                                    <div className="text-sm font-medium text-gray-800">
+                                                        {formatCurrency(payment.paidAmount)} / {formatCurrency(payment.requiredAmount)}
+                                                    </div>
+                                                </div>
+                                                <div className="border-t border-dashed pt-3 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3 text-sm">
+                                                    <div><InfoField label="Ngày tạo" value={formatDate(payment.createdDate)} icon={undefined} /></div>
+                                                    <div><InfoField label="Ngày thanh toán" value={formatDate(payment.paymentDate)} icon={undefined} /></div>
+                                                    <div><InfoField label="Ngày hết hạn" value={formatDate(payment.expiredDate)} icon={undefined} /></div>
+                                                    <div><InfoField label="ID Giao dịch" value={<span className="font-mono text-xs">{payment.paymentId}</span>} icon={undefined} /></div>
+                                                </div>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        )}
+
 
                         {/* Chi tiết sản phẩm */}
                         <Card className="border border-gray-100 shadow-sm">
@@ -193,29 +258,34 @@ const OrderDetailDialog = ({ order, open, onOpenChange }: OrderDialogProps) => {
                         {/* Thông tin kiosk */}
                         <Card className="border border-gray-100 shadow-sm">
                             <CardContent className="p-6 space-y-6">
-
-                                {/* Thông tin cửa hàng */}
-                                {order.kiosk?.store && (
+                                {/* Thông tin Kiosk và Cửa hàng - Đã cập nhật */}
+                                {order.kiosk && (
                                     <div className="rounded-lg p-4 border border-green-100">
                                         <h4 className="text-md font-semibold mb-3 flex items-center">
                                             <Building className="w-4 h-4 mr-2" />
-                                            Cửa hàng: {order.kiosk.store.name}
+                                            Cửa hàng: {order.kiosk.store?.name || "Không có thông tin"}
                                         </h4>
                                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                             <InfoField
+                                                label="Vị trí Kiosk"
+                                                value={order.kiosk.position || "Chưa có"}
+                                                icon={<MapPin className="w-4 h-4 text-primary-500" />}
+                                            />
+                                            <InfoField
                                                 label="Địa chỉ cửa hàng"
-                                                value={order.kiosk.store.locationAddress || "Chưa có"}
+                                                value={order.kiosk.store?.locationAddress || "Chưa có"}
                                                 icon={<MapPin className="w-4 h-4 text-primary-500" />}
                                             />
                                             <InfoField
                                                 label="Số điện thoại"
-                                                value={order.kiosk.store.contactPhone || "Chưa có"}
+                                                value={order.kiosk.store?.contactPhone || "Chưa có"}
                                                 icon={<Phone className="w-4 h-4 text-primary-500" />}
                                             />
 
                                         </div>
                                     </div>
                                 )}
+
 
                                 {/* Thông tin tổ chức */}
                                 {order.kiosk?.store?.organization && (

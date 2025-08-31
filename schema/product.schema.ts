@@ -13,4 +13,12 @@ export const productSchema = z.object({
     imageUrl: z.string().optional(),
     productCategoryId: z.string().trim().min(1, "Danh mục là bắt buộc"),
     description: z.string().trim().max(450, "Mô tả không được quá 450 ký tự.").optional(),
+}).superRefine((data, ctx) => {
+    if (data.type === EProductType.Child && !data.parentId) {
+        ctx.addIssue({
+            code: z.ZodIssueCode.custom,
+            message: "Sản phẩm con phải có sản phẩm cha.",
+            path: ["parentId"],
+        });
+    }
 });

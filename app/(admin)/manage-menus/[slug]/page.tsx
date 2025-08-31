@@ -3,7 +3,6 @@
 import type React from "react"
 import { useParams } from "next/navigation"
 import { useState, useEffect, useCallback } from "react"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
@@ -350,70 +349,49 @@ const MenuDetail = () => {
         <div className="container mx-auto py-6 px-4">
             <div className="mb-8">
                 <h1 className="text-3xl font-bold mb-6">Chi tiết menu {menu.name}</h1>
-                <Tabs defaultValue="info" className="w-full">
-                    <TabsList className="mb-6">
-                        <TabsTrigger value="info" className="flex items-center">
-                            <Info className="mr-2 h-4 w-4" />
-                            Thông Tin Chung
-                        </TabsTrigger>
-                        <TabsTrigger value="stores" className="flex items-center">
-                            <Store className="mr-2 h-4 w-4" />
-                            Cửa Hàng Áp Dụng
-                        </TabsTrigger>
-                    </TabsList>
-                    <TabsContent value="info" className="space-y-6">
-                        <Card>
-                            <CardContent className="pt-6">
-                                <div className="flex justify-between items-start">
-                                    <div className="space-y-6 w-full">
-                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                            <div className="space-y-4">
+                <Card>
+                    <CardContent className="pt-6">
+                        <div className="flex justify-between items-start">
+                            <div className="space-y-6 w-full">
+                                <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    <div className="space-y-4">
+                                        <div>
+                                            <h3 className="text-xl font-semibold mb-4">Thông tin Menu</h3>
+                                            <div className="grid grid-cols-3 gap-4">
                                                 <div>
-                                                    <h3 className="text-xl font-semibold mb-4">Thông tin Menu</h3>
-                                                    <div className="grid grid-cols-3 gap-4">
-                                                        <div>
-                                                            <p className="text-sm text-muted-foreground">Mã menu:</p>
-                                                            <p className="font-medium">ORD-{menu.menuId.substring(0, 8)}</p>
-                                                        </div>
-                                                        <div>
-                                                            <p className="text-sm text-muted-foreground">Tên menu:</p>
-                                                            <p className="font-medium">{menu.name}</p>
-                                                        </div>
-                                                        <div>
-                                                            <p className="text-sm text-muted-foreground">Mô tả:</p>
-                                                            <p className="font-medium">{menu.description || "Chưa có"}</p>
-                                                        </div>
-                                                        <div>
-                                                            <p className="text-sm text-muted-foreground">Trạng thái:</p>
-                                                            <Badge
-                                                                className={
-                                                                    menu.status === "Active" ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"
-                                                                }
-                                                            >
-                                                                {EBaseStatusViMap[menu.status] || "Không rõ"}
-                                                            </Badge>
-                                                        </div>
-                                                    </div>
+                                                    <p className="text-sm text-muted-foreground">Mã menu:</p>
+                                                    <p className="font-medium">ORD-{menu.menuId.substring(0, 8)}</p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm text-muted-foreground">Tên menu:</p>
+                                                    <p className="font-medium">{menu.name}</p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm text-muted-foreground">Mô tả:</p>
+                                                    <p className="font-medium">{menu.description || "Chưa có"}</p>
+                                                </div>
+                                                <div>
+                                                    <p className="text-sm text-muted-foreground">Trạng thái:</p>
+                                                    <Badge
+                                                        className={
+                                                            menu.status === "Active" ? "bg-green-100 text-green-800" : "bg-gray-100 text-gray-800"
+                                                        }
+                                                    >
+                                                        {EBaseStatusViMap[menu.status] || "Không rõ"}
+                                                    </Badge>
                                                 </div>
                                             </div>
                                         </div>
                                     </div>
-                                    <Button variant="outline" className="flex items-center">
-                                        <Edit className="mr-2 h-4 w-4" />
-                                        Cập Nhật
-                                    </Button>
                                 </div>
-                            </CardContent>
-                        </Card>
-                    </TabsContent>
-                    <TabsContent value="stores">
-                        <Card>
-                            <CardContent className="pt-6">
-                                <p className="text-muted-foreground">Chưa có cửa hàng nào áp dụng thực đơn này.</p>
-                            </CardContent>
-                        </Card>
-                    </TabsContent>
-                </Tabs>
+                            </div>
+                            <Button variant="outline" className="flex items-center">
+                                <Edit className="mr-2 h-4 w-4" />
+                                Cập Nhật
+                            </Button>
+                        </div>
+                    </CardContent>
+                </Card>
             </div>
             <div>
                 <div className="flex justify-between items-center mb-6">

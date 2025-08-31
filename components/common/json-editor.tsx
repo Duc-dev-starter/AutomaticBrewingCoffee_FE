@@ -288,7 +288,14 @@ const JsonEditorComponent: React.FC<JsonEditorComponentProps> = ({
 
 
         if (param && param.options && param.options.length > 0) {
-            console.log('Select value:', value, typeof value);
+            const selectedOption = param.options.find(opt => {
+                const optionName = typeof opt === 'object' && opt !== null ? opt.name : opt;
+                return String(optionName) === String(value);
+            });
+
+            const displayInTrigger = selectedOption && typeof selectedOption === 'object' && 'description' in selectedOption
+                ? selectedOption.description || selectedOption.name
+                : String(value);
             return (
                 <div className="flex w-full items-center gap-2">
                     <Select
@@ -305,19 +312,21 @@ const JsonEditorComponent: React.FC<JsonEditorComponentProps> = ({
                             )}
                         >
                             <span className="text-green-600 font-medium truncate">
-                                {value !== undefined && value !== null ? String(value) : "Chọn giá trị"}
+                                {value !== undefined && value !== null ? displayInTrigger : "Chọn giá trị"}
                             </span>
                         </SelectTrigger>
                         <SelectContent>
                             {param.options.map((option, index) => {
-                                // Luôn ép kiểu string cho value
                                 const optionValue = typeof option === 'object' && option !== null && 'name' in option
                                     ? String(option.name)
                                     : String(option);
-                                console.log('optionValue:', optionValue);
+
+                                const optionDisplay = typeof option === 'object' && option !== null && 'description' in option
+                                    ? option.description || option.name
+                                    : String(option);
                                 return (
                                     <SelectItem key={`${optionValue}-${index}`} value={optionValue}>
-                                        <span>{optionValue}</span>
+                                        <span>{optionDisplay}</span>
                                     </SelectItem>
                                 )
                             })}
@@ -345,8 +354,8 @@ const JsonEditorComponent: React.FC<JsonEditorComponentProps> = ({
             <div className="flex items-center gap-2">
                 <input
                     type="text"
-                    value={inputValue} // Luôn sử dụng state cục bộ
-                    onChange={(e) => setInputValue(e.target.value)} // Chỉ cập nhật state cục bộ, không gọi prop onChange
+                    value={inputValue}
+                    onChange={(e) => setInputValue(e.target.value)}
                     onBlur={handleCommit}
                     onKeyDown={handleKeyDown}
                     className={cn("text-green-600 font-medium border rounded p-1", hasError && "border-red-500 bg-red-50")}

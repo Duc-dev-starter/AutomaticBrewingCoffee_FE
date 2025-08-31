@@ -23,6 +23,7 @@ import type { DeviceModel } from "@/interfaces/device"
 import type { Product, SupportProduct } from "@/interfaces/product"
 import type { ErrorResponse } from "@/types/error"
 import { formatDate } from "@/utils/date"
+import { EProductTypeViMap } from "@/enum/product"
 
 const KioskVersionDetailPage = () => {
     const { slug } = useParams()
@@ -411,7 +412,6 @@ const KioskVersionDetailPage = () => {
                                         <TableHead>Kích thước</TableHead>
                                         <TableHead>Loại</TableHead>
                                         <TableHead>Trạng thái</TableHead>
-                                        <TableHead>Hoạt động</TableHead>
                                         <TableHead>Ngày tạo</TableHead>
                                     </TableRow>
                                 </TableHeader>
@@ -440,7 +440,9 @@ const KioskVersionDetailPage = () => {
                                             </TableCell>
                                             <TableCell>{item.product.price.toLocaleString()} VND</TableCell>
                                             <TableCell>{item.product.size}</TableCell>
-                                            <TableCell>{item.product.type}</TableCell>
+                                            <TableCell>
+                                                {EProductTypeViMap[item.product.type] ?? item.product.type}
+                                            </TableCell>
                                             <TableCell>
                                                 <Badge variant={item.product.status === "Selling" ? "default" : "secondary"}>
                                                     {item.product.status}

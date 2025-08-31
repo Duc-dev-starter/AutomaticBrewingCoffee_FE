@@ -26,8 +26,8 @@ export const EProductSizeViMap: Record<string, string> = {
 };
 
 export const EProductTypeViMap: Record<string, string> = {
-    [EProductType.Parent]: "Cha",
-    [EProductType.Child]: "Con",
+    [EProductType.Parent]: "Gốc",
+    [EProductType.Child]: "Nhân bản",
 };
 
 

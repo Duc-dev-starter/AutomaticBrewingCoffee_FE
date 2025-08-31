@@ -1,5 +1,3 @@
-"use client";
-
 import type React from "react";
 import { useState, useEffect, useRef } from "react";
 import { Dialog, DialogContent } from "@/components/ui/dialog";
@@ -9,7 +7,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { useToast } from "@/hooks/use-toast";
 import type { Product, ProductAttribute } from "@/interfaces/product";
-import { EProductStatus, EProductSize, EProductType, EBaseUnit, EAttributteOption } from "@/enum/product";
+import { EProductStatus, EProductSize, EProductType, EBaseUnit, EAttributteOption, EBaseUnitViMap, EProductTypeViMap } from "@/enum/product";
 import { createProduct, updateProduct, getProducts } from "@/services/product.service";
 import { productSchema } from "@/schema/product.schema";
 import type { ProductDialogProps } from "@/types/dialog";
@@ -68,7 +66,12 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
 
     const isUpdate = !!product;
 
-    const fetchProducts = async (pageNumber: number, query: string) => {
+    const fetchProducts = async (pageNumber: number, query: string, productTypeFilter?: EProductType) => {
+        if (productTypeFilter === EProductType.Parent) {
+            setProducts([]);
+            setHasMoreParents(false);
+            return;
+        }
         setLoading(true);
         try {
             const response = await getProducts({
@@ -141,15 +144,15 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
 
     useEffect(() => {
         if (open) {
-            fetchProducts(1, debouncedParentSearchQuery);
+            fetchProducts(1, debouncedParentSearchQuery, formData.type);
             fetchCategories(1, debouncedCategorySearchQuery);
             fetchIngredientTypes();
         }
-    }, [open, debouncedParentSearchQuery, debouncedCategorySearchQuery]);
+    }, [open, debouncedParentSearchQuery, debouncedCategorySearchQuery, formData.type]);
 
     const loadMoreParents = async () => {
         const nextPage = pageParents + 1;
-        await fetchProducts(nextPage, debouncedParentSearchQuery);
+        await fetchProducts(nextPage, debouncedParentSearchQuery, formData.type);
     };
 
     const loadMoreCategories = async () => {
@@ -462,7 +465,7 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
 
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-[950px] p-0 border-0 bg-white backdrop-blur-xl shadow-2xl max-h-[90vh] overflow-y-auto hide-scrollbar">
+            <DialogContent className="sm:max-w-[700px] p-0 border-0 bg-white backdrop-blur-xl shadow-2xl max-h-[90vh] overflow-y-auto hide-scrollbar">
                 <div className="relative overflow-hidden bg-primary-100 rounded-tl-2xl rounded-tr-2xl">
                     <div className="relative px-8 py-6 border-b border-primary-300">
                         <div className="flex items-center space-x-4">
@@ -589,8 +592,6 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                                     className={cn(
                                         "h-12 text-base px-4 border-2 transition-all duration-300 bg-white/80 backdrop-blur-sm pr-10",
                                         focusedField === "name" && "border-primary-300 ring-4 ring-primary-100 shadow-lg scale-[1.02]",
-                                        validFields.name && "border-green-400 bg-green-50/50",
-                                        formData.name && !validFields.name && "border-red-300 bg-red-50/50"
                                     )}
                                 />
                             </div>
@@ -598,49 +599,30 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                                 <p className="text-red-500 text-xs mt-1">{errors.name}</p>
                             )}
                         </div>
+
                         <div className="space-y-3">
                             <div className="flex items-center space-x-2 mb-2">
-                                <Box className="w-4 h-4 text-primary-300" />
-                                <label className="text-sm font-medium text-gray-700">Sản Phẩm Cha</label>
+                                <List className="w-4 h-4 text-primary-300" />
+                                <label className="text-sm font-medium text-gray-700 asterisk">Loại Sản Phẩm</label>
                             </div>
                             <Select
-                                value={formData.parentId ? formData.parentId : "none"}
-                                onValueChange={(value) => handleChange("parentId", value === "none" ? "" : value)}
+                                value={formData.type}
+                                onValueChange={(value) => handleChange("type", value as EProductType)}
                                 disabled={loading}
                             >
                                 <SelectTrigger className="h-12 text-sm px-4 border-2 bg-white/80 backdrop-blur-sm">
-                                    <SelectValue placeholder="Chọn sản phẩm cha (tùy chọn)" />
+                                    <SelectValue placeholder="Chọn loại sản phẩm" />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value="none">Không có</SelectItem>
-                                    <div className="p-2">
-                                        <Input
-                                            placeholder="Tìm kiếm sản phẩm cha..."
-                                            className="h-10 text-xs px-3"
-                                            value={parentSearchQuery}
-                                            onChange={(e) => setParentSearchQuery(e.target.value)}
-                                            disabled={loading}
-                                        />
-                                    </div>
-                                    <div id="parent-scroll" className="max-h-[200px] overflow-y-auto">
-                                        <InfiniteScroll
-                                            dataLength={products.length}
-                                            next={loadMoreParents}
-                                            hasMore={hasMoreParents}
-                                            loader={<div className="p-2 text-center text-sm">Đang tải thêm...</div>}
-                                            scrollableTarget="parent-scroll"
-                                        >
-                                            {products.map((p) => (
-                                                <SelectItem key={p.productId} value={p.productId}>
-                                                    {p.name}
-                                                </SelectItem>
-                                            ))}
-                                        </InfiniteScroll>
-                                    </div>
+                                    {Object.values(EProductType).map((type) => (
+                                        <SelectItem key={type} value={type}>
+                                            {EProductTypeViMap[type]}
+                                        </SelectItem>
+                                    ))}
                                 </SelectContent>
                             </Select>
-                            {submitted && errors.parentId && (
-                                <p className="text-red-500 text-xs mt-1">{errors.parentId}</p>
+                            {submitted && errors.type && (
+                                <p className="text-red-500 text-xs mt-1">{errors.type}</p>
                             )}
                         </div>
                     </div>
@@ -669,24 +651,55 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                         </div>
                         <div className="space-y-3">
                             <div className="flex items-center space-x-2 mb-2">
-                                <List className="w-4 h-4 text-primary-300" />
-                                <label className="text-sm font-medium text-gray-700 asterisk">Loại Sản Phẩm</label>
+                                <Box className="w-4 h-4 text-primary-300" />
+                                <label className="text-sm font-medium text-gray-700">Sản Phẩm Cha</label>
                             </div>
                             <Select
-                                value={formData.type}
-                                onValueChange={(value) => handleChange("type", value as EProductType)}
-                                disabled={loading}
+                                value={formData.parentId ? formData.parentId : "none"}
+                                onValueChange={(value) => handleChange("parentId", value === "none" ? "" : value)}
+                                disabled={loading || formData.type === EProductType.Parent}
                             >
                                 <SelectTrigger className="h-12 text-sm px-4 border-2 bg-white/80 backdrop-blur-sm">
-                                    <SelectValue placeholder="Chọn loại sản phẩm" />
+                                    <SelectValue placeholder={formData.type === EProductType.Parent ? "Không áp dụng cho sản phẩm cha" : "Chọn sản phẩm cha (tùy chọn)"} />
                                 </SelectTrigger>
                                 <SelectContent>
-                                    <SelectItem value={EProductType.Parent}>Cha</SelectItem>
-                                    <SelectItem value={EProductType.Child}>Con</SelectItem>
+                                    {formData.type === EProductType.Parent ? (
+                                        <SelectItem value="none" disabled>
+                                            Không áp dụng cho sản phẩm cha
+                                        </SelectItem>
+                                    ) : (
+                                        <>
+                                            <SelectItem value="none">Không có</SelectItem>
+                                            <div className="p-2">
+                                                <Input
+                                                    placeholder="Tìm kiếm sản phẩm cha..."
+                                                    className="h-10 text-xs px-3"
+                                                    value={parentSearchQuery}
+                                                    onChange={(e) => setParentSearchQuery(e.target.value)}
+                                                    disabled={loading}
+                                                />
+                                            </div>
+                                            <div id="parent-scroll" className="max-h-[200px] overflow-y-auto">
+                                                <InfiniteScroll
+                                                    dataLength={products.length}
+                                                    next={loadMoreParents}
+                                                    hasMore={hasMoreParents}
+                                                    loader={<div className="p-2 text-center text-sm">Đang tải thêm...</div>}
+                                                    scrollableTarget="parent-scroll"
+                                                >
+                                                    {products.map((p) => (
+                                                        <SelectItem key={p.productId} value={p.productId}>
+                                                            {p.name}
+                                                        </SelectItem>
+                                                    ))}
+                                                </InfiniteScroll>
+                                            </div>
+                                        </>
+                                    )}
                                 </SelectContent>
                             </Select>
-                            {submitted && errors.type && (
-                                <p className="text-red-500 text-xs mt-1">{errors.type}</p>
+                            {submitted && errors.parentId && (
+                                <p className="text-red-500 text-xs mt-1">{errors.parentId}</p>
                             )}
                         </div>
                     </div>
@@ -921,7 +934,9 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                                             </SelectTrigger>
                                             <SelectContent>
                                                 {Object.values(EBaseUnit).map((unit) => (
-                                                    <SelectItem key={unit} value={unit}>{unit}</SelectItem>
+                                                    <SelectItem key={unit} value={unit}>
+                                                        {EBaseUnitViMap[unit as EBaseUnit]}
+                                                    </SelectItem>
                                                 ))}
                                             </SelectContent>
                                         </Select>
@@ -933,109 +948,130 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
                                 <div className="space-y-2">
                                     <Label>Tùy chọn thuộc tính</Label>
                                     {attr.attributeOptions.map((option, optIndex) => (
-                                        <div key={optIndex} className="grid grid-cols-12 gap-2 mb-2">
-                                            <div className="col-span-2">
-                                                <Label>Tên</Label>
-                                                <Input
-                                                    value={option.name}
-                                                    onChange={(e) => updateAttributeOption(attrIndex, optIndex, "name", e.target.value)}
-                                                    placeholder="Tên tùy chọn"
-                                                    disabled={loading}
-                                                />
-                                                {submitted && errors.productAttributes?.[attrIndex]?.attributeOptions?.[optIndex]?.name && (
-                                                    <p className="text-red-500 text-xs mt-1">{errors.productAttributes[attrIndex].attributeOptions[optIndex].name}</p>
-                                                )}
+                                        <div key={optIndex} className="grid grid-cols-2 gap-6 mb-4">
+
+                                            {/* Cột trái */}
+                                            <div className="space-y-4">
+                                                <div>
+                                                    <Label>Tên</Label>
+                                                    <Input
+                                                        value={option.name}
+                                                        onChange={(e) =>
+                                                            updateAttributeOption(attrIndex, optIndex, "name", e.target.value)
+                                                        }
+                                                        placeholder="Tên tùy chọn"
+                                                        disabled={loading}
+                                                    />
+                                                    {submitted &&
+                                                        errors.productAttributes?.[attrIndex]?.attributeOptions?.[optIndex]?.name && (
+                                                            <p className="text-red-500 text-xs mt-1">
+                                                                {errors.productAttributes[attrIndex].attributeOptions[optIndex].name}
+                                                            </p>
+                                                        )}
+                                                </div>
+
+                                                <div>
+                                                    <Label>Giá trị</Label>
+                                                    <Input
+                                                        type="number"
+                                                        value={option.value}
+                                                        onChange={(e) =>
+                                                            updateAttributeOption(attrIndex, optIndex, "value", Number(e.target.value))
+                                                        }
+                                                        placeholder="Giá trị"
+                                                        disabled={loading}
+                                                    />
+                                                    {submitted &&
+                                                        errors.productAttributes?.[attrIndex]?.attributeOptions?.[optIndex]?.value && (
+                                                            <p className="text-red-500 text-xs mt-1">
+                                                                {errors.productAttributes[attrIndex].attributeOptions[optIndex].value}
+                                                            </p>
+                                                        )}
+                                                </div>
+
+                                                <div>
+                                                    <Label>Đơn vị</Label>
+                                                    <Select
+                                                        value={option.unit}
+                                                        onValueChange={(value) =>
+                                                            updateAttributeOption(attrIndex, optIndex, "unit", value as EAttributteOption)
+                                                        }
+                                                        disabled={loading}
+                                                    >
+                                                        <SelectTrigger>
+                                                            <SelectValue placeholder="Chọn đơn vị" />
+                                                        </SelectTrigger>
+                                                        <SelectContent>
+                                                            {Object.values(EAttributteOption).map((unit) => (
+                                                                <SelectItem key={unit} value={unit}>
+                                                                    {unit}
+                                                                </SelectItem>
+                                                            ))}
+                                                        </SelectContent>
+                                                    </Select>
+                                                </div>
                                             </div>
-                                            <div className="col-span-2">
-                                                <Label>Giá trị</Label>
-                                                <Input
-                                                    type="number"
-                                                    value={option.value}
-                                                    onChange={(e) => updateAttributeOption(attrIndex, optIndex, "value", Number(e.target.value))}
-                                                    placeholder="Giá trị"
-                                                    disabled={loading}
-                                                />
-                                                {submitted && errors.productAttributes?.[attrIndex]?.attributeOptions?.[optIndex]?.value && (
-                                                    <p className="text-red-500 text-xs mt-1">{errors.productAttributes[attrIndex].attributeOptions[optIndex].value}</p>
-                                                )}
-                                            </div>
-                                            <div className="col-span-2">
-                                                <Label>Đơn vị</Label>
-                                                <Select
-                                                    value={option.unit}
-                                                    onValueChange={(value) => updateAttributeOption(attrIndex, optIndex, "unit", value as EAttributteOption)}
-                                                    disabled={loading}
-                                                >
-                                                    <SelectTrigger>
-                                                        <SelectValue placeholder="Chọn đơn vị" />
-                                                    </SelectTrigger>
-                                                    <SelectContent>
-                                                        {Object.values(EAttributteOption).map((unit) => (
-                                                            <SelectItem key={unit} value={unit}>{unit}</SelectItem>
-                                                        ))}
-                                                    </SelectContent>
-                                                </Select>
-                                                {submitted && errors.productAttributes?.[attrIndex]?.attributeOptions?.[optIndex]?.unit && (
-                                                    <p className="text-red-500 text-xs mt-1">{errors.productAttributes[attrIndex].attributeOptions[optIndex].unit}</p>
-                                                )}
-                                            </div>
-                                            <div className="col-span-2">
-                                                <Label>Thứ tự hiển thị</Label>
-                                                <Input
-                                                    type="number"
-                                                    value={option.displayOrder}
-                                                    onChange={(e) => updateAttributeOption(attrIndex, optIndex, "displayOrder", Number(e.target.value))}
-                                                    placeholder="Thứ tự"
-                                                    disabled={loading}
-                                                />
-                                                {submitted && errors.productAttributes?.[attrIndex]?.attributeOptions?.[optIndex]?.displayOrder && (
-                                                    <p className="text-red-500 text-xs mt-1">{errors.productAttributes[attrIndex].attributeOptions[optIndex].displayOrder}</p>
-                                                )}
-                                            </div>
-                                            <div className="col-span-2">
-                                                <Label>Mô tả</Label>
-                                                <Input
-                                                    value={option.description}
-                                                    onChange={(e) => updateAttributeOption(attrIndex, optIndex, "description", e.target.value)}
-                                                    placeholder="Mô tả"
-                                                    disabled={loading}
-                                                />
-                                                {submitted && errors.productAttributes?.[attrIndex]?.attributeOptions?.[optIndex]?.description && (
-                                                    <p className="text-red-500 text-xs mt-1">{errors.productAttributes[attrIndex].attributeOptions[optIndex].description}</p>
-                                                )}
-                                            </div>
-                                            <div className="col-span-1">
-                                                <Label>Mặc định</Label>
-                                                <Select
-                                                    value={option.isDefault.toString()}
-                                                    onValueChange={(value) => updateAttributeOption(attrIndex, optIndex, "isDefault", value === "true")}
-                                                    disabled={loading}
-                                                >
-                                                    <SelectTrigger>
-                                                        <SelectValue placeholder="Chọn" />
-                                                    </SelectTrigger>
-                                                    <SelectContent>
-                                                        <SelectItem value="true">Có</SelectItem>
-                                                        <SelectItem value="false">Không</SelectItem>
-                                                    </SelectContent>
-                                                </Select>
-                                                {submitted && errors.productAttributes?.[attrIndex]?.attributeOptions?.[optIndex]?.isDefault && (
-                                                    <p className="text-red-500 text-xs mt-1">{errors.productAttributes[attrIndex].attributeOptions[optIndex].isDefault}</p>
-                                                )}
-                                            </div>
-                                            <div className="col-span-1 flex items-end">
-                                                <Button
-                                                    type="button"
-                                                    variant="destructive"
-                                                    size="sm"
-                                                    onClick={() => removeAttributeOption(attrIndex, optIndex)}
-                                                    disabled={loading}
-                                                >
-                                                    Xóa
-                                                </Button>
+
+                                            {/* Cột phải */}
+                                            <div className="space-y-4">
+                                                <div>
+                                                    <Label>Thứ tự hiển thị</Label>
+                                                    <Input
+                                                        type="number"
+                                                        value={option.displayOrder}
+                                                        onChange={(e) =>
+                                                            updateAttributeOption(attrIndex, optIndex, "displayOrder", Number(e.target.value))
+                                                        }
+                                                        placeholder="Thứ tự"
+                                                        disabled={loading}
+                                                    />
+                                                </div>
+
+                                                <div>
+                                                    <Label>Mô tả</Label>
+                                                    <Input
+                                                        value={option.description}
+                                                        onChange={(e) =>
+                                                            updateAttributeOption(attrIndex, optIndex, "description", e.target.value)
+                                                        }
+                                                        placeholder="Mô tả"
+                                                        disabled={loading}
+                                                    />
+                                                </div>
+
+                                                <div className="flex items-end gap-2">
+                                                    <div className="flex-1">
+                                                        <Label>Mặc định</Label>
+                                                        <Select
+                                                            value={option.isDefault.toString()}
+                                                            onValueChange={(value) =>
+                                                                updateAttributeOption(attrIndex, optIndex, "isDefault", value === "true")
+                                                            }
+                                                            disabled={loading}
+                                                        >
+                                                            <SelectTrigger>
+                                                                <SelectValue placeholder="Chọn" />
+                                                            </SelectTrigger>
+                                                            <SelectContent>
+                                                                <SelectItem value="true">Có</SelectItem>
+                                                                <SelectItem value="false">Không</SelectItem>
+                                                            </SelectContent>
+                                                        </Select>
+                                                    </div>
+                                                    <Button
+                                                        type="button"
+                                                        variant="destructive"
+                                                        size="sm"
+                                                        onClick={() => removeAttributeOption(attrIndex, optIndex)}
+                                                        disabled={loading}
+                                                    >
+                                                        Xóa
+                                                    </Button>
+                                                </div>
                                             </div>
                                         </div>
                                     ))}
+
                                     <Button
                                         type="button"
                                         className="ml-2"
@@ -1080,4 +1116,4 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
     );
 };
 
-export default ProductDialog;
+export default ProductDialog

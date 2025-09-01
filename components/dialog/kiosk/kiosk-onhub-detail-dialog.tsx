@@ -90,7 +90,7 @@ export const KioskOnhubDialog = ({
                     <VisuallyHidden>Thông tin Kết nối OnHub</VisuallyHidden>
                 </DialogTitle>
                 <DialogDescription className="sr-only">
-                    Chi tiết trạng thái kết nối từ Azure IoT Hub cho thiết bị "{deviceName}".
+                    Chi tiết trạng thái kết nối thiết bị "{deviceName}".
                 </DialogDescription>
 
                 {/* Header */}
@@ -101,7 +101,7 @@ export const KioskOnhubDialog = ({
                                 <Image src={images.azureIotHub} alt="azureIoT" height={40} width={40} />
                             </div>
                             <div>
-                                <h1 className="text-2xl font-semibold text-gray-800"> Chi tiết trạng thái kết nối từ Azure IoT Hub</h1>
+                                <h1 className="text-2xl font-semibold text-gray-800"> Chi tiết trạng thái kết nối thiết bị</h1>
                                 <p className="text-gray-500 text-sm">Thiết bị: <span className="font-medium">{deviceName}</span></p>
                             </div>
                         </div>

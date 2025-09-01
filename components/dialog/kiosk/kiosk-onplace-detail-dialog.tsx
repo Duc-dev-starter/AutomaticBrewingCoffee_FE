@@ -1,11 +1,12 @@
 "use client"
 
-import { Loader2, Monitor, Activity, CheckCircle, AlertCircle, Info, Sparkles, Cpu } from "lucide-react"
-import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
+import { Loader2, Monitor, Activity, CheckCircle, AlertCircle, Info, Cpu, TerminalSquare } from "lucide-react"
+import { Dialog, DialogContent, DialogTitle, DialogDescription } from "@/components/ui/dialog"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { VisuallyHidden } from "@radix-ui/react-visually-hidden"
+import { ReactNode } from "react"
 
 interface OnplaceDialogProps {
     open: boolean
@@ -14,6 +15,16 @@ interface OnplaceDialogProps {
     loading: boolean
     deviceName: string
 }
+
+const InfoField = ({ icon, label, value }: { icon: ReactNode; label: string; value: ReactNode }) => (
+    <div>
+        <div className="flex items-center text-sm font-medium text-gray-500 mb-1">
+            {icon}
+            <span className="ml-2">{label}</span>
+        </div>
+        <div className="text-base font-semibold text-gray-800">{value}</div>
+    </div>
+)
 
 const formatKey = (key: string) => {
     return key
@@ -28,12 +39,12 @@ const getWorkingStatusBadge = (status: string, labels: any) => {
         <Badge
             className={
                 isActive
-                    ? "bg-primary-300 text-white border-0 shadow-md px-4 py-1.5"
-                    : "bg-gray-400 text-white border-0 shadow-md px-4 py-1.5"
+                    ? "bg-green-100 text-green-800 border-green-200 shadow-sm"
+                    : "bg-yellow-100 text-yellow-800 border-yellow-200 shadow-sm"
             }
         >
-            {isActive ? <CheckCircle className="mr-1 h-3 w-3" /> : <AlertCircle className="mr-1 h-3 w-3" />}
-            {displayStatus}
+            {isActive ? <CheckCircle className="mr-1.5 h-3.5 w-3.5" /> : <AlertCircle className="mr-1.5 h-3.5 w-3.5" />}
+            <span className="font-medium">{displayStatus}</span>
         </Badge>
     )
 }
@@ -41,153 +52,117 @@ const getWorkingStatusBadge = (status: string, labels: any) => {
 export const OnplaceDialog = ({ open, onOpenChange, data, loading, deviceName }: OnplaceDialogProps) => {
     return (
         <Dialog open={open} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-[800px] max-h-[90vh] flex flex-col p-0 bg-white border-0 shadow-2xl">
+            <DialogContent className="sm:max-w-[800px] max-h-[90vh] flex flex-col p-0 bg-gray-50 border-0 shadow-2xl rounded-lg">
                 <DialogTitle asChild>
-                    <VisuallyHidden>Chi tiết</VisuallyHidden>
+                    <VisuallyHidden>Thông tin tại máy</VisuallyHidden>
                 </DialogTitle>
+                <DialogDescription className="sr-only">
+                    Chi tiết trạng thái và thông số tại máy cho thiết bị "{deviceName}".
+                </DialogDescription>
+
                 {/* Header */}
-                <div className="bg-primary-300 px-8 py-8">
+                <div className="bg-white px-8 py-6 border-b border-gray-200">
                     <div className="flex items-center justify-between">
                         <div className="flex items-center space-x-4">
-                            <div className="relative">
-                                <div className="w-16 h-16 bg-white rounded-2xl flex items-center justify-center shadow-lg">
-                                    <Monitor className="w-8 h-8 text-primary-300" />
-                                </div>
-                                <div className="absolute -top-1 -right-1 w-6 h-6 bg-yellow-400 rounded-full flex items-center justify-center">
-                                    <Sparkles className="w-3 h-3 text-white" />
-                                </div>
+                            <div className="w-16 h-16 bg-primary-100 rounded-xl flex items-center justify-center border border-primary-200">
+                                <Monitor className="w-8 h-8 text-primary-500" />
                             </div>
                             <div>
-                                <h1 className="text-3xl font-bold text-white mb-1">Thông tin OnPlace</h1>
-                                <p className="text-white/80 text-lg">Chi tiết trạng thái và thông số thiết bị</p>
+                                <h1 className="text-2xl font-semibold text-gray-800">Thông tin tại máy</h1>
+                                <p className="text-gray-500 text-sm">
+                                    Thiết bị: <span className="font-medium">{deviceName}</span>
+                                </p>
                             </div>
                         </div>
                         {data?.status?.CurrentSystemStatus && getWorkingStatusBadge(data.status.CurrentSystemStatus, data.labels)}
                     </div>
-
-                    <div className="mt-6 bg-white/20 border border-white/30 rounded-xl p-4 shadow-md">
-                        <div className="flex items-center justify-between text-white">
-                            <div className="flex items-center">
-                                <div className="w-10 h-10 bg-white/20 rounded-lg flex items-center justify-center mr-3">
-                                    <Cpu className="w-5 h-5" />
-                                </div>
-                                <div>
-                                    <p className="text-white/80 text-sm">Tên thiết bị</p>
-                                    <p className="font-bold text-lg">{deviceName}</p>
-                                </div>
-                            </div>
-                        </div>
-                    </div>
                 </div>
 
                 {/* Body */}
-                {loading ? (
-                    <div className="flex-1 flex items-center justify-center p-12 bg-gray-50">
-                        <div className="text-center">
-                            <div className="w-16 h-16 bg-primary-100 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
-                                <Loader2 className="h-8 w-8 animate-spin text-primary-300" />
+                <ScrollArea className="flex-1 px-8 bg-gray-50 overflow-y-auto hide-scrollbar">
+                    {loading ? (
+                        <div className="flex-1 flex items-center justify-center p-12">
+                            <div className="text-center">
+                                <Loader2 className="h-10 w-10 animate-spin text-primary-500 mx-auto mb-4" />
+                                <p className="text-gray-600 font-medium">Đang tải thông tin tại máy...</p>
+                                <p className="text-gray-400 text-sm mt-1">Vui lòng chờ trong giây lát</p>
                             </div>
-                            <p className="text-gray-600 font-medium">Đang tải thông tin OnPlace...</p>
-                            <p className="text-gray-400 text-sm mt-1">Vui lòng chờ trong giây lát</p>
                         </div>
-                    </div>
-                ) : data ? (
-                    <ScrollArea className="flex-1 px-8 bg-gray-50 overflow-y-auto hide-scrollbar">
+                    ) : data?.status ? (
                         <div className="space-y-6 py-6">
                             {/* Device Status Details */}
-                            {data.status && (
-                                <Card className="border-0 shadow-lg bg-white overflow-hidden">
-                                    <CardContent className="p-0">
-                                        <div className="bg-primary-300 p-6">
-                                            <h3 className="font-bold text-xl text-white flex items-center">
-                                                <div className="w-8 h-8 bg-white/30 rounded-lg flex items-center justify-center mr-3">
-                                                    <Info className="w-5 h-5 text-white" />
-                                                </div>
-                                                Chi tiết trạng thái thiết bị
-                                            </h3>
-                                        </div>
-                                        <div className="p-6 space-y-6">
-                                            {/* Current System Status */}
-                                            {data.status.CurrentSystemStatus && (
-                                                <div className="group">
-                                                    <div className="flex items-center space-x-3 mb-3">
-                                                        <div className="w-10 h-10 bg-primary-300 rounded-xl flex items-center justify-center shadow-md group-hover:shadow-lg transition-all duration-300">
-                                                            <CheckCircle className="w-5 h-5 text-white" />
-                                                        </div>
-                                                        <div>
-                                                            <p className="text-sm font-medium text-gray-600">Trạng thái hệ thống hiện tại</p>
-                                                            <p className="text-xs text-gray-400">Tình trạng tổng thể của hệ thống</p>
-                                                        </div>
-                                                    </div>
-                                                    <div className="bg-primary-100 border-2 border-primary-200 rounded-xl p-4 group-hover:shadow-md transition-all duration-300">
-                                                        <Badge className="bg-primary-200 text-white border-0 shadow-sm text-base px-3 py-1">
-                                                            {data.labels?.[data.status.CurrentSystemStatus] || data.status.CurrentSystemStatus}
-                                                        </Badge>
-                                                    </div>
-                                                </div>
-                                            )}
+                            <Card className="border border-gray-100 shadow-sm bg-white overflow-hidden">
+                                <CardContent className="p-6 space-y-6">
+                                    <h3 className="text-lg font-semibold text-primary-600 mb-4 flex items-center">
+                                        <Info className="w-5 h-5 mr-2 text-primary-500" />
+                                        Trạng thái Hệ thống
+                                    </h3>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        {data.status.CurrentSystemStatus && (
+                                            <InfoField
+                                                label="Trạng thái hệ thống hiện tại"
+                                                icon={<Activity className="w-4 h-4 text-primary-500" />}
+                                                value={
+                                                    <Badge className="bg-primary-100 text-primary-800 text-sm px-3 py-1 border-primary-200">
+                                                        {data.labels?.[data.status.CurrentSystemStatus] || data.status.CurrentSystemStatus}
+                                                    </Badge>
+                                                }
+                                            />
+                                        )}
+                                    </div>
+                                </CardContent>
+                            </Card>
 
-                                            {/* Other Status */}
-                                            <div className="space-y-4">
-                                                <h4 className="font-semibold text-gray-700 text-lg flex items-center">
-                                                    <div className="w-6 h-6 bg-primary-200 rounded-lg flex items-center justify-center mr-2">
-                                                        <Info className="w-4 h-4 text-white" />
-                                                    </div>
-                                                    Thông số chi tiết
-                                                </h4>
-                                                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                                    {Object.entries(data.status as Record<string, any>)
-                                                        .filter(([key]) => key !== "CurrentSystemStatus")
-                                                        .map(([key, value]) => (
-                                                            <div key={key} className="group">
-                                                                <div className="bg-white border-2 border-gray-200 rounded-xl p-4 group-hover:border-primary-200 group-hover:shadow-md transition-all duration-300">
-                                                                    <div className="flex items-center justify-between">
-                                                                        <div>
-                                                                            <p className="text-sm font-medium text-gray-600 mb-1">{data.labels?.[key] || formatKey(key)}</p>
-                                                                            {typeof value === "boolean" ? (
-                                                                                value ? (
-                                                                                    <div className="flex items-center">
-                                                                                        <AlertCircle className="h-6 w-6 text-red-500 mr-2" />
-                                                                                        <p className="text-lg font-semibold text-gray-800">Có vấn đề</p>
-                                                                                    </div>
-                                                                                ) : (
-                                                                                    <div className="flex items-center">
-                                                                                        <CheckCircle className="h-6 w-6 text-green-500 mr-2" />
-                                                                                        <p className="text-lg font-semibold text-gray-800">Chưa có vấn đề</p>
-                                                                                    </div>
-                                                                                )
-                                                                            ) : (
-                                                                                <p className="text-lg font-semibold text-gray-800">
-                                                                                    {data.labels?.[value] || String(value)}
-                                                                                </p>
-                                                                            )}
-                                                                        </div>
-                                                                        <div className="w-8 h-8 bg-primary-100 rounded-lg flex items-center justify-center">
-                                                                            <Activity className="w-4 h-4 text-primary-300" />
-                                                                        </div>
-                                                                    </div>
+                            {/* Other Parameters */}
+                            <Card className="border border-gray-100 shadow-sm bg-white overflow-hidden">
+                                <CardContent className="p-6 space-y-6">
+                                    <h3 className="text-lg font-semibold text-primary-600 mb-4 flex items-center">
+                                        <TerminalSquare className="w-5 h-5 mr-2 text-primary-500" />
+                                        Thông số Chi tiết
+                                    </h3>
+                                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
+                                        {Object.entries(data.status as Record<string, any>)
+                                            .filter(([key]) => key !== "CurrentSystemStatus")
+                                            .map(([key, value]) => (
+                                                <InfoField
+                                                    key={key}
+                                                    label={data.labels?.[key] || formatKey(key)}
+                                                    icon={<Cpu className="w-4 h-4 text-primary-500" />}
+                                                    value={
+                                                        typeof value === "boolean" ? (
+                                                            value ? (
+                                                                <div className="flex items-center text-red-600">
+                                                                    <AlertCircle className="h-5 w-5 mr-2" />
+                                                                    <span className="font-semibold">Có vấn đề</span>
                                                                 </div>
-                                                            </div>
-                                                        ))}
-                                                </div>
-                                            </div>
-                                        </div>
-                                    </CardContent>
-                                </Card>
-                            )}
+                                                            ) : (
+                                                                <div className="flex items-center text-green-600">
+                                                                    <CheckCircle className="h-5 w-5 mr-2" />
+                                                                    <span className="font-semibold">Bình thường</span>
+                                                                </div>
+                                                            )
+                                                        ) : (
+                                                            <span className="font-mono text-gray-700 bg-gray-100 px-2 py-1 rounded-md">
+                                                                {data.labels?.[value] || String(value)}
+                                                            </span>
+                                                        )
+                                                    }
+                                                />
+                                            ))}
+                                    </div>
+                                </CardContent>
+                            </Card>
                         </div>
-                    </ScrollArea>
-                ) : (
-                    <div className="flex-1 flex items-center justify-center p-12 bg-gray-50">
-                        <div className="text-center">
-                            <div className="w-16 h-16 bg-gray-100 rounded-2xl flex items-center justify-center mx-auto mb-4 shadow-lg">
-                                <AlertCircle className="h-8 w-8 text-gray-400" />
+                    ) : (
+                        <div className="flex-1 flex items-center justify-center p-12">
+                            <div className="text-center">
+                                <Info className="h-10 w-10 text-gray-400 mx-auto mb-4" />
+                                <p className="text-gray-600 font-medium">Chưa có thông tin tại máy</p>
+                                <p className="text-gray-400 text-sm mt-1">Thiết bị này chưa có dữ liệu tại máy để hiển thị.</p>
                             </div>
-                            <p className="text-gray-600 font-medium">Chưa có thông tin OnPlace</p>
-                            <p className="text-gray-400 text-sm mt-1">Thiết bị này chưa có dữ liệu OnPlace</p>
                         </div>
-                    </div>
-                )}
+                    )}
+                </ScrollArea>
             </DialogContent>
         </Dialog>
     )

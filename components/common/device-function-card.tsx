@@ -10,7 +10,7 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { Trash2, Plus, ChevronDown, ChevronRight, Settings } from 'lucide-react'
 import { DeviceFunction } from "@/interfaces/device"
 import { EBaseStatusViMap } from "@/enum/base"
-import { EFunctionParameterType } from "@/enum/device"
+import { EFunctionParameterType, EFunctionParameterTypeViMap } from "@/enum/device"
 import { DynamicOptionsInput } from "./dynamic-option-input"
 
 interface DeviceFunctionCardProps {
@@ -192,7 +192,7 @@ export function DeviceFunctionCard({
                                                                 <SelectContent>
                                                                     {Object.values(EFunctionParameterType).map((type) => (
                                                                         <SelectItem key={type} value={type}>
-                                                                            {type}
+                                                                            {EFunctionParameterTypeViMap[type]}
                                                                         </SelectItem>
                                                                     ))}
                                                                 </SelectContent>

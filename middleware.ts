@@ -30,6 +30,9 @@ const ADMIN_ONLY_PATHS = [
     Path.MANAGE_LOCATION_TYPES,
     Path.MANAGE_DEVICE_TYPES,
     Path.MANAGE_DEVICE_MODELS,
+    Path.MANAGE_DEVICES,
+    Path.MANAGE_STORES,
+    Path.CREATE_ACCOUNT,
     Path.MANAGE_SYNC_EVENT,
     Path.MANAGE_SYNC_TASKS,
     Path.MANAGE_INGREDIENT_TYPE,
@@ -58,16 +61,13 @@ export function middleware(req: NextRequest) {
 
 
     try {
-        // Giả sử accessToken là JWT, có trường "roleName"
-        const decoded = jwtDecode(accessToken) as { roleName?: string };
-        roleName = decoded?.roleName;
+        const decoded = jwtDecode(accessToken) as { role?: string };
+        roleName = decoded?.role;
     } catch (e) {
-        // Nếu decode lỗi, có thể redirect về login hoặc invalid-request
         url.pathname = Path.LOGIN;
         return NextResponse.redirect(url);
     }
 
-    // Nếu truy cập path dành cho admin, kiểm tra role
     if (
         ADMIN_ONLY_PATHS.some((adminPath) => pathname.startsWith(adminPath)) &&
         roleName !== "Admin"

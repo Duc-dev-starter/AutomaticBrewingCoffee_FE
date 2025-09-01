@@ -4,7 +4,7 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog"
 import { ScrollArea } from "@/components/ui/scroll-area"
 import { Card, CardContent } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
-import { FileText, Info, MapPin, Phone, Tag, Building2, Laptop, Users, MonitorSmartphone, Package, CalendarDays, Monitor, Shield } from "lucide-react"
+import { FileText, Info, MapPin, Phone, Tag, Building2, Laptop, Users, MonitorSmartphone, Package, CalendarDays, Monitor, Shield, Mail, Hash } from "lucide-react"
 import type { StoreDialogProps } from "@/types/dialog"
 import { EBaseStatusViMap } from "@/enum/base"
 import { getBaseStatusColor } from "@/utils/color"
@@ -63,11 +63,8 @@ const StoreDetailDialog = ({ store, open, onOpenChange }: StoreDialogProps) => {
                                     <InfoField
                                         label="Địa chỉ"
                                         value={store.locationAddress || "Chưa có"}
-                                        icon={<MapPin className="w-4 h-4 text-primary-500" />} />
-                                    <InfoField
-                                        label="Loại địa điểm"
-                                        value={store.locationType?.name || "Chưa có"}
-                                        icon={<Tag className="w-4 h-4 text-primary-500" />} />
+                                        icon={<MapPin className="w-4 h-4 text-primary-500" />}
+                                        className="col-span-2" />
                                     <InfoField
                                         label="Mô tả"
                                         value={store.description || "Chưa có"}
@@ -85,15 +82,39 @@ const StoreDetailDialog = ({ store, open, onOpenChange }: StoreDialogProps) => {
                                         <Building2 className="w-5 h-5 mr-2 text-primary-500" />
                                         Thông tin tổ chức
                                     </h3>
+
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                         <InfoField
                                             label="Tên tổ chức"
                                             value={store.organization.name || "Chưa có"}
-                                            icon={<Users className="w-4 h-4 text-primary-500" />} />
+                                            icon={<Users className="w-4 h-4 text-primary-500" />}
+                                        />
+
+                                        <InfoField
+                                            label="Mã tổ chức"
+                                            value={store.organization.organizationCode || "Chưa có"}
+                                            icon={<Hash className="w-4 h-4 text-primary-500" />}
+                                        />
+
+
+                                        <InfoField
+                                            label="Email liên hệ"
+                                            value={store.organization.contactEmail || "Chưa có"}
+                                            icon={<Mail className="w-4 h-4 text-primary-500" />}
+                                        />
+
+                                        <InfoField
+                                            label="Số điện thoại"
+                                            value={store.organization.contactPhone || "Chưa có"}
+                                            icon={<Phone className="w-4 h-4 text-primary-500" />}
+                                        />
+
                                     </div>
+
                                 </CardContent>
                             </Card>
                         )}
+
 
                         {/* Kiosk Info */}
                         {store.kiosk && store.kiosk.length > 0 && (

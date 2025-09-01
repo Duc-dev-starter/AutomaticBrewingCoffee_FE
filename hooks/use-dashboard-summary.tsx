@@ -27,14 +27,14 @@ export function useRevenueSummary(params: DashboardParams) {
 
 export function useAccountSummary(params: DashboardParams, roleName?: string) {
     return useCrossTabSWR(
-        roleName === "Organization" ? [] : ["accountSummary", params],
+        roleName === "Admin" ? ["accountSummary", params] : [],
         () => getAccountSummary(params)
     )
 }
 
 export function useOrganizationSummary(params: DashboardParams, roleName?: string) {
     return useCrossTabSWR(
-        roleName === "Organization" ? [] : ["organizationSummary", params],
+        roleName === "Admin" ? ["organizationSummary", params] : [],
         () => getOrganizationSummary(params)
     )
 }

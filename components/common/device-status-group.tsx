@@ -9,7 +9,7 @@ import { EDeviceStatus, EDeviceStatusViMap } from "@/enum/device"
 import { getDeviceStatusColor } from "@/utils/color"
 import clsx from "clsx"
 import { DropdownMenu, DropdownMenuContent, DropdownMenuItem, DropdownMenuTrigger } from "@/components/ui/dropdown-menu"
-import { Calendar, Info, MoreHorizontal, Package, RefreshCw, Tag } from "lucide-react"
+import { Calendar, History, Info, MapPin, MoreHorizontal, Package, RefreshCw, Tag, Wifi } from "lucide-react"
 import { KioskDevice } from "@/interfaces/kiosk"
 import { formatDate } from "@/utils/date"
 
@@ -74,29 +74,35 @@ export const DeviceStatusGroup = ({ kioskDevices, openReplaceDialog, openOnhubDi
                                                         <MoreHorizontal className="h-4 w-4" />
                                                     </Button>
                                                 </DropdownMenuTrigger>
+
                                                 <DropdownMenuContent align="end">
                                                     <DropdownMenuItem onClick={() => openReplaceDialog(kioskDevice)}>
                                                         <RefreshCw className="mr-2 h-4 w-4" />
                                                         Thay thế thiết bị
                                                     </DropdownMenuItem>
+
                                                     <DropdownMenuItem onClick={() => openOnhubDialog(kioskDevice)}>
-                                                        <Info className="mr-2 h-4 w-4" />
+                                                        <Wifi className="mr-2 h-4 w-4" />
                                                         Xem thông tin kết nối
                                                     </DropdownMenuItem>
+
                                                     <DropdownMenuItem onClick={() => openOnplaceDialog(kioskDevice)}>
-                                                        <Info className="mr-2 h-4 w-4" />
+                                                        <MapPin className="mr-2 h-4 w-4" />
                                                         Xem thông tin tại máy
                                                     </DropdownMenuItem>
+
                                                     <DropdownMenuItem onClick={() => openDeviceIngredient(kioskDevice)}>
-                                                        <Info className="mr-2 h-4 w-4" />
+                                                        <Package className="mr-2 h-4 w-4" />
                                                         Xem thông tin nguyên liệu
                                                     </DropdownMenuItem>
+
                                                     <DropdownMenuItem onClick={() => openDeviceIngredientHistory(kioskDevice)}>
-                                                        <Info className="mr-2 h-4 w-4" />
+                                                        <History className="mr-2 h-4 w-4" />
                                                         Xem lịch sử sử dụng nguyên liệu
                                                     </DropdownMenuItem>
                                                 </DropdownMenuContent>
                                             </DropdownMenu>
+
                                         </div>
                                     </div>
 
@@ -106,17 +112,17 @@ export const DeviceStatusGroup = ({ kioskDevices, openReplaceDialog, openOnhubDi
                                         <div className="flex justify-between items-center">
                                             <div className="flex items-center text-sm">
                                                 <Tag className="h-3 w-3 mr-1 text-muted-foreground" />
-                                                <span className="text-muted-foreground">Mã thiết bị:</span>
+                                                <span className="text-muted-foreground">Số serial:</span>
                                             </div>
-                                            <div className="font-medium text-sm">{kioskDevice.device.deviceId}</div>
+                                            <div className="font-medium text-sm">{kioskDevice.device.serialNumber || "Chưa có"}</div>
                                         </div>
 
                                         <div className="flex justify-between items-center">
                                             <div className="flex items-center text-sm">
                                                 <Tag className="h-3 w-3 mr-1 text-muted-foreground" />
-                                                <span className="text-muted-foreground">Serial Number:</span>
+                                                <span className="text-muted-foreground">Mô tả:</span>
                                             </div>
-                                            <div className="font-medium text-sm">{kioskDevice.device.serialNumber || "Chưa có"}</div>
+                                            <div className="font-medium text-sm">{kioskDevice.device.description || "Chưa có"}</div>
                                         </div>
 
                                         <div className="flex justify-between items-center">
@@ -149,7 +155,7 @@ export const DeviceStatusGroup = ({ kioskDevices, openReplaceDialog, openOnhubDi
 
                                         <div className="flex justify-between items-center">
                                             <div className="flex items-center text-sm">
-                                                <Calendar className="h-3 w-3 mr-1 text-white" />
+                                                <Calendar className="h-3 w-3 mr-1 text-muted-foreground" />
                                                 <span className="text-muted-foreground">Ngày cập nhật:</span>
                                             </div>
                                             <div className="font-medium text-sm">

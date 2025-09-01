@@ -98,12 +98,6 @@ const AccountDetailDialog = ({ account, open, onOpenChange }: AccountDialogProps
                                         icon={<Shield className="w-4 h-4 text-primary-500" />}
                                     />
 
-                                    {/* Reference ID */}
-                                    <InfoField
-                                        label="Mã tham chiếu"
-                                        value={account.referenceId || "Chưa có"}
-                                        icon={<FileText className="w-4 h-4 text-primary-500" />}
-                                    />
 
                                     {/* Banned Reason */}
                                     {account.isBanned && account.bannedReason && (

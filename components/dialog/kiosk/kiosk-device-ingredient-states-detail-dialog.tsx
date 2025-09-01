@@ -113,7 +113,7 @@ export default function KioskDeviceIngredientStatesDialog({
                                                             <div className="flex flex-col items-center gap-2">
                                                                 {getCapacityLevelBadge(state.capacityLevel)}
                                                                 {state.isWarning && <Badge variant="destructive"><AlertTriangle className="h-3 w-3 mr-1" />Cảnh báo</Badge>}
-                                                                {state.isRenewable && <Badge variant="secondary"><Recycle className="h-3 w-3 mr-1" />Tái sử dụng</Badge>}
+                                                                {state.isRenewable && <Badge variant="secondary"><Recycle className="h-3 w-3 mr-1" />Tự làm đầy</Badge>}
                                                             </div>
                                                         </TableCell>
                                                         <TableCell>

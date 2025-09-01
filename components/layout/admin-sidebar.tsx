@@ -12,7 +12,6 @@ import { useAppStore } from "@/stores/use-app-store"
 
 export function AdminSidebar() {
     const account = useAppStore(state => state.account);
-    console.log(account)
     const roleName = account?.roleName
 
 

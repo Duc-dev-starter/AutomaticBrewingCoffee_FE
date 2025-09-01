@@ -12,10 +12,8 @@ import { Path } from "@/constants/path.constant"
 const pathNames: Record<string, string> = {
     [Path.DASHBOARD]: "Trang chủ",
     [Path.MANAGE_ORDERS]: "Quản lý đơn hàng",
-    [Path.MANAGE_INGREDIENTS]: "Quản lý nguyên liệu",
     [Path.MANAGE_DEVICES]: "Quản lý thiết bị",
     [Path.MANAGE_KIOSKS]: "Quản lý kiosk",
-    [Path.MANAGE_COSTS]: "Quản lý chi phí",
     [Path.MANAGE_PRODUCTS]: "Quản lý sản phẩm",
     [Path.MANAGE_WORKFLOWS]: "Quản lý quy trình",
     [Path.MANAGE_MENUS]: "Quản lý menu",

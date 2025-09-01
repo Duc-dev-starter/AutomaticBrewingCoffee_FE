@@ -1,5 +1,6 @@
 import { NextRequest, NextResponse } from "next/server";
 import { Path } from "./constants/path.constant";
+import { jwtDecode } from "jwt-decode";
 
 export const config = {
     matcher: [
@@ -18,6 +19,23 @@ const dynamicPathPrefixes = [
     Path.MANAGE_NOTIFICATIONS
 ];
 
+const ADMIN_ONLY_PATHS = [
+    Path.MANAGE_CATEGORIES,
+    Path.MANAGE_ACCOUNTS,
+    Path.MANAGE_ORGANIZATIONS,
+    Path.MANAGE_PRODUCTS,
+    Path.MANAGE_WORKFLOWS,
+    Path.UPDATE_WORKFLOW,
+    Path.CREATE_WORKFLOW,
+    Path.MANAGE_LOCATION_TYPES,
+    Path.MANAGE_DEVICE_TYPES,
+    Path.MANAGE_DEVICE_MODELS,
+    Path.MANAGE_SYNC_EVENT,
+    Path.MANAGE_SYNC_TASKS,
+    Path.MANAGE_INGREDIENT_TYPE,
+];
+
+
 export function middleware(req: NextRequest) {
     const pathname = req.nextUrl.pathname;
     const url = req.nextUrl.clone();
@@ -34,6 +52,28 @@ export function middleware(req: NextRequest) {
             return NextResponse.redirect(url);
         }
         return NextResponse.next();
+    }
+
+    let roleName: string | undefined;
+
+
+    try {
+        // Giả sử accessToken là JWT, có trường "roleName"
+        const decoded = jwtDecode(accessToken) as { roleName?: string };
+        roleName = decoded?.roleName;
+    } catch (e) {
+        // Nếu decode lỗi, có thể redirect về login hoặc invalid-request
+        url.pathname = Path.LOGIN;
+        return NextResponse.redirect(url);
+    }
+
+    // Nếu truy cập path dành cho admin, kiểm tra role
+    if (
+        ADMIN_ONLY_PATHS.some((adminPath) => pathname.startsWith(adminPath)) &&
+        roleName !== "Admin"
+    ) {
+        url.pathname = Path.INVALID_REQUEST;
+        return NextResponse.redirect(url);
     }
 
     // if (!accessToken || !refreshToken) {

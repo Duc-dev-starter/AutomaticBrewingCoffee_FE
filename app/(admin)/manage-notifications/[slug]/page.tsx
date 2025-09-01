@@ -16,6 +16,7 @@ import { Skeleton } from "@/components/ui/skeleton"
 import { getNotification } from "@/services/notification.service"
 import { Order } from "@/interfaces/order"
 import { getOrder } from "@/services/order.service"
+import { OrderDetailDialog } from "@/components/dialog/order"
 
 const NotificationDetail = () => {
     const { toast } = useToast()
@@ -51,8 +52,7 @@ const NotificationDetail = () => {
         try {
             const orderData = await getOrder(orderId)
             setSelectedOrder(orderData.response)
-            console.log(orderData)
-            setIsDetailDialogOpen(true)
+            setIsDetailDialogOpen(true) // Mở dialog khi có dữ liệu order
         } catch (error) {
             console.error("Failed to fetch order details:", error)
             toast({
@@ -195,17 +195,18 @@ const NotificationDetail = () => {
                                 <p className="text-sm font-medium">{notification.createdBy}</p>
                             </div>
                             <div>
-                                <div className="flex items-center gap-2">
-                                    {notification.referenceType === EReferenceType.Kiosk && (
+                                <p className="text-sm text-gray-500">Liên kết</p>
+                                <div className="flex items-center gap-2 mt-1">
+                                    {notification.referenceType === EReferenceType.Kiosk && notification.referenceId && (
                                         <Button
                                             variant="outline"
                                             size="sm"
                                             onClick={() => router.push(`${Path.MANAGE_KIOSKS}/${notification.referenceId}`)}
                                         >
-                                            Xem
+                                            Xem Kiosk
                                         </Button>
                                     )}
-                                    {notification.referenceType === EReferenceType.Order && (
+                                    {notification.referenceType === EReferenceType.Order && notification.referenceId && (
                                         <Button
                                             variant="outline"
                                             size="sm"
@@ -214,6 +215,9 @@ const NotificationDetail = () => {
                                         >
                                             {isFetchingOrder ? "Đang tải..." : "Xem Đơn Hàng"}
                                         </Button>
+                                    )}
+                                    {!notification.referenceId && (
+                                        <span className="text-sm text-gray-500">Không có liên kết</span>
                                     )}
                                 </div>
                             </div>
@@ -230,10 +234,17 @@ const NotificationDetail = () => {
                             )}
                         </div>
                     </div>
-
-
                 </CardContent>
             </Card>
+
+            {/* Order Detail Dialog */}
+            {selectedOrder && (
+                <OrderDetailDialog
+                    order={selectedOrder}
+                    open={isDetailDialogOpen}
+                    onOpenChange={setIsDetailDialogOpen}
+                />
+            )}
         </div>
     )
 }

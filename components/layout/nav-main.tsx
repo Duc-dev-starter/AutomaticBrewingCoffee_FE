@@ -152,12 +152,12 @@ export function NavMain({ roleName }: { roleName: string | undefined }) {
                         return {
                             ...section,
                             items: section.items.filter(item =>
-                                item.title !== "Quản lý location" &&
                                 item.title !== "Quản lý tổ chức" &&
                                 item.title !== "Quản lý tài khoản" &&
                                 item.title !== "Quản lý loại nguyên liệu" &&
                                 item.title !== "Quản lý sản phẩm" &&
-                                item.title !== "Quản lý danh mục"
+                                item.title !== "Quản lý danh mục" &&
+                                item.title !== "Quản lý loại địa chỉ"
                             ),
                         }
                     }

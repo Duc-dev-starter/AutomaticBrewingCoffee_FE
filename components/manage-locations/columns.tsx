@@ -36,16 +36,6 @@ export const columns = ({
             ),
         },
         {
-            id: "description",
-            header: "Mô tả",
-            cell: ({ row }) => (
-                <div className="max-w-[300px] truncate text-center">
-                    {truncateText(row.original.description, 10)}
-                </div>
-            ),
-            enableSorting: false,
-        },
-        {
             id: "createdDate",
             accessorKey: "createdDate",
             header: "Ngày tạo",
@@ -86,6 +76,16 @@ export const columns = ({
                     </div>
                 );
             },
+        },
+        {
+            id: "description",
+            header: "Mô tả",
+            cell: ({ row }) => (
+                <div className="max-w-[300px] truncate text-center">
+                    {truncateText(row.original.description, 10)}
+                </div>
+            ),
+            enableSorting: false,
         },
         {
             id: "actions",

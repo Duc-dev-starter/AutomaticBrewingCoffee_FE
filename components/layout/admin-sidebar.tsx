@@ -1,7 +1,6 @@
 "use client"
 
 import * as React from "react"
-import Cookies from "js-cookie"
 import { NavMain } from "./nav-main"
 import { NavUser } from "./nav-user"
 import { Sidebar, SidebarContent, SidebarFooter, SidebarHeader, SidebarRail } from "@/components/ui/sidebar"

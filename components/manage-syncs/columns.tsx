@@ -1,9 +1,10 @@
 import { SyncEvent, SyncTask } from "@/interfaces/sync";
-import { Calendar, CheckCircle, XCircle } from "lucide-react";
+import { Calendar, CheckCircle, Pencil, PlusCircle, Trash2, XCircle } from "lucide-react";
 import { type ColumnDef } from "@tanstack/react-table";
 import { formatDate } from "@/utils/date";
 import { ActionDropdown } from "@/components/common";
 import { Badge } from "@/components/ui/badge";
+import { ESyncEventType, ESyncEventTypeViMap } from "@/enum/sync";
 
 export const syncEventColumns = ({
     onViewDetails,
@@ -21,20 +22,48 @@ export const syncEventColumns = ({
             enableSorting: false,
         },
         {
-            id: "syncEventType",
-            accessorKey: "syncEventType",
-            header: "Loại sự kiện",
-            cell: ({ row }) => (
-                <div className="text-center">{row.original.syncEventType}</div>
-            ),
-        },
-        {
             id: "entityType",
             accessorKey: "entityType",
             header: "Loại thực thể",
             cell: ({ row }) => (
                 <div className="text-center">{row.original.entityType}</div>
             ),
+        },
+        {
+            id: "syncEventType",
+            accessorKey: "syncEventType",
+            header: "Loại sự kiện",
+            cell: ({ row }) => {
+                const type = row.original.syncEventType as ESyncEventType
+                const label = ESyncEventTypeViMap[type]
+
+                let color = ""
+                let Icon = null
+
+                switch (type) {
+                    case ESyncEventType.Create:
+                        color = "bg-green-100 text-green-700"
+                        Icon = PlusCircle
+                        break
+                    case ESyncEventType.Update:
+                        color = "bg-blue-100 text-blue-700"
+                        Icon = Pencil
+                        break
+                    case ESyncEventType.Delete:
+                        color = "bg-red-100 text-red-700"
+                        Icon = Trash2
+                        break
+                }
+
+                return (
+                    <div className="flex justify-center">
+                        <Badge className={`flex items-center space-x-1 ${color}`}>
+                            {Icon && <Icon className="w-3.5 h-3.5 mr-1" />}
+                            <span>{label}</span>
+                        </Badge>
+                    </div>
+                )
+            },
         },
         {
             id: "createdDate",
@@ -84,11 +113,17 @@ export const syncTaskColumns = ({
             enableSorting: false,
         },
         {
-            id: "kioskId",
-            accessorKey: "kioskId",
-            header: "Mã kiosk",
+            id: "kioskPosition",
+            header: "Vị trí kiosk",
             cell: ({ row }) => (
-                <div className="text-center">{row.original.kioskId}</div>
+                <div className="text-center">{row.original.kiosk?.position ?? "-"}</div>
+            ),
+        },
+        {
+            id: "storeName",
+            header: "Tên cửa hàng",
+            cell: ({ row }) => (
+                <div className="text-center">{row.original.kiosk?.store?.name ?? "-"}</div>
             ),
         },
         {

@@ -2,7 +2,7 @@ import { type ColumnDef } from "@tanstack/react-table";
 import { EWorkflowType, EWorkflowTypeViMap } from "@/enum/workflow";
 import { ActionDropdown } from "@/components/common";
 import { Workflow } from "@/interfaces/workflow";
-import { Workflow as WorkflowIcon } from "lucide-react";
+import { PhoneCall, SprayCan, Workflow as WorkflowIcon } from "lucide-react";
 import { Badge } from "../ui/badge";
 import clsx from "clsx";
 
@@ -49,23 +49,23 @@ export const columns = ({
                     [EWorkflowType.Clean]: "bg-green-500",
                 };
 
+                const typeIconMap: Record<EWorkflowType, JSX.Element> = {
+                    [EWorkflowType.Activity]: <WorkflowIcon className="w-4 h-4 mr-1" />,
+                    [EWorkflowType.Callback]: <PhoneCall className="w-4 h-4 mr-1" />,
+                    [EWorkflowType.Clean]: <SprayCan className="w-4 h-4 mr-1" />,
+                };
+
                 return (
                     <div className="flex justify-center">
-                        <Badge className={clsx(typeColorMap[type] ?? "bg-gray-400", "text-white")}>
+                        <Badge
+                            className={clsx(typeColorMap[type] ?? "bg-gray-400", "text-white flex items-center")}
+                        >
+                            {typeIconMap[type]}
                             {typeText}
                         </Badge>
                     </div>
                 );
             },
-            enableSorting: false,
-        },
-        {
-            id: "description",
-            accessorKey: "description",
-            header: "Mô tả",
-            cell: ({ row }) => (
-                <div className="text-center">{row.original.description || "Chưa có"}</div>
-            ),
             enableSorting: false,
         },
         {
@@ -77,6 +77,15 @@ export const columns = ({
                     <div className="text-center">{stepsCount || 0}</div>
                 );
             },
+            enableSorting: false,
+        },
+        {
+            id: "description",
+            accessorKey: "description",
+            header: "Mô tả",
+            cell: ({ row }) => (
+                <div className="text-center">{row.original.description || "Chưa có"}</div>
+            ),
             enableSorting: false,
         },
         {

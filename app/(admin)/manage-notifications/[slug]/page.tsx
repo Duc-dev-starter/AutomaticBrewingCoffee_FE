@@ -51,6 +51,7 @@ const NotificationDetail = () => {
         try {
             const orderData = await getOrder(orderId)
             setSelectedOrder(orderData.response)
+            console.log(orderData)
             setIsDetailDialogOpen(true)
         } catch (error) {
             console.error("Failed to fetch order details:", error)

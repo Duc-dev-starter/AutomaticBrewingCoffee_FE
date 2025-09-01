@@ -12,3 +12,9 @@ export enum EEntityType {
     Menu = "Menu",
     MenuProductMapping = "MenuProductMapping"
 }
+
+export const ESyncEventTypeViMap: Record<ESyncEventType, string> = {
+    [ESyncEventType.Create]: "Tạo mới",
+    [ESyncEventType.Update]: "Cập nhật",
+    [ESyncEventType.Delete]: "Xoá",
+};

@@ -1,9 +1,9 @@
 import { type ColumnDef } from "@tanstack/react-table";
-import { ActionDropdown } from "../common";
+import { ActionDropdown, BaseFilterBadgesTable } from "../common";
 import { truncateText } from "@/utils/text";
-import { formatDate } from "@/utils/date";
-import { Calendar, Package } from "lucide-react";
+import { Package } from "lucide-react";
 import { IngredientType } from "@/interfaces/ingredient";
+import { EBaseStatus, EBaseStatusViMap } from "@/enum/base";
 
 export const columns = ({
     onViewDetails,
@@ -36,6 +36,18 @@ export const columns = ({
             ),
         },
         {
+            id: "status",
+            header: "Trạng thái",
+            cell: ({ row }) => {
+                const status: EBaseStatus = row.original.status;
+                const statusText = EBaseStatusViMap[status] ?? "Không rõ";
+                return (
+                    <BaseFilterBadgesTable status={status} statusText={statusText} />
+                );
+            },
+            enableSorting: false,
+        },
+        {
             id: "description",
             header: "Mô tả",
             cell: ({ row }) => (
@@ -44,18 +56,6 @@ export const columns = ({
                 </div>
             ),
             enableSorting: false,
-        },
-        {
-            id: "status",
-            accessorKey: "status",
-            header: "Trạng thái",
-            cell: ({ row }) => (
-                <div className="text-center">
-                    <span className={`px-2 py-1 rounded-full text-xs font-medium ${row.original.status === "Active" ? "bg-green-100 text-green-800" : "bg-red-100 text-red-800"}`}>
-                        {row.original.status}
-                    </span>
-                </div>
-            ),
         },
         {
             id: "actions",

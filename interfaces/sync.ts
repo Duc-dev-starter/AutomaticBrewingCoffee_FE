@@ -1,4 +1,5 @@
 import { EEntityType, ESyncEventType } from "@/enum/sync";
+import { Kiosk } from "./kiosk";
 
 export interface SyncEventTasks {
     syncTaskId: string;
@@ -24,4 +25,5 @@ export interface SyncTask {
     syncEvent: SyncEvent;
     createdDate: string;
     isSynced: boolean;
+    kiosk: Kiosk
 }

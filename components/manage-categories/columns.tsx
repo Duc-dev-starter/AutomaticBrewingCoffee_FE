@@ -56,16 +56,6 @@ export const columns = ({
             enableSorting: false,
         },
         {
-            id: "description",
-            header: "Mô tả",
-            cell: ({ row }) => (
-                <div className="max-w-[300px] truncate text-center">
-                    {truncateText(row.original.description, 10)}
-                </div>
-            ),
-            enableSorting: false,
-        },
-        {
             id: "displayOrder",
             header: "Thứ tự",
             cell: ({ row }) => (
@@ -85,6 +75,16 @@ export const columns = ({
                     <BaseFilterBadgesTable status={status} statusText={statusText} />
                 );
             },
+            enableSorting: false,
+        },
+        {
+            id: "description",
+            header: "Mô tả",
+            cell: ({ row }) => (
+                <div className="max-w-[300px] truncate text-center">
+                    {truncateText(row.original.description, 10)}
+                </div>
+            ),
             enableSorting: false,
         },
         {

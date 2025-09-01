@@ -93,16 +93,6 @@ export const columns = ({
             enableSorting: false,
         },
         {
-            id: "isHasWorkflow",
-            header: "Có quy trình",
-            cell: ({ row }) => (
-                <div className="text-center">
-                    {row.original.isHasWorkflow ? <span className="text-muted-foreground">Có</span> : <span className="text-muted-foreground">Chưa có</span>}
-                </div>
-            ),
-            enableSorting: false,
-        },
-        {
             id: "status",
             header: "Trạng thái",
             cell: ({ row }) => {

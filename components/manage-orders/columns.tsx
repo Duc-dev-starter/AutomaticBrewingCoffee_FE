@@ -8,6 +8,8 @@ import { ActionDropdown } from "../common";
 import Image from "next/image";
 import { images } from "@/public/assets";
 import { formatDate } from "@/utils/date";
+import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
+import { truncateMiddle } from "@/utils/text";
 
 const getOrderTypeConfig = (orderType: EOrderType) => {
     switch (orderType) {
@@ -40,7 +42,23 @@ export const columns = ({
             id: "orderCode",
             header: "Mã đơn hàng",
             cell: ({ row }) => {
-                return <div className="text-center">{row.original.orderCode}</div>;
+                const orderCode = row.original.orderCode as string
+
+
+                return (
+                    <div className="text-center">
+                        <Tooltip>
+                            <TooltipTrigger asChild>
+                                <span className="cursor-pointer font-mono">
+                                    {truncateMiddle(orderCode)}
+                                </span>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                                <p className="font-mono">{orderCode}</p>
+                            </TooltipContent>
+                        </Tooltip>
+                    </div>
+                )
             },
         },
         {

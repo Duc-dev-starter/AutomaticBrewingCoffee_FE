@@ -208,7 +208,7 @@ const OrderDetailDialog = ({ order, open, onOpenChange }: OrderDialogProps) => {
                                                 </div>
                                                 <div className="border-t border-dashed pt-3 grid grid-cols-1 md:grid-cols-2 gap-x-6 gap-y-3 text-sm">
                                                     <div><InfoField label="Ngày tạo" value={formatDate(payment.createdDate)} icon={undefined} /></div>
-                                                    <div><InfoField label="Ngày thanh toán" value={formatDate(payment.paymentDate)} icon={undefined} /></div>
+                                                    <div><InfoField label="Ngày thực hiện" value={formatDate(payment.paymentDate)} icon={undefined} /></div>
                                                     <div><InfoField label="Ngày hết hạn" value={formatDate(payment.expiredDate)} icon={undefined} /></div>
                                                     <div><InfoField label="ID Giao dịch" value={<span className="font-mono text-xs">{payment.paymentId}</span>} icon={undefined} /></div>
                                                 </div>

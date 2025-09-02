@@ -49,11 +49,11 @@ export const columns = ({
                     <div className="text-center">
                         <Tooltip>
                             <TooltipTrigger asChild>
-                                <span className="cursor-pointer bg-black">
+                                <span className="cursor-pointer">
                                     {truncateMiddle(orderCode)}
                                 </span>
                             </TooltipTrigger>
-                            <TooltipContent>
+                            <TooltipContent className="bg-black">
                                 <p className="font-mono">{orderCode}</p>
                             </TooltipContent>
                         </Tooltip>

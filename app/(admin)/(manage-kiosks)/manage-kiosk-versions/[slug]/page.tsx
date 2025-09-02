@@ -23,7 +23,8 @@ import type { DeviceModel } from "@/interfaces/device"
 import type { Product, SupportProduct } from "@/interfaces/product"
 import type { ErrorResponse } from "@/types/error"
 import { formatDate } from "@/utils/date"
-import { EProductTypeViMap } from "@/enum/product"
+import { EProductStatusViMap, EProductTypeViMap } from "@/enum/product"
+import { EBaseStatusViMap } from "@/enum/base"
 
 const KioskVersionDetailPage = () => {
     const { slug } = useParams()
@@ -287,7 +288,7 @@ const KioskVersionDetailPage = () => {
                     <div className="space-y-2">
                         <div className="flex justify-between">
                             <span className="font-medium">Trạng thái:</span>
-                            <Badge variant={kioskVersion.status === "Active" ? "default" : "secondary"}>{kioskVersion.status}</Badge>
+                            <Badge variant={kioskVersion.status === "Active" ? "default" : "secondary"}>{EBaseStatusViMap[kioskVersion.status]}</Badge>
                         </div>
                         <div className="flex justify-between">
                             <span className="font-medium">Ngày tạo:</span>
@@ -407,12 +408,11 @@ const KioskVersionDetailPage = () => {
                                         <TableHead className="w-12">STT</TableHead>
                                         <TableHead className="w-14">Hình ảnh</TableHead>
                                         <TableHead>Tên sản phẩm</TableHead>
-                                        <TableHead>Mô tả</TableHead>
                                         <TableHead>Giá</TableHead>
-                                        <TableHead>Kích thước</TableHead>
                                         <TableHead>Loại</TableHead>
                                         <TableHead>Trạng thái</TableHead>
                                         <TableHead>Ngày tạo</TableHead>
+                                        <TableHead>Mô tả</TableHead>
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
@@ -435,25 +435,20 @@ const KioskVersionDetailPage = () => {
                                                 )}
                                             </TableCell>
                                             <TableCell className="font-medium">{item.product.name}</TableCell>
-                                            <TableCell className="max-w-[200px] truncate" title={item.product.description || "Chưa có"}>
-                                                {item.product.description || "Chưa có"}
-                                            </TableCell>
                                             <TableCell>{item.product.price.toLocaleString()} VND</TableCell>
-                                            <TableCell>{item.product.size}</TableCell>
                                             <TableCell>
                                                 {EProductTypeViMap[item.product.type] ?? item.product.type}
                                             </TableCell>
                                             <TableCell>
                                                 <Badge variant={item.product.status === "Selling" ? "default" : "secondary"}>
-                                                    {item.product.status}
+                                                    {EProductStatusViMap[item.product.status]}
                                                 </Badge>
                                             </TableCell>
                                             <TableCell>
-                                                {new Date(item.product.createdDate).toLocaleDateString("vi-VN", {
-                                                    year: "numeric",
-                                                    month: "2-digit",
-                                                    day: "2-digit",
-                                                })}
+                                                {item.product.createdDate ? formatDate(item.product.createdDate) : "Chưa có"}
+                                            </TableCell>
+                                            <TableCell className="max-w-[200px] truncate" title={item.product.description || "Chưa có"}>
+                                                {item.product.description || "Chưa có"}
                                             </TableCell>
                                         </TableRow>
                                     ))}
@@ -498,7 +493,7 @@ const KioskVersionDetailPage = () => {
                                             <TableCell>{mapping.deviceModel?.deviceType?.name || "Chưa có"}</TableCell>
                                             <TableCell>
                                                 <Badge variant={mapping.deviceModel?.status === "Active" ? "default" : "secondary"}>
-                                                    {mapping.deviceModel?.status || "Chưa có"}
+                                                    {EBaseStatusViMap[mapping.deviceModel?.status] || "Chưa có"}
                                                 </Badge>
                                             </TableCell>
                                             <TableCell>

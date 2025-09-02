@@ -22,8 +22,13 @@ const stepSchema = z.object({
     type: z.string().min(1, "Loại bước là bắt buộc"),
     deviceModelId: z.string().optional(),
     deviceFunctionId: z.string().optional(),
-    maxRetries: z.number().min(0),
-    sequence: z.number().min(1),
+    maxRetries: z.coerce
+        .number({ invalid_type_error: "Số lần thử lại phải là một số." })
+        .min(0, "Số lần thử lại phải lớn hơn hoặc bằng 0."),
+
+    sequence: z.coerce
+        .number({ invalid_type_error: "Thứ tự phải là một số." })
+        .min(1, "Thứ tự phải là số nguyên lớn hơn 0."),
     callbackWorkflowId: z.string().nullable().optional(),
     callbackStepCode: z.string().optional().nullable(),
     stepCode: z.string().min(1, "Step code là bắt buộc"),

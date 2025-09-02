@@ -17,18 +17,30 @@ const conditionSchema = z.object({
     }),
 })
 
+const numberField = (fieldName: string, minVal: number) =>
+    z.preprocess((val) => {
+        // Nếu để trống
+        if (val === "" || val === null || val === undefined) return undefined;
+        // Nếu là số hợp lệ
+        if (typeof val === "string" && /^\d+$/.test(val)) return Number(val);
+        if (typeof val === "number") return val;
+        // Nếu là chữ, trả về nguyên
+        return val;
+    }, z.any())
+        // Lỗi required
+        .refine((val) => val !== undefined, { message: `${fieldName} không được để trống` })
+        // Lỗi kiểu số
+        .refine((val) => typeof val === "number" && !isNaN(val), { message: `${fieldName} chỉ được nhập số` })
+        // Lỗi min
+        .refine((val) => typeof val === "number" && val >= minVal, { message: `${fieldName} phải >= ${minVal}` });
+
 const stepSchema = z.object({
     name: z.string().min(1, "Tên bước là bắt buộc").max(100, "Tên bước không được quá 100 ký tự.").transform((val) => val.replace(/\s+/g, " ")),
     type: z.string().min(1, "Loại bước là bắt buộc"),
-    deviceModelId: z.string().optional(),
+    deviceModelId: z.string().min(1, "Mẫu thiết bị là bắt buộc"),
     deviceFunctionId: z.string().optional(),
-    maxRetries: z.coerce
-        .number({ invalid_type_error: "Số lần thử lại phải là một số." })
-        .min(0, "Số lần thử lại phải lớn hơn hoặc bằng 0."),
-
-    sequence: z.coerce
-        .number({ invalid_type_error: "Thứ tự phải là một số." })
-        .min(1, "Thứ tự phải là số nguyên lớn hơn 0."),
+    maxRetries: numberField("Số lần thử lại tối đa", 0),
+    sequence: numberField("Thứ tự", 1),
     callbackWorkflowId: z.string().nullable().optional(),
     callbackStepCode: z.string().optional().nullable(),
     stepCode: z.string().min(1, "Step code là bắt buộc"),

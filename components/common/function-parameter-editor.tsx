@@ -4,6 +4,7 @@ import type React from "react"
 import { useEffect, useMemo, useCallback } from "react"
 import type { DeviceModel, OptionParamter } from "@/interfaces/device"
 import JsonEditorComponent from "./json-editor"
+import { EFunctionParameterTypeViMap } from "@/enum/device"
 
 interface FunctionParameter {
     functionParameterId: string
@@ -122,7 +123,7 @@ const FunctionParameterEditor: React.FC<FunctionParameterEditorProps> = ({
                             key={param.functionParameterId}
                             className="inline-flex items-center px-2 py-1 rounded-md bg-blue-50 text-blue-700 text-xs border border-blue-200"
                         >
-                            {param.description || param.name} ({param.type})
+                            {param.description || param.name} ({EFunctionParameterTypeViMap[param.type]})
                         </span>
                     ))}
                 </div>

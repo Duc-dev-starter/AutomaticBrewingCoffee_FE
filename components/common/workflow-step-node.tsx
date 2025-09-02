@@ -29,9 +29,11 @@ const WorkflowStepNode: FC<NodeProps<WorkflowStepNodeData>> = ({ data }) => {
             <Card className={`w-full ${hasError ? "border-red-500 shadow-md shadow-red-500/20" : ""}`}>
                 <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 bg-muted/50">
                     <CardTitle className="text-sm font-medium flex items-center">
-                        <Badge variant="secondary" className="mr-2">
-                            {step.sequence}
-                        </Badge>
+                        {!Number.isNaN(step.sequence) && (
+                            <Badge variant="secondary" className="mr-2">
+                                {step.sequence}
+                            </Badge>
+                        )}
                         <span className="truncate" title={step.name}>
                             {step.name}
                         </span>

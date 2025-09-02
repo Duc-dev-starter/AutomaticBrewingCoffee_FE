@@ -14,6 +14,7 @@ import { AlertTriangle } from "lucide-react"
 import { cn } from "@/lib/utils"
 import { OptionParamter } from "@/interfaces/device"
 import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip"
+import { EFunctionParameterTypeViMap } from "@/enum/device"
 
 interface FunctionParameter {
     functionParameterId: string
@@ -50,10 +51,10 @@ const JsonEditorComponent: React.FC<JsonEditorComponentProps> = ({
     const aceEditorRef = useRef<any>(null)
 
     const availableTypes = [
-        { value: "text", label: "Text" },
-        { value: "integer", label: "Integer" },
-        { value: "double", label: "Double" },
-        { value: "boolean", label: "Boolean" },
+        { value: "text", label: "Chuỗi kí tự" },
+        { value: "integer", label: "Số nguyên" },
+        { value: "double", label: "Số thực" },
+        { value: "boolean", label: "Kiểu logic" },
     ]
 
     const parsedJson = useMemo(() => {
@@ -83,6 +84,9 @@ const JsonEditorComponent: React.FC<JsonEditorComponentProps> = ({
 
     // Validate a single parameter value against its constraints
     const validateParameterValue = (value: any, param: FunctionParameter) => {
+        if (param.options && param.options.length > 0) {
+            return { isValid: true }; // Bỏ qua tất cả các kiểm tra khác.
+        }
         const type = param.type.toLowerCase()
 
         if (type === "integer" || type === "int") {
@@ -91,11 +95,11 @@ const JsonEditorComponent: React.FC<JsonEditorComponentProps> = ({
             }
         } else if (type === "double" || type === "float") {
             if (typeof value !== "number" || isNaN(value)) {
-                return { isValid: false, error: "Giá trị phải là số thập phân" }
+                return { isValid: false, error: "Giá trị phải là số thực" }
             }
         } else if (type === "boolean") {
             if (typeof value !== "boolean") {
-                return { isValid: false, error: "Giá trị phải là true hoặc false" }
+                return { isValid: false, error: "Giá trị phải là kiểu logic" }
             }
         }
 
@@ -165,12 +169,12 @@ const JsonEditorComponent: React.FC<JsonEditorComponentProps> = ({
                 const floatVal = Number.parseFloat(val)
                 return {
                     isValid: !isNaN(floatVal) && !isNaN(Number(val)),
-                    error: "Giá trị phải là số thập phân (ví dụ: 12.5)",
+                    error: "Giá trị phải là số thực (ví dụ: 12.5)",
                 }
             case "boolean":
                 return {
                     isValid: val.trim() === "true" || val.trim() === "false",
-                    error: "Giá trị phải là true hoặc false",
+                    error: "Giá trị phải là kiểu logic (true hoặc false)",
                 }
             case "text":
                 return { isValid: true }
@@ -395,7 +399,7 @@ const JsonEditorComponent: React.FC<JsonEditorComponentProps> = ({
                         {spacing(indent)}
                         <div className="flex items-center gap-2">
                             <span className="text-blue-600 font-semibold">{displayText}</span>
-                            <span className="text-xs bg-gray-100 text-gray-600 px-1 rounded">{paramType}</span>
+                            <span className="text-xs bg-gray-100 text-gray-600 px-1 rounded">{[EFunctionParameterTypeViMap[paramType]]}</span>
                             {hasConstraints && (
                                 <span className="text-xs bg-orange-100 text-orange-600 px-1 rounded">
                                     {param?.min || "∞"} - {param?.max || "∞"}

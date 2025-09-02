@@ -263,8 +263,13 @@ const CreateWorkflow = () => {
                 const newSteps = [...prev.steps]
                 const currentStep = { ...newSteps[index] }
 
-                if (field === "sequence") {
-                    currentStep.sequence = Number(value)
+                if (field === "maxRetries" || field === "sequence") {
+                    // Cho phép để trống hoặc chỉ nhận số >= 0
+                    if (value === "" || /^\d+$/.test(value.toString())) {
+                        currentStep[field] = value === "" ? "" : Number(value);
+                    } else {
+                        currentStep[field] = value; // để schema báo lỗi
+                    }
                 } else if (field === "name") {
                     currentStep.name = String(value || "")
                 } else if (field === "deviceModelId") {
@@ -288,8 +293,6 @@ const CreateWorkflow = () => {
                     }
                 } else if (field === "parameters") {
                     currentStep.parameters = (value as string) || ""
-                } else if (field === "maxRetries") {
-                    currentStep.maxRetries = Number(value)
                 } else if (field === "callbackStepCode") {
                     currentStep.callbackStepCode = value === "" ? null : value
                 } else {
@@ -463,6 +466,43 @@ const CreateWorkflow = () => {
         })
     }, [])
 
+    const parseErrors = (error: ZodError) => {
+        const errors: Record<string, any> = {};
+
+        error.errors.forEach((e) => {
+            const path = e.path; // ví dụ: ["steps", 0, "maxRetries"]
+            let current: any = errors;
+
+            for (let i = 0; i < path.length; i++) {
+                const key = path[i];
+
+                if (i === path.length - 1) {
+                    // node cuối cùng => push message
+                    if (!current[key]) {
+                        current[key] = [];
+                    }
+                    current[key].push(e.message);
+                } else {
+                    // chưa đến cuối => tạo object hoặc array lồng nhau
+                    if (typeof path[i + 1] === "number") {
+                        // phần tử tiếp theo là số => array
+                        if (!Array.isArray(current[key])) {
+                            current[key] = [];
+                        }
+                    } else {
+                        // phần tử tiếp theo là string => object
+                        if (!current[key]) {
+                            current[key] = {};
+                        }
+                    }
+                    current = current[key];
+                }
+            }
+        });
+
+        return errors;
+    };
+
     const handleValidationAndPreview = useCallback(
         (e: React.FormEvent) => {
             e.preventDefault()
@@ -473,7 +513,7 @@ const CreateWorkflow = () => {
             const result = workflowSchema.safeParse(dataToValidate)
 
             if (!result.success) {
-                const newErrors = result.error.flatten().fieldErrors
+                const newErrors = parseErrors(result.error);
                 setErrors(newErrors)
                 toast({
                     title: "Lỗi xác thực",
@@ -1017,20 +1057,22 @@ const CreateWorkflow = () => {
                                         className={`border rounded-md p-4 flex items-center justify-between bg-white dark:bg-gray-800 ${errors.steps?.[index] ? "border-red-500" : "border-gray-200 dark:border-gray-700"}`}
                                     >
                                         <div className="flex items-center flex-grow min-w-0">
-                                            <Badge variant="outline" className="mr-3 bg-blue-50 text-blue-700 border-blue-200">
-                                                {step.sequence}
-                                            </Badge>
+                                            {!Number.isNaN(step.sequence) && (
+                                                <Badge
+                                                    variant="outline"
+                                                    className="mr-3 bg-blue-50 text-blue-700 border-blue-200"
+                                                >
+                                                    {step.sequence}
+                                                </Badge>
+                                            )}
+
+
                                             <span
                                                 className="font-medium truncate"
                                                 title={step.name || `Bước ${step.sequence}`}
                                             >
                                                 {step.name || `Bước ${step.sequence}`}
                                             </span>
-                                            {step.type && (
-                                                <Badge variant="secondary" className="ml-3 hidden sm:inline-flex flex-shrink-0">
-                                                    {step.type}
-                                                </Badge>
-                                            )}
                                             {errors.steps?.[index] && (
                                                 <AlertTriangle className="h-4 w-4 text-red-500 ml-2 flex-shrink-0" />
                                             )}
@@ -1083,13 +1125,18 @@ const CreateWorkflow = () => {
             <Dialog open={editingStepIndex !== null} onOpenChange={(open) => !open && setEditingStepIndex(null)}>
                 <DialogContent className="sm:max-w-[650px] p-7 border-0 bg-white backdrop-blur-xl shadow-2xl max-h-[90vh] overflow-y-auto hide-scrollbar">
                     <DialogHeader>
-                        <DialogTitle>Chỉnh sửa bước {formData.steps[editingStepIndex ?? 0]?.sequence}</DialogTitle>
+                        <DialogTitle>
+                            Chỉnh sửa bước{" "}
+                            {Number.isNaN(formData.steps[editingStepIndex ?? 0]?.sequence)
+                                ? ""
+                                : formData.steps[editingStepIndex ?? 0]?.sequence}
+                        </DialogTitle>
                     </DialogHeader>
                     {editingStepIndex !== null && (
                         <div className="space-y-6">
                             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                                 <div className="space-y-2">
-                                    <Label htmlFor={`step-sequence-${editingStepIndex}`}>Thứ tự (Sequence)</Label>
+                                    <Label htmlFor={`step-sequence-${editingStepIndex}`}>Thứ tự</Label>
                                     <Input
                                         id={`step-sequence-${editingStepIndex}`}
                                         type="number"
@@ -1124,10 +1171,19 @@ const CreateWorkflow = () => {
                                         id={`step-maxRetries-${editingStepIndex}`}
                                         type="number"
                                         value={formData.steps[editingStepIndex].maxRetries}
-                                        onChange={(e) => handleStepChange(editingStepIndex, "maxRetries", Number.parseInt(e.target.value))}
-                                        disabled={loading}
+                                        onChange={(e) => handleStepChange(editingStepIndex, "maxRetries", e.target.value)}
                                         className={errors.steps?.[editingStepIndex]?.maxRetries ? "border-red-500" : ""}
                                     />
+                                    {/* Tổng hợp lỗi step nếu có (mảng) */}
+                                    {Array.isArray(errors.steps?.[editingStepIndex]) && (
+                                        <div className="space-y-1 mb-2">
+                                            {errors.steps[editingStepIndex].map((err: string, i: number) => (
+                                                <p key={i} className="text-red-500 text-sm">{err}</p>
+                                            ))}
+                                        </div>
+                                    )}
+
+                                    {/* Lỗi từng field nếu có (object) */}
                                     {errors.steps?.[editingStepIndex]?.maxRetries && (
                                         <p className="text-red-500 text-sm">{errors.steps[editingStepIndex].maxRetries[0]}</p>
                                     )}

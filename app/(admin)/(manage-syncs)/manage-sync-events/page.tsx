@@ -27,6 +27,7 @@ import { ExportButton, NoResultsRow, Pagination, RefreshButton, SearchInput } fr
 import { syncEventColumns } from "@/components/manage-syncs/columns";
 import { useDebounce, useSyncEvents, useToast } from "@/hooks";
 import { multiSelectFilter } from "@/utils/table";
+import { EEntityTypeViMap, ESyncEventTypeViMap } from "@/enum/sync";
 const SyncEventDetailDialog = React.lazy(() => import("@/components/dialog/sync").then(module => ({ default: module.SyncEventDetailDialog })));
 
 
@@ -35,6 +36,7 @@ const ManageSyncEvents = () => {
     const [pageSize, setPageSize] = useState<number>(10);
     const [currentPage, setCurrentPage] = useState<number>(1);
     const [typeFilter, setTypeFilter] = useState<string>("");
+    const [entityTypeFilter, setEntityTypeFilter] = useState<string>("");
     const [searchValue, setSearchValue] = useState<string>("");
     const debouncedSearchValue = useDebounce(searchValue, 500);
 
@@ -52,7 +54,8 @@ const ManageSyncEvents = () => {
         size: pageSize,
         sortBy: sorting.length > 0 ? sorting[0]?.id : undefined,
         isAsc: sorting.length > 0 ? !sorting[0]?.desc : undefined,
-        type: typeFilter || undefined,
+        syncEventType: typeFilter || undefined,
+        entityType: entityTypeFilter || undefined,
     };
 
     const { data, error, isLoading, mutate } = useSyncEvents(params);
@@ -70,7 +73,8 @@ const ManageSyncEvents = () => {
     useEffect(() => {
         table.getColumn("entityId")?.setFilterValue(debouncedSearchValue || undefined);
         table.getColumn("syncEventType")?.setFilterValue(typeFilter || undefined);
-    }, [debouncedSearchValue, typeFilter]);
+        table.getColumn("entityType")?.setFilterValue(entityTypeFilter || undefined);
+    }, [debouncedSearchValue, typeFilter, entityTypeFilter]);
 
     const handleViewDetails = useCallback((syncEvent: SyncEvent) => {
         setDetailSyncEvent(syncEvent);
@@ -139,7 +143,7 @@ const ManageSyncEvents = () => {
                         <DropdownMenu>
                             <DropdownMenuTrigger asChild>
                                 <Button variant="outline">
-                                    Loại sự kiện: {typeFilter || "Tất cả"} <ChevronDownIcon className="ml-2 h-4 w-4" />
+                                    Loại sự kiện: {typeFilter && typeFilter in ESyncEventTypeViMap ? ESyncEventTypeViMap[typeFilter as keyof typeof ESyncEventTypeViMap] : "Tất cả"} <ChevronDownIcon className="ml-2 h-4 w-4" />
                                 </Button>
                             </DropdownMenuTrigger>
                             <DropdownMenuContent>
@@ -153,19 +157,59 @@ const ManageSyncEvents = () => {
                                     checked={typeFilter === "Create"}
                                     onCheckedChange={() => setTypeFilter("Create")}
                                 >
-                                    Create
+                                    Tạo mới
                                 </DropdownMenuCheckboxItem>
                                 <DropdownMenuCheckboxItem
                                     checked={typeFilter === "Update"}
                                     onCheckedChange={() => setTypeFilter("Update")}
                                 >
-                                    Update
+                                    Cập nhật
                                 </DropdownMenuCheckboxItem>
                                 <DropdownMenuCheckboxItem
                                     checked={typeFilter === "Delete"}
                                     onCheckedChange={() => setTypeFilter("Delete")}
                                 >
-                                    Delete
+                                    Xóa
+                                </DropdownMenuCheckboxItem>
+                            </DropdownMenuContent>
+                        </DropdownMenu>
+
+                        <DropdownMenu>
+                            <DropdownMenuTrigger asChild>
+                                <Button variant="outline">
+                                    Loại thực thể: {entityTypeFilter && entityTypeFilter in EEntityTypeViMap ? EEntityTypeViMap[typeFilter as keyof typeof EEntityTypeViMap] : "Tất cả"} <ChevronDownIcon className="ml-2 h-4 w-4" />
+                                </Button>
+                            </DropdownMenuTrigger>
+                            <DropdownMenuContent>
+                                <DropdownMenuCheckboxItem
+                                    checked={entityTypeFilter === ""}
+                                    onCheckedChange={() => setEntityTypeFilter("")}
+                                >
+                                    Tất cả
+                                </DropdownMenuCheckboxItem>
+                                <DropdownMenuCheckboxItem
+                                    checked={entityTypeFilter === "Step"}
+                                    onCheckedChange={() => setEntityTypeFilter("Step")}
+                                >
+                                    Bước
+                                </DropdownMenuCheckboxItem>
+                                <DropdownMenuCheckboxItem
+                                    checked={entityTypeFilter === "KioskDeviceMapping"}
+                                    onCheckedChange={() => setEntityTypeFilter("KioskDeviceMapping")}
+                                >
+                                    Thiết bị trong kiosk
+                                </DropdownMenuCheckboxItem>
+                                <DropdownMenuCheckboxItem
+                                    checked={entityTypeFilter === "Workflow"}
+                                    onCheckedChange={() => setEntityTypeFilter("Workflow")}
+                                >
+                                    Quy trình
+                                </DropdownMenuCheckboxItem>
+                                <DropdownMenuCheckboxItem
+                                    checked={entityTypeFilter === "Device"}
+                                    onCheckedChange={() => setEntityTypeFilter("Device")}
+                                >
+                                    Thiết bị
                                 </DropdownMenuCheckboxItem>
                             </DropdownMenuContent>
                         </DropdownMenu>

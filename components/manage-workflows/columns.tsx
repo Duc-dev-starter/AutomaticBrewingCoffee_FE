@@ -5,6 +5,8 @@ import { Workflow } from "@/interfaces/workflow";
 import { PhoneCall, SprayCan, Workflow as WorkflowIcon } from "lucide-react";
 import { Badge } from "../ui/badge";
 import clsx from "clsx";
+import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
+import { truncateText } from "@/utils/text";
 
 export const columns = ({
     onViewDetails,
@@ -81,10 +83,20 @@ export const columns = ({
         },
         {
             id: "description",
-            accessorKey: "description",
             header: "Mô tả",
             cell: ({ row }) => (
-                <div className="text-center">{row.original.description || "Chưa có"}</div>
+                <div className="max-w-[300px] truncate text-center">
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <span className="cursor-pointer">
+                                {truncateText(row.original.description, 10)}
+                            </span>
+                        </TooltipTrigger>
+                        <TooltipContent className="bg-black">
+                            <p className="font-mono ">{row.original.description}</p>
+                        </TooltipContent>
+                    </Tooltip>
+                </div>
             ),
             enableSorting: false,
         },

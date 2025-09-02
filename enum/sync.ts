@@ -6,15 +6,21 @@ export enum ESyncEventType {
 
 
 export enum EEntityType {
-    Product = "Product",
+    Device = "Device",
     Workflow = "Workflow",
     Step = "Step",
-    Menu = "Menu",
-    MenuProductMapping = "MenuProductMapping"
+    KioskDeviceMapping = "KioskDeviceMapping",
 }
 
 export const ESyncEventTypeViMap: Record<ESyncEventType, string> = {
     [ESyncEventType.Create]: "Tạo mới",
     [ESyncEventType.Update]: "Cập nhật",
     [ESyncEventType.Delete]: "Xoá",
+};
+
+export const EEntityTypeViMap: Record<EEntityType, string> = {
+    [EEntityType.Workflow]: "Quy trình",
+    [EEntityType.Step]: "Bước",
+    [EEntityType.Device]: "Thiết bị",
+    [EEntityType.KioskDeviceMapping]: "Thiết bị trong kiosk",
 };

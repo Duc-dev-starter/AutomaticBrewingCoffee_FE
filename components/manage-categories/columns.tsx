@@ -4,6 +4,7 @@ import { ActionDropdown } from "../common";
 import BaseFilterBadgesTable from "../common/base-filter-badges-table";
 import { Category } from "@/interfaces/category";
 import { truncateText } from "@/utils/text";
+import { Tooltip, TooltipContent, TooltipTrigger } from "../ui/tooltip";
 
 export const columns = ({
     onViewDetails,
@@ -82,7 +83,16 @@ export const columns = ({
             header: "Mô tả",
             cell: ({ row }) => (
                 <div className="max-w-[300px] truncate text-center">
-                    {truncateText(row.original.description, 10)}
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <span className="cursor-pointer">
+                                {truncateText(row.original.description, 10)}
+                            </span>
+                        </TooltipTrigger>
+                        <TooltipContent className="bg-black">
+                            <p className="font-mono ">{row.original.description}</p>
+                        </TooltipContent>
+                    </Tooltip>
                 </div>
             ),
             enableSorting: false,

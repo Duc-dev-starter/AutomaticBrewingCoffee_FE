@@ -77,11 +77,6 @@ const OrganizationDialog = ({ open, onOpenChange, onSuccess, organization }: Org
         }
     }, [organization, open])
 
-    useEffect(() => {
-        if (open && nameInputRef.current) {
-            setTimeout(() => nameInputRef.current?.focus(), 200)
-        }
-    }, [open])
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {
@@ -229,6 +224,9 @@ const OrganizationDialog = ({ open, onOpenChange, onSuccess, organization }: Org
             return
         }
 
+        const cleanedData = validationResult.data
+
+
         setErrors({})
         setLoading(true)
 
@@ -243,12 +241,12 @@ const OrganizationDialog = ({ open, onOpenChange, onSuccess, organization }: Org
                 taxId: string
                 status: EBaseStatus
             } = {
-                name: formData.name,
-                description: formData.description,
-                contactPhone: formData.contactPhone,
-                contactEmail: formData.contactEmail,
-                taxId: formData.taxId,
-                status: formData.status,
+                name: cleanedData.name,
+                description: cleanedData.description || "",
+                contactPhone: cleanedData.contactPhone,
+                contactEmail: cleanedData.contactEmail,
+                taxId: cleanedData.taxId,
+                status: cleanedData.status,
             }
 
             if (logoTab === "upload" && logoFile) {

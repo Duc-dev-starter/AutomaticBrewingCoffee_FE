@@ -1,6 +1,6 @@
 import { z } from "zod";
 
 export const locationSchema = z.object({
-    name: z.string().trim().min(1, "Tên loại địa điểm không được để trống.").max(100, "Tên loại địa điểm không được quá 100 ký tự."),
+    name: z.string().trim().min(1, "Tên loại địa điểm không được để trống.").max(100, "Tên loại địa điểm không được quá 100 ký tự.").transform((val) => val.replace(/\s+/g, " ")),
     description: z.string().trim().max(450, "Mô tả loại địa điểm không được quá 450 ký tự.").optional(),
 });

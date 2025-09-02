@@ -11,7 +11,7 @@ import { EProductStatus, EProductSize, EProductType, EBaseUnit, EAttributteOptio
 import { createProduct, updateProduct, getProducts } from "@/services/product.service";
 import { productSchema } from "@/schema/product.schema";
 import type { ProductDialogProps } from "@/types/dialog";
-import { Upload, X, LinkIcon, ImageIcon, CheckCircle2, AlertCircle, PlusCircle, Edit, Monitor, DollarSign, Tag, Box, List, Check, Slash, Edit3 } from "lucide-react";
+import { Upload, X, LinkIcon, ImageIcon, PlusCircle, Edit, Monitor, DollarSign, Tag, Box, List, Check, Edit3 } from "lucide-react";
 import type { ErrorResponse } from "@/types/error";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { getCategories } from "@/services/category.service";
@@ -211,11 +211,6 @@ const ProductDialog = ({ open, onOpenChange, onSuccess, product }: ProductDialog
         }
     }, [open]);
 
-    useEffect(() => {
-        if (open && nameInputRef.current) {
-            setTimeout(() => nameInputRef.current?.focus(), 200);
-        }
-    }, [open]);
 
     useEffect(() => {
         const handleKeyDown = (e: KeyboardEvent) => {

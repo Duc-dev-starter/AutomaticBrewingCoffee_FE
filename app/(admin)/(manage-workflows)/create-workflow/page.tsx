@@ -289,8 +289,7 @@ const CreateWorkflow = () => {
                 } else if (field === "parameters") {
                     currentStep.parameters = (value as string) || ""
                 } else if (field === "maxRetries") {
-                    const numValue = Number(value)
-                    currentStep.maxRetries = Number.isNaN(numValue) ? 0 : Math.max(0, numValue)
+                    currentStep.maxRetries = Number(value)
                 } else if (field === "callbackStepCode") {
                     currentStep.callbackStepCode = value === "" ? null : value
                 } else {
@@ -1120,30 +1119,12 @@ const CreateWorkflow = () => {
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor={`step-type-${editingStepIndex}`}>Loại bước (tự động)</Label>
-                                    <Input
-                                        id={`step-type-${editingStepIndex}`}
-                                        value={formData.steps[editingStepIndex].type}
-                                        readOnly={true}
-                                        disabled={loading}
-                                        className={`${errors.steps?.[editingStepIndex]?.type ? "border-red-500" : ""} bg-gray-50`}
-                                        placeholder="Loại sẽ tự động cập nhật"
-                                    />
-                                    {errors.steps?.[editingStepIndex]?.type && (
-                                        <p className="text-red-500 text-sm">{errors.steps[editingStepIndex].type[0]}</p>
-                                    )}
-                                </div>
-
-                                <div className="space-y-2">
-                                    <Label htmlFor={`step-maxRetries-${editingStepIndex}`}>Số lần thử lại tối đa</Label>
+                                    <Label className="asterisk" htmlFor={`step-maxRetries-${editingStepIndex}`}>Số lần thử lại tối đa</Label>
                                     <Input
                                         id={`step-maxRetries-${editingStepIndex}`}
                                         type="number"
-                                        min="0"
                                         value={formData.steps[editingStepIndex].maxRetries}
-                                        onChange={(e) =>
-                                            handleStepChange(editingStepIndex, "maxRetries", Number.parseInt(e.target.value) >= 0 ? Number.parseInt(e.target.value) : 0)
-                                        }
+                                        onChange={(e) => handleStepChange(editingStepIndex, "maxRetries", Number.parseInt(e.target.value))}
                                         disabled={loading}
                                         className={errors.steps?.[editingStepIndex]?.maxRetries ? "border-red-500" : ""}
                                     />
@@ -1153,7 +1134,7 @@ const CreateWorkflow = () => {
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor={`step-deviceModelId-${editingStepIndex}`}>Mẫu thiết bị</Label>
+                                    <Label className="asterisk" htmlFor={`step-deviceModelId-${editingStepIndex}`}>Mẫu thiết bị</Label>
                                     <Select
                                         value={formData.steps[editingStepIndex].deviceModelId}
                                         onValueChange={(value) => handleStepChange(editingStepIndex, "deviceModelId", value)}
@@ -1202,7 +1183,7 @@ const CreateWorkflow = () => {
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor={`step-deviceFunctionId-${editingStepIndex}`}>Chức năng thiết bị</Label>
+                                    <Label className="asterisk" htmlFor={`step-deviceFunctionId-${editingStepIndex}`}>Chức năng thiết bị</Label>
                                     <Select
                                         value={formData.steps[editingStepIndex].deviceFunctionId}
                                         onValueChange={(value) => handleStepChange(editingStepIndex, "deviceFunctionId", value)}
@@ -1245,48 +1226,7 @@ const CreateWorkflow = () => {
                                 </div>
 
                                 <div className="space-y-2">
-                                    <Label htmlFor={`step-callbackWorkflowId-${editingStepIndex}`}>Quy trình callback (Tùy chọn)</Label>
-                                    <Select
-                                        value={formData.steps[editingStepIndex].callbackWorkflowId || ""}
-                                        onValueChange={(value) => handleStepChange(editingStepIndex, "callbackWorkflowId", value)}
-                                        disabled={loading || (loadingWorkflows && workflows.length === 0)}
-                                    >
-                                        <SelectTrigger
-                                            id={`step-callbackWorkflowId-${editingStepIndex}`}
-                                            className={errors.steps?.[editingStepIndex]?.callbackWorkflowId ? "border-red-500" : ""}
-                                        >
-                                            <SelectValue
-                                                placeholder={loadingWorkflows && workflows.length === 0 ? "Đang tải quy trình..." : "Chọn quy trình callback"}
-                                            />
-                                        </SelectTrigger>
-                                        <SelectContent id={`workflow-callback-scroll-content-${editingStepIndex}`} className="max-h-[300px]">
-                                            <ScrollArea className="h-[200px]">
-                                                <InfiniteScroll
-                                                    dataLength={workflows.length}
-                                                    next={() => fetchWorkflows(workflowPage + 1)}
-                                                    hasMore={hasMoreWorkflows && !loadingWorkflows}
-                                                    loader={<div className="p-2 text-center text-sm">Đang tải thêm...</div>}
-                                                    scrollableTarget={`workflow-callback-scroll-content-${editingStepIndex}`}
-                                                >
-                                                    {workflows.map((wf) => (
-                                                        <SelectItem key={wf.workflowId} value={wf.workflowId}>
-                                                            {wf.name}
-                                                        </SelectItem>
-                                                    ))}
-                                                    {!loadingWorkflows && workflows.length === 0 && (
-                                                        <div className="p-2 text-center text-sm text-gray-500">Chưa có quy trình.</div>
-                                                    )}
-                                                </InfiniteScroll>
-                                            </ScrollArea>
-                                        </SelectContent>
-                                    </Select>
-                                    {errors.steps?.[editingStepIndex]?.callbackWorkflowId && (
-                                        <p className="text-red-500 text-sm">{errors.steps[editingStepIndex].callbackWorkflowId[0]}</p>
-                                    )}
-                                </div>
-
-                                <div className="space-y-2">
-                                    <Label htmlFor={`step-callbackStepCode-${editingStepIndex}`}>Bước callback (Tùy chọn)</Label>
+                                    <Label htmlFor={`step-callbackStepCode-${editingStepIndex}`}>Bước gọi lại (Tùy chọn)</Label>
                                     <Select
                                         value={formData.steps[editingStepIndex].callbackStepCode ?? ""}
                                         onValueChange={(value) => handleStepChange(editingStepIndex, "callbackStepCode", value)}
@@ -1296,7 +1236,7 @@ const CreateWorkflow = () => {
                                             id={`step-callbackStepCode-${editingStepIndex}`}
                                             className={errors.steps?.[editingStepIndex]?.callbackStepCode ? "border-red-500" : ""}
                                         >
-                                            <SelectValue placeholder="Chọn bước callback trong quy trình này" />
+                                            <SelectValue placeholder="Chọn bước gọi lại trong quy trình này" />
                                         </SelectTrigger>
                                         <SelectContent>
                                             {formData.steps
@@ -1330,7 +1270,7 @@ const CreateWorkflow = () => {
 
                             <div className="space-y-4">
                                 <div className="flex items-center justify-between">
-                                    <Label>Điều kiện (Conditions)</Label>
+                                    <Label>Điều kiện</Label>
                                     <Button
                                         variant="outline"
                                         size="sm"
@@ -1391,6 +1331,12 @@ const CreateWorkflow = () => {
 
                                                 <div className="space-y-2">
                                                     <Label>Biểu thức (Expression)</Label>
+                                                    <div className="p-2 mt-2 border rounded bg-gray-50 text-sm">
+                                                        <strong>Xem trước:</strong>{" "}
+                                                        {condition.expression.left.value}{" "}
+                                                        {EOperationMap[condition.expression.operator]}{" "}
+                                                        {condition.expression.right.value}
+                                                    </div>
                                                     <div className="grid grid-cols-1 gap-4">
                                                         <div className="space-y-2">
                                                             <Label>Phần trái</Label>

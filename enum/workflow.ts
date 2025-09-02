@@ -38,6 +38,15 @@ export const EOperationViMap: Record<EOperation, string> = {
     [EOperation.LessThanOrEqual]: "Nhỏ hơn hoặc bằng",
 };
 
+export const EOperationMap: Record<EOperation, string> = {
+    [EOperation.Equal]: "=",
+    [EOperation.NotEqual]: "!=",
+    [EOperation.GreaterThan]: ">",
+    [EOperation.GreaterThanOrEqual]: ">=",
+    [EOperation.LessThan]: "<",
+    [EOperation.LessThanOrEqual]: "<=",
+};
+
 export enum EExpressionType {
     Literal = "Literal",
     Variable = "Variable",

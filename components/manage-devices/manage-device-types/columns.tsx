@@ -7,6 +7,7 @@ import { ActionDropdown } from "@/components/common";
 import { EBaseStatus, EBaseStatusViMap } from "@/enum/base";
 import { Badge } from "@/components/ui/badge";
 import { truncateText } from "@/utils/text";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 export const columns = ({
     onViewDetails,
@@ -38,16 +39,7 @@ export const columns = ({
                 </div>
             ),
         },
-        {
-            id: "description",
-            header: "Mô tả",
-            cell: ({ row }) => (
-                <div className="max-w-[300px] truncate text-center">
-                    {truncateText(row.original.description, 10)}
-                </div>
-            ),
-            enableSorting: false,
-        },
+
         {
             id: "isMobileDevice",
             header: "Thiết bị di động",
@@ -92,7 +84,6 @@ export const columns = ({
             accessorKey: "createdDate",
             header: "Ngày tạo",
             cell: ({ row }) => {
-                const createdDate = new Date(row.original.createdDate);
                 return (
                     <div className="flex items-center justify-center">
                         <Calendar className="h-4 w-4 mr-1 text-muted-foreground" />
@@ -122,6 +113,25 @@ export const columns = ({
                     </div>
                 );
             },
+        },
+        {
+            id: "description",
+            header: "Mô tả",
+            cell: ({ row }) => (
+                <div className="max-w-[300px] truncate text-center">
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <span className="cursor-pointer">
+                                {truncateText(row.original.description, 10)}
+                            </span>
+                        </TooltipTrigger>
+                        <TooltipContent className="bg-black">
+                            <p className="font-mono ">{row.original.description}</p>
+                        </TooltipContent>
+                    </Tooltip>
+                </div>
+            ),
+            enableSorting: false,
         },
         {
             id: "actions",

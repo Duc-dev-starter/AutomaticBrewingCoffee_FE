@@ -4,6 +4,7 @@ import { ActionDropdown } from "../common";
 import BaseFilterBadgesTable from "../common/base-filter-badges-table";
 import { Account } from "@/interfaces/account";
 import { Switch } from "../ui/switch";
+import { RoleViMap } from "@/enum/role";
 
 export const columns = ({
     onViewDetails,
@@ -37,7 +38,7 @@ export const columns = ({
             header: "Vai trò",
             cell: ({ row }) => (
                 <div className="text-center">
-                    {row.original.roleName || "Chưa có"}
+                    {RoleViMap[row.original.roleName] || "Chưa có"}
                 </div>
             ),
             enableSorting: false,

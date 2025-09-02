@@ -4,7 +4,7 @@ import { type ColumnDef } from "@tanstack/react-table";
 import { formatDate } from "@/utils/date";
 import { ActionDropdown } from "@/components/common";
 import { Badge } from "@/components/ui/badge";
-import { ESyncEventType, ESyncEventTypeViMap } from "@/enum/sync";
+import { EEntityTypeViMap, ESyncEventType, ESyncEventTypeViMap } from "@/enum/sync";
 
 export const syncEventColumns = ({
     onViewDetails,
@@ -26,7 +26,7 @@ export const syncEventColumns = ({
             accessorKey: "entityType",
             header: "Loại thực thể",
             cell: ({ row }) => (
-                <div className="text-center">{row.original.entityType}</div>
+                <div className="text-center">{EEntityTypeViMap[row.original.entityType]}</div>
             ),
         },
         {

@@ -34,17 +34,6 @@ export const columns = ({
             enableSorting: false,
         },
         {
-            id: "location",
-            accessorKey: "location",
-            header: "Địa chỉ",
-            cell: ({ row }) => (
-                <div className="flex items-center justify-center gap-2">
-                    <Cpu className="h-4 w-4 text-muted-foreground" />
-                    <span>{row.original.location}</span>
-                </div>
-            ),
-        },
-        {
             id: "store",
             header: "Tên cửa hàng",
             cell: ({ row }) => (
@@ -55,8 +44,20 @@ export const columns = ({
             enableSorting: false,
         },
         {
+            id: "location",
+            accessorKey: "location",
+            header: "Địa chỉ",
+            cell: ({ row }) => (
+                <div className="flex items-center justify-center gap-2">
+                    <Cpu className="h-4 w-4 text-muted-foreground" />
+                    <span>{row.original.location}</span>
+                </div>
+            ),
+        },
+
+        {
             id: "devices",
-            header: "Thiết bị",
+            header: "Số lượng thiết bị",
             cell: ({ row }) => {
                 const devices = row.original.kioskDevices || [];
                 return (

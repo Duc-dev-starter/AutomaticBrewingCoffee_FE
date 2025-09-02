@@ -5,6 +5,7 @@ import { KioskType } from "@/interfaces/kiosk";
 import { EBaseStatus, EBaseStatusViMap } from "@/enum/base";
 import { truncateText } from "@/utils/text";
 import { ActionDropdown, BaseFilterBadgesTable } from "@/components/common";
+import { Tooltip, TooltipContent, TooltipTrigger } from "@/components/ui/tooltip";
 
 export const columns = ({
     onViewDetails,
@@ -36,16 +37,7 @@ export const columns = ({
                 </div>
             ),
         },
-        {
-            id: "description",
-            header: "Mô tả",
-            cell: ({ row }) => (
-                <div className="max-w-[300px] truncate text-center">
-                    {truncateText(row.original.description, 10)}
-                </div>
-            ),
-            enableSorting: false,
-        },
+
         {
             id: "status",
             header: "Trạng thái",
@@ -97,6 +89,25 @@ export const columns = ({
                     return renderCentered("Ngày không hợp lệ");
                 }
             },
+        },
+        {
+            id: "description",
+            header: "Mô tả",
+            cell: ({ row }) => (
+                <div className="max-w-[300px] truncate text-center">
+                    <Tooltip>
+                        <TooltipTrigger asChild>
+                            <span className="cursor-pointer">
+                                {truncateText(row.original.description, 10)}
+                            </span>
+                        </TooltipTrigger>
+                        <TooltipContent className="bg-black">
+                            <p className="font-mono ">{row.original.description}</p>
+                        </TooltipContent>
+                    </Tooltip>
+                </div>
+            ),
+            enableSorting: false,
         },
         {
             id: "actions",

@@ -18,6 +18,7 @@ import {
 import type { AccountDialogProps } from "@/types/dialog"
 import { InfoField } from "@/components/common"
 import { VisuallyHidden } from '@radix-ui/react-visually-hidden'
+import { RoleViMap } from "@/enum/role"
 
 const AccountDetailDialog = ({ account, open, onOpenChange }: AccountDialogProps) => {
     if (!account) return null
@@ -82,7 +83,7 @@ const AccountDetailDialog = ({ account, open, onOpenChange }: AccountDialogProps
                             <CardContent className="p-6 space-y-6">
                                 <h3 className="text-lg font-semibold text-primary-600 mb-4 flex items-center">
                                     <Info className="w-5 h-5 mr-2 text-primary-500" />
-                                    Thông tin tài khoản
+                                    Thông tin tài khoản {RoleViMap[account.roleName] || account.roleName}
                                 </h3>
                                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                                     {/* Full Name */}
@@ -90,13 +91,6 @@ const AccountDetailDialog = ({ account, open, onOpenChange }: AccountDialogProps
 
                                     {/* Email */}
                                     <InfoField label="Email" value={account.email} icon={<Mail className="w-4 h-4 text-primary-500" />} />
-
-                                    {/* Role */}
-                                    <InfoField
-                                        label="Vai trò"
-                                        value={account.roleName}
-                                        icon={<Shield className="w-4 h-4 text-primary-500" />}
-                                    />
 
 
                                     {/* Banned Reason */}

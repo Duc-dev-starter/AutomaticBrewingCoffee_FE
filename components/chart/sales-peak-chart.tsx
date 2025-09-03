@@ -26,8 +26,10 @@ export function SalesPeakChart({ data }: SalesPeakChartProps) {
         .map((point) => ({
             hour: point.hour,
             orderCount: point.orderCount,
+            totalAmount: point.totalAmount, // thêm dòng này
             isPeak: point.isPeak,
         })) || []
+
 
     // Tìm max orderCount và làm tròn lên bội số 10
     const maxOrder = Math.max(...chartData.map((d) => d.orderCount), 0)

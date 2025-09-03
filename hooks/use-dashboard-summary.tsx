@@ -63,13 +63,19 @@ export function useHourlyPeak(params: DashboardParams) {
 export function useDashboardSummary(params: DashboardParams) {
     const { account: appAccount } = useAppStore();
 
+    const paramsWithoutDate: DashboardParams = {
+        ...params,
+        startDate: "",
+        endDate: "",
+    };
+
     const order = useOrderSummary(params);
-    const kiosk = useKioskSummary(params);
+    const kiosk = useKioskSummary(paramsWithoutDate);
     const revenue = useRevenueSummary(params);
     const orderTraffic = useOrderTrafficSummary(params);
-    const account = useAccountSummary(params, appAccount?.roleName);
-    const store = useStoreSummary(params);
-    const organization = useOrganizationSummary(params, appAccount?.roleName);
+    const account = useAccountSummary(paramsWithoutDate, appAccount?.roleName);
+    const store = useStoreSummary(paramsWithoutDate);
+    const organization = useOrganizationSummary(paramsWithoutDate, appAccount?.roleName);
     const hourlyPeak = useHourlyPeak(params);
 
 

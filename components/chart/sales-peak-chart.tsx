@@ -66,7 +66,13 @@ export function SalesPeakChart({ data }: SalesPeakChartProps) {
                             cursor={false}
                             content={
                                 <ChartTooltipContent
-                                    formatter={(value, name) => [`${value} đơn`]}
+                                    formatter={(_, __, item) => {
+                                        const { orderCount, totalAmount } = item.payload
+                                        return [
+                                            `${orderCount} đơn - ${(totalAmount / 1000).toFixed(0)}K VNĐ`,
+                                            "Chi tiết",
+                                        ]
+                                    }}
                                 />
                             }
                         />

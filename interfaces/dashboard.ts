@@ -27,6 +27,8 @@ export interface OrderTrafficSummary {
     totalCurrentPeriod: number;
     totalPreviousPeriod: number;
     trafficByShift: OrderTrafficByShift[];
+    windowDayType: string;
+    growthRate: string;
 }
 
 export interface OrderTrafficByShift {

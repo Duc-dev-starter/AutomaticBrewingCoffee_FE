@@ -5,42 +5,42 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { type ChartConfig, ChartContainer, ChartTooltip, ChartTooltipContent } from "@/components/ui/chart"
 import { HourlyPeak } from "@/interfaces/dashboard"
 
-
 interface SalesPeakChartProps {
     data?: HourlyPeak
 }
 
 const chartConfig = {
-    totalAmount: {
-        label: "Doanh số",
+    orderCount: {
+        label: "Số đơn",
         color: "hsl(var(--chart-1))",
     },
 } satisfies ChartConfig
 
 export function SalesPeakChart({ data }: SalesPeakChartProps) {
-    const chartData = data?.points?.map((point) => ({
-        hour: point.hour,
-        totalAmount: point.totalAmount,
-        isPeak: point.isPeak,
-        orderCount: point.orderCount,
-    })) || [
-            { hour: "06:00", totalAmount: 186000, isPeak: false, orderCount: 12 },
-            { hour: "07:00", totalAmount: 305000, isPeak: false, orderCount: 18 },
-            { hour: "08:00", totalAmount: 237000, isPeak: false, orderCount: 15 },
-            { hour: "09:00", totalAmount: 273000, isPeak: false, orderCount: 16 },
-            { hour: "10:00", totalAmount: 209000, isPeak: false, orderCount: 14 },
-            { hour: "11:00", totalAmount: 414000, isPeak: true, orderCount: 25 },
-            { hour: "12:00", totalAmount: 314000, isPeak: false, orderCount: 20 },
-        ]
+    // Lọc dữ liệu từ 05:00 - 20:00
+    const chartData = data?.points
+        ?.filter((p) => {
+            const hour = parseInt(p.hour.split(":")[0], 10)
+            return hour >= 5 && hour <= 20
+        })
+        .map((point) => ({
+            hour: point.hour,
+            orderCount: point.orderCount,
+            isPeak: point.isPeak,
+        })) || []
 
-    const peak = data?.peak || chartData.find((item) => item.isPeak) || chartData[5]
+    // Tìm max orderCount và làm tròn lên bội số 10
+    const maxOrder = Math.max(...chartData.map((d) => d.orderCount), 0)
+    const yMax = Math.ceil(maxOrder / 10) * 10
+
+    const peak = data?.peak || chartData.find((item) => item.isPeak) || chartData[0]
 
     return (
         <Card>
             <CardHeader>
-                <CardTitle>Đỉnh doanh số theo giờ</CardTitle>
+                <CardTitle>Đỉnh số đơn theo giờ</CardTitle>
                 <CardDescription>
-                    {data ? `Từ ${data.windowStartHour} đến ${data.windowEndHour}` : "Doanh số theo giờ trong ngày"}
+                    {data ? `Từ 05:00 đến 20:00` : "Số đơn hàng theo giờ trong ngày"}
                 </CardDescription>
             </CardHeader>
             <CardContent>
@@ -57,28 +57,36 @@ export function SalesPeakChart({ data }: SalesPeakChartProps) {
                         <CartesianGrid vertical={false} />
                         <XAxis dataKey="hour" tickLine={false} axisLine={false} tickMargin={8} />
                         <YAxis
+                            domain={[0, yMax]}
                             tickLine={false}
                             axisLine={false}
                             tickMargin={8}
-                            tickFormatter={(value) => `${(value / 1000).toFixed(0)}K`}
                         />
                         <ChartTooltip
                             cursor={false}
                             content={
                                 <ChartTooltipContent
-                                    formatter={(value, name) => [`${(Number(value) / 1000).toFixed(0)}K VNĐ`]}
+                                    formatter={(value, name) => [`${value} đơn`]}
                                 />
                             }
                         />
-                        <Line dataKey="totalAmount" type="monotone" stroke="var(--color-totalAmount)" strokeWidth={2} dot={false} />
-                        <ReferenceDot
-                            x={peak.hour}
-                            y={peak.totalAmount}
-                            r={6}
-                            fill="hsl(var(--destructive))"
-                            stroke="white"
+                        <Line
+                            dataKey="orderCount"
+                            type="monotone"
+                            stroke="var(--color-orderCount)"
                             strokeWidth={2}
+                            dot={false}
                         />
+                        {peak && (
+                            <ReferenceDot
+                                x={peak.hour}
+                                y={peak.orderCount}
+                                r={6}
+                                fill="hsl(var(--destructive))"
+                                stroke="white"
+                                strokeWidth={2}
+                            />
+                        )}
                     </LineChart>
                 </ChartContainer>
             </CardContent>

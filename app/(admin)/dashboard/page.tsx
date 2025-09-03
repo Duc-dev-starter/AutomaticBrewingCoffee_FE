@@ -27,6 +27,7 @@ const Dashboard = () => {
             kioskId: "",
             startDate: dateRange?.from ? format(dateRange.from, "yyyy-MM-dd'T'HH:mm:ss") : "",
             endDate: dateRange?.to ? format(dateRange.to, "yyyy-MM-dd'T'HH:mm:ss") : "",
+            includeSunday: true,
         }),
         [dateRange],
     )
